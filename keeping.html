@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!-- CT_7G_INJECT:START (auto-injected by deploy tool — do not edit by hand) -->
+<style id="ct-7g-hide">body{visibility:hidden}</style>
+<script>window.CT_PAGE_ID="keeping";</script>
+<script>setTimeout(function(){if(!window.__ctFlagsLoaded){location.replace("/comingsoon.html");}},2500);</script>
+<script src="/auth-status.js"></script>
+<!-- CT_7G_INJECT:END -->
+<script src="/feature-flags.js"></script>
+<script src="/prelaunch-guard.js"></script>
+<script src="/ct-data-loader.js"></script><!-- Phase 3 §3: gated derived-data loader -->
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Keeping Records – Cricket Times</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#FAF7F2;--surface:#fff;--surface2:#F5F0EA;--surface3:#EDE8E0;
+  --text:#1a1e26;--text2:#555;--text3:#888;
+  --accent:#8B2500;--accent-dim:rgba(139,37,0,0.08);--accent-light:rgba(139,37,0,0.15);
+  --border:#e0dcd5;--border2:#ccc;
+  --gold:#B8860B;--green:#2E7D32;--blue:#1565C0;
+  --font-display:'Playfair Display',Georgia,serif;
+  --font-body:'Source Serif 4','Georgia',serif;
+  --font-mono:'JetBrains Mono',monospace;
+  --radius:6px;
+}
+html{font-size:15px;scroll-behavior:smooth}
+body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-height:1.5;min-height:100vh}
+
+/* ── Masthead ── */
+.ct-masthead{text-align:center;padding:18px 20px 10px;border-bottom:2px solid var(--text)}
+.ct-masthead-date{font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:var(--text2);margin-bottom:4px}
+.ct-masthead-logo{font-family:var(--font-display);font-size:2.2rem;font-weight:700;letter-spacing:-0.5px}
+.ct-masthead-logo a{color:var(--text);text-decoration:none}
+.ct-masthead-logo span{font-style:italic;font-weight:400}
+.ct-masthead-tagline{font-family:var(--font-body);font-size:11px;letter-spacing:1.6px;text-transform:uppercase;color:var(--text3);margin-top:2px}
+
+/* ── Nav ── */
+.ct-nav-bar{border-bottom:1px solid var(--border);background:var(--bg);position:sticky;top:0;z-index:100}
+.ct-nav-inner{max-width:1100px;margin:0 auto;display:flex;justify-content:center;gap:0;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.ct-nav-inner::-webkit-scrollbar{display:none}
+.ct-nav-link{padding:10px 18px;font-family:var(--font-body);font-size:12.5px;letter-spacing:0.8px;text-transform:uppercase;color:var(--text2);text-decoration:none;white-space:nowrap;transition:color 0.2s,border-color 0.2s;border-bottom:2px solid transparent}
+.ct-nav-link:hover{color:var(--accent)}
+.ct-nav-link.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
+
+/* ── Main ── */
+.main{max-width:1100px;margin:0 auto;padding:28px 24px 60px}
+.page-head{margin-bottom:22px}
+.page-title{font-family:var(--font-display);font-size:2rem;font-weight:700;letter-spacing:-0.5px}
+.page-desc{font-size:13px;color:var(--text3);margin-top:4px}
+
+/* ── Stat Cards ── */
+.stat-cards{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:22px}
+.scard{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
+.scard-label{font-size:10.5px;text-transform:uppercase;letter-spacing:0.8px;color:var(--text3);font-weight:600;margin-bottom:5px}
+.scard-val{font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--text)}
+.scard-sub{font-size:11px;color:var(--text3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ── Filter panel ── */
+.fp{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:18px;overflow:hidden}
+.fp-head{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;cursor:pointer;user-select:none}
+.fp-head-left{display:flex;align-items:center;gap:8px}
+.fp-head-left svg{width:16px;height:16px;fill:none;stroke:var(--text3);stroke-linecap:round;stroke-linejoin:round;transition:transform 0.2s}
+.fp.open .fp-head-left svg{transform:rotate(180deg)}
+.fp-head-title{font-family:var(--font-display);font-size:14px;font-weight:600;color:var(--text)}
+.fp-count{font-size:11px;color:var(--accent);font-weight:600}
+.fp-body{display:none;padding:0 16px 16px;border-top:1px solid var(--border)}
+.fp.open .fp-body{display:block}
+.fp-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:14px}
+.fp-group{display:flex;flex-direction:column;gap:5px}
+.fp-group label{font-size:11px;text-transform:uppercase;letter-spacing:0.6px;color:var(--text3);font-weight:600}
+.fp-select,.fp-input{font-family:var(--font-body);font-size:13px;padding:7px 10px;border:1px solid var(--border);border-radius:5px;background:var(--bg);color:var(--text);outline:none;transition:border-color 0.15s}
+.fp-select:focus,.fp-input:focus{border-color:var(--accent)}
+.fp-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.fp-tag{display:inline-flex;align-items:center;gap:4px;background:var(--accent-dim);color:var(--accent);font-size:11.5px;font-weight:600;padding:4px 10px;border-radius:20px;cursor:pointer}
+.fp-tag svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round}
+.fp-reset{font-size:12px;color:var(--text3);cursor:pointer;text-decoration:underline}
+.fp-reset:hover{color:var(--accent)}
+.fp-export{
+  display:inline-flex;align-items:center;gap:6px;
+  font-family:var(--font-body),'Inter',sans-serif;font-size:12px;font-weight:600;
+  color:var(--text2);background:var(--surface);border:1px solid var(--border);border-radius:6px;
+  padding:6px 12px;cursor:pointer;white-space:nowrap;transition:all 0.15s;
+}
+.fp-export svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;flex-shrink:0}
+.fp-export:hover:not(:disabled){color:var(--accent);border-color:var(--accent);background:var(--accent-dim)}
+.fp-export:disabled{opacity:0.45;cursor:not-allowed;color:var(--text3)}
+
+/* ── Tabs ── */
+.tabs{display:flex;align-items:center;gap:0;margin-bottom:14px;border-bottom:2px solid var(--border);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{font-family:var(--font-body);font-size:12.5px;font-weight:600;padding:9px 18px;border:none;background:none;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all 0.15s;white-space:nowrap;letter-spacing:0.3px}
+.tab:hover{color:var(--text2)}
+.tab.on{color:var(--accent);border-bottom-color:var(--accent)}
+
+/* ── Table ── */
+.tbl-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:var(--radius);margin-bottom:12px}
+.rec-table{width:100%;border-collapse:collapse;font-size:13px;background:var(--surface)}
+.rec-table thead th{font-family:var(--font-body);font-size:10px;text-transform:uppercase;letter-spacing:0.7px;color:var(--text3);font-weight:600;padding:10px 12px;text-align:right;border-bottom:2px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none;background:var(--surface2)}
+.rec-table thead th.left{text-align:left}
+.rec-table thead th.rank{width:30px;cursor:default;text-align:center}
+.rec-table thead th:hover:not(.rank){color:var(--text)}
+.rec-table thead th.sorted-asc::after{content:' ▲';color:var(--accent);font-size:8px}
+.rec-table thead th.sorted-desc::after{content:' ▼';color:var(--accent);font-size:8px}
+.rec-table tbody td{padding:8px 12px;border-bottom:1px solid var(--surface2);text-align:center;vertical-align:middle;font-variant-numeric:tabular-nums}
+.rec-table tbody tr:hover{background:var(--accent-dim)}
+.rec-table tbody tr:last-child td{border-bottom:none}
+.rec-table tbody td.rank{text-align:center;color:var(--text3);font-size:11px}
+.rec-table tbody td.player-name{text-align:left;font-weight:600;white-space:nowrap;color:var(--text)}
+.rec-table tbody td.country{text-align:left;color:var(--text3);font-size:12px}
+.rec-table tbody td.num{font-family:var(--font-mono);font-size:12.5px}
+.rec-table tbody td.num.highlight{color:var(--accent);font-weight:700}
+.rec-table tbody td.wk-badge span{display:inline-block;font-size:10px;font-weight:600;padding:2px 7px;border-radius:10px;background:#e3f0ff;color:#1565C0;white-space:nowrap}
+.rec-table tbody td.wk-badge span.full-time{background:#e8f5e8;color:#2E7D32}
+.rec-table tbody td.wk-badge span.part-time{background:#fff3e0;color:#e65100}
+
+/* ── Pagination ── */
+.pag{display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin-top:4px}
+.pag-btn{font-family:var(--font-body);font-size:12px;padding:5px 11px;border:1px solid var(--border);border-radius:5px;background:var(--surface);color:var(--text2);cursor:pointer;transition:all 0.15s}
+.pag-btn:hover:not(:disabled){background:var(--accent-dim);color:var(--accent);border-color:var(--accent-light)}
+.pag-btn:disabled{opacity:0.35;cursor:not-allowed}
+.pag-btn.on{background:var(--accent-dim);color:var(--accent);border-color:var(--accent);font-weight:600}
+
+/* ── Footer ── */
+.ct-footer{background:var(--text);color:rgba(255,255,255,0.7);padding:40px 24px 28px;margin-top:60px}
+.ct-footer-inner{max-width:1100px;margin:0 auto}
+.ct-footer-top{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:28px;border-bottom:1px solid rgba(255,255,255,0.1);margin-bottom:20px}
+.ct-footer-brand{font-family:var(--font-display);font-size:26px;font-weight:700;color:#fff}
+.ct-footer-nav{display:flex;gap:28px;flex-wrap:wrap}
+.ct-footer-nav a{font-family:var(--font-body);font-size:12px;font-weight:500;color:rgba(255,255,255,0.6);text-decoration:none}
+.ct-footer-nav a:hover{color:#fff}
+.ct-footer-bottom{font-family:var(--font-body);font-size:11px;color:rgba(255,255,255,0.4);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+
+/* ── Responsive ── */
+@media(max-width:1024px){.stat-cards{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:767px){
+  .stat-cards{grid-template-columns:repeat(2,1fr)}
+  .fp-grid{grid-template-columns:repeat(2,1fr)}
+  .main{padding:14px 14px 40px}
+  .ct-footer-top{flex-direction:column;gap:20px}
+}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+/* ══ Cricket Times Support Banner ══ */
+.ct-support-banner{max-width:1400px;margin:0 auto;padding:0 24px}
+.ct-support-inner{border-top:3px double var(--border2,#c8c4bc);border-bottom:3px double var(--border2,#c8c4bc);padding:36px 0;display:flex;align-items:center;gap:40px}
+.ct-support-icon{flex-shrink:0;width:72px;height:72px;border:2px solid var(--accent,#a03020);border-radius:50%;display:flex;align-items:center;justify-content:center}
+.ct-support-icon svg{width:32px;height:32px;stroke:var(--accent,#a03020);fill:none;stroke-width:1.5}
+.ct-support-content{flex:1}
+.ct-support-headline{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;line-height:1.3;margin-bottom:8px;color:var(--text,#1a1a18)}
+.ct-support-headline em{font-style:italic;color:var(--accent,#a03020)}
+.ct-support-body{font-family:'Source Serif 4',Georgia,serif;font-size:15px;color:var(--text2,#4a4a46);line-height:1.6;max-width:560px}
+.ct-support-actions{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:8px}
+.ct-support-btn{display:inline-flex;align-items:center;gap:8px;padding:12px 28px;background:var(--accent,#a03020);color:#fff;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;letter-spacing:0.5px;text-decoration:none;border:none;cursor:pointer;transition:all 0.2s ease}
+.ct-support-btn:hover{background:var(--accent-hover,#801810);transform:translateY(-1px)}
+.ct-support-btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2}
+.ct-support-aside{font-family:'Inter',sans-serif;font-size:10px;color:var(--text3,#7a7a74);letter-spacing:0.3px;text-align:center;max-width:220px}
+@media(max-width:768px){.ct-support-inner{flex-direction:column;text-align:center;gap:24px;padding:28px 0}.ct-support-body{margin:0 auto}.ct-support-headline{font-size:20px}}
+
+</style>
+</head>
+<body>
+
+<header data-ct-nav="masthead"></header>
+<nav data-ct-nav="primary"></nav>
+
+<div class="main">
+
+  <div class="page-head">
+    <div class="page-title">Keeping Records</div>
+    <div class="page-desc">All-time Test cricket wicket-keeping statistics — dismissals, stumpings, catches &amp; more</div>
+  </div>
+
+  <!-- Stat Cards -->
+  <div class="stat-cards">
+    <div class="scard"><div class="scard-label">Keepers Listed</div><div class="scard-val" id="scTotal">—</div><div class="scard-sub">matching filters</div></div>
+    <div class="scard"><div class="scard-label">Most Dismissals</div><div class="scard-val" id="scDis">—</div><div class="scard-sub" id="scDisSub"></div></div>
+    <div class="scard"><div class="scard-label">Most Catches</div><div class="scard-val" id="scCat">—</div><div class="scard-sub" id="scCatSub"></div></div>
+    <div class="scard"><div class="scard-label">Most Stumpings</div><div class="scard-val" id="scSt">—</div><div class="scard-sub" id="scStSub"></div></div>
+    <div class="scard"><div class="scard-label">Best Dis/Test</div><div class="scard-val" id="scDpT">—</div><div class="scard-sub" id="scDpTSub"></div></div>
+    <div class="scard"><div class="scard-label">Most Tests</div><div class="scard-val" id="scTests">—</div><div class="scard-sub" id="scTestsSub"></div></div>
+  </div>
+
+  <!-- Filter panel -->
+  <div class="fp open" id="filterPanel">
+    <div class="fp-head" onclick="document.getElementById('filterPanel').classList.toggle('open')">
+      <div class="fp-head-left">
+        <svg viewBox="0 0 24 24" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        <span class="fp-head-title">Filters</span>
+        <span class="fp-count" id="filterCount"></span>
+      </div>
+    </div>
+    <div class="fp-body">
+      <div class="fp-grid">
+        <div class="fp-group">
+          <label>Country</label>
+          <select class="fp-select" id="fCountry" onchange="applyFilters()">
+            <option value="">All countries</option>
+          </select>
+        </div>
+        <div class="fp-group">
+          <label>Era</label>
+          <select class="fp-select" id="fEra" onchange="applyFilters()">
+            <option value="">All eras</option>
+            <option value="pre1950">Pre-1950</option>
+            <option value="1950">1950s</option>
+            <option value="1960">1960s</option>
+            <option value="1970">1970s</option>
+            <option value="1980">1980s</option>
+            <option value="1990">1990s</option>
+            <option value="2000">2000s</option>
+            <option value="2010">2010s</option>
+            <option value="2020">2020s</option>
+          </select>
+        </div>
+        <div class="fp-group">
+          <label>Keeper Type</label>
+          <select class="fp-select" id="fType" onchange="applyFilters()">
+            <option value="">All keepers</option>
+            <option value="full">Full-time (≥80% tests)</option>
+            <option value="part">Part-time (&lt;80% tests)</option>
+          </select>
+        </div>
+        <div class="fp-group">
+          <label>Min Tests as Keeper</label>
+          <select class="fp-select" id="fMinTests" onchange="applyFilters()">
+            <option value="0">No minimum</option>
+            <option value="10">10+</option>
+            <option value="25">25+</option>
+            <option value="50">50+</option>
+            <option value="75">75+</option>
+            <option value="100">100+</option>
+          </select>
+        </div>
+        <div class="fp-group">
+          <label>Min Dismissals</label>
+          <select class="fp-select" id="fMinDis" onchange="applyFilters()">
+            <option value="0">No minimum</option>
+            <option value="50">50+</option>
+            <option value="100">100+</option>
+            <option value="150">150+</option>
+            <option value="200">200+</option>
+            <option value="300">300+</option>
+            <option value="400">400+</option>
+            <option value="500">500+</option>
+          </select>
+        </div>
+        <div class="fp-group">
+          <label>Min Stumpings</label>
+          <select class="fp-select" id="fMinSt" onchange="applyFilters()">
+            <option value="0">No minimum</option>
+            <option value="10">10+</option>
+            <option value="20">20+</option>
+            <option value="30">30+</option>
+            <option value="40">40+</option>
+          </select>
+        </div>
+        <div class="fp-group" style="grid-column:span 2">
+          <label>Search player</label>
+          <input class="fp-input" id="fSearch" placeholder="Name or country…" oninput="applyFilters()">
+        </div>
+        <div class="fp-group" style="display:flex;align-items:flex-end;gap:12px">
+          <span class="fp-reset" onclick="resetFilters()">Reset all</span>
+          <button id="exportBtn" class="fp-export" onclick="exportToExcel()" title="Select at least 2 filters to enable export">
+            <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            Export to Excel
+          </button>
+        </div>
+      </div>
+      <div class="fp-tags" id="tagBox"></div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs" id="tabBar">
+    <div class="tab"     data-tab="tests"      onclick="switchTab('tests')">Tests</div>
+    <div class="tab"     data-tab="wktests"    onclick="switchTab('wktests')">Tests (WK)</div>
+    <div class="tab on"  data-tab="dismissals" onclick="switchTab('dismissals')">Dismissals</div>
+    <div class="tab"     data-tab="stumpings"  onclick="switchTab('stumpings')">Stumpings</div>
+    <div class="tab"     data-tab="ctwk"       onclick="switchTab('ctwk')">Ct Wk</div>
+    <div class="tab"     data-tab="dispertest" onclick="switchTab('dispertest')">Dis/Test</div>
+    <div class="tab"     data-tab="ctfi"       onclick="switchTab('ctfi')">Ct Fi</div>
+    <div class="tab"     data-tab="cttot"      onclick="switchTab('cttot')">Ct Tot</div>
+    <div class="tab"     data-tab="type"       onclick="switchTab('type')">Type</div>
+    <div class="tab"     data-tab="batting"    onclick="switchTab('batting')">Batting</div>
+    <div class="tab"     data-tab="mom"        onclick="switchTab('mom')">MoM</div>
+  </div>
+
+  <!-- Column legend -->
+  <div id="colLegend" style="display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 2px 10px;font-size:11px;color:var(--text3);font-family:var(--font-body);letter-spacing:0.3px"></div>
+
+  <!-- Table -->
+  <div class="tbl-wrap">
+    <table class="rec-table" id="recTable">
+      <thead id="tHead"></thead>
+      <tbody id="tBody"></tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pag" id="pag"></div>
+
+</div>
+
+<div style="text-align:center;padding:16px 20px 24px;font-size:11px;color:var(--text3)">
+  Data Source &mdash; Ananth Narayanan
+</div>
+
+<!-- ══ Support Banner ══ -->
+<div class="ct-support-banner">
+  <div class="ct-support-inner">
+    <div class="ct-support-icon">
+      <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M12 2a2.5 2.5 0 0 0-2.5 2.5h5A2.5 2.5 0 0 0 12 2z"/><circle cx="12" cy="19" r="2" fill="var(--accent,#a03020)" stroke="none"/></svg>
+    </div>
+    <div class="ct-support-content">
+      <div class="ct-support-headline">Support <em>Independent</em> Cricket Stories</div>
+      <div class="ct-support-body">Cricket Times is free and independent. If you find value in our stories, analyses and tools, consider buying me a coffee to keep the scoreboard ticking.</div>
+    </div>
+    <div class="ct-support-actions">
+      <a href="https://buymeacoffee.com/YOUR_USERNAME" target="_blank" rel="noopener" class="ct-support-btn">
+        <svg viewBox="0 0 24 24"><path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><line x1="6" y1="2" x2="6" y2="4"/><line x1="10" y1="2" x2="10" y2="4"/><line x1="14" y1="2" x2="14" y2="4"/></svg>
+        Buy Me a Coffee
+      </a>
+      <span class="ct-support-aside">This is a personal contribution, not a donation — contributions are not tax-deductible.</span>
+    </div>
+  </div>
+</div>
+
+<footer data-ct-nav="footer"></footer>
+
+<!-- data.js removed (Phase 3 §3): dataset now loaded via CTData from the gated serveDerivedData endpoint -->
+<script>
+/* ── D.P index map (confirmed from browser console) ── */
+const IDX = {
+  ID:0, NAME:1, FULL:2, COUNTRY:3, FROM:4, TO:5,
+  TESTS:6, INNS:7, NO:8, RUNS:9, BALLS:10,
+  AVG:11, ADJAVG:12, HS:13, FIFTIES:14, HUNDREDS:15,
+  AVGPOS:16,
+  OVERS:17, MAIDENS:18, BOWLRUNS:19, WKTS:20,
+  BOWLAVG:21, BOWLECON:22, BOWLSR:23,
+  FIVEWI:24, TENWM:25, BESTBOWL:26,
+  DISMISSALS:27,   // total WK dismissals (catches + stumpings); confirmed: Gilchrist=416, Dhoni=294
+  STUMPINGS:28,    // stumpings as keeper; confirmed: Gilchrist=37, Sangakkara=20, Dhoni=38
+  MOM:29,          // Man of the Match awards; confirmed: Gilchrist=7, Sangakkara=16, Dhoni=2
+  BATHAND:30, BOWLTYPE:31,
+  HOMEPCT:32, AWAYPCT:33,
+  BOWLHOMEPCT:34, BOWLAWAYPCT:35,
+  BOWLTOPORDRPCT:36, BATTOP6PCT:37,
+  CAPTAINCY_PCT:38, WK_PCT:39
+};
+
+/* ── Build keepers from D.P + D.S ── */
+let D = null;        // dataset from the gated loader (replaces the old data.js global)
+let KEEPERS = [];
+
+function buildKeepers() {
+  if (typeof D === 'undefined' || !D.P) { console.error('data.js not loaded'); return; }
+
+  // Aggregate per-player from D.S:
+  //   s[12] = keeper catches, s[13] = stumpings, s[14] = fielding catches
+  const wkCatches   = {};
+  const wkStumpings = {};
+  const fldCatches  = {};
+  if (D.S) {
+    for (const s of D.S) {
+      const pid = s[1];
+      const ct  = s[12] || 0;
+      const st  = s[13] || 0;
+      const fc  = s[14] || 0;
+      if (ct > 0) wkCatches[pid]   = (wkCatches[pid]   || 0) + ct;
+      if (st > 0) wkStumpings[pid] = (wkStumpings[pid] || 0) + st;
+      if (fc > 0) fldCatches[pid]  = (fldCatches[pid]  || 0) + fc;
+    }
+  }
+
+  const raw = D.P.map(p => {
+    const wkPct   = p[IDX.WK_PCT] || 0;
+    const tests   = p[IDX.TESTS]  || 0;
+    const wkTests = Math.round(wkPct * tests);
+    if (wkTests < 1) return null;  // never kept
+
+    const pid        = p[IDX.ID];
+    const catches    = wkCatches[pid]   || 0;
+    const stumpings  = wkStumpings[pid] || 0;
+    const fldCt      = fldCatches[pid]  || 0;
+    const dismissals = catches + stumpings;
+
+    return {
+      id:          pid,
+      name:        p[IDX.NAME]    || '',
+      fullName:    p[IDX.FULL]    || '',
+      country:     p[IDX.COUNTRY] || '',
+      from:        p[IDX.FROM]    || 0,
+      to:          p[IDX.TO]      || 0,
+      tests:       tests,
+      wkTests:     wkTests,
+      wkPct:       wkPct,
+      catches:     catches,
+      stumpings:   stumpings,
+      dismissals:  dismissals,
+      fldCatches:  fldCt,
+      totalCatches: catches + fldCt,
+      disPerTest:  wkTests > 0 ? +(dismissals / wkTests).toFixed(2) : 0,
+      stPerTest:   wkTests > 0 ? +(stumpings  / wkTests).toFixed(2) : 0,
+      runs:        p[IDX.RUNS]     || 0,
+      inns:        p[IDX.INNS]     || 0,
+      avg:         p[IDX.AVG]      || 0,
+      hundreds:    p[IDX.HUNDREDS] || 0,
+      fifties:     p[IDX.FIFTIES]  || 0,
+      mom:         p[IDX.MOM]      || 0,
+    };
+  }).filter(Boolean);
+  KEEPERS = raw;
+}
+
+/* ── State ── */
+let currentTab = 'dismissals';
+let filtered   = [];
+let sortKey    = 'dismissals';
+let sortDir    = 'desc';
+let page       = 1;
+const PER_PAGE = 50;
+
+/* ── Populate country dropdown ── */
+function populateCountries() {
+  const set = new Set();
+  KEEPERS.forEach(p => { if (p.country) set.add(p.country); });
+  const sel = document.getElementById('fCountry');
+  [...set].sort().forEach(c => {
+    const o = document.createElement('option');
+    o.value = c; o.textContent = c; sel.appendChild(o);
+  });
+}
+
+/* ── Era match ── */
+function eraMatch(p, era) {
+  if (!era) return true;
+  if (era === 'pre1950') return p.from < 1950;
+  const d = parseInt(era);
+  return p.from <= d + 9 && p.to >= d;
+}
+
+/* ── Filters ── */
+function getFilters() {
+  return {
+    country:  document.getElementById('fCountry').value,
+    era:      document.getElementById('fEra').value,
+    type:     document.getElementById('fType').value,
+    minTests: +document.getElementById('fMinTests').value,
+    minDis:   +document.getElementById('fMinDis').value,
+    minSt:    +document.getElementById('fMinSt').value,
+    search:   document.getElementById('fSearch').value.trim().toLowerCase()
+  };
+}
+
+function applyFilters() {
+  const f = getFilters();
+  filtered = KEEPERS.filter(p => {
+    if (f.country && p.country !== f.country) return false;
+    if (!eraMatch(p, f.era)) return false;
+    if (f.type === 'full' && p.wkPct < 0.8)  return false;
+    if (f.type === 'part' && p.wkPct >= 0.8) return false;
+    if (f.minTests  && p.wkTests    < f.minTests)  return false;
+    if (f.minDis    && p.dismissals < f.minDis)    return false;
+    if (f.minSt     && p.stumpings  < f.minSt)     return false;
+    if (f.search) {
+      const q = f.search;
+      if (!p.name.toLowerCase().includes(q) && !p.fullName.toLowerCase().includes(q) && !p.country.toLowerCase().includes(q)) return false;
+    }
+    return true;
+  });
+  sortData();
+  page = 1;
+  updateCards();
+  renderTags();
+  render();
+}
+
+function resetFilters() {
+  ['fCountry','fEra','fType'].forEach(id => document.getElementById(id).value = '');
+  ['fMinTests','fMinDis','fMinSt'].forEach(id => document.getElementById(id).value = '0');
+  document.getElementById('fSearch').value = '';
+  applyFilters();
+}
+
+/* ── Sort ── */
+function sortData() {
+  filtered.sort((a, b) => {
+    let av = a[sortKey], bv = b[sortKey];
+    if (av == null) av = sortDir === 'desc' ? -Infinity : Infinity;
+    if (bv == null) bv = sortDir === 'desc' ? -Infinity : Infinity;
+    if (typeof av === 'string') return sortDir === 'desc' ? bv.localeCompare(av) : av.localeCompare(bv);
+    return sortDir === 'desc' ? bv - av : av - bv;
+  });
+}
+
+function toggleSort(key) {
+  if (sortKey === key) sortDir = sortDir === 'desc' ? 'asc' : 'desc';
+  else { sortKey = key; sortDir = 'desc'; }
+  sortData(); page = 1; render();
+}
+
+/* ── Tab column definitions ── */
+const BASE = [
+  {key:'_rank',        label:'#',          cls:'rank'},
+  {key:'name',         label:'Player',     cls:'left player-name'},
+  {key:'country',      label:'Country',    cls:'left country'},
+  {key:'from',         label:'From',       cls:'num'},
+  {key:'to',           label:'To',         cls:'num'},
+  {key:'tests',        label:'Tests',      cls:'num'},
+  {key:'wkTests',      label:'Tests (WK)', cls:'num'},
+  {key:'dismissals',   label:'Dis',        cls:'num'},
+  {key:'catches',      label:'Ct Wk',      cls:'num'},
+  {key:'stumpings',    label:'St',         cls:'num'},
+  {key:'disPerTest',   label:'Dis/Test',   cls:'num'},
+  {key:'fldCatches',   label:'Ct Fi',      cls:'num'},
+  {key:'totalCatches', label:'Ct Tot',     cls:'num'},
+  {key:'_type',        label:'Type',       cls:'wk-badge'},
+];
+
+const TAB_COLS = {
+  tests: [
+    {key:'_rank',        label:'#',          cls:'rank'},
+    {key:'name',         label:'Player',     cls:'left player-name'},
+    {key:'country',      label:'Country',    cls:'left country'},
+    {key:'from',         label:'From',       cls:'num'},
+    {key:'to',           label:'To',         cls:'num'},
+    {key:'tests',        label:'Tests',      cls:'num highlight'},
+    {key:'wkTests',      label:'Tests (WK)', cls:'num'},
+    {key:'dismissals',   label:'Dis',        cls:'num'},
+    {key:'catches',      label:'Ct Wk',      cls:'num'},
+    {key:'stumpings',    label:'St',         cls:'num'},
+    {key:'disPerTest',   label:'Dis/Test',   cls:'num'},
+    {key:'fldCatches',   label:'Ct Fi',      cls:'num'},
+    {key:'totalCatches', label:'Ct Tot',     cls:'num'},
+    {key:'_type',        label:'Type',       cls:'wk-badge'},
+  ],
+  wktests: [
+    {key:'_rank',        label:'#',          cls:'rank'},
+    {key:'name',         label:'Player',     cls:'left player-name'},
+    {key:'country',      label:'Country',    cls:'left country'},
+    {key:'from',         label:'From',       cls:'num'},
+    {key:'to',           label:'To',         cls:'num'},
+    {key:'wkTests',      label:'Tests (WK)', cls:'num highlight'},
+    {key:'dismissals',   label:'Dis',        cls:'num'},
+    {key:'catches',      label:'Ct Wk',      cls:'num'},
+    {key:'stumpings',    label:'St',         cls:'num'},
+    {key:'disPerTest',   label:'Dis/Test',   cls:'num'},
+    {key:'fldCatches',   label:'Ct Fi',      cls:'num'},
+    {key:'totalCatches', label:'Ct Tot',     cls:'num'},
+    {key:'_type',        label:'Type',       cls:'wk-badge'},
+  ],
+  dismissals: BASE.map(c => c.key === 'dismissals'   ? {...c, cls:'num highlight'} : c),
+  stumpings:  BASE.map(c => c.key === 'stumpings'    ? {...c, cls:'num highlight'} : c),
+  ctwk:       BASE.map(c => c.key === 'catches'      ? {...c, cls:'num highlight'} : c),
+  dispertest: BASE.map(c => c.key === 'disPerTest'   ? {...c, cls:'num highlight'} : c),
+  ctfi:       BASE.map(c => c.key === 'fldCatches'   ? {...c, cls:'num highlight'} : c),
+  cttot:      BASE.map(c => c.key === 'totalCatches' ? {...c, cls:'num highlight'} : c),
+  type:       BASE,
+  batting: [
+    {key:'_rank',        label:'#',          cls:'rank'},
+    {key:'name',         label:'Player',     cls:'left player-name'},
+    {key:'country',      label:'Country',    cls:'left country'},
+    {key:'from',         label:'From',       cls:'num'},
+    {key:'to',           label:'To',         cls:'num'},
+    {key:'tests',        label:'Tests',      cls:'num'},
+    {key:'wkTests',      label:'Tests (WK)', cls:'num'},
+    {key:'runs',         label:'Runs',       cls:'num highlight'},
+    {key:'inns',         label:'Inns',       cls:'num'},
+    {key:'avg',          label:'Avg',        cls:'num'},
+    {key:'hundreds',     label:'100s',       cls:'num'},
+    {key:'fifties',      label:'50s',        cls:'num'},
+    {key:'dismissals',   label:'Dis',        cls:'num'},
+    {key:'_type',        label:'Type',       cls:'wk-badge'},
+  ],
+  mom: [
+    {key:'_rank',        label:'#',          cls:'rank'},
+    {key:'name',         label:'Player',     cls:'left player-name'},
+    {key:'country',      label:'Country',    cls:'left country'},
+    {key:'from',         label:'From',       cls:'num'},
+    {key:'to',           label:'To',         cls:'num'},
+    {key:'tests',        label:'Tests',      cls:'num'},
+    {key:'wkTests',      label:'Tests (WK)', cls:'num'},
+    {key:'mom',          label:'MoM',        cls:'num highlight'},
+    {key:'runs',         label:'Runs',       cls:'num'},
+    {key:'avg',          label:'Avg',        cls:'num'},
+    {key:'dismissals',   label:'Dis',        cls:'num'},
+    {key:'_type',        label:'Type',       cls:'wk-badge'},
+  ],
+};
+
+/* ── Column legend ── */
+const TAB_LEGEND = {
+  tests:      'Tests = total career tests · Tests (WK) = tests as keeper · Dis/Test = dismissals per WK test',
+  wktests:    'Tests (WK) = tests as keeper · Dis/Test = dismissals per WK test · Ct Fi = caught as fielder',
+  dismissals: 'Dis = keeper dismissals (Ct Wk + St) · Dis/Test = per WK test · Ct Fi = caught as fielder · Ct Tot = Ct Wk + Ct Fi',
+  stumpings:  'St = stumpings · Dis/Test = keeper dismissals per WK test · Ct Fi = caught as fielder',
+  ctwk:       'Ct Wk = caught as keeper · Dis = total keeper dismissals · Ct Fi = caught as fielder',
+  dispertest: 'Dis/Test = keeper dismissals per WK test · Ct Fi = caught as fielder',
+  ctfi:       'Ct Fi = catches as a fielder (non-keeping) · Ct Tot = Ct Wk + Ct Fi',
+  cttot:      'Ct Tot = total catches (Ct Wk + Ct Fi) · Ct Wk = caught as keeper · Ct Fi = caught as fielder',
+  type:       'Full-time = kept in ≥80% of career tests · Part-time = kept in <80%',
+  batting:    'Runs/Avg/100s/50s cover full career · Dis = keeper dismissals only',
+  mom:        'MoM = Man of the Match awards across full career',
+};
+
+function updateLegend() {
+  const el = document.getElementById('colLegend');
+  if (!el) return;
+  const text = TAB_LEGEND[currentTab] || '';
+  if (!text) { el.style.display = 'none'; return; }
+  el.style.display = 'flex';
+  el.innerHTML = text.split(' · ').map(s => `<span style="white-space:nowrap"><b style="color:var(--text2)">${s.split(' = ')[0]}</b>${s.includes(' = ') ? ' = ' + s.split(' = ')[1] : ''}</span>`).join('<span style="color:var(--border2)"> &middot; </span>');
+}
+
+const TAB_DEFAULT_SORT = {
+  tests:      {key:'tests',        dir:'desc'},
+  wktests:    {key:'wkTests',      dir:'desc'},
+  dismissals: {key:'dismissals',   dir:'desc'},
+  stumpings:  {key:'stumpings',    dir:'desc'},
+  ctwk:       {key:'catches',      dir:'desc'},
+  dispertest: {key:'disPerTest',   dir:'desc'},
+  ctfi:       {key:'fldCatches',   dir:'desc'},
+  cttot:      {key:'totalCatches', dir:'desc'},
+  type:       {key:'wkPct',        dir:'desc'},
+  batting:    {key:'runs',         dir:'desc'},
+  mom:        {key:'mom',          dir:'desc'},
+};
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('on', t.dataset.tab === tab));
+  const ds = TAB_DEFAULT_SORT[tab];
+  sortKey = ds.key; sortDir = ds.dir;
+  sortData(); page = 1; updateLegend(); render();
+}
+
+/* ── Stat cards ── */
+function updateCards() {
+  document.getElementById('scTotal').textContent = filtered.length.toLocaleString();
+  if (!filtered.length) {
+    ['scDis','scCat','scSt','scDpT','scTests'].forEach(id => document.getElementById(id).textContent = '—');
+    ['scDisSub','scCatSub','scStSub','scDpTSub','scTestsSub'].forEach(id => document.getElementById(id).textContent = '');
+    return;
+  }
+  const byDis  = [...filtered].sort((a,b) => b.dismissals - a.dismissals)[0];
+  const byCat  = [...filtered].sort((a,b) => b.catches - a.catches)[0];
+  const bySt   = [...filtered].sort((a,b) => b.stumpings - a.stumpings)[0];
+  const qual   = filtered.filter(p => p.wkTests >= 20);
+  const byDpT  = qual.length ? [...qual].sort((a,b) => b.disPerTest - a.disPerTest)[0] : null;
+  const byTest = [...filtered].sort((a,b) => b.wkTests - a.wkTests)[0];
+
+  document.getElementById('scDis').textContent    = byDis.dismissals;
+  document.getElementById('scDisSub').textContent  = byDis.name;
+  document.getElementById('scCat').textContent    = byCat.catches;
+  document.getElementById('scCatSub').textContent  = byCat.name;
+  document.getElementById('scSt').textContent     = bySt.stumpings;
+  document.getElementById('scStSub').textContent   = bySt.name;
+  document.getElementById('scDpT').textContent    = byDpT ? byDpT.disPerTest.toFixed(2) : '—';
+  document.getElementById('scDpTSub').textContent  = byDpT ? byDpT.name + ' (min 20)' : '';
+  document.getElementById('scTests').textContent  = byTest.wkTests;
+  document.getElementById('scTestsSub').textContent = byTest.name;
+}
+
+/* ── Render ── */
+function render() {
+  const cols = TAB_COLS[currentTab];
+  // Header
+  document.getElementById('tHead').innerHTML = '<tr>' + cols.map(c => {
+    if (c.key === '_rank') return `<th class="rank">${c.label}</th>`;
+    const sc = sortKey === c.key ? (sortDir === 'asc' ? 'sorted-asc' : 'sorted-desc') : '';
+    const isLeft = c.cls.includes('left');
+    return `<th class="${[sc, isLeft ? 'left' : ''].filter(Boolean).join(' ')}" onclick="toggleSort('${c.key}')">${c.label}</th>`;
+  }).join('') + '</tr>';
+
+  // Body
+  const start = (page - 1) * PER_PAGE;
+  const slice = filtered.slice(start, start + PER_PAGE);
+  if (!slice.length) {
+    document.getElementById('tBody').innerHTML = `<tr><td colspan="${cols.length}" style="text-align:center;padding:40px;color:var(--text3)">No keepers match the current filters.</td></tr>`;
+    document.getElementById('pag').innerHTML = '';
+    return;
+  }
+
+  document.getElementById('tBody').innerHTML = slice.map((p, i) => {
+    return '<tr>' + cols.map(c => {
+      if (c.key === '_rank') return `<td class="rank">${start + i + 1}</td>`;
+      if (c.key === 'name')    return `<td class="player-name" title="${p.fullName}">${p.name}</td>`;
+      if (c.key === 'country') return `<td class="country">${p.country}</td>`;
+      if (c.key === '_type') {
+        const cls   = p.wkPct >= 0.8 ? 'full-time' : 'part-time';
+        const label = p.wkPct >= 0.8 ? 'Full-time' : 'Part-time';
+        return `<td class="wk-badge"><span class="${cls}">${label}</span></td>`;
+      }
+      let val = p[c.key];
+      if (c.key === 'avg' || c.key === 'disPerTest' || c.key === 'stPerTest') {
+        val = (typeof val === 'number' && val > 0) ? val.toFixed(2) : '—';
+      }
+      if (c.key === 'runs' && typeof val === 'number') val = val.toLocaleString();
+      const hl = c.cls.includes('highlight') ? ' highlight' : '';
+      return `<td class="num${hl}">${val ?? '—'}</td>`;
+    }).join('') + '</tr>';
+  }).join('');
+
+  renderPag();
+}
+
+function renderPag() {
+  const totalPages = Math.ceil(filtered.length / PER_PAGE);
+  const pag = document.getElementById('pag');
+  if (totalPages <= 1) { pag.innerHTML = `<span style="font-size:11px;color:var(--text3)">${filtered.length.toLocaleString()} keepers</span>`; return; }
+  let html = `<button class="pag-btn" onclick="goPage(1)" ${page===1?'disabled':''}>«</button>`;
+  html += `<button class="pag-btn" onclick="goPage(${page-1})" ${page===1?'disabled':''}>‹</button>`;
+  let s = Math.max(1, page-2), e = Math.min(totalPages, page+2);
+  if (page <= 3) e = Math.min(5, totalPages);
+  if (page >= totalPages - 2) s = Math.max(1, totalPages-4);
+  for (let i = s; i <= e; i++) html += `<button class="pag-btn${i===page?' on':''}" onclick="goPage(${i})">${i}</button>`;
+  html += `<button class="pag-btn" onclick="goPage(${page+1})" ${page===totalPages?'disabled':''}>›</button>`;
+  html += `<button class="pag-btn" onclick="goPage(${totalPages})" ${page===totalPages?'disabled':''}>»</button>`;
+  html += `<span style="font-size:11px;color:var(--text3);margin-left:8px">${filtered.length.toLocaleString()} keepers</span>`;
+  pag.innerHTML = html;
+}
+
+function goPage(n) {
+  page = Math.max(1, Math.min(n, Math.ceil(filtered.length / PER_PAGE)));
+  render();
+  document.querySelector('.tbl-wrap').scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+/* ── Filter tags ── */
+function renderTags() {
+  const f = getFilters();
+  const tags = [];
+  const x = '<svg viewBox="0 0 24 24" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+  if (f.country) tags.push(`<span class="fp-tag" onclick="document.getElementById('fCountry').value='';applyFilters()">${f.country} ${x}</span>`);
+  if (f.era) {
+    const label = f.era === 'pre1950' ? 'Pre-1950' : f.era + 's';
+    tags.push(`<span class="fp-tag" onclick="document.getElementById('fEra').value='';applyFilters()">${label} ${x}</span>`);
+  }
+  if (f.type)     tags.push(`<span class="fp-tag" onclick="document.getElementById('fType').value='';applyFilters()">${f.type==='full'?'Full-time':'Part-time'} ${x}</span>`);
+  if (f.minTests) tags.push(`<span class="fp-tag" onclick="document.getElementById('fMinTests').value='0';applyFilters()">Tests ≥${f.minTests} ${x}</span>`);
+  if (f.minDis)   tags.push(`<span class="fp-tag" onclick="document.getElementById('fMinDis').value='0';applyFilters()">Dis ≥${f.minDis} ${x}</span>`);
+  if (f.minSt)    tags.push(`<span class="fp-tag" onclick="document.getElementById('fMinSt').value='0';applyFilters()">St ≥${f.minSt} ${x}</span>`);
+  if (f.search)   tags.push(`<span class="fp-tag" onclick="document.getElementById('fSearch').value='';applyFilters()">"${f.search}" ${x}</span>`);
+  document.getElementById('tagBox').innerHTML = tags.join('');
+  document.getElementById('filterCount').textContent = tags.length ? `(${tags.length} active)` : '';
+  updateExportButton(tags.length);
+}
+
+/* ── Export gating: at least 2 active filters required ── */
+function updateExportButton(activeCount) {
+  const btn = document.getElementById('exportBtn');
+  if (!btn) return;
+  const enabled = activeCount >= 2;
+  btn.disabled = !enabled;
+  if (enabled) {
+    btn.title = 'Download current view as .xlsx — respects active filters and sort';
+  } else {
+    const need = Math.max(0, 2 - activeCount);
+    btn.title = `Select at least ${need} more filter${need === 1 ? '' : 's'} to enable export`;
+  }
+}
+
+/* ── Export to Excel ──
+   Exports the full keeper record set (all stats, not just current tab) for
+   players matching the active filters, in the current sort order. */
+function exportToExcel() {
+  const btn = document.getElementById('exportBtn');
+  if (btn && btn.disabled) { alert('Please select at least 2 filters before exporting.'); return; }
+  if (typeof XLSX === 'undefined') { alert('Excel library still loading — please try again in a moment.'); return; }
+  if (!filtered || filtered.length === 0) { alert('No keepers match the current filters — nothing to export.'); return; }
+
+  const EXPORT_COLS = [
+    { label:'#',                 fn:(p,i) => i + 1 },
+    { label:'Player',            fn:p => p.fullName || p.name || '' },
+    { label:'Country',           fn:p => p.country || '' },
+    { label:'From',              fn:p => p.from || '' },
+    { label:'To',                fn:p => p.to || '' },
+    { label:'Tests',             fn:p => p.tests ?? '' },
+    { label:'Tests (WK)',        fn:p => p.wkTests ?? '' },
+    { label:'WK %',              fn:p => p.wkPct != null ? +(p.wkPct * 100).toFixed(1) : '' },
+    { label:'Dismissals',        fn:p => p.dismissals ?? '' },
+    { label:'Catches (WK)',      fn:p => p.catches ?? '' },
+    { label:'Stumpings',         fn:p => p.stumpings ?? '' },
+    { label:'Catches (Field)',   fn:p => p.fldCatches ?? '' },
+    { label:'Catches (Total)',   fn:p => p.totalCatches ?? '' },
+    { label:'Dis/Test',          fn:p => p.disPerTest ?? '' },
+    { label:'St/Test',           fn:p => p.stPerTest ?? '' },
+    { label:'Innings',           fn:p => p.inns ?? '' },
+    { label:'Runs',              fn:p => p.runs ?? '' },
+    { label:'Avg',               fn:p => p.avg ?? '' },
+    { label:'100s',              fn:p => p.hundreds ?? '' },
+    { label:'50s',               fn:p => p.fifties ?? '' },
+    { label:'MoM',               fn:p => p.mom ?? '' }
+  ];
+
+  const headers = EXPORT_COLS.map(c => c.label);
+  const rows = filtered.map((p, i) => EXPORT_COLS.map(c => c.fn(p, i)));
+  const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+
+  // Column widths
+  ws['!cols'] = EXPORT_COLS.map((c, i) => {
+    const maxLen = Math.max(
+      c.label.length,
+      ...rows.map(r => String(r[i] ?? '').length)
+    );
+    return { wch: Math.min(Math.max(maxLen + 2, 8), 32) };
+  });
+
+  // Bold header row
+  for (let i = 0; i < headers.length; i++) {
+    const addr = XLSX.utils.encode_cell({ r:0, c:i });
+    if (ws[addr]) ws[addr].s = { font: { bold: true } };
+  }
+
+  const wb = XLSX.utils.book_new();
+
+  // Sheet name from active filters
+  const f = getFilters();
+  const parts = ['Fielding'];
+  if (f.country) parts.push(f.country);
+  if (f.era) parts.push(f.era === 'pre1950' ? 'Pre1950' : f.era + 's');
+  if (f.type) parts.push(f.type === 'full' ? 'FullTime' : 'PartTime');
+  let sheetName = parts.join('_').slice(0, 31);
+
+  XLSX.utils.book_append_sheet(wb, ws, sheetName);
+
+  const fname = 'CricketTimes_' + parts.join('_') + '_' + filtered.length + 'keepers.xlsx';
+  XLSX.writeFile(wb, fname);
+}
+
+/* ── Init ── */
+(async function init() {
+  try {
+    D = await CTData.load('data');          // gated fetch (Bearer token + browser gzip inflate)
+  } catch (e) {
+    console.error('Failed to load match data:', e);
+    return;                                 // page is paid-gated; non-entitled users are redirected before this runs
+  }
+  buildKeepers();
+  populateCountries();
+  updateLegend();
+  applyFilters();
+})();
+</script>
+<!-- SheetJS for Excel Export -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="ct-nav.js"></script>
+</body>
+</html>

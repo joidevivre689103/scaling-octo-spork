@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!-- CT_7G_INJECT:START (auto-injected by deploy tool — do not edit by hand) -->
+<style id="ct-7g-hide">body{visibility:hidden}</style>
+<script>window.CT_PAGE_ID="bts";</script>
+<script>setTimeout(function(){if(!window.__ctFlagsLoaded){location.replace("/comingsoon.html");}},2500);</script>
+<script src="/auth-status.js"></script>
+<!-- CT_7G_INJECT:END -->
+<!-- feature-flags.js: Firebase-init owner (firebaseReady) + requireAccess + the
+     7-G ctPageBootstrap. Loaded ahead of the module init below; both are
+     getApps()-guarded on the same project (hitwicket-cba02), so they coexist —
+     whichever resolves first inits the default app, the other reuses it.
+     [Updated 2026-06-03 — item (g)] The injection block above is live
+     (CT_PAGE_ID="bts" + hidden-body + watchdog + auth-status), so
+     ctPageBootstrap now owns page-level entry: it awaits auth, calls
+     requireAccess({page:'bts'}), and reveals or redirects. The in-page
+     onAuthStateChanged handler below no longer gates access by bespoke role
+     check; it calls requireAccess itself only to obtain isAdmin (composer /
+     delete rights) and to react to auth changes after load. The
+     skip-if-present injector will not duplicate this tag. -->
+<script src="/feature-flags.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Behind the Scenes — Cricket Times</title>
+<meta name="description" content="Behind the scenes notes from Cricket Times — for paid subscribers.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;1,400;1,600&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Special+Elite&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --cream: #f4ede0;
+  --cream-deep: #ece2cf;
+  --paper: #faf5e9;
+  --ink: #1a1612;
+  --ink-soft: #3a322a;
+  --ink-mute: #6b6157;
+  --rule: #c9bda5;
+  --rule-soft: #ddd2bb;
+  --crimson: #8b1a1a;
+  --crimson-deep: #6b1010;
+  --gold: #b08a3e;
+  --tape: rgba(214, 196, 140, 0.55);
+  --shadow-soft: 0 1px 2px rgba(40,30,20,0.08), 0 4px 14px rgba(40,30,20,0.07);
+  --shadow-pin: 0 2px 4px rgba(40,30,20,0.18), 0 8px 22px rgba(40,30,20,0.12);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body { height: 100%; }
+
+body {
+  font-family: 'EB Garamond', Georgia, serif;
+  background: var(--cream);
+  background-image:
+    radial-gradient(circle at 20% 30%, rgba(176,138,62,0.04) 0%, transparent 40%),
+    radial-gradient(circle at 80% 70%, rgba(139,26,26,0.03) 0%, transparent 40%),
+    repeating-linear-gradient(0deg, transparent 0, transparent 28px, rgba(107,97,87,0.025) 28px, rgba(107,97,87,0.025) 29px);
+  color: var(--ink);
+  font-size: 17px;
+  line-height: 1.55;
+  min-height: 100vh;
+}
+
+a { color: var(--crimson); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ---------- Masthead ---------- */
+.masthead {
+  border-bottom: 3px double var(--ink);
+  background: var(--paper);
+  padding: 22px 28px 14px;
+  text-align: center;
+  position: relative;
+}
+.masthead .kicker {
+  font-family: 'Special Elite', 'Courier Prime', monospace;
+  font-size: 11px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  margin-bottom: 6px;
+}
+.masthead h1 {
+  font-family: 'Playfair Display', serif;
+  font-weight: 800;
+  font-size: clamp(34px, 6vw, 58px);
+  letter-spacing: -0.01em;
+  line-height: 1;
+  color: var(--ink);
+}
+.masthead h1 em {
+  font-style: italic;
+  font-weight: 400;
+  color: var(--crimson);
+}
+.masthead .sub {
+  margin-top: 8px;
+  font-size: 14px;
+  font-style: italic;
+  color: var(--ink-soft);
+}
+
+.crest {
+  position: absolute;
+  top: 18px; left: 22px;
+  font-family: 'Special Elite', monospace;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--ink-mute);
+}
+.crest a { color: var(--ink-mute); }
+
+.user-pill {
+  position: absolute;
+  top: 18px; right: 22px;
+  font-family: 'Special Elite', monospace;
+  font-size: 11px;
+  color: var(--ink-mute);
+  display: flex; gap: 10px; align-items: center;
+}
+.user-pill .signout {
+  background: none; border: 1px solid var(--rule); color: var(--ink-soft);
+  font-family: inherit; font-size: 10px; letter-spacing: 0.15em;
+  padding: 4px 10px; cursor: pointer; text-transform: uppercase;
+  border-radius: 2px;
+}
+.user-pill .signout:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+/* ---------- Layout ---------- */
+.wrap {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 28px 22px 80px;
+}
+
+/* ---------- Loading / States ---------- */
+.state {
+  text-align: center;
+  padding: 80px 24px;
+  color: var(--ink-mute);
+}
+.state h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 10px;
+}
+.state p { font-size: 16px; max-width: 440px; margin: 0 auto 20px; }
+.state .actions { margin-top: 18px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+
+button.btn {
+  font-family: 'Special Elite', monospace;
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  padding: 10px 18px;
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+  cursor: pointer;
+  border-radius: 2px;
+  transition: background 0.15s, color 0.15s;
+}
+button.btn:hover { background: var(--crimson); border-color: var(--crimson); }
+button.btn.ghost { background: transparent; color: var(--ink); }
+button.btn.ghost:hover { background: var(--ink); color: var(--paper); }
+button.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ---------- Sign-in overlay ---------- */
+.signin-form {
+  max-width: 360px; margin: 0 auto; text-align: left;
+  background: var(--paper); border: 1px solid var(--rule);
+  padding: 22px; box-shadow: var(--shadow-soft);
+}
+.signin-form h3 {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px; font-weight: 600; margin-bottom: 14px;
+  border-bottom: 1px solid var(--rule); padding-bottom: 8px;
+}
+.signin-form label {
+  display: block; font-family: 'Special Elite', monospace;
+  font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--ink-mute); margin: 10px 0 4px;
+}
+.signin-form input {
+  width: 100%; font-family: 'EB Garamond', serif; font-size: 16px;
+  padding: 8px 10px; border: 1px solid var(--rule); background: #fff;
+  border-radius: 2px;
+}
+.signin-form input:focus { outline: none; border-color: var(--crimson); }
+.signin-form .err {
+  margin-top: 10px; color: var(--crimson); font-size: 13px; min-height: 18px;
+}
+.signin-form .submit { width: 100%; margin-top: 14px; }
+
+/* ---------- Composer ---------- */
+.composer {
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  padding: 18px 20px 16px;
+  margin-bottom: 28px;
+  position: relative;
+  box-shadow: var(--shadow-soft);
+}
+.composer::before {
+  content: ''; position: absolute;
+  top: -10px; left: 50%; transform: translateX(-50%) rotate(-2deg);
+  width: 80px; height: 22px;
+  background: var(--tape);
+  border-left: 1px dashed rgba(107,97,87,0.2);
+  border-right: 1px dashed rgba(107,97,87,0.2);
+}
+.composer .label {
+  font-family: 'Special Elite', monospace;
+  font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--ink-mute); margin-bottom: 8px;
+}
+.composer textarea {
+  width: 100%; min-height: 92px; resize: vertical;
+  font-family: 'EB Garamond', serif; font-size: 17px; line-height: 1.5;
+  border: none; background: transparent; color: var(--ink);
+  padding: 4px 0;
+}
+.composer textarea:focus { outline: none; }
+.composer textarea::placeholder { color: var(--ink-mute); font-style: italic; }
+
+.composer .preview {
+  margin-top: 10px; max-height: 220px;
+  display: none; position: relative;
+}
+.composer .preview.show { display: block; }
+.composer .preview img {
+  max-width: 100%; max-height: 220px; display: block;
+  border: 1px solid var(--rule); object-fit: contain; background: #fff;
+}
+.composer .preview .remove {
+  position: absolute; top: 4px; right: 4px;
+  background: rgba(26,22,18,0.85); color: var(--paper);
+  border: none; width: 24px; height: 24px; border-radius: 50%;
+  font-size: 14px; cursor: pointer; line-height: 1;
+}
+
+.composer .toolbar {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 12px; padding-top: 10px;
+  border-top: 1px dashed var(--rule);
+}
+.composer .toolbar .left { display: flex; gap: 10px; align-items: center; }
+.composer .toolbar .right { display: flex; gap: 10px; align-items: center; }
+.composer .icon-btn {
+  background: none; border: 1px solid var(--rule);
+  font-size: 14px; padding: 6px 10px; cursor: pointer;
+  font-family: 'Special Elite', monospace; color: var(--ink-soft);
+  letter-spacing: 0.12em; text-transform: uppercase;
+  border-radius: 2px;
+}
+.composer .icon-btn:hover { background: var(--cream-deep); }
+.composer .count {
+  font-family: 'Special Elite', monospace; font-size: 11px;
+  color: var(--ink-mute); letter-spacing: 0.1em;
+}
+.composer .count.over { color: var(--crimson); font-weight: 700; }
+.composer input[type="file"] { display: none; }
+
+.composer .post-btn {
+  background: var(--crimson); border-color: var(--crimson); color: var(--paper);
+}
+.composer .post-btn:hover { background: var(--crimson-deep); border-color: var(--crimson-deep); }
+
+/* ---------- Feed Section Heading ---------- */
+.feed-heading {
+  text-align: center; margin: 8px 0 22px;
+  font-family: 'Special Elite', monospace;
+  font-size: 11px; letter-spacing: 0.32em; text-transform: uppercase;
+  color: var(--ink-mute);
+  position: relative;
+}
+.feed-heading::before, .feed-heading::after {
+  content: ''; position: absolute; top: 50%; width: 30%;
+  height: 1px; background: var(--rule);
+}
+.feed-heading::before { left: 0; }
+.feed-heading::after { right: 0; }
+
+/* ---------- Post ---------- */
+.post {
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  padding: 18px 20px 14px;
+  margin-bottom: 22px;
+  position: relative;
+  box-shadow: var(--shadow-soft);
+}
+.post:nth-child(3n+1) { transform: rotate(-0.15deg); }
+.post:nth-child(3n+2) { transform: rotate(0.18deg); }
+
+.post .head {
+  display: flex; justify-content: space-between; align-items: baseline;
+  border-bottom: 1px solid var(--rule-soft);
+  padding-bottom: 8px; margin-bottom: 12px;
+  flex-wrap: wrap; gap: 6px;
+}
+.post .author {
+  font-family: 'Playfair Display', serif;
+  font-weight: 600; font-size: 17px;
+  letter-spacing: 0.01em;
+}
+.post .author .by {
+  font-family: 'EB Garamond', serif; font-style: italic;
+  font-weight: 400; color: var(--ink-mute);
+  font-size: 14px; margin-right: 6px;
+}
+/* (g) 2026-06-03: byline accent — posts/replies authored from the Zoho
+   primary (CT_PRIMARY_EMAIL) render "IJ" in maroon. See authorMarkup(). */
+.author-ct { color: var(--crimson); }
+.post .timestamp {
+  font-family: 'Special Elite', monospace;
+  font-size: 11px; letter-spacing: 0.1em;
+  color: var(--ink-mute);
+}
+.post .body {
+  font-size: 17px; line-height: 1.6;
+  color: var(--ink); white-space: pre-wrap; word-wrap: break-word;
+}
+.post .image-wrap {
+  margin-top: 12px; padding: 6px;
+  background: #fff; border: 1px solid var(--rule-soft);
+  display: inline-block; max-width: 100%;
+  box-shadow: 0 1px 3px rgba(40,30,20,0.1);
+}
+.post .image-wrap img { display: block; max-width: 100%; max-height: 480px; }
+
+.post .actions-row {
+  display: flex; gap: 4px; align-items: center;
+  margin-top: 12px; padding-top: 10px;
+  border-top: 1px dashed var(--rule-soft);
+}
+.action-btn {
+  background: none; border: none; cursor: pointer;
+  font-family: 'Special Elite', monospace; font-size: 12px;
+  color: var(--ink-mute); padding: 6px 10px;
+  display: inline-flex; gap: 5px; align-items: center;
+  letter-spacing: 0.05em; border-radius: 2px;
+  transition: color 0.15s, background 0.15s;
+}
+.action-btn:hover { color: var(--crimson); background: var(--cream-deep); }
+.action-btn.liked { color: var(--crimson); font-weight: 700; }
+.action-btn .icon { font-size: 14px; }
+.action-btn.delete { margin-left: auto; color: var(--ink-mute); opacity: 0.5; }
+.action-btn.delete:hover { opacity: 1; color: var(--crimson); background: transparent; }
+
+/* ---------- Replies ---------- */
+.replies-block {
+  margin-top: 12px; padding-top: 12px;
+  border-top: 1px solid var(--rule-soft);
+  display: none;
+}
+.replies-block.show { display: block; }
+
+.reply-form {
+  display: flex; flex-direction: column; gap: 8px;
+  margin-bottom: 14px; padding: 10px 12px;
+  background: var(--cream); border: 1px dashed var(--rule);
+}
+.reply-form textarea {
+  width: 100%; min-height: 50px; resize: vertical;
+  font-family: 'EB Garamond', serif; font-size: 15px;
+  border: none; background: transparent; color: var(--ink);
+}
+.reply-form textarea:focus { outline: none; }
+.reply-form .preview { max-width: 160px; }
+.reply-form .preview img {
+  max-width: 100%; max-height: 120px; display: block;
+  border: 1px solid var(--rule);
+}
+.reply-form .preview { position: relative; display: none; }
+.reply-form .preview.show { display: block; }
+.reply-form .preview .remove {
+  position: absolute; top: 2px; right: 2px;
+  background: rgba(26,22,18,0.85); color: var(--paper);
+  border: none; width: 20px; height: 20px; border-radius: 50%;
+  font-size: 11px; cursor: pointer;
+}
+.reply-form .row {
+  display: flex; justify-content: space-between; align-items: center;
+  flex-wrap: wrap; gap: 8px;
+}
+.reply-form .row .left { display: flex; gap: 8px; align-items: center; }
+.reply-form input[type="file"] { display: none; }
+.reply-form .send {
+  font-family: 'Special Elite', monospace; font-size: 11px;
+  letter-spacing: 0.15em; text-transform: uppercase;
+  background: var(--ink); color: var(--paper); border: none;
+  padding: 7px 14px; cursor: pointer; border-radius: 2px;
+}
+.reply-form .send:hover { background: var(--crimson); }
+.reply-form .icon-btn {
+  background: none; border: 1px solid var(--rule);
+  font-size: 13px; padding: 5px 9px; cursor: pointer;
+  font-family: 'Special Elite', monospace; color: var(--ink-soft);
+  letter-spacing: 0.1em; border-radius: 2px;
+}
+.reply-form .count {
+  font-family: 'Special Elite', monospace; font-size: 10px;
+  color: var(--ink-mute);
+}
+.reply-form .count.over { color: var(--crimson); }
+
+.reply {
+  padding: 8px 0 8px 14px;
+  border-left: 2px solid var(--rule-soft);
+  margin-bottom: 10px;
+  position: relative;
+}
+.reply.nested { margin-left: 18px; border-left-color: var(--gold); }
+.reply.nested-2 { margin-left: 36px; }
+.reply .head {
+  display: flex; gap: 8px; align-items: baseline;
+  font-size: 13px; margin-bottom: 4px; flex-wrap: wrap;
+}
+.reply .head .author {
+  font-family: 'Playfair Display', serif;
+  font-weight: 600; font-size: 14px;
+}
+.reply .head .timestamp {
+  font-family: 'Special Elite', monospace; font-size: 10px;
+  color: var(--ink-mute); letter-spacing: 0.08em;
+}
+.reply .body {
+  font-size: 15px; line-height: 1.5; white-space: pre-wrap; word-wrap: break-word;
+}
+.reply .image-wrap {
+  margin-top: 8px; padding: 4px;
+  background: #fff; border: 1px solid var(--rule-soft);
+  display: inline-block;
+}
+.reply .image-wrap img { display: block; max-width: 240px; max-height: 180px; }
+.reply .actions-row { margin-top: 6px; padding-top: 6px; border-top: none; }
+.reply .actions-row .action-btn { padding: 3px 8px; font-size: 11px; }
+
+.replies-list { margin-top: 8px; }
+
+/* ---------- Toast ---------- */
+.toast {
+  position: fixed; bottom: 26px; left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--ink); color: var(--paper);
+  padding: 10px 20px; font-family: 'Special Elite', monospace;
+  font-size: 12px; letter-spacing: 0.15em; text-transform: uppercase;
+  border-radius: 2px; box-shadow: var(--shadow-pin);
+  opacity: 0; transition: opacity 0.2s, transform 0.2s;
+  z-index: 1000; pointer-events: none;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ---------- Empty Feed ---------- */
+.empty-feed {
+  text-align: center; padding: 60px 20px;
+  font-style: italic; color: var(--ink-mute);
+  border: 1px dashed var(--rule); background: var(--paper);
+}
+
+/* ---------- Mobile ---------- */
+@media (max-width: 600px) {
+  .masthead { padding: 18px 14px 12px; }
+  .crest, .user-pill { position: static; display: inline-block; margin: 4px; }
+  .masthead { text-align: center; }
+  .wrap { padding: 18px 14px 60px; }
+  .composer, .post { padding: 14px 16px; }
+  .reply.nested-2 { margin-left: 18px; }
+}
+
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="crest"><a href="index.html">← Cricket Times</a></div>
+  <div class="user-pill hidden" id="userPill">
+    <span id="userEmail"></span>
+    <button class="signout" id="signOutBtn">Sign out</button>
+  </div>
+  <div class="kicker">Editor's Notebook · Subscribers Only</div>
+  <h1>Behind <em>the Scenes</em></h1>
+  <div class="sub">Field notes, half-thoughts, and drafts from the workshop.</div>
+</header>
+
+<main class="wrap">
+
+  <!-- Loading state -->
+  <div id="loadingState" class="state">
+    <h2>Opening the door…</h2>
+    <p>Just a moment while we check your credentials.</p>
+  </div>
+
+  <!-- Signed-out state -->
+  <div id="signedOutState" class="state hidden">
+    <h2>Members' room</h2>
+    <p>Behind the Scenes is a quiet corner reserved for paid subscribers. Sign in to read along, or get in touch about a subscription.</p>
+    <div class="signin-form" id="signInForm">
+      <h3>Sign in</h3>
+      <label for="emailInput">Email</label>
+      <input type="email" id="emailInput" autocomplete="email">
+      <label for="passwordInput">Password</label>
+      <input type="password" id="passwordInput" autocomplete="current-password">
+      <div class="err" id="signInErr"></div>
+      <button class="btn submit" id="signInBtn">Sign in</button>
+    </div>
+    <div class="actions" style="margin-top:18px">
+      <a href="index.html" style="font-family:'Special Elite',monospace;font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:var(--ink-mute)">Back to the front page</a>
+    </div>
+  </div>
+
+  <!-- No-access state (signed in but not priority/admin) -->
+  <div id="noAccessState" class="state hidden">
+    <h2>Not on the list</h2>
+    <p>Your account is signed in, but Behind the Scenes is reserved for paid subscribers. If you'd like access, drop a line via the contact link below.</p>
+    <div class="actions">
+      <a href="index.html" class="btn ghost">Front page</a>
+      <a href="mailto:joseph.ivan@outlook.com?subject=Cricket Times — paid subscription" class="btn">Get in touch</a>
+    </div>
+  </div>
+
+  <!-- Authenticated feed -->
+  <div id="feedState" class="hidden">
+
+    <!-- Composer (admin only) -->
+    <div id="composerWrap" class="hidden">
+      <div class="composer">
+        <div class="label">Pin a new note</div>
+        <textarea id="postText" placeholder="What's happening behind the scenes…" maxlength="1200"></textarea>
+        <div class="preview" id="postPreview">
+          <button class="remove" id="postPreviewRemove" type="button" title="Remove image">×</button>
+          <img id="postPreviewImg" alt="">
+        </div>
+        <div class="toolbar">
+          <div class="left">
+            <button class="icon-btn" id="postImageBtn" type="button">📷 Photo</button>
+            <input type="file" id="postImageInput" accept="image/*">
+          </div>
+          <div class="right">
+            <span class="count" id="postCount">0 / 1200</span>
+            <button class="btn post-btn" id="postBtn" type="button">Post</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="feed-heading">— The notebook —</div>
+
+    <div id="feedList"></div>
+  </div>
+
+</main>
+
+<div class="toast" id="toast"></div>
+
+<!-- Firebase Modular SDK (10.12.5) -->
+<script type="module">
+import { initializeApp, getApps, getApp }
+  from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
+import {
+  getAuth, setPersistence, browserLocalPersistence,
+  onAuthStateChanged, signInWithEmailAndPassword, signOut
+} from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
+import {
+  getFirestore, collection, doc, getDoc, getDocs,
+  addDoc, updateDoc, query, where, orderBy, limit,
+  onSnapshot, serverTimestamp, increment, writeBatch
+} from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
+import {
+  getStorage, ref as storageRef, uploadBytes, getDownloadURL
+} from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-storage.js';
+
+/* =====================================================================
+   FIREBASE INIT
+   ===================================================================== */
+const firebaseConfig = {
+  apiKey: "AIzaSyBnfn9hK0y-p6nvIZ_AwoJnWD7DfDuIQd4",
+  authDomain: "hitwicket-cba02.firebaseapp.com",
+  projectId: "hitwicket-cba02",
+  storageBucket: "hitwicket-cba02.firebasestorage.app"
+};
+// Coexist with prelaunch-guard.js's default app
+const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const storage = getStorage(app);
+
+setPersistence(auth, browserLocalPersistence);
+
+// Display-only [demoted by item (g) 2026-06-03]: emails bylined as "IJ" in
+// displayName(). NO LONGER used for gating — requireAccess (feature-flags.js)
+// is the sole access authority. Zoho primary added so its posts also store
+// the "IJ" authorName at write time.
+const ADMIN_EMAILS = ['joseph.ivan@outlook.com', 'ivan@cricketimes.com'];
+
+/* =====================================================================
+   STATE
+   ===================================================================== */
+let currentUser = null;
+let currentRole = null;          // (g): 'admin' if verdict.isAdmin, else verdict.tier ('paid'|'loggedIn'), else 'none' | null when signed out
+let postImageFile = null;
+let activeReplyForms = new Map(); // postId -> { file: File|null, parentReplyId: string|null }
+let postsUnsub = null;
+const replyUnsubs = new Map();    // postId -> unsubscribe fn for that post's replies listener
+
+/* =====================================================================
+   HELPERS
+   ===================================================================== */
+const $ = id => document.getElementById(id);
+
+// (g) 2026-06-03: emailKey() helper removed — its only caller was the bespoke
+// userTypes gate replaced by requireAccess. Key encoding now lives solely in
+// feature-flags.js / firestore.rules.
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[c]));
+}
+
+function timeAgo(ts) {
+  if (!ts) return 'just now';
+  const d = ts.toDate ? ts.toDate() : new Date(ts);
+  const diff = (Date.now() - d.getTime()) / 1000;
+  if (diff < 60) return 'just now';
+  if (diff < 3600) return Math.floor(diff/60) + 'm';
+  if (diff < 86400) return Math.floor(diff/3600) + 'h';
+  if (diff < 86400*7) return Math.floor(diff/86400) + 'd';
+  return d.toLocaleDateString('en-GB', { day:'numeric', month:'short', year: d.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined });
+}
+
+function showState(name) {
+  ['loadingState','signedOutState','noAccessState','feedState'].forEach(id => {
+    $(id).classList.toggle('hidden', id !== name);
+  });
+}
+
+function toast(msg) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => t.classList.remove('show'), 2400);
+}
+
+function displayName(email) {
+  if (!email) return 'Unknown';
+  if (ADMIN_EMAILS.includes(email.toLowerCase())) return 'IJ';
+  // first part of email, capitalised
+  const local = email.split('@')[0].split(/[._-]/)[0];
+  return local.charAt(0).toUpperCase() + local.slice(1);
+}
+
+// (g) 2026-06-03: render-time byline accent. Posts/replies authored from the
+// Zoho primary render the stored authorName in maroon (.author-ct) so IJ can
+// tell at a glance which account wrote them. Keys off the denormalized
+// authorEmail already stored on every doc — no schema change, retroactive.
+const CT_PRIMARY_EMAIL = 'ivan@cricketimes.com';
+function authorMarkup(name, email) {
+  const safe = escapeHtml(name || 'Member');
+  return (email && email.toLowerCase() === CT_PRIMARY_EMAIL)
+    ? `<span class="author-ct">${safe}</span>`
+    : safe;
+}
+
+/* =====================================================================
+   AUTH FLOW
+   ===================================================================== */
+onAuthStateChanged(auth, async user => {
+  if (!user) {
+    currentUser = null; currentRole = null;
+    $('userPill').classList.add('hidden');
+    if (postsUnsub) { postsUnsub(); postsUnsub = null; }
+    // Tear down any per-post reply listeners that were attached while signed in.
+    replyUnsubs.forEach(unsub => unsub());
+    replyUnsubs.clear();
+    showState('signedOutState');
+    return;
+  }
+
+  currentUser = user;
+  $('userEmail').textContent = user.email;
+  $('userPill').classList.remove('hidden');
+
+  // ─── (g) 2026-06-03: access verdict via requireAccess ───
+  //
+  // Replaces the bespoke userTypes/'priority' check that item (h) broke (the
+  // webhook stopped writing 'priority', so paid subscribers failed the old
+  // gate) and that never knew 'superadmin' existed (Zoho-primary lockout).
+  // ctPageBootstrap already gates page ENTRY pre-reveal; this in-page call
+  // re-derives the verdict to (a) obtain isAdmin for composer/delete rights
+  // and (b) react to auth-state changes after load. getFeatureGates' 5-min
+  // cache makes the second call a cache hit, not a second Firestore read.
+  // Fail CLOSED on error: a verdict failure shows noAccessState (Firestore
+  // rules remain the real enforcement either way).
+  let verdict;
+  try {
+    await window.CTFeatureFlags.firebaseReady;
+    verdict = await window.CTFeatureFlags.requireAccess(db, { page: 'bts', email: user.email });
+  } catch (e) {
+    console.error('requireAccess failed:', e);
+    verdict = { allowed: false, isAdmin: false, reason: 'error', tier: null };
+  }
+
+  // Map verdict onto currentRole for the downstream admin checks
+  // (createPost guard, post canDelete, reply canDelete).
+  currentRole = verdict.isAdmin ? 'admin' : (verdict.tier || 'none');
+
+  if (verdict.allowed) {
+    showState('feedState');
+    $('composerWrap').classList.toggle('hidden', !verdict.isAdmin);
+    subscribeToFeed();
+  } else {
+    showState('noAccessState');
+  }
+});
+
+$('signInBtn').addEventListener('click', signIn);
+$('passwordInput').addEventListener('keydown', e => { if (e.key === 'Enter') signIn(); });
+
+async function signIn() {
+  const email = $('emailInput').value.trim();
+  const pw = $('passwordInput').value;
+  $('signInErr').textContent = '';
+  if (!email || !pw) { $('signInErr').textContent = 'Email and password required.'; return; }
+  $('signInBtn').disabled = true;
+  try {
+    await signInWithEmailAndPassword(auth, email, pw);
+    $('passwordInput').value = '';
+  } catch (e) {
+    $('signInErr').textContent = e.message.replace(/^Firebase:\s*/, '');
+  } finally {
+    $('signInBtn').disabled = false;
+  }
+}
+
+$('signOutBtn').addEventListener('click', () => signOut(auth));
+
+/* =====================================================================
+   COMPOSER (admin only)
+   ===================================================================== */
+const POST_MAX = 1200;
+
+$('postText').addEventListener('input', e => {
+  const n = e.target.value.length;
+  const c = $('postCount');
+  c.textContent = `${n} / ${POST_MAX}`;
+  c.classList.toggle('over', n > POST_MAX);
+});
+
+$('postImageBtn').addEventListener('click', () => $('postImageInput').click());
+
+$('postImageInput').addEventListener('change', e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  if (f.size > 5 * 1024 * 1024) { toast('Image must be under 5MB'); e.target.value = ''; return; }
+  if (!f.type.startsWith('image/')) { toast('Image files only'); e.target.value = ''; return; }
+  postImageFile = f;
+  const url = URL.createObjectURL(f);
+  $('postPreviewImg').src = url;
+  $('postPreview').classList.add('show');
+});
+
+$('postPreviewRemove').addEventListener('click', () => {
+  postImageFile = null;
+  $('postImageInput').value = '';
+  $('postPreview').classList.remove('show');
+});
+
+$('postBtn').addEventListener('click', createPost);
+
+async function createPost() {
+  const text = $('postText').value.trim();
+  if (!text && !postImageFile) { toast('Add some text or a photo'); return; }
+  if (text.length > POST_MAX) { toast('Post too long'); return; }
+  if (!currentUser || currentRole !== 'admin') return;
+
+  $('postBtn').disabled = true;
+
+  try {
+    let imageUrl = null;
+    if (postImageFile) {
+      const path = `bts/posts/${Date.now()}_${postImageFile.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+      const ref = storageRef(storage, path);
+      await uploadBytes(ref, postImageFile);
+      imageUrl = await getDownloadURL(ref);
+    }
+
+    await addDoc(collection(db, 'btsPosts'), {
+      text,
+      imageUrl,
+      authorEmail: currentUser.email,
+      authorName: displayName(currentUser.email),
+      authorUid: currentUser.uid,
+      timestamp: serverTimestamp(),
+      likes: 0,
+      replyCount: 0
+    });
+
+    $('postText').value = '';
+    $('postCount').textContent = `0 / ${POST_MAX}`;
+    postImageFile = null;
+    $('postImageInput').value = '';
+    $('postPreview').classList.remove('show');
+    toast('Posted');
+  } catch (e) {
+    console.error(e);
+    toast('Could not post: ' + e.message);
+  } finally {
+    $('postBtn').disabled = false;
+  }
+}
+
+/* =====================================================================
+   FEED RENDER
+   ===================================================================== */
+function subscribeToFeed() {
+  if (postsUnsub) postsUnsub();
+  const q = query(
+    collection(db, 'btsPosts'),
+    orderBy('timestamp', 'desc'),
+    limit(50)
+  );
+  postsUnsub = onSnapshot(q, renderFeed, err => {
+    console.error('Feed listener error:', err);
+    $('feedList').innerHTML = `<div class="empty-feed">Could not load the feed right now. Please refresh in a moment.</div>`;
+  });
+}
+
+function renderFeed(snap) {
+  const list = $('feedList');
+
+  // Empty-state handling
+  if (snap.empty) {
+    // Tear down any stragglers; the list is being wiped.
+    replyUnsubs.forEach(unsub => unsub());
+    replyUnsubs.clear();
+    list.innerHTML = `<div class="empty-feed">Nothing here yet — the editor hasn't posted anything.</div>`;
+    return;
+  }
+
+  // If the list was previously empty (or never rendered), reset before populating.
+  if (list.querySelector('.empty-feed')) list.innerHTML = '';
+
+  // Build desired-state map of postId → docData from the snapshot, in order.
+  const incoming = []; // [{id, data}]
+  snap.forEach(doc => incoming.push({ id: doc.id, data: doc.data() }));
+  const incomingIds = new Set(incoming.map(p => p.id));
+
+  // Remove DOM nodes for posts that are no longer in the snapshot (deleted).
+  // Tear down their reply listeners as we go.
+  Array.from(list.querySelectorAll('.post')).forEach(el => {
+    const id = el.dataset.id;
+    if (!incomingIds.has(id)) {
+      const unsub = replyUnsubs.get(id);
+      if (unsub) { unsub(); replyUnsubs.delete(id); }
+      el.remove();
+    }
+  });
+
+  // Walk incoming in order. For each: update-in-place if it exists, else create
+  // and insert at the correct position (after the previous incoming post's node,
+  // or at the top of the list if it's first).
+  let prevEl = null;
+  incoming.forEach(({ id, data }) => {
+    let el = list.querySelector(`.post[data-id="${id}"]`);
+    if (el) {
+      // Update mutable fields in place. Replies block + form state untouched.
+      updatePostCounters(el, data);
+    } else {
+      // New post — create and insert in the right place.
+      el = renderPost(id, data);
+      if (prevEl) {
+        prevEl.after(el);
+      } else {
+        list.prepend(el);
+      }
+    }
+    prevEl = el;
+  });
+}
+
+// In-place update of counter spans. Snapshot-driven mutable fields only.
+function updatePostCounters(el, p) {
+  const likes = el.querySelector('[data-likes-count]');
+  if (likes) likes.textContent = p.likes || 0;
+  const reps = el.querySelector('[data-reply-count]');
+  if (reps) reps.textContent = p.replyCount || 0;
+}
+
+function renderPost(id, p) {
+  const el = document.createElement('article');
+  el.className = 'post';
+  el.dataset.id = id;
+
+  const liked = isLikedLocally('post', id);
+  const canDelete = currentRole === 'admin';
+
+  el.innerHTML = `
+    <div class="head">
+      <div class="author"><span class="by">by</span>${authorMarkup(p.authorName || 'Editor', p.authorEmail)}</div>
+      <div class="timestamp">${escapeHtml(timeAgo(p.timestamp))}</div>
+    </div>
+    ${p.text ? `<div class="body">${escapeHtml(p.text)}</div>` : ''}
+    ${p.imageUrl ? `<div class="image-wrap"><img src="${escapeHtml(p.imageUrl)}" alt=""></div>` : ''}
+    <div class="actions-row">
+      <button class="action-btn like-btn ${liked ? 'liked' : ''}" data-action="like-post">
+        <span class="icon">${liked ? '♥' : '♡'}</span>
+        <span class="count" data-likes-count>${p.likes || 0}</span>
+      </button>
+      <button class="action-btn" data-action="toggle-replies">
+        <span class="icon">💬</span>
+        <span class="count" data-reply-count>${p.replyCount || 0}</span>
+        <span style="margin-left:4px">Reply</span>
+      </button>
+      ${canDelete ? '<button class="action-btn delete" data-action="delete-post" title="Delete">🗑</button>' : ''}
+    </div>
+    <div class="replies-block" data-replies>
+      <div class="reply-form" data-reply-form>
+        <textarea placeholder="Write a reply…" maxlength="600"></textarea>
+        <div class="preview" data-reply-preview>
+          <button class="remove" type="button">×</button>
+          <img alt="">
+        </div>
+        <div class="row">
+          <div class="left">
+            <button class="icon-btn" type="button" data-reply-photo>📷</button>
+            <input type="file" accept="image/*" data-reply-file>
+            <span class="count">0 / 600</span>
+          </div>
+          <button class="send" type="button" data-reply-send>Reply</button>
+        </div>
+      </div>
+      <div class="replies-list" data-replies-list></div>
+    </div>
+  `;
+
+  // Wire up post-level handlers
+  el.querySelector('[data-action="like-post"]').addEventListener('click', () => toggleLike('post', id, el));
+  el.querySelector('[data-action="toggle-replies"]').addEventListener('click', () => toggleReplies(id, el));
+  if (canDelete) {
+    el.querySelector('[data-action="delete-post"]').addEventListener('click', () => deletePost(id));
+  }
+
+  // Wire up reply form
+  wireReplyForm(id, null, el.querySelector('[data-reply-form]'));
+
+  return el;
+}
+
+/* =====================================================================
+   REPLIES
+   ===================================================================== */
+function toggleReplies(postId, postEl) {
+  const block = postEl.querySelector('[data-replies]');
+  const isOpen = block.classList.toggle('show');
+  if (isOpen && !replyUnsubs.has(postId)) {
+    const q = query(
+      collection(db, 'btsReplies'),
+      where('postId', '==', postId),
+      orderBy('timestamp', 'asc')
+    );
+    const unsub = onSnapshot(q, snap => {
+      renderReplies(postId, postEl, snap);
+    }, err => {
+      console.error('Replies error:', err);
+      postEl.querySelector('[data-replies-list]').innerHTML =
+        `<div style="color:var(--crimson);font-size:13px;font-style:italic">Could not load replies. Please refresh in a moment.</div>`;
+    });
+    replyUnsubs.set(postId, unsub);
+  } else if (!isOpen) {
+    // Tear down the listener when the reader collapses the block. Without this,
+    // every "open replies" leaves a live listener even after the user closes —
+    // an unbounded resource leak across a session.
+    const unsub = replyUnsubs.get(postId);
+    if (unsub) { unsub(); replyUnsubs.delete(postId); }
+  }
+}
+
+function renderReplies(postId, postEl, snap) {
+  const list = postEl.querySelector('[data-replies-list]');
+  // Build tree: top-level replies (parentReplyId == null) and nested
+  const all = [];
+  snap.forEach(doc => all.push({ id: doc.id, ...doc.data() }));
+
+  const byParent = new Map(); // parentReplyId -> [replies]
+  all.forEach(r => {
+    const pid = r.parentReplyId || '__root__';
+    if (!byParent.has(pid)) byParent.set(pid, []);
+    byParent.get(pid).push(r);
+  });
+
+  list.innerHTML = '';
+  const roots = byParent.get('__root__') || [];
+  roots.forEach(r => list.appendChild(renderReplyTree(postId, r, byParent, 0)));
+}
+
+function renderReplyTree(postId, r, byParent, depth) {
+  const el = document.createElement('div');
+  el.className = 'reply' + (depth === 1 ? ' nested' : depth >= 2 ? ' nested nested-2' : '');
+  el.dataset.id = r.id;
+
+  const liked = isLikedLocally('reply', r.id);
+  const canDelete = currentRole === 'admin' || (currentUser && r.authorUid === currentUser.uid);
+
+  el.innerHTML = `
+    <div class="head">
+      <span class="author">${authorMarkup(r.authorName || 'Member', r.authorEmail)}</span>
+      <span class="timestamp">${escapeHtml(timeAgo(r.timestamp))}</span>
+    </div>
+    ${r.text ? `<div class="body">${escapeHtml(r.text)}</div>` : ''}
+    ${r.imageUrl ? `<div class="image-wrap"><img src="${escapeHtml(r.imageUrl)}" alt=""></div>` : ''}
+    <div class="actions-row">
+      <button class="action-btn ${liked ? 'liked' : ''}" data-action="like-reply">
+        <span class="icon">${liked ? '♥' : '♡'}</span>
+        <span class="count">${r.likes || 0}</span>
+      </button>
+      ${depth < 2 ? '<button class="action-btn" data-action="reply-to-reply"><span class="icon">↳</span> Reply</button>' : ''}
+      ${canDelete ? '<button class="action-btn delete" data-action="delete-reply" title="Delete">🗑</button>' : ''}
+    </div>
+    <div class="reply-form" data-reply-form style="display:none;margin-top:8px">
+      <textarea placeholder="Reply to ${escapeHtml(r.authorName || 'this')}…" maxlength="600"></textarea>
+      <div class="preview" data-reply-preview>
+        <button class="remove" type="button">×</button>
+        <img alt="">
+      </div>
+      <div class="row">
+        <div class="left">
+          <button class="icon-btn" type="button" data-reply-photo>📷</button>
+          <input type="file" accept="image/*" data-reply-file>
+          <span class="count">0 / 600</span>
+        </div>
+        <button class="send" type="button" data-reply-send>Reply</button>
+      </div>
+    </div>
+    <div data-children></div>
+  `;
+
+  el.querySelector('[data-action="like-reply"]').addEventListener('click', () => toggleLike('reply', r.id, el));
+  if (canDelete) {
+    el.querySelector('[data-action="delete-reply"]').addEventListener('click', () => deleteReply(r.id));
+  }
+  if (depth < 2) {
+    const replyBtn = el.querySelector('[data-action="reply-to-reply"]');
+    const form = el.querySelector('[data-reply-form]');
+    replyBtn.addEventListener('click', () => {
+      form.style.display = form.style.display === 'none' ? 'flex' : 'none';
+      if (form.style.display !== 'none') form.querySelector('textarea').focus();
+    });
+    wireReplyForm(postId, r.id, form);
+  }
+
+  // Render children
+  const children = byParent.get(r.id) || [];
+  const childWrap = el.querySelector('[data-children]');
+  children.forEach(c => childWrap.appendChild(renderReplyTree(postId, c, byParent, Math.min(depth + 1, 2))));
+
+  return el;
+}
+
+function wireReplyForm(postId, parentReplyId, formEl) {
+  const ta = formEl.querySelector('textarea');
+  const countEl = formEl.querySelector('.count');
+  const photoBtn = formEl.querySelector('[data-reply-photo]');
+  const fileInput = formEl.querySelector('[data-reply-file]');
+  const previewEl = formEl.querySelector('[data-reply-preview]');
+  const previewImg = previewEl.querySelector('img');
+  const removeBtn = previewEl.querySelector('.remove');
+  const sendBtn = formEl.querySelector('[data-reply-send]');
+
+  let imageFile = null;
+
+  ta.addEventListener('input', () => {
+    const n = ta.value.length;
+    countEl.textContent = `${n} / 600`;
+    countEl.classList.toggle('over', n > 600);
+  });
+
+  photoBtn.addEventListener('click', () => fileInput.click());
+
+  fileInput.addEventListener('change', e => {
+    const f = e.target.files[0];
+    if (!f) return;
+    if (f.size > 5 * 1024 * 1024) { toast('Image under 5MB'); fileInput.value = ''; return; }
+    if (!f.type.startsWith('image/')) { toast('Image files only'); fileInput.value = ''; return; }
+    imageFile = f;
+    previewImg.src = URL.createObjectURL(f);
+    previewEl.classList.add('show');
+  });
+
+  removeBtn.addEventListener('click', () => {
+    imageFile = null;
+    fileInput.value = '';
+    previewEl.classList.remove('show');
+  });
+
+  sendBtn.addEventListener('click', async () => {
+    const text = ta.value.trim();
+    if (!text && !imageFile) { toast('Add text or a photo'); return; }
+    if (text.length > 600) { toast('Reply too long'); return; }
+    sendBtn.disabled = true;
+
+    try {
+      let imageUrl = null;
+      if (imageFile) {
+        const path = `bts/replies/${Date.now()}_${imageFile.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+        const ref = storageRef(storage, path);
+        await uploadBytes(ref, imageFile);
+        imageUrl = await getDownloadURL(ref);
+      }
+
+      await addDoc(collection(db, 'btsReplies'), {
+        postId,
+        parentReplyId: parentReplyId || null,
+        text,
+        imageUrl,
+        authorEmail: currentUser.email,
+        authorName: displayName(currentUser.email),
+        authorUid: currentUser.uid,
+        timestamp: serverTimestamp(),
+        likes: 0
+      });
+
+      // Increment post replyCount (top-level only inflates the visible counter,
+      // but we count all replies including nested for engagement)
+      await updateDoc(doc(db, 'btsPosts', postId), {
+        replyCount: increment(1)
+      });
+
+      ta.value = '';
+      countEl.textContent = '0 / 600';
+      imageFile = null;
+      fileInput.value = '';
+      previewEl.classList.remove('show');
+      // If this is a nested reply form, hide it after sending
+      if (parentReplyId) formEl.style.display = 'none';
+      toast('Reply sent');
+    } catch (e) {
+      console.error(e);
+      toast('Could not reply: ' + e.message);
+    } finally {
+      sendBtn.disabled = false;
+    }
+  });
+}
+
+/* =====================================================================
+   LIKES (sessionStorage-based dedup, like comments module)
+   ===================================================================== */
+function likeKey(kind, id) { return `bts_like_${kind}_${id}`; }
+
+function isLikedLocally(kind, id) {
+  try { return sessionStorage.getItem(likeKey(kind, id)) === '1'; }
+  catch { return false; }
+}
+
+async function toggleLike(kind, id, el) {
+  const already = isLikedLocally(kind, id);
+  const collectionName = kind === 'post' ? 'btsPosts' : 'btsReplies';
+  const ref = doc(db, collectionName, id);
+  const btn = el.querySelector(kind === 'post' ? '[data-action="like-post"]' : '[data-action="like-reply"]');
+
+  try {
+    await updateDoc(ref, {
+      likes: increment(already ? -1 : 1)
+    });
+    if (already) {
+      sessionStorage.removeItem(likeKey(kind, id));
+      btn.classList.remove('liked');
+      btn.querySelector('.icon').textContent = '♡';
+    } else {
+      sessionStorage.setItem(likeKey(kind, id), '1');
+      btn.classList.add('liked');
+      btn.querySelector('.icon').textContent = '♥';
+    }
+  } catch (e) {
+    console.error(e);
+    toast('Could not register like');
+  }
+}
+
+/* =====================================================================
+   DELETE
+   ===================================================================== */
+async function deletePost(id) {
+  if (!confirm('Delete this post? This cannot be undone.')) return;
+  try {
+    // Delete replies attached to this post first
+    const replies = await getDocs(query(
+      collection(db, 'btsReplies'),
+      where('postId', '==', id)
+    ));
+    const batch = writeBatch(db);
+    replies.forEach(r => batch.delete(r.ref));
+    batch.delete(doc(db, 'btsPosts', id));
+    await batch.commit();
+    toast('Post deleted');
+  } catch (e) {
+    console.error(e);
+    toast('Delete failed: ' + e.message);
+  }
+}
+
+async function deleteReply(id) {
+  if (!confirm('Delete this reply?')) return;
+  try {
+    const replyDoc = await getDoc(doc(db, 'btsReplies', id));
+    if (!replyDoc.exists()) return;
+    const postId = replyDoc.data().postId;
+
+    // Also delete nested children of this reply
+    const children = await getDocs(query(
+      collection(db, 'btsReplies'),
+      where('parentReplyId', '==', id)
+    ));
+    const batch = writeBatch(db);
+    children.forEach(c => batch.delete(c.ref));
+    batch.delete(doc(db, 'btsReplies', id));
+    await batch.commit();
+
+    // Decrement post replyCount by (1 + children count)
+    if (postId) {
+      await updateDoc(doc(db, 'btsPosts', postId), {
+        replyCount: increment(-(1 + children.size))
+      });
+    }
+    toast('Reply deleted');
+  } catch (e) {
+    console.error(e);
+    toast('Delete failed: ' + e.message);
+  }
+}
+</script>
+
+</body>
+</html>

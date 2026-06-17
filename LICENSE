@@ -1,0 +1,46 @@
+Copyright (c) 2026 Cricket Times. All rights reserved.
+
+This source code is the proprietary work of the Cricket Times project,
+operated by Ivan Joseph. The code is published in this repository for
+operational purposes (deployment, version control, transparency to
+collaborators) and not as an invitation to reuse.
+
+No license — express or implied — is granted to copy, modify, distribute,
+sublicense, fork, or use this source code, in whole or in part, for any
+purpose other than viewing.
+
+In particular, the following are prohibited without prior written
+permission from the copyright holder:
+
+  * Copying or reproducing any portion of this source code into another
+    project, repository, or product, whether commercial or non-commercial.
+  * Deploying a substantially similar site, application, or service
+    derived from this code.
+  * Creating derivative works based on this code, including translations
+    to other programming languages or frameworks.
+  * Using this code, or any part of it, to train machine learning models
+    or as input to automated code-generation systems.
+  * Redistributing this code through any channel, including mirror
+    repositories, archives, or downloadable bundles.
+
+Visiting the deployed website at cricketimes.com is governed by the
+site's separate Terms of Service. Reading source code in this repository
+does not grant any rights beyond reading.
+
+For licensing inquiries, partnerships, or permission requests, contact:
+ivan@cricketimes.com
+
+The Cricket Times project incorporates third-party data and software
+under their own respective licenses:
+
+  * Cricket statistics data sourced from Ananth Narayanan, used with
+    permission. Not redistributed under this license.
+  * Cricket statistics data from Cricsheet (cricsheet.org), used under
+    the Open Data Commons Attribution License v1.0 (ODC-BY 1.0).
+  * Open-source dependencies (listed in source files where used) are
+    bound by their original licenses, which are not affected by this
+    notice.
+
+This notice does not waive any rights under copyright law that would
+apply by default in the absence of a license. It is provided to make
+the project's terms unambiguous to anyone who encounters this code.

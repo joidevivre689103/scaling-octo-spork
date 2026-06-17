@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Sign in · Cricket Times</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🏏%3C/text%3E%3C/svg%3E">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --cream: #faf6ee;
+      --paper: #fffdf7;
+      --ink: #1a1a1a;
+      --ink-soft: #4a4a4a;
+      --ink-faint: #8a8a8a;
+      --rule: #d8d2c4;
+      --rule-soft: #ece6d6;
+      --crimson: #9b2226;
+      --crimson-dark: #6e1518;
+      --gold: #b08d4a;
+      --error-bg: #fdecea;
+      --error-ink: #7a1d1d;
+      --success-bg: #eaf5e9;
+      --success-ink: #1f5a1c;
+      --info-bg: #eef3f8;
+      --info-ink: #1f3b5a;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: 'Source Serif 4', Georgia, serif;
+      background: var(--cream);
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Masthead */
+    .masthead {
+      border-bottom: 2px solid var(--ink);
+      padding: 24px 20px 18px;
+      text-align: center;
+      background: var(--paper);
+    }
+    .masthead h1 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-weight: 900;
+      font-size: 38px;
+      margin: 0;
+      letter-spacing: -0.01em;
+      color: var(--ink);
+    }
+    .masthead h1 a {
+      color: inherit;
+      text-decoration: none;
+    }
+    .masthead .tagline {
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--ink-soft);
+      margin-top: 6px;
+    }
+
+    /* Main */
+    main {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 48px 20px 60px;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 440px;
+      background: var(--paper);
+      border: 1px solid var(--rule);
+      box-shadow: 0 1px 0 var(--rule-soft), 0 12px 32px rgba(0,0,0,0.04);
+    }
+
+    .card-header {
+      padding: 28px 32px 0;
+      text-align: center;
+    }
+    .card-header h2 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-weight: 700;
+      font-size: 26px;
+      margin: 0 0 6px;
+      color: var(--ink);
+    }
+    .card-header p {
+      font-size: 14px;
+      color: var(--ink-soft);
+      margin: 0;
+      font-style: italic;
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      margin: 24px 0 0;
+      border-bottom: 1px solid var(--rule);
+    }
+    .tab {
+      flex: 1;
+      background: none;
+      border: none;
+      border-bottom: 3px solid transparent;
+      padding: 14px 8px;
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      color: var(--ink-soft);
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s;
+      margin-bottom: -1px;
+    }
+    .tab:hover {
+      color: var(--ink);
+    }
+    .tab.active {
+      color: var(--crimson);
+      border-bottom-color: var(--crimson);
+      font-weight: 600;
+    }
+    .tab:focus {
+      outline: 2px solid var(--gold);
+      outline-offset: -2px;
+    }
+
+    /* Forms */
+    .pane {
+      display: none;
+      padding: 28px 32px 32px;
+    }
+    .pane.active {
+      display: block;
+    }
+
+    .field {
+      margin-bottom: 18px;
+    }
+    .field label {
+      display: block;
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--ink-soft);
+      margin-bottom: 6px;
+    }
+    .field input {
+      width: 100%;
+      padding: 10px 12px;
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: 15px;
+      color: var(--ink);
+      background: var(--paper);
+      border: 1px solid var(--rule);
+      border-radius: 0;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .field input:focus {
+      outline: none;
+      border-color: var(--crimson);
+      box-shadow: 0 0 0 2px rgba(155, 34, 38, 0.12);
+    }
+    .field input:disabled {
+      background: var(--rule-soft);
+      color: var(--ink-faint);
+    }
+
+    .hint {
+      font-size: 12px;
+      color: var(--ink-faint);
+      margin-top: 4px;
+      font-style: italic;
+    }
+
+    /* Buttons */
+    .btn {
+      width: 100%;
+      padding: 12px 16px;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      border: none;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    .btn-primary {
+      background: var(--crimson);
+      color: var(--paper);
+    }
+    .btn-primary:hover:not(:disabled) {
+      background: var(--crimson-dark);
+    }
+    .btn-primary:disabled {
+      background: var(--ink-faint);
+      cursor: not-allowed;
+    }
+    .btn:focus {
+      outline: 2px solid var(--gold);
+      outline-offset: 2px;
+    }
+
+    /* Messages */
+    .msg {
+      padding: 10px 12px;
+      font-size: 13px;
+      margin-bottom: 16px;
+      border-left: 3px solid;
+      display: none;
+    }
+    .msg.show { display: block; }
+    .msg.error {
+      background: var(--error-bg);
+      color: var(--error-ink);
+      border-color: var(--error-ink);
+    }
+    .msg.success {
+      background: var(--success-bg);
+      color: var(--success-ink);
+      border-color: var(--success-ink);
+    }
+    .msg.info {
+      background: var(--info-bg);
+      color: var(--info-ink);
+      border-color: var(--info-ink);
+    }
+
+    /* Footer */
+    .card-footer {
+      padding: 16px 32px 24px;
+      text-align: center;
+      border-top: 1px solid var(--rule-soft);
+      font-size: 13px;
+      color: var(--ink-soft);
+    }
+    .card-footer a {
+      color: var(--crimson);
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .card-footer a:hover {
+      text-decoration: underline;
+    }
+
+    /* Provider section — reserved for v2 social/email-link.
+       Per spec §9.2, layout accommodates these without retrofit.
+       Uncomment block below and wire handlers when adding providers.
+    .providers {
+      padding: 18px 32px 0;
+      border-top: 1px solid var(--rule-soft);
+      margin-top: 4px;
+    }
+    .providers .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+      margin-bottom: 14px;
+    }
+    .providers .divider::before,
+    .providers .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--rule);
+    }
+    .btn-provider {
+      width: 100%;
+      padding: 10px 14px;
+      background: var(--paper);
+      color: var(--ink);
+      border: 1px solid var(--rule);
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .btn-provider:hover { background: var(--cream); }
+    */
+
+    /* Footnote */
+    .page-foot {
+      text-align: center;
+      padding: 24px 20px;
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+      border-top: 1px solid var(--rule);
+    }
+    .page-foot a {
+      color: var(--ink-soft);
+      text-decoration: none;
+    }
+    .page-foot a:hover { color: var(--crimson); }
+
+    /* Loading spinner */
+    .spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid var(--paper);
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: -2px;
+      margin-right: 8px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (max-width: 480px) {
+      .masthead h1 { font-size: 30px; }
+      .card-header, .pane, .card-footer { padding-left: 22px; padding-right: 22px; }
+      main { padding: 28px 14px 40px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="masthead">
+    <h1><a href="/">Cricket Times</a></h1>
+    <div class="tagline">Read the game</div>
+  </header>
+
+  <main>
+    <div class="card" role="region" aria-labelledby="card-heading">
+
+      <div class="card-header">
+        <h2 id="card-heading">Welcome</h2>
+        <p id="card-sub">Sign in or create an account to continue.</p>
+      </div>
+
+      <div class="tabs" role="tablist" aria-label="Authentication options">
+        <button class="tab active" role="tab" aria-selected="true" aria-controls="pane-signin" id="tab-signin" data-mode="signin">Sign in</button>
+        <button class="tab" role="tab" aria-selected="false" aria-controls="pane-signup" id="tab-signup" data-mode="signup">Create account</button>
+        <button class="tab" role="tab" aria-selected="false" aria-controls="pane-reset" id="tab-reset" data-mode="reset">Reset password</button>
+      </div>
+
+      <!-- SIGN IN -->
+      <div class="pane active" id="pane-signin" role="tabpanel" aria-labelledby="tab-signin">
+        <div class="msg" id="signin-msg" role="alert" aria-live="polite"></div>
+        <div class="field">
+          <label for="signin-email">Email</label>
+          <input type="email" id="signin-email" autocomplete="email" required>
+        </div>
+        <div class="field">
+          <label for="signin-password">Password</label>
+          <input type="password" id="signin-password" autocomplete="current-password" required>
+        </div>
+        <button class="btn btn-primary" id="signin-btn" type="button">Sign in</button>
+      </div>
+
+      <!-- CREATE ACCOUNT -->
+      <div class="pane" id="pane-signup" role="tabpanel" aria-labelledby="tab-signup">
+        <div class="msg" id="signup-msg" role="alert" aria-live="polite"></div>
+        <div class="field">
+          <label for="signup-email">Email</label>
+          <input type="email" id="signup-email" autocomplete="email" required>
+        </div>
+        <div class="field">
+          <label for="signup-password">Password</label>
+          <input type="password" id="signup-password" autocomplete="new-password" minlength="8" required>
+          <div class="hint">At least 8 characters.</div>
+        </div>
+        <div class="field">
+          <label for="signup-password2">Confirm password</label>
+          <input type="password" id="signup-password2" autocomplete="new-password" minlength="8" required>
+        </div>
+        <button class="btn btn-primary" id="signup-btn" type="button">Create account</button>
+      </div>
+
+      <!-- RESET PASSWORD (request a link) -->
+      <div class="pane" id="pane-reset" role="tabpanel" aria-labelledby="tab-reset">
+        <div class="msg" id="reset-msg" role="alert" aria-live="polite"></div>
+        <div class="field">
+          <label for="reset-email">Email</label>
+          <input type="email" id="reset-email" autocomplete="email" required>
+          <div class="hint">We&rsquo;ll send a reset link if an account exists for this address.</div>
+        </div>
+        <button class="btn btn-primary" id="reset-btn" type="button">Send reset link</button>
+      </div>
+
+      <!-- RESET PASSWORD CONFIRM (arrived via email link, ?mode=resetPassword&oobCode=...)
+           Not user-navigable via tabs. Shown only when reset params are present in URL.
+           When this pane is active, the tab row above is hidden. -->
+      <div class="pane" id="pane-reset-confirm" role="region" aria-label="Set a new password">
+        <div class="msg" id="reset-confirm-msg" role="alert" aria-live="polite"></div>
+        <div id="reset-confirm-loading" class="hint" style="text-align:center; padding:20px 0;">
+          Verifying your reset link&hellip;
+        </div>
+        <div id="reset-confirm-form" style="display:none;">
+          <p style="font-size:14px; color:var(--ink-soft); margin:0 0 18px;">
+            Setting a new password for <strong id="reset-confirm-email">&mdash;</strong>.
+          </p>
+          <div class="field">
+            <label for="reset-confirm-password">New password</label>
+            <input type="password" id="reset-confirm-password" autocomplete="new-password" minlength="8" required>
+            <div class="hint">At least 8 characters.</div>
+          </div>
+          <div class="field">
+            <label for="reset-confirm-password2">Confirm new password</label>
+            <input type="password" id="reset-confirm-password2" autocomplete="new-password" minlength="8" required>
+          </div>
+          <button class="btn btn-primary" id="reset-confirm-btn" type="button">Save new password</button>
+        </div>
+        <div id="reset-confirm-failed" style="display:none; text-align:center;">
+          <p style="font-size:14px; color:var(--ink-soft); margin:0 0 16px;">
+            <a href="#" id="reset-confirm-retry" style="color:var(--crimson); font-weight:500;">Request a new reset link</a>
+          </p>
+        </div>
+      </div>
+
+      <div class="card-footer">
+        Need help? Write to <a href="mailto:ivan@cricketimes.com">ivan@cricketimes.com</a>
+      </div>
+
+    </div>
+  </main>
+
+  <div class="page-foot">
+    &copy; <span id="year"></span> Cricket Times · <a href="/about.html">About</a>
+  </div>
+
+  <script type="module">
+    // -------------------------------------------------------------------
+    // Cricket Times — universal login page
+    // Spec: cricket-times-login-spec.docx §9.2
+    // Build item (a). Foundation for items (b)/(c) downstream.
+    //
+    // Firebase SDK: modular 10.12.5 (standardized across gated pages per
+    // sub-task 7.4). Coexists with prelaunch-guard.js's default app init
+    // via getApps()/getApp() guard.
+    // -------------------------------------------------------------------
+
+    import { initializeApp, getApps, getApp } from
+      "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+    import {
+      getAuth,
+      signInWithEmailAndPassword,
+      createUserWithEmailAndPassword,
+      sendPasswordResetEmail,
+      signOut,
+      onAuthStateChanged,
+      verifyPasswordResetCode,
+      confirmPasswordReset
+    } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+    import {
+      getFirestore,
+      doc,
+      getDoc,
+      setDoc,
+      serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
+    // Firebase config — public API key is intentionally exposed per project
+    // convention; security is enforced via Firestore rules, not key secrecy.
+    const firebaseConfig = {
+      apiKey: "AIzaSyBnfn9hK0y-p6nvIZ_AwoJnWD7DfDuIQd4",
+      authDomain: "hitwicket-cba02.firebaseapp.com",
+      projectId: "hitwicket-cba02",
+      storageBucket: "hitwicket-cba02.appspot.com",
+      // messagingSenderId / appId: filled in to match repo if needed.
+    };
+
+    // Reuse prelaunch-guard.js's default app if it already initialized one.
+    // After launch, when prelaunch-guard.js is removed, Firebase init moves
+    // to feature-flags.js (TODO #13 — design during 7.5).
+    const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // -------------------------------------------------------------------
+    // Helpers
+    // -------------------------------------------------------------------
+
+    /**
+     * Encode an email into a Firestore-safe key.
+     *
+     * Convention across the Cricket Times codebase: lowercase, then replace
+     * '.' and '@' with '_'. Matches:
+     *   - firestore.rules emailKey() helper (uses regex `\\.` → '_')
+     *   - prelaunch-guard.js line ~261 (`email.toLowerCase().replace(/[.@]/g, '_')`)
+     *   - subscribe.html / manage.html (same scheme)
+     *
+     * IMPORTANT JS GOTCHA: String.replace('.', '_') with a string-first arg
+     * replaces only the FIRST occurrence. Must use a regex with /g flag.
+     * Without /g, 'joseph.ivan.smith@outlook.com' → 'joseph_ivan.smith_outlook.com'
+     * which silently breaks every downstream lookup. (Firestore Rules'
+     * replace() is regex-based by contrast, which is why the rules helper
+     * works without /g.)
+     */
+    function encodeEmailKey(email) {
+      return (email || '')
+        .trim()
+        .toLowerCase()
+        .replace(/\./g, '_')
+        .replace(/@/g, '_');
+    }
+
+    /**
+     * Sanitize a returnUrl query param to prevent open-redirect.
+     * Only same-origin paths starting with '/' (not '//') are accepted.
+     */
+    function safeReturnUrl(raw) {
+      if (!raw) return '/';
+      try {
+        const decoded = decodeURIComponent(raw);
+        // Reject protocol-relative (//evil.com) and absolute URLs.
+        if (decoded.startsWith('//')) return '/';
+        if (/^https?:/i.test(decoded)) {
+          // Allow only if same origin.
+          const u = new URL(decoded);
+          if (u.origin === location.origin) return u.pathname + u.search + u.hash;
+          return '/';
+        }
+        if (decoded.startsWith('/')) return decoded;
+        return '/';
+      } catch (e) {
+        return '/';
+      }
+    }
+
+    /**
+     * Derive a display name from an email local-part.
+     * 'joseph.ivan@gmail.com' -> 'Joseph Ivan'
+     */
+    function deriveDisplayName(email) {
+      const local = (email || '').split('@')[0] || '';
+      return local
+        .split(/[._-]+/)
+        .filter(Boolean)
+        .map(s => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase())
+        .join(' ') || 'Reader';
+    }
+
+    /**
+     * Map a Firebase Auth error to a human-readable message.
+     * Mirrors the admin.html changeAuthPassword pattern.
+     */
+    function authErrorMessage(err) {
+      const code = err && err.code ? err.code : '';
+      switch (code) {
+        case 'auth/invalid-email':
+          return 'That doesn\u2019t look like a valid email address.';
+        case 'auth/user-disabled':
+          return 'This account has been disabled. Write to ivan@cricketimes.com for help.';
+        case 'auth/user-not-found':
+        case 'auth/wrong-password':
+        case 'auth/invalid-credential':
+        case 'auth/invalid-login-credentials':
+          return 'Email or password is incorrect.';
+        case 'auth/email-already-in-use':
+          return 'An account already exists for this email. Try signing in instead, or reset your password.';
+        case 'auth/weak-password':
+          return 'Password is too weak. Use at least 8 characters.';
+        case 'auth/too-many-requests':
+          return 'Too many attempts. Please wait a few minutes and try again.';
+        case 'auth/network-request-failed':
+          return 'Network error. Check your connection and try again.';
+        case 'auth/missing-password':
+          return 'Please enter a password.';
+        case 'auth/missing-email':
+          return 'Please enter your email address.';
+        default:
+          console.error('[login] auth error:', err);
+          return 'Something went wrong. Please try again.';
+      }
+    }
+
+    function showMsg(paneId, kind, text) {
+      const el = document.getElementById(paneId + '-msg');
+      if (!el) return;
+      el.className = 'msg ' + kind + ' show';
+      el.textContent = text;
+    }
+    function clearMsg(paneId) {
+      const el = document.getElementById(paneId + '-msg');
+      if (!el) return;
+      el.className = 'msg';
+      el.textContent = '';
+    }
+
+    function setBtnLoading(btn, loading, idleLabel) {
+      if (loading) {
+        btn.dataset.idleLabel = idleLabel || btn.textContent;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner"></span> Working\u2026';
+      } else {
+        btn.disabled = false;
+        btn.textContent = btn.dataset.idleLabel || idleLabel || 'Submit';
+      }
+    }
+
+    // -------------------------------------------------------------------
+    // Tab switching
+    // -------------------------------------------------------------------
+
+    function setActiveTab(mode) {
+      const tabs = document.querySelectorAll('.tab');
+      const panes = document.querySelectorAll('.pane');
+      tabs.forEach(t => {
+        const isActive = t.dataset.mode === mode;
+        t.classList.toggle('active', isActive);
+        t.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      });
+      panes.forEach(p => {
+        const isActive = p.id === 'pane-' + mode;
+        p.classList.toggle('active', isActive);
+      });
+      // Sub-heading copy
+      const sub = document.getElementById('card-sub');
+      if (sub) {
+        sub.textContent =
+          mode === 'signup' ? 'Create an account to subscribe or comment.' :
+          mode === 'reset'  ? 'Enter your email and we\u2019ll send a reset link.' :
+                              'Sign in or create an account to continue.';
+      }
+      // Update URL without reload, preserving returnUrl
+      try {
+        const url = new URL(location.href);
+        url.searchParams.set('mode', mode);
+        history.replaceState(null, '', url.toString());
+      } catch (e) { /* noop */ }
+      // Focus first field
+      const firstInput = document.querySelector('#pane-' + mode + ' input');
+      if (firstInput) setTimeout(() => firstInput.focus(), 50);
+    }
+
+    document.querySelectorAll('.tab').forEach(t => {
+      t.addEventListener('click', () => setActiveTab(t.dataset.mode));
+    });
+
+    // -------------------------------------------------------------------
+    // Initial mode + returnUrl
+    // -------------------------------------------------------------------
+
+    const params = new URLSearchParams(location.search);
+    const RETURN_URL = safeReturnUrl(params.get('returnUrl'));
+
+    // Firebase action-URL params (sent when the user clicks a link in an
+    // auth email). The page is the action handler when Firebase Auth →
+    // Templates → "Customize action URL" points here. Supported modes:
+    //   resetPassword — the only one we currently use
+    //   verifyEmail, recoverEmail — possible future use; fall back to signin
+    const FB_MODE = params.get('mode') || '';
+    const FB_OOB_CODE = params.get('oobCode') || '';
+    const IS_RESET_CONFIRM = (FB_MODE === 'resetPassword') && !!FB_OOB_CODE;
+    const IS_UNKNOWN_FB_ACTION =
+      !!FB_OOB_CODE && ['verifyEmail', 'recoverEmail', 'revertSecondFactorAddition'].includes(FB_MODE);
+
+    // Tab/pane resolution
+    if (IS_RESET_CONFIRM) {
+      // Hide the tab row entirely — user did not navigate here, the email did.
+      document.querySelector('.tabs').style.display = 'none';
+      document.getElementById('card-heading').textContent = 'Set a new password';
+      document.getElementById('card-sub').textContent = 'Almost done.';
+      // Hide the standard panes; show the confirm pane.
+      document.querySelectorAll('.pane').forEach(p => p.classList.remove('active'));
+      document.getElementById('pane-reset-confirm').classList.add('active');
+      // Verification kicks off below in handleResetConfirmLoad().
+    } else {
+      // Mode resolution: explicit ?mode= wins, ?intent=signup is a synonym (spec §9.4).
+      let initialMode = (params.get('mode') || '').toLowerCase();
+      if (params.get('intent') === 'signup') initialMode = 'signup';
+      // Discard Firebase action modes that landed here — they're not user-tab values.
+      if (!['signin','signup','reset'].includes(initialMode)) initialMode = 'signin';
+      setActiveTab(initialMode);
+
+      if (IS_UNKNOWN_FB_ACTION) {
+        showMsg('signin', 'info', 'This action isn\u2019t supported here yet. Please sign in below or contact support.');
+      }
+    }
+
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // -------------------------------------------------------------------
+    // Auth state — if already signed in, bounce to returnUrl.
+    // -------------------------------------------------------------------
+
+    // -------------------------------------------------------------------
+    // Auth state — if already signed in, show a visible panel offering
+    // continue-to-destination or sign-out, rather than silently redirecting.
+    //
+    // Why not auto-redirect: a silent redirect makes a stale auth session
+    // invisible (the user types /login.html, the page flashes, they're
+    // bounced — they can't tell whether the page is broken, whether
+    // they're already authed, or which account they're authed as).
+    // Worse, it makes the login page un-testable without clearing
+    // IndexedDB. Showing the panel handles three real cases: clicked
+    // login by accident, want to switch accounts, just want to sign out.
+    //
+    // Exception: reset-confirm mode. An already-authed user clicking a
+    // reset link should still be able to finish the reset.
+    // -------------------------------------------------------------------
+
+    let initialAuthChecked = false;
+    onAuthStateChanged(auth, user => {
+      if (!initialAuthChecked) {
+        initialAuthChecked = true;
+        if (user && !IS_RESET_CONFIRM) {
+          showAlreadySignedInPanel(user);
+        }
+      }
+    });
+
+    function showAlreadySignedInPanel(user) {
+      // Hide tabs and all panes.
+      document.querySelector('.tabs').style.display = 'none';
+      document.querySelectorAll('.pane').forEach(p => p.classList.remove('active'));
+
+      // Update card heading.
+      document.getElementById('card-heading').textContent = 'You\u2019re signed in';
+      document.getElementById('card-sub').textContent = '';
+
+      // Build the panel.
+      const panel = document.createElement('div');
+      panel.className = 'pane active';
+      panel.id = 'pane-already-signed-in';
+      panel.innerHTML =
+        '<p style="font-size:15px; color:var(--ink); margin:0 0 8px; text-align:center;">' +
+          'Signed in as <strong>' + escapeHtml(user.email || '(no email)') + '</strong>.' +
+        '</p>' +
+        '<p style="font-size:13px; color:var(--ink-soft); margin:0 0 22px; text-align:center; font-style:italic;">' +
+          'Continue where you were going, or sign out to use a different account.' +
+        '</p>' +
+        '<button class="btn btn-primary" id="continue-btn" type="button" style="margin-bottom:10px;">Continue</button>' +
+        '<button class="btn" id="signout-btn" type="button" style="background:var(--paper); color:var(--ink); border:1px solid var(--rule);">Sign out</button>';
+      document.querySelector('.card').insertBefore(panel, document.querySelector('.card-footer'));
+
+      document.getElementById('continue-btn').addEventListener('click', () => {
+        location.replace(RETURN_URL);
+      });
+      document.getElementById('signout-btn').addEventListener('click', async () => {
+        try {
+          await signOut(auth);
+          // Bust the gate's cached verdict so the next gated page re-checks.
+          try { sessionStorage.removeItem('ct_access_verdict_v1'); } catch (e) {}
+          // Reload to the same URL minus any returnUrl, so the user lands
+          // on a clean signin tab.
+          location.replace(location.origin + location.pathname);
+        } catch (err) {
+          console.error('[login] signOut failed:', err);
+          alert('Sign-out failed. Please try again.');
+        }
+      });
+    }
+
+    function escapeHtml(s) {
+      return String(s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    // -------------------------------------------------------------------
+    // SIGN IN
+    // -------------------------------------------------------------------
+
+    async function handleSignIn() {
+      clearMsg('signin');
+      const email = document.getElementById('signin-email').value.trim();
+      const password = document.getElementById('signin-password').value;
+      const btn = document.getElementById('signin-btn');
+
+      if (!email) { showMsg('signin', 'error', 'Please enter your email.'); return; }
+      if (!password) { showMsg('signin', 'error', 'Please enter your password.'); return; }
+
+      setBtnLoading(btn, true, 'Sign in');
+      try {
+        const cred = await signInWithEmailAndPassword(auth, email, password);
+        const user = cred.user;
+
+        // Backfill users/{uid} if the doc doesn't exist yet.
+        //
+        // Why: auth identities can be created outside /login.html's signup
+        // tab — e.g. legacy email-link test accounts, Stripe checkout
+        // auto-create-on-payment, future admin "manually add user" tools,
+        // or any auth flow that predates this page. Those accounts never
+        // pass through handleSignUp's inline write and would otherwise be
+        // missing from the users/ collection, breaking downstream lookups
+        // (admin User Analytics, comments display name, etc.).
+        //
+        // This is a defensive one-time write on first signin after the
+        // backfill code lands. We don't overwrite existing docs (which
+        // could clobber a corrected displayName or other fields).
+        //
+        // Failure here is non-fatal — same pattern as the signup write.
+        // If a Cloud Function trigger ever takes over this responsibility
+        // (spec §13 open question), this block becomes redundant and
+        // can be removed.
+        //
+        // NOTE on modular SDK: snap.exists() is a METHOD here (parens
+        // required), unlike compat where snap.exists was a property.
+        // Forgetting the parens makes `!snap.exists` always falsy (a
+        // function reference is truthy), silently skipping every backfill.
+        try {
+          const profileRef = doc(db, 'users', user.uid);
+          const snap = await getDoc(profileRef);
+          if (!snap.exists()) {
+            await setDoc(profileRef, {
+              email: user.email || email,
+              emailKey: encodeEmailKey(user.email || email),
+              displayName: user.displayName || deriveDisplayName(user.email || email),
+              createdAt: serverTimestamp()
+            });
+            console.log('[login] backfilled users/' + user.uid);
+          }
+        } catch (backfillErr) {
+          console.warn('[login] users/{uid} backfill failed (non-fatal):', backfillErr);
+        }
+
+        // Bust the prelaunch-guard's cached "denied" verdict so the next
+        // gated page does a fresh check with the new auth state.
+        try { sessionStorage.removeItem('ct_access_verdict_v1'); } catch (e) {}
+        // Success — redirect.
+        showMsg('signin', 'success', 'Signed in. Redirecting\u2026');
+        location.replace(RETURN_URL);
+      } catch (err) {
+        setBtnLoading(btn, false, 'Sign in');
+        showMsg('signin', 'error', authErrorMessage(err));
+      }
+    }
+
+    // -------------------------------------------------------------------
+    // CREATE ACCOUNT
+    // -------------------------------------------------------------------
+
+    async function handleSignUp() {
+      clearMsg('signup');
+      const email = document.getElementById('signup-email').value.trim();
+      const pw1 = document.getElementById('signup-password').value;
+      const pw2 = document.getElementById('signup-password2').value;
+      const btn = document.getElementById('signup-btn');
+
+      if (!email) { showMsg('signup', 'error', 'Please enter your email.'); return; }
+      if (!pw1) { showMsg('signup', 'error', 'Please choose a password.'); return; }
+      if (pw1.length < 8) { showMsg('signup', 'error', 'Password must be at least 8 characters.'); return; }
+      if (pw1 !== pw2) { showMsg('signup', 'error', 'Passwords don\u2019t match.'); return; }
+
+      setBtnLoading(btn, true, 'Create account');
+      try {
+        const cred = await createUserWithEmailAndPassword(auth, email, pw1);
+        const user = cred.user;
+
+        // Inline users/{uid} write per spec §6.4 and decision 2A.
+        // If this write fails, the auth user still exists — we log and continue
+        // rather than rolling back. Item (b)/(c) handlers may re-attempt the
+        // write on next signin if needed, or a future Cloud Function trigger
+        // can backfill. Failing here would strand the user with an auth account
+        // but no profile doc; surfacing it as an error blocks the happier path.
+        //
+        // The await on setDoc here is intentional: the redirect on the next
+        // line must not race the Firestore write. Sub-task 7.4 conversion
+        // preserves this sequential ordering.
+        try {
+          await setDoc(doc(db, 'users', user.uid), {
+            email: email,
+            emailKey: encodeEmailKey(email),
+            displayName: deriveDisplayName(email),
+            createdAt: serverTimestamp()
+          });
+        } catch (writeErr) {
+          console.error('[login] users/{uid} write failed (non-fatal):', writeErr);
+        }
+
+        // Bust the prelaunch-guard's cached "denied" verdict so the next
+        // gated page does a fresh check with the new auth state.
+        try { sessionStorage.removeItem('ct_access_verdict_v1'); } catch (e) {}
+
+        showMsg('signup', 'success', 'Account created. Redirecting\u2026');
+        location.replace(RETURN_URL);
+      } catch (err) {
+        setBtnLoading(btn, false, 'Create account');
+        showMsg('signup', 'error', authErrorMessage(err));
+      }
+    }
+
+    // -------------------------------------------------------------------
+    // RESET PASSWORD
+    // -------------------------------------------------------------------
+
+    async function handleReset() {
+      clearMsg('reset');
+      const email = document.getElementById('reset-email').value.trim();
+      const btn = document.getElementById('reset-btn');
+
+      if (!email) { showMsg('reset', 'error', 'Please enter your email.'); return; }
+
+      setBtnLoading(btn, true, 'Send reset link');
+      try {
+        await sendPasswordResetEmail(auth, email);
+        setBtnLoading(btn, false, 'Send reset link');
+        // Deliberately generic — don't leak whether the email exists.
+        showMsg('reset', 'success', 'If an account exists for this email, a reset link has been sent. Check your inbox (and spam folder).');
+      } catch (err) {
+        setBtnLoading(btn, false, 'Send reset link');
+        // Most reset errors (e.g. user-not-found) should still show the generic
+        // success message to avoid email enumeration. Only show the error for
+        // network/invalid-email/too-many-requests.
+        const code = err && err.code ? err.code : '';
+        if (['auth/invalid-email','auth/too-many-requests','auth/network-request-failed','auth/missing-email'].includes(code)) {
+          showMsg('reset', 'error', authErrorMessage(err));
+        } else {
+          console.error('[login] reset (suppressed):', err);
+          showMsg('reset', 'success', 'If an account exists for this email, a reset link has been sent. Check your inbox (and spam folder).');
+        }
+      }
+    }
+
+    // -------------------------------------------------------------------
+    // RESET PASSWORD — CONFIRM (arrived via email-link, self-hosted)
+    // -------------------------------------------------------------------
+    // Triggered only when ?mode=resetPassword&oobCode=... is present.
+    // Replaces Firebase's hosted "Reset your password" / "Password changed"
+    // screens so the visual style matches the rest of the site.
+    //
+    // Flow:
+    //   1. verifyPasswordResetCode(oobCode) → recovers the user's email,
+    //      validates the code hasn't been used/expired
+    //   2. user enters new password (twice)
+    //   3. confirmPasswordReset(oobCode, newPassword) → commits
+    //   4. signInWithEmailAndPassword(email, newPassword) → auto-signin
+    //   5. redirect to RETURN_URL (default '/')
+    //
+    // Requires Firebase Console config:
+    //   Authentication → Templates → Password reset → ✏️ →
+    //   "Customize action URL" → https://cricketimes.com/login.html
+    //
+    // Without that config, reset emails still go to Firebase's hosted page
+    // and this code is never reached.
+
+    let resetConfirmEmail = null;  // populated after verifyPasswordResetCode
+
+    async function handleResetConfirmLoad() {
+      // Called once, from the page-load reset-confirm branch below.
+      const loadingEl = document.getElementById('reset-confirm-loading');
+      const formEl = document.getElementById('reset-confirm-form');
+      const failedEl = document.getElementById('reset-confirm-failed');
+
+      try {
+        const email = await verifyPasswordResetCode(auth, FB_OOB_CODE);
+        resetConfirmEmail = email;
+        document.getElementById('reset-confirm-email').textContent = email;
+        loadingEl.style.display = 'none';
+        formEl.style.display = 'block';
+        setTimeout(() => {
+          const pw = document.getElementById('reset-confirm-password');
+          if (pw) pw.focus();
+        }, 50);
+      } catch (err) {
+        console.warn('[login] verifyPasswordResetCode failed:', err);
+        loadingEl.style.display = 'none';
+        failedEl.style.display = 'block';
+        const code = err && err.code ? err.code : '';
+        const msg =
+          code === 'auth/expired-action-code' ? 'This reset link has expired.' :
+          code === 'auth/invalid-action-code' ? 'This reset link is invalid or has already been used.' :
+          code === 'auth/user-disabled' ? 'This account has been disabled. Contact ivan@cricketimes.com.' :
+          'We couldn\u2019t verify this reset link.';
+        showMsg('reset-confirm', 'error', msg);
+      }
+    }
+
+    async function handleResetConfirmSubmit() {
+      clearMsg('reset-confirm');
+      const pw1 = document.getElementById('reset-confirm-password').value;
+      const pw2 = document.getElementById('reset-confirm-password2').value;
+      const btn = document.getElementById('reset-confirm-btn');
+
+      if (!pw1) { showMsg('reset-confirm', 'error', 'Please choose a password.'); return; }
+      if (pw1.length < 8) { showMsg('reset-confirm', 'error', 'Password must be at least 8 characters.'); return; }
+      if (pw1 !== pw2) { showMsg('reset-confirm', 'error', 'Passwords don\u2019t match.'); return; }
+
+      setBtnLoading(btn, true, 'Save new password');
+      try {
+        // Commit the new password.
+        await confirmPasswordReset(auth, FB_OOB_CODE, pw1);
+
+        // Auto sign-in so the user goes straight to the destination rather than
+        // landing on a "now sign in" screen. The just-saved password is the
+        // only one Firebase will accept now.
+        try {
+          const cred = await signInWithEmailAndPassword(auth, resetConfirmEmail, pw1);
+          const user = cred.user;
+
+          // Backfill users/{uid} if missing. Same rationale as handleSignIn.
+          // A user who reset their password is often a returning legacy
+          // account that pre-dates /login.html signup, so this is a high
+          // hit-rate path for the backfill.
+          //
+          // (See handleSignIn for the snap.exists() vs snap.exists modular
+          // SDK gotcha — same fix applied here.)
+          try {
+            const profileRef = doc(db, 'users', user.uid);
+            const snap = await getDoc(profileRef);
+            if (!snap.exists()) {
+              await setDoc(profileRef, {
+                email: user.email || resetConfirmEmail,
+                emailKey: encodeEmailKey(user.email || resetConfirmEmail),
+                displayName: user.displayName || deriveDisplayName(user.email || resetConfirmEmail),
+                createdAt: serverTimestamp()
+              });
+              console.log('[login] backfilled users/' + user.uid + ' on reset-confirm');
+            }
+          } catch (backfillErr) {
+            console.warn('[login] users/{uid} backfill failed on reset-confirm (non-fatal):', backfillErr);
+          }
+        } catch (signInErr) {
+          // If auto-signin fails for any reason (rare), drop them on the
+          // signin tab with a message — the password change itself succeeded.
+          console.warn('[login] auto-signin after reset failed:', signInErr);
+          setBtnLoading(btn, false, 'Save new password');
+          showMsg('reset-confirm', 'success', 'Password updated. Please sign in with your new password.');
+          // Surface a fresh signin tab after a short delay.
+          setTimeout(() => {
+            // Strip the action URL params so the page becomes a normal /login.html.
+            const cleanUrl = location.origin + location.pathname;
+            location.replace(cleanUrl);
+          }, 1800);
+          return;
+        }
+
+        // Bust the prelaunch-guard's cached verdict.
+        try { sessionStorage.removeItem('ct_access_verdict_v1'); } catch (e) {}
+
+        showMsg('reset-confirm', 'success', 'Password updated. Redirecting\u2026');
+        location.replace(RETURN_URL);
+      } catch (err) {
+        setBtnLoading(btn, false, 'Save new password');
+        const code = err && err.code ? err.code : '';
+        const msg =
+          code === 'auth/expired-action-code' ? 'This reset link has expired. Please request a new one.' :
+          code === 'auth/invalid-action-code' ? 'This reset link is no longer valid. Please request a new one.' :
+          code === 'auth/weak-password' ? 'Password is too weak. Use at least 8 characters.' :
+          authErrorMessage(err);
+        showMsg('reset-confirm', 'error', msg);
+      }
+    }
+
+    // "Request a new reset link" anchor inside the failed state — bounces
+    // them to a clean /login.html?mode=reset.
+    document.getElementById('reset-confirm-retry').addEventListener('click', (e) => {
+      e.preventDefault();
+      location.replace(location.origin + location.pathname + '?mode=reset');
+    });
+
+    document.getElementById('reset-confirm-btn').addEventListener('click', handleResetConfirmSubmit);
+    document.getElementById('pane-reset-confirm').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); handleResetConfirmSubmit(); }
+    });
+
+    // Kick off verification on load if we're in reset-confirm mode.
+    if (IS_RESET_CONFIRM) {
+      handleResetConfirmLoad();
+    }
+
+
+    document.getElementById('signin-btn').addEventListener('click', handleSignIn);
+    document.getElementById('signup-btn').addEventListener('click', handleSignUp);
+    document.getElementById('reset-btn').addEventListener('click', handleReset);
+
+    // Enter-key submission per pane
+    document.getElementById('pane-signin').addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); handleSignIn(); }
+    });
+    document.getElementById('pane-signup').addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); handleSignUp(); }
+    });
+    document.getElementById('pane-reset').addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); handleReset(); }
+    });
+
+  </script>
+</body>
+</html>

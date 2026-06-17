@@ -1,0 +1,1598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>Cricket Times — Coming Soon · Launching June 2026</title>
+<meta name="description" content="Test cricket, examined properly. 149 years of Test cricket analysed with the care the format deserves — every match since 1877, every player, every era. Launching June 2026.">
+
+<!-- Open Graph / Facebook / WhatsApp / iMessage -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://cricketimes.com/">
+<meta property="og:title" content="Cricket Times — Test cricket, examined properly.">
+<meta property="og:description" content="149 years of Test cricket, analysed with the care the format deserves. Every match since 1877, every player, every era — indexed, comparable, and written about with opinions. Launching June 2026.">
+<meta property="og:image" content="https://cricketimes.com/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:site_name" content="Cricket Times">
+
+<!-- Twitter / X -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:url" content="https://cricketimes.com/">
+<meta name="twitter:title" content="Cricket Times — Test cricket, examined properly.">
+<meta name="twitter:description" content="149 years of Test cricket, analysed with the care the format deserves. Launching June 2026.">
+<meta name="twitter:image" content="https://cricketimes.com/og-image.png">
+
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,300;8..60,400;8..60,500;8..60,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- MailerLite Universal -->
+<script>
+    (function(w,d,e,u,f,l,n){w[f]=w[f]||function(){(w[f].q=w[f].q||[])
+    .push(arguments);},l=d.createElement(e),l.async=1,l.src=u,
+    n=d.getElementsByTagName(e)[0],n.parentNode.insertBefore(l,n);})
+    (window,document,'script','https://assets.mailerlite.com/js/universal.js','ml');
+    ml('account', '2259944');
+</script>
+<!-- End MailerLite Universal -->
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+
+/* scroll margin so signup targets aren't flush with top of viewport when jumped to */
+#signup-main, #signup-free, #signup-founding{ scroll-margin-top:20px; }
+
+:root{
+  --bg:#FDF6E3;--surface:#FFFDF7;--surface2:#F5EDDA;--surface3:#E8DCC8;
+  --border:#D4C5A9;--border2:#c8b898;
+  --text:#1A1A1A;--text2:#444;--text3:#888;
+  --accent:#8B0000;--accent-hover:#6B0000;--accent-light:#A52A2A;--accent-dim:rgba(139,0,0,0.06);
+  --gold:#B8860B;--green:#1E6B3A;
+  --card-bg:#FFFDF7;--shadow:rgba(0,0,0,0.08);--radius:6px;
+}
+
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Source Serif 4',Georgia,serif;
+  min-height:100vh;
+  line-height:1.6;
+}
+
+/* ═══ MASTHEAD ═══ */
+.masthead{
+  text-align:center;
+  padding:24px 24px 18px;
+  border-bottom:2px solid var(--text);
+}
+.masthead-date{
+  font-family:'Inter',sans-serif;
+  font-size:11px;
+  font-weight:500;
+  letter-spacing:1.2px;
+  text-transform:uppercase;
+  color:var(--text3);
+  margin-bottom:8px;
+}
+.masthead-logo{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(36px,8vw,58px);
+  font-weight:700;
+  letter-spacing:-1px;
+  line-height:1.1;
+  color:var(--text);
+  text-decoration:none;
+  display:inline-block;
+}
+.masthead-logo span{ color:var(--accent); }
+.masthead-tagline{
+  font-family:'Inter',sans-serif;
+  font-size:11px;
+  font-weight:500;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  color:var(--text3);
+  margin-top:6px;
+}
+
+/* ═══ COMING SOON BANNER ═══ */
+.cs-banner{
+  background:var(--accent);
+  color:#fff;
+  text-align:center;
+  padding:10px 24px;
+  font-family:'Inter',sans-serif;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:2px;
+  text-transform:uppercase;
+}
+.cs-banner span{
+  display:inline-block;
+  background:rgba(255,255,255,0.2);
+  padding:3px 10px;
+  border-radius:3px;
+  margin-right:10px;
+  font-size:10px;
+}
+
+/* ═══ MAIN ═══ */
+.main{
+  max-width:960px;
+  margin:0 auto;
+  padding:0 24px;
+}
+
+/* ═══ HERO ═══ */
+.hero{
+  padding:56px 0 40px;
+  border-bottom:1px solid var(--border);
+  text-align:center;
+}
+.hero-kicker{
+  font-family:'Inter',sans-serif;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  color:var(--accent);
+  margin-bottom:16px;
+}
+.hero-headline{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(40px,6vw,64px);
+  font-weight:700;
+  line-height:1.1;
+  letter-spacing:-1px;
+  margin-bottom:20px;
+  max-width:760px;
+  margin-left:auto;
+  margin-right:auto;
+}
+.hero-headline em{
+  font-style:italic;
+  color:var(--accent);
+}
+.hero-dek{
+  font-family:'Source Serif 4',Georgia,serif;
+  font-size:clamp(17px,2vw,20px);
+  line-height:1.55;
+  color:var(--text2);
+  max-width:640px;
+  margin:0 auto 24px;
+}
+.hero-flagship{
+  font-family:'Source Serif 4',Georgia,serif;
+  font-size:clamp(15px,1.7vw,17px);
+  line-height:1.55;
+  color:var(--text);
+  max-width:640px;
+  margin:0 auto 32px;
+  padding:16px 20px;
+  border-top:1px solid var(--border);
+  border-bottom:1px solid var(--border);
+  background:var(--accent-dim);
+  font-style:italic;
+}
+.hero-flagship-label{
+  font-family:'Inter',sans-serif;
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:1.8px;
+  text-transform:uppercase;
+  color:var(--accent);
+  font-style:normal;
+  display:block;
+  margin-bottom:6px;
+}
+.hero-flagship-link{
+  color:var(--accent);
+  font-weight:600;
+  text-decoration:none;
+  border-bottom:1px solid var(--accent);
+  font-style:normal;
+  white-space:nowrap;
+}
+.hero-flagship-link:hover{
+  color:var(--accent-hover);
+  border-bottom-color:var(--accent-hover);
+}
+.hero-byline{
+  font-family:'Inter',sans-serif;
+  font-size:11px;
+  font-weight:600;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  color:var(--text3);
+  display:flex;
+  justify-content:center;
+  gap:20px;
+  flex-wrap:wrap;
+}
+.hero-byline span{ position:relative; }
+.hero-byline span:not(:last-child)::after{
+  content:'•';
+  position:absolute;
+  right:-13px;
+  color:var(--border2);
+}
+
+/* ═══ CTA BLOCKS (top & bottom — button scrolls to real form) ═══ */
+.cta-block{
+  padding:44px 0;
+  border-bottom:1px solid var(--border);
+  text-align:center;
+}
+.cta-block.final-cta{
+  padding:56px 0 64px;
+  border-bottom:none;
+}
+
+/* ═══ QUIZ CTA BLOCK — interactive card treatment ═══ */
+.cta-block.quiz-block{
+  padding:40px 0 44px;
+}
+.quiz-card{
+  max-width:620px;
+  margin:0 auto;
+  padding:34px 32px 32px;
+  background:var(--surface);
+  border:2px solid var(--accent);
+  border-radius:10px;
+  position:relative;
+  box-shadow:0 4px 18px rgba(0,0,0,0.06), 0 1px 4px rgba(139,0,0,0.08);
+}
+.quiz-card::before{
+  content:'';
+  position:absolute;
+  top:-8px;
+  left:24px;
+  right:24px;
+  height:6px;
+  background:var(--accent);
+  border-radius:3px 3px 0 0;
+  opacity:0.15;
+}
+.quiz-card .cta-title{
+  margin-bottom:12px;
+}
+.quiz-card .cta-sub{
+  margin-bottom:20px;
+}
+@media(max-width:600px){
+  .quiz-card{
+    padding:28px 22px 26px;
+    margin:0 4px;
+  }
+}
+
+.cta-label{
+  font-family:'Inter',sans-serif;
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:2.5px;
+  text-transform:uppercase;
+  color:var(--accent);
+  margin-bottom:12px;
+}
+.cta-title{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(24px,3.5vw,32px);
+  font-weight:700;
+  line-height:1.2;
+  margin-bottom:10px;
+  letter-spacing:-0.3px;
+}
+.cta-sub{
+  font-family:'Source Serif 4',Georgia,serif;
+  font-size:15px;
+  color:var(--text2);
+  margin-bottom:22px;
+  max-width:540px;
+  margin-left:auto;
+  margin-right:auto;
+}
+.cta-button{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  font-family:'Inter',sans-serif;
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  padding:14px 28px;
+  background:var(--accent);
+  color:#fff;
+  border:1.5px solid var(--accent);
+  border-radius:var(--radius);
+  cursor:pointer;
+  text-decoration:none;
+  transition:background 0.2s, border-color 0.2s, transform 0.1s;
+}
+.cta-button:hover{
+  background:var(--accent-hover);
+  border-color:var(--accent-hover);
+}
+.cta-button:active{ transform:translateY(1px); }
+.cta-button .arrow{
+  display:inline-block;
+  transition:transform 0.2s;
+}
+.cta-button:hover .arrow{ transform:translateY(2px); }
+.cta-block.final-cta .cta-button:hover .arrow{ transform:translateY(-2px); }
+.cta-fineprint{
+  font-family:'Inter',sans-serif;
+  font-size:11px;
+  color:var(--text3);
+  margin-top:16px;
+  letter-spacing:0.3px;
+}
+
+/* ═══ MAIN SIGNUP — MailerLite embed lives here ═══ */
+/* ═══ FREE NEWSLETTER SIGNUP — PRIMARY CTA ═══
+   This is the visually dominant signup block. Cream background, crimson accent,
+   generous padding. Free tier is the primary ask during pre-launch — it's what
+   most visitors should do. Founding member is a secondary option below this. */
+.signup-free{
+  padding:56px 24px;
+  border-top:1px solid var(--border);
+  border-bottom:1px solid var(--border);
+  background:var(--surface2);
+  margin:0 -24px;
+}
+.signup-free-inner{
+  max-width:560px;
+  margin:0 auto;
+  text-align:center;
+}
+
+/* ═══ FOUNDING MEMBER SIGNUP — SECONDARY CTA ═══
+   Visually smaller than the free block, uses gold accent (not crimson) to
+   differentiate it as a distinct/optional tier. Sits below the free signup
+   in the page flow, so a visitor who just wants free only has to engage
+   with the primary block. */
+.signup-founding{
+  padding:44px 24px;
+  background:var(--surface);
+  border-top:1px solid var(--border);
+  border-bottom:1px solid var(--border);
+  margin:0 -24px;
+}
+.signup-founding-inner{
+  max-width:540px;
+  margin:0 auto;
+  text-align:center;
+  padding:32px 28px;
+  background:var(--surface2);
+  border:1.5px solid var(--gold);
+  border-radius:8px;
+  position:relative;
+}
+.signup-founding .signup-label{ color:var(--gold); }
+.signup-founding .signup-title{
+  font-size:clamp(22px,3vw,28px);
+  color:var(--gold);
+}
+.signup-founding .signup-sub{
+  font-size:14px;
+  margin-bottom:20px;
+}
+/* Override MailerLite styling within .signup-founding so the button/ring is gold, not crimson */
+.signup-founding .ml-embedded input[type="email"]:focus,
+.signup-founding .ml-embedded .ml-field-email input:focus,
+.signup-founding .ml-embedded input.form-control:focus{
+  border-color:var(--gold) !important;
+  box-shadow:0 0 0 3px rgba(184,134,11,0.12) !important;
+}
+.signup-founding .ml-embedded button,
+.signup-founding .ml-embedded button[type="submit"],
+.signup-founding .ml-embedded .primary,
+.signup-founding .ml-embedded .ml-form-embedSubmit button{
+  background:var(--gold) !important;
+  border-color:var(--gold) !important;
+}
+.signup-founding .ml-embedded button:hover,
+.signup-founding .ml-embedded button[type="submit"]:hover,
+.signup-founding .ml-embedded .primary:hover,
+.signup-founding .ml-embedded .ml-form-embedSubmit button:hover{
+  background:#96700a !important;
+  border-color:#96700a !important;
+}
+
+/* Legacy class kept as alias in case anything still references .signup-main.
+   The founding block used to own this class. */
+.signup-main{
+  padding:56px 24px;
+  border-top:1px solid var(--border);
+  border-bottom:1px solid var(--border);
+  background:var(--surface2);
+  margin:0 -24px;
+}
+.signup-main-inner{
+  max-width:560px;
+  margin:0 auto;
+  text-align:center;
+}
+.signup-label{
+  font-family:'Inter',sans-serif;
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:2.5px;
+  text-transform:uppercase;
+  color:var(--accent);
+  margin-bottom:12px;
+}
+.signup-title{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(26px,3.5vw,34px);
+  font-weight:700;
+  line-height:1.2;
+  margin-bottom:10px;
+  letter-spacing:-0.3px;
+}
+.signup-sub{
+  font-family:'Source Serif 4',Georgia,serif;
+  font-size:15px;
+  color:var(--text2);
+  margin-bottom:28px;
+}
+
+/* ═══ MAILERLITE FORM STYLING OVERRIDES ═══
+   Push MailerLite's injected markup toward Cricket Times aesthetic.
+   MailerLite wraps everything in .ml-form-embedContainer with nested divs.
+   These selectors cover the standard output as of April 2026 — if MailerLite
+   changes their markup, the form will still work but may look less polished. */
+.ml-embedded{
+  max-width:520px;
+  margin:0 auto;
+}
+.ml-embedded .ml-form-embedWrapper,
+.ml-embedded .ml-form-embedContent,
+.ml-embedded .ml-form-embedBody,
+.ml-embedded .ml-form-embedContainer{
+  background:transparent !important;
+  border:none !important;
+  padding:0 !important;
+  box-shadow:none !important;
+  max-width:none !important;
+}
+/* Hide MailerLite's own heading/description — our copy above is better */
+.ml-embedded .ml-form-embedContent,
+.ml-embedded h4.ml-form-embedContent,
+.ml-embedded .ml-form-embedContent > *{
+  display:none !important;
+}
+.ml-embedded input[type="email"],
+.ml-embedded .ml-field-email input,
+.ml-embedded input.form-control{
+  font-family:'Source Serif 4',Georgia,serif !important;
+  font-size:16px !important;
+  padding:14px 18px !important;
+  border:1.5px solid var(--border2) !important;
+  border-radius:var(--radius) !important;
+  background:var(--surface) !important;
+  color:var(--text) !important;
+  height:auto !important;
+  line-height:1.4 !important;
+  width:100% !important;
+  max-width:none !important;
+  box-shadow:none !important;
+}
+.ml-embedded input[type="email"]:focus,
+.ml-embedded .ml-field-email input:focus,
+.ml-embedded input.form-control:focus{
+  border-color:var(--accent) !important;
+  box-shadow:0 0 0 3px var(--accent-dim) !important;
+  outline:none !important;
+}
+.ml-embedded input[type="email"]::placeholder,
+.ml-embedded input.form-control::placeholder{
+  color:var(--text3) !important;
+  font-style:italic !important;
+}
+.ml-embedded button,
+.ml-embedded button[type="submit"],
+.ml-embedded .primary,
+.ml-embedded .ml-form-embedSubmit button{
+  font-family:'Inter',sans-serif !important;
+  font-size:12px !important;
+  font-weight:700 !important;
+  letter-spacing:1.5px !important;
+  text-transform:uppercase !important;
+  padding:14px 26px !important;
+  background:var(--accent) !important;
+  color:#fff !important;
+  border:1.5px solid var(--accent) !important;
+  border-radius:var(--radius) !important;
+  height:auto !important;
+  line-height:1.2 !important;
+  cursor:pointer !important;
+  transition:background 0.2s !important;
+  box-shadow:none !important;
+  width:auto !important;
+}
+.ml-embedded button:hover,
+.ml-embedded button[type="submit"]:hover,
+.ml-embedded .primary:hover,
+.ml-embedded .ml-form-embedSubmit button:hover{
+  background:var(--accent-hover) !important;
+  border-color:var(--accent-hover) !important;
+}
+/* Success message styling */
+.ml-embedded .ml-form-successBody,
+.ml-embedded .ml-form-successContent{
+  background:rgba(30,107,58,0.10) !important;
+  border:1px solid rgba(30,107,58,0.25) !important;
+  border-radius:var(--radius) !important;
+  padding:16px 20px !important;
+  font-family:'Source Serif 4',Georgia,serif !important;
+  color:var(--green) !important;
+}
+.ml-embedded .ml-form-successContent h4,
+.ml-embedded .ml-form-successBody h4{
+  font-family:'Playfair Display',serif !important;
+  color:var(--green) !important;
+  font-size:18px !important;
+  margin-bottom:6px !important;
+}
+/* MailerLite footer branding / permissions text — dim it */
+.ml-embedded .ml-form-embedPermissions,
+.ml-embedded .ml-form-formContent,
+.ml-embedded .ml-form-embedPermissions p{
+  font-family:'Inter',sans-serif !important;
+  font-size:11px !important;
+  color:var(--text3) !important;
+}
+/* Error message styling */
+.ml-embedded .ml-error-message,
+.ml-embedded .ml-block-form .ml-field-group.ml-error .label-description{
+  color:#b03030 !important;
+  font-family:'Inter',sans-serif !important;
+  font-size:12px !important;
+}
+
+/* Loading placeholder shown until MailerLite injects the form */
+.signup-main-placeholder{
+  font-family:'Inter',sans-serif;
+  font-size:12px;
+  font-weight:500;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  color:var(--text3);
+  padding:30px 0;
+}
+.signup-main-placeholder.hidden{ display:none; }
+
+.signup-fineprint{
+  font-family:'Inter',sans-serif;
+  font-size:11px;
+  color:var(--text3);
+  margin-top:16px;
+  letter-spacing:0.3px;
+}
+.signup-fineprint-link{
+  color:var(--accent);
+  text-decoration:none;
+  font-weight:600;
+  border-bottom:1px solid var(--accent);
+}
+.signup-fineprint-link:hover{ color:var(--accent-hover); border-bottom-color:var(--accent-hover); }
+
+/* ═══ FOUNDING SPOTS COUNTER ═══ */
+.founding-counter{
+  display:inline-flex;
+  align-items:baseline;
+  gap:8px;
+  padding:10px 18px;
+  background:var(--surface);
+  border:1.5px solid var(--accent);
+  border-radius:999px;
+  margin-bottom:24px;
+}
+.founding-counter-num{
+  font-family:'Playfair Display',serif;
+  font-size:22px;
+  font-weight:700;
+  color:var(--accent);
+  line-height:1;
+  letter-spacing:-0.5px;
+}
+.founding-counter-label{
+  font-family:'Inter',sans-serif;
+  font-size:11px;
+  font-weight:600;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  color:var(--text2);
+}
+
+/* ═══ FEATURES ═══ */
+.features{
+  padding:48px 0;
+  border-bottom:1px solid var(--border);
+}
+.features-title{
+  font-family:'Inter',sans-serif;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:2.5px;
+  text-transform:uppercase;
+  color:var(--text3);
+  text-align:center;
+  padding-bottom:14px;
+  border-bottom:1px solid var(--border);
+  margin-bottom:32px;
+}
+.features-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:0;
+}
+.feature{
+  padding:0 24px;
+  border-right:1px solid var(--border);
+}
+.feature:last-child{ border-right:none; }
+.feature-num{
+  font-family:'Playfair Display',serif;
+  font-size:42px;
+  font-weight:700;
+  color:var(--surface3);
+  line-height:1;
+  margin-bottom:8px;
+}
+.feature-head{
+  font-family:'Playfair Display',serif;
+  font-size:19px;
+  font-weight:700;
+  line-height:1.25;
+  margin-bottom:8px;
+  letter-spacing:-0.2px;
+}
+.feature-body{
+  font-family:'Source Serif 4',Georgia,serif;
+  font-size:14.5px;
+  line-height:1.55;
+  color:var(--text2);
+}
+
+@media(max-width:720px){
+  .features-grid{
+    grid-template-columns:1fr;
+    gap:0;
+  }
+  .feature{
+    padding:20px 0;
+    border-right:none;
+    border-bottom:1px solid var(--border);
+  }
+  .feature:last-child{ border-bottom:none; }
+}
+
+/* ═══ EDITOR / WHO'S BEHIND THIS ═══ */
+.editor-section{
+  padding:44px 0 48px;
+  border-bottom:1px solid var(--border);
+  text-align:center;
+}
+.editor-label{
+  font-family:'Inter',sans-serif;
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:2.5px;
+  text-transform:uppercase;
+  color:var(--accent);
+  margin-bottom:22px;
+}
+.editor-inner{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:28px;
+  max-width:620px;
+  margin:0 auto;
+  padding:0 24px;
+  text-align:left;
+}
+.editor-photo{
+  flex-shrink:0;
+  width:96px;
+  height:96px;
+  border-radius:50%;
+  background:var(--surface2);
+  border:2px solid var(--border2);
+  overflow:hidden;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.editor-photo img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+.editor-photo-placeholder{
+  font-family:'Playfair Display',serif;
+  font-size:32px;
+  font-weight:700;
+  color:var(--accent);
+  letter-spacing:-1px;
+}
+.editor-text{ flex:1; min-width:0; }
+.editor-name{
+  font-family:'Playfair Display',serif;
+  font-size:22px;
+  font-weight:700;
+  line-height:1.2;
+  color:var(--text);
+  letter-spacing:-0.3px;
+}
+.editor-role{
+  font-family:'Inter',sans-serif;
+  font-size:11px;
+  font-weight:600;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  color:var(--accent);
+  margin:4px 0 10px;
+}
+.editor-bio{
+  font-family:'Source Serif 4',Georgia,serif;
+  font-size:14.5px;
+  line-height:1.55;
+  color:var(--text2);
+  margin-bottom:12px;
+}
+.editor-links{
+  display:flex;
+  gap:14px;
+  flex-wrap:wrap;
+}
+.editor-link{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  font-family:'Inter',sans-serif;
+  font-size:11px;
+  font-weight:600;
+  letter-spacing:0.5px;
+  color:var(--text3);
+  text-decoration:none;
+  padding:4px 0;
+  border-bottom:1px solid transparent;
+  transition:color 0.2s, border-color 0.2s;
+}
+.editor-link:hover{
+  color:var(--accent);
+  border-bottom-color:var(--accent);
+}
+.editor-link svg{ flex-shrink:0; }
+@media(max-width:520px){
+  .editor-inner{
+    flex-direction:column;
+    gap:16px;
+    text-align:center;
+  }
+  .editor-links{ justify-content:center; }
+}
+
+/* ═══ SUCCESS BANNER (shown when ?subscribed=true — lives at top of page) ═══ */
+.success-banner{
+  display:none; /* shown via JS when ?subscribed=true in URL */
+  background:var(--green);
+  color:#fff;
+  padding:20px 24px;
+  text-align:center;
+  border-bottom:2px solid rgba(0,0,0,0.15);
+}
+.success-banner.visible{ display:block; }
+.success-banner-inner{
+  max-width:720px;
+  margin:0 auto;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:16px;
+  flex-wrap:wrap;
+}
+.success-banner-icon{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:36px;
+  height:36px;
+  border-radius:50%;
+  background:rgba(255,255,255,0.25);
+  color:#fff;
+  font-size:18px;
+  font-weight:700;
+  line-height:1;
+  flex-shrink:0;
+}
+.success-banner-text{
+  text-align:left;
+  flex:1;
+  min-width:0;
+}
+.success-banner-title{
+  font-family:'Playfair Display',serif;
+  font-size:18px;
+  font-weight:700;
+  line-height:1.25;
+  margin-bottom:2px;
+  letter-spacing:-0.2px;
+}
+.success-banner-body{
+  font-family:'Source Serif 4',Georgia,serif;
+  font-size:14px;
+  line-height:1.45;
+  color:rgba(255,255,255,0.92);
+}
+.success-banner-body strong{
+  color:#fff;
+  font-weight:600;
+}
+@media(max-width:520px){
+  .success-banner-inner{
+    flex-direction:column;
+    gap:10px;
+  }
+  .success-banner-text{ text-align:center; }
+}
+
+/* ═══ FORM DISABLED STATE (when subscribed=true or subscribed=founding) ═══ */
+/* Keep the form visible so users see what they just did — but grey it out
+   and make it non-interactive so they can't submit again. A small "✓ Subscribed"
+   overlay sits on top of the whole signup block.
+   Applies to .signup-free (free tier), .signup-founding (paid tier), and
+   legacy .signup-main (for backward compat). */
+.signup-free.subscribed,
+.signup-founding.subscribed,
+.signup-main.subscribed{
+  position:relative;
+}
+.signup-free.subscribed .signup-free-inner > *:not(.subscribed-overlay),
+.signup-founding.subscribed .signup-founding-inner > *:not(.subscribed-overlay),
+.signup-main.subscribed .signup-main-inner > *:not(.subscribed-overlay){
+  opacity:0.38;
+  filter:grayscale(0.4);
+  pointer-events:none;
+  user-select:none;
+}
+.subscribed-overlay{
+  display:none;
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  background:var(--surface);
+  border:1.5px solid var(--green);
+  border-radius:var(--radius);
+  padding:16px 24px;
+  text-align:center;
+  box-shadow:0 4px 20px rgba(0,0,0,0.10);
+  z-index:2;
+  pointer-events:none;
+  max-width:90%;
+}
+.signup-free.subscribed .subscribed-overlay,
+.signup-founding.subscribed .subscribed-overlay,
+.signup-main.subscribed .subscribed-overlay{ display:block; }
+.subscribed-overlay-icon{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:28px;
+  height:28px;
+  border-radius:50%;
+  background:var(--green);
+  color:#fff;
+  font-size:14px;
+  font-weight:700;
+  line-height:1;
+  margin-right:8px;
+  vertical-align:middle;
+}
+.subscribed-overlay-text{
+  font-family:'Inter',sans-serif;
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  color:var(--green);
+  vertical-align:middle;
+}
+
+/* ═══ PULL QUOTE ═══ */
+.pullquote{
+  padding:48px 24px;
+  text-align:center;
+  border-bottom:1px solid var(--border);
+}
+.pullquote-text{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(22px,3vw,28px);
+  font-weight:500;
+  font-style:italic;
+  line-height:1.4;
+  color:var(--text);
+  max-width:680px;
+  margin:0 auto 14px;
+  letter-spacing:-0.2px;
+}
+.pullquote-text::before{
+  content:'"';
+  font-size:1.4em;
+  color:var(--accent);
+  line-height:0;
+  vertical-align:-0.15em;
+  margin-right:2px;
+}
+.pullquote-text::after{
+  content:'"';
+  font-size:1.4em;
+  color:var(--accent);
+  line-height:0;
+  vertical-align:-0.15em;
+  margin-left:2px;
+}
+.pullquote-attribution{
+  font-family:'Inter',sans-serif;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  color:var(--text3);
+}
+
+/* ═══ FOOTER ═══ */
+.footer{
+  padding:32px 24px 40px;
+  text-align:center;
+  border-top:2px solid var(--text);
+  margin-top:0;
+}
+.footer-logo{
+  font-family:'Playfair Display',serif;
+  font-size:22px;
+  font-weight:700;
+  color:var(--text);
+  margin-bottom:6px;
+}
+.footer-logo span{ color:var(--accent); }
+.footer-tagline{
+  font-family:'Inter',sans-serif;
+  font-size:10px;
+  font-weight:500;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  color:var(--text3);
+  margin-bottom:14px;
+}
+.footer-copy{
+  font-family:'Inter',sans-serif;
+  font-size:11px;
+  color:var(--text3);
+  letter-spacing:0.3px;
+}
+
+/* ═══ BETA SIGN-IN ═══ */
+.beta-link{
+  margin-top:14px;
+  font-family:'Inter',sans-serif;
+  font-size:11px;
+  color:var(--text3);
+}
+.beta-link a{
+  color:var(--text3);
+  text-decoration:underline;
+  text-decoration-color:rgba(0,0,0,0.15);
+  text-underline-offset:3px;
+  cursor:pointer;
+  transition:color 0.15s;
+}
+.beta-link a:hover{ color:var(--accent); text-decoration-color:var(--accent); }
+.beta-modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;
+  display:none;align-items:center;justify-content:center;padding:20px;
+}
+.beta-modal-overlay.show{ display:flex; }
+.beta-modal{
+  background:#fff;border-radius:12px;padding:32px 28px;max-width:420px;width:100%;
+  box-shadow:0 30px 80px rgba(0,0,0,0.25);font-family:'Inter',sans-serif;
+}
+.beta-modal h3{
+  font-family:'Playfair Display',serif;font-size:22px;font-weight:700;
+  color:var(--text);margin:0 0 6px;
+}
+.beta-modal p{
+  font-size:13px;color:var(--text2);line-height:1.55;margin:0 0 18px;
+}
+.beta-modal label{
+  display:block;font-size:11px;color:var(--text3);text-transform:uppercase;
+  letter-spacing:1.5px;margin-bottom:6px;font-weight:600;
+}
+.beta-modal input[type="email"]{
+  width:100%;padding:11px 14px;font-size:14px;font-family:'Inter',sans-serif;
+  border:1px solid #d4d4d4;border-radius:8px;background:#fafafa;
+  outline:none;transition:border-color 0.15s,background 0.15s;
+}
+.beta-modal input[type="email"]:focus{
+  border-color:var(--accent);background:#fff;
+}
+.beta-modal-actions{
+  margin-top:20px;display:flex;gap:10px;align-items:center;justify-content:flex-end;
+}
+.beta-modal-btn{
+  padding:10px 18px;font-size:13px;font-weight:600;border-radius:8px;
+  font-family:'Inter',sans-serif;cursor:pointer;border:none;transition:all 0.15s;
+}
+.beta-modal-btn.primary{ background:var(--accent);color:#fff; }
+.beta-modal-btn.primary:hover{ background:#a06614; }
+.beta-modal-btn.primary:disabled{ background:#d4b88c;cursor:default; }
+.beta-modal-btn.secondary{ background:transparent;color:var(--text3); }
+.beta-modal-btn.secondary:hover{ color:var(--text); }
+.beta-modal-msg{
+  margin-top:14px;padding:10px 14px;border-radius:8px;font-size:12px;line-height:1.5;
+  display:none;
+}
+.beta-modal-msg.show{ display:block; }
+.beta-modal-msg.success{ background:#e7f5ec;color:#1c6e3b; }
+.beta-modal-msg.error{ background:#fbeaea;color:#9b1f1f; }
+.beta-modal-msg.info{ background:#eef3f9;color:#1f4d7a; }
+
+
+/* ═══ RESPONSIVE ═══ */
+@media(max-width:600px){
+  .hero{ padding:40px 0 32px; }
+  .cta-block{ padding:36px 0; }
+  .cta-block.final-cta{ padding:44px 0 52px; }
+  .signup-main{ padding:44px 24px; }
+  .features{ padding:36px 0; }
+  .pullquote{ padding:36px 24px; }
+}
+</style>
+</head>
+<body>
+
+<!-- SUCCESS BANNER — top of page, shown when ?subscribed=true in URL -->
+<div class="success-banner" id="successBanner">
+  <div class="success-banner-inner">
+    <div class="success-banner-icon">✓</div>
+    <div class="success-banner-text">
+      <div class="success-banner-title">Almost there — check your email</div>
+      <div class="success-banner-body">
+        Thanks for subscribing! We've sent a <strong>confirmation email</strong>. Click the link inside to finish signing up. (Can't find it? Check your spam folder.)
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- COMING SOON BANNER -->
+<div class="cs-banner">
+  <span>Coming Soon</span> Launching June 2026
+</div>
+
+<!-- MASTHEAD -->
+<header class="masthead">
+  <div class="masthead-date" id="mastheadDate">Friday, April 17, 2026 · Vol. I, No. 1</div>
+  <a href="/" class="masthead-logo">Cricket<span>Times</span></a>
+  <div class="masthead-tagline">All the Test cricket that's fit to compute</div>
+</header>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-kicker">A New Publication · Launching June 2026</div>
+    <h1 class="hero-headline">
+      Test cricket, examined <em>properly</em>.
+    </h1>
+    <p class="hero-dek">
+      149 years of Test cricket, analysed with the care the format deserves. Every match since 1877, every player, every era — indexed, comparable, and written about with opinions.
+    </p>
+    <p class="hero-flagship">
+      <span class="hero-flagship-label">Our first piece of analysis:</span>
+      a five-wicket haul is worth 130–140 runs, not 100. Bowlers have been underpriced since 1877. <a href="article.html?id=five-for-evidence" class="hero-flagship-link">Read the evidence →</a>
+    </p>
+    <div class="hero-byline">
+      <span>Every Test Since 1877</span>
+      <span>Ranking Tools</span>
+      <span>Long-form Writing</span>
+    </div>
+  </section>
+
+  <!-- CTA #1 — QUIZ BLOCK (links to /quiz standalone page) -->
+  <section class="cta-block quiz-block">
+    <div class="quiz-card">
+      <div class="cta-label">◆ Take the Quiz</div>
+      <h2 class="cta-title">20 questions. 149 years.<br>How well do you actually know the format?</h2>
+      <p class="cta-sub">
+        We built the Test cricket quiz for people who think they know Test cricket. Most self-described obsessives score 13/20. Can you do better?
+      </p>
+      <a href="quiz.html" class="cta-button">
+        Start the Quiz <span class="arrow">→</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="features">
+    <div class="features-title">What You'll Read</div>
+    <div class="features-grid">
+      <div class="feature">
+        <div class="feature-num">01</div>
+        <h3 class="feature-head">The Complete Archive</h3>
+        <p class="feature-body">
+          Every Test match since 1877. Every player, every innings, every bowling spell — indexed, searchable, and comparable. Settle any argument with one click, not ten tabs.
+        </p>
+      </div>
+      <div class="feature">
+        <div class="feature-num">02</div>
+        <h3 class="feature-head">Tools That Don't Exist Elsewhere</h3>
+        <p class="feature-body">
+          Ranking models you can tune. Comparisons across eras. Simulations that answer the what-ifs a scorecard can't. The analysis you'd build yourself if you had the data and the time.
+        </p>
+      </div>
+      <div class="feature">
+        <div class="feature-num">03</div>
+        <h3 class="feature-head">Writing You Can Read or Listen To</h3>
+        <p class="feature-body">
+          Long-form essays, match reports, and archive deep-dives. Published weekly, and available as audio — for your commute or your morning walk.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHO'S BEHIND THIS -->
+  <section class="editor-section">
+    <div class="editor-label">◆ Who's Behind This</div>
+    <div class="editor-inner">
+      <div class="editor-photo" id="editorPhoto" aria-hidden="true">
+        <!-- Replace this with an <img> tag once the editor photo is ready:
+             <img src="editor.jpg" alt="Ivan Joseph, Editor of Cricket Times"> -->
+        <span class="editor-photo-placeholder">IJ</span>
+      </div>
+      <div class="editor-text">
+        <div class="editor-name">Ivan Joseph</div>
+        <div class="editor-role">Editor, Cricket Times</div>
+        <p class="editor-bio">
+          Captain, Expert, Ossome!
+        </p>
+        <div class="editor-links">
+          <a href="#" class="editor-link" aria-label="Editor on X (Twitter)">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+            Twitter
+          </a>
+          <a href="#" class="editor-link" aria-label="Editor on LinkedIn">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14zM8.339 18.337V9.725H5.667v8.612h2.672zM7.003 8.575a1.548 1.548 0 1 0 0-3.095 1.548 1.548 0 0 0 0 3.095zM18.338 18.337v-4.717c0-2.313-1.234-3.39-2.88-3.39-1.329 0-1.924.73-2.256 1.244V9.725h-2.672v8.612h2.672v-4.807c0-.226.017-.452.083-.614.182-.452.595-.92 1.289-.92.91 0 1.274.694 1.274 1.71v4.631h2.69z"/></svg>
+            LinkedIn
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FREE NEWSLETTER SIGNUP — PRIMARY CTA (visually dominant, crimson accent) -->
+  <section class="signup-free" id="signup-free">
+    <div class="signup-free-inner">
+
+      <!-- Overlay shown when user just subscribed to free tier -->
+      <div class="subscribed-overlay">
+        <span class="subscribed-overlay-icon">✓</span>
+        <span class="subscribed-overlay-text">You're subscribed</span>
+      </div>
+
+      <div class="signup-label">◆ Join the Launch List</div>
+      <h2 class="signup-title">Don't miss the launch</h2>
+      <p class="signup-sub">
+        Drop your email below. We'll let you know the minute we go live — plus the flagship analysis the day it publishes, the quiz the day it opens, and early access to new tools. Free, forever, 8 articles a month.
+      </p>
+
+      <!-- Loading placeholder, hidden once MailerLite renders the form -->
+      <div class="signup-main-placeholder" id="mlPlaceholder">Loading signup form…</div>
+
+      <!-- The real MailerLite embed — FREE NEWSLETTER form (cufVBG) -->
+      <div class="ml-embedded" data-form="cufVBG" data-source="free-newsletter"></div>
+
+      <div class="signup-fineprint">
+        No spam, unsubscribe anytime. One email a week at most, usually less.
+      </div>
+    </div>
+  </section>
+
+  <!-- FOUNDING MEMBER SIGNUP — SECONDARY CTA (gold accent, smaller visual weight) -->
+  <section class="signup-founding" id="signup-founding">
+    <div class="signup-founding-inner">
+
+      <!-- Overlay shown when user just reserved a founding spot -->
+      <div class="subscribed-overlay">
+        <span class="subscribed-overlay-icon">✓</span>
+        <span class="subscribed-overlay-text">Spot reserved</span>
+      </div>
+
+      <div class="signup-label">◆ Want More? Become a Founding Member</div>
+      <h2 class="signup-title">Reserve a Founding Spot</h2>
+      <p class="signup-sub">
+        Lock in <strong>$50/year for life</strong> before launch. Limited to the first 500 readers. Full archive, audio library, data export, and commenting — worth $72/year after founding spots are gone.
+      </p>
+
+      <!-- Founding spots counter — update manually in CMS or wire to Firestore later -->
+      <div class="founding-counter" id="foundingCounter">
+        <span class="founding-counter-num" id="foundingCounterNum">—</span>
+        <span class="founding-counter-label">of 500 founding spots claimed</span>
+      </div>
+
+      <!-- Loading placeholder for the founding form -->
+      <div class="signup-main-placeholder" id="foundingPlaceholder">Loading signup form…</div>
+
+      <!-- The real MailerLite embed — FOUNDING MEMBER form (EUewDg) -->
+      <div class="ml-embedded" data-form="EUewDg" data-source="founding-member"></div>
+
+      <div class="signup-fineprint">
+        <strong>No charge now.</strong> We'll email you the payment link when we're ready to process payments. Cancel anytime before paying.
+      </div>
+    </div>
+  </section>
+
+  <!-- PULL QUOTE -->
+  <section class="pullquote">
+    <p class="pullquote-text">
+      Not another scorecard archive. A newspaper for readers who love Test cricket the way it deserves to be loved — carefully, numerically, and with opinions.
+    </p>
+    <div class="pullquote-attribution">— Ivan Joseph, Editor</div>
+  </section>
+
+  <!-- CTA #2 — BOTTOM (scrolls to the FREE signup, the primary ask) -->
+  <section class="cta-block final-cta">
+    <div class="cta-label">✉ Still Scrolling?</div>
+    <h2 class="cta-title">Then you're our kind of reader.</h2>
+    <p class="cta-sub">
+      Drop your email and you'll get three things: the flagship analysis the day it publishes, the quiz the day it opens, and one short note when the site goes live. Nothing else.
+    </p>
+    <a href="#signup-free" class="cta-button">
+      Subscribe <span class="arrow">↑</span>
+    </a>
+    <div class="cta-fineprint">One email a week at most. Usually less.</div>
+  </section>
+
+</main>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-logo">Cricket<span>Times</span></div>
+  <div class="footer-tagline">All the Test cricket that's fit to compute</div>
+  <div class="footer-copy">© 2026 Cricket Times. Launching soon.</div>
+  <div class="beta-link">
+    Beta access? <a id="betaSigninLink" onclick="openBetaModal()">Sign in</a>
+  </div>
+</footer>
+
+<!-- BETA SIGN-IN MODAL -->
+<div class="beta-modal-overlay" id="betaModal" role="dialog" aria-modal="true" aria-labelledby="betaModalTitle">
+  <div class="beta-modal">
+    <h3 id="betaModalTitle">Beta access</h3>
+    <p>Enter the email address you've been given access with. We'll email you a single-use sign-in link — no password needed.</p>
+    <label for="betaEmailInput">Email address</label>
+    <input type="email" id="betaEmailInput" placeholder="you@example.com" autocomplete="email" />
+    <div class="beta-modal-msg" id="betaModalMsg"></div>
+    <div class="beta-modal-actions">
+      <button class="beta-modal-btn secondary" onclick="closeBetaModal()">Cancel</button>
+      <button class="beta-modal-btn primary" id="betaSendBtn" onclick="sendBetaSigninLink()">Send link</button>
+    </div>
+  </div>
+</div>
+
+
+<script>
+// Masthead date — dynamic so it always shows current day
+(function(){
+  const d = new Date();
+  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const el = document.getElementById('mastheadDate');
+  if (el) el.textContent = `${days[d.getDay()]}, ${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()} · Vol. I, No. 1`;
+})();
+
+// Hide the "Loading signup form…" placeholder once MailerLite renders each form.
+// Two forms live on this page (free: cufVBG, founding: EUewDg), each with its own
+// placeholder. MutationObserver watches for MailerLite's markup injection; fallback
+// timeout of 8s hides the placeholder regardless if MailerLite is blocked/offline.
+(function(){
+  const forms = [
+    { formId: 'cufVBG', placeholderId: 'mlPlaceholder' },        // free tier
+    { formId: 'EUewDg', placeholderId: 'foundingPlaceholder' }   // founding member
+  ];
+
+  forms.forEach(({ formId, placeholderId }) => {
+    const placeholder = document.getElementById(placeholderId);
+    const target = document.querySelector(`.ml-embedded[data-form="${formId}"]`);
+    if (!placeholder || !target) return;
+
+    const hidePlaceholder = () => {
+      if (target.children.length > 0 || target.querySelector('form, input')) {
+        placeholder.classList.add('hidden');
+        return true;
+      }
+      return false;
+    };
+
+    if (hidePlaceholder()) return;
+
+    const observer = new MutationObserver(() => {
+      if (hidePlaceholder()) observer.disconnect();
+    });
+    observer.observe(target, { childList:true, subtree:true });
+
+    setTimeout(() => {
+      placeholder.classList.add('hidden');
+      observer.disconnect();
+    }, 8000);
+  });
+})();
+
+// ═══ POST-SUBSCRIPTION SUCCESS BANNER ═══
+// MailerLite redirects the user back with either:
+//   ?subscribed=true      → free newsletter signup
+//   ?subscribed=founding  → founding member signup
+// Different banner copy for each, different signup section gets greyed out.
+// Top/bottom CTA buttons retarget to the banner regardless of which tier.
+(function(){
+  const params = new URLSearchParams(window.location.search);
+  const subscribedType = params.get('subscribed');
+  if (subscribedType !== 'true' && subscribedType !== 'founding') return;
+
+  const banner = document.getElementById('successBanner');
+  const freeSection = document.getElementById('signup-free');
+  const foundingSection = document.getElementById('signup-founding');
+  if (!banner) return;
+
+  // Customize banner copy by tier. Founding gets a distinct message since the
+  // user expects a payment link, not just a newsletter confirmation.
+  const titleEl = banner.querySelector('.success-banner-title');
+  const bodyEl = banner.querySelector('.success-banner-body');
+  if (subscribedType === 'founding') {
+    if (titleEl) titleEl.textContent = 'Founding spot reserved — check your email';
+    if (bodyEl) bodyEl.innerHTML = 'Thanks for reserving a founding member spot! We\'ve sent a <strong>confirmation email</strong>. Click the link inside to confirm. We\'ll email you the payment link when we\'re ready to process payments. (Can\'t find it? Check your spam folder.)';
+    // Grey out ONLY the founding section — free signup stays active in case they want both
+    if (foundingSection) foundingSection.classList.add('subscribed');
+  } else {
+    // Free tier (?subscribed=true)
+    if (titleEl) titleEl.textContent = 'Almost there — check your email';
+    if (bodyEl) bodyEl.innerHTML = 'Thanks for subscribing! We\'ve sent a <strong>confirmation email</strong>. Click the link inside to finish signing up. (Can\'t find it? Check your spam folder.)';
+    // Grey out ONLY the free section — founding stays active in case they want to upgrade
+    if (freeSection) freeSection.classList.add('subscribed');
+  }
+
+  // Show top banner
+  banner.classList.add('visible');
+
+  // Retarget subscribe CTAs → banner. Exclude quiz-card buttons (they go to /quiz).
+  banner.setAttribute('tabindex','-1');
+  document.querySelectorAll('.cta-button').forEach(btn => {
+    if (btn.closest('.quiz-card')) return;
+    btn.setAttribute('href', '#successBanner');
+    const ctaLabel = subscribedType === 'founding'
+      ? '✓ Spot Reserved — Check Your Email'
+      : '✓ Subscribed — Check Your Email';
+    btn.innerHTML = ctaLabel;
+  });
+})();
+
+// ═══ FOUNDING MEMBER COUNTER ═══
+// Tries to read live count from Firestore (config/launchConfig.foundingClaimed).
+// Falls back to hiding the counter entirely if Firestore isn't reachable or no value is set —
+// better to hide than show "—" indefinitely. To manually set the number, open the CMS and
+// update the "Launch Quiz" view (the counter lives in the same config doc).
+(function(){
+  const counterEl    = document.getElementById('foundingCounter');
+  const counterNumEl = document.getElementById('foundingCounterNum');
+  if (!counterEl || !counterNumEl) return;
+
+  // Hide by default; only show if we get a real number back
+  counterEl.style.display = 'none';
+
+  // Lazy-load Firebase only here (the main page shouldn't pay the cost if
+  // the counter is disabled). We use v9 compat via CDN to match the CMS convention.
+  const loadScript = (src) => new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = src; s.async = true;
+    s.onload = resolve; s.onerror = reject;
+    document.head.appendChild(s);
+  });
+
+  (async () => {
+    try {
+      await loadScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js');
+      await loadScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js');
+
+      // Same config as CMS — shared project
+      const fbConfig = {
+        apiKey: "AIzaSyBnfn9hK0y-p6nvIZ_AwoJnWD7DfDuIQd4",
+        authDomain: "hitwicket-cba02.firebaseapp.com",
+        projectId: "hitwicket-cba02",
+        storageBucket: "hitwicket-cba02.firebasestorage.app",
+        messagingSenderId: "196915483829",
+        appId: "1:196915483829:web:071c47af79914aec88dafc"
+      };
+      if (!firebase.apps.length) firebase.initializeApp(fbConfig);
+      const db = firebase.firestore();
+
+      const doc = await db.collection('config').doc('launchConfig').get();
+      if (!doc.exists) return;
+      const n = doc.data().foundingClaimed;
+      if (typeof n !== 'number' || n < 0) return;
+
+      // Show the counter with the fetched number
+      counterNumEl.textContent = n;
+      counterEl.style.display = 'inline-flex';
+    } catch (e) {
+      // Silent fail — counter stays hidden. Better than showing "—" forever.
+      console.warn('Founding counter: could not load from Firestore', e);
+    }
+  })();
+})();
+
+// ═══════════════════════════════════════════════════════════════════════════
+// BETA SIGN-IN (Firebase email-link auth)
+// ───────────────────────────────────────────────────────────────────────────
+// This page is the coming-soon landing AND the email-link return target.
+// On page load we check for two things:
+//   1. URL has email-link sign-in params  → finalise the sign-in, redirect
+//   2. User clicks the "Sign in" footer link → open modal, send link
+// On successful sign-in, the user's role is checked by prelaunch-guard.js
+// on the next page (stories.html). If they're priority+ they see the site.
+// If they're regular, they bounce back here — but they're now signed in,
+// so when you promote them in admin, the next page load lets them through.
+// ═══════════════════════════════════════════════════════════════════════════
+(function(){
+  // Reuse the loadScript helper if defined in scope; otherwise define our own.
+  const loadScript = (src) => new Promise((resolve, reject) => {
+    // Don't double-load
+    if (document.querySelector(`script[src="${src}"]`)) return resolve();
+    const s = document.createElement('script');
+    s.src = src; s.async = true;
+    s.onload = resolve; s.onerror = () => reject(new Error('Failed to load ' + src));
+    document.head.appendChild(s);
+  });
+
+  const FB_CONFIG = {
+    apiKey: "AIzaSyBnfn9hK0y-p6nvIZ_AwoJnWD7DfDuIQd4",
+    authDomain: "hitwicket-cba02.firebaseapp.com",
+    projectId: "hitwicket-cba02",
+    storageBucket: "hitwicket-cba02.firebasestorage.app",
+    messagingSenderId: "196915483829",
+    appId: "1:196915483829:web:071c47af79914aec88dafc"
+  };
+
+  const PENDING_EMAIL_KEY = 'ct_beta_pending_email';
+  const POST_SIGNIN_REDIRECT = '/stories.html';
+
+  async function ensureFirebase() {
+    if (window.firebase && window.firebase.auth) return;
+    await loadScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js');
+    await loadScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js');
+    if (!firebase.apps.length) firebase.initializeApp(FB_CONFIG);
+  }
+
+  // ─── Modal controls ────────────────────────────────────────────────
+  window.openBetaModal = function(){
+    document.getElementById('betaModal').classList.add('show');
+    setTimeout(() => document.getElementById('betaEmailInput').focus(), 50);
+  };
+  window.closeBetaModal = function(){
+    document.getElementById('betaModal').classList.remove('show');
+    setBetaModalMsg('', '');
+  };
+
+  function setBetaModalMsg(kind, text) {
+    const el = document.getElementById('betaModalMsg');
+    if (!el) return;
+    el.className = 'beta-modal-msg';
+    if (kind && text) {
+      el.classList.add('show', kind);
+      el.textContent = text;
+    }
+  }
+
+  // ─── Send the email-link ───────────────────────────────────────────
+  window.sendBetaSigninLink = async function(){
+    const input = document.getElementById('betaEmailInput');
+    const btn = document.getElementById('betaSendBtn');
+    const email = (input.value || '').trim().toLowerCase();
+    if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+      setBetaModalMsg('error', 'Please enter a valid email address.');
+      return;
+    }
+    btn.disabled = true; btn.textContent = 'Sending…';
+    setBetaModalMsg('info', 'Sending your sign-in link…');
+
+    try {
+      await ensureFirebase();
+      const actionCodeSettings = {
+        // Return the email link directly to comingsoon.html — NOT to /index.html.
+        // index.html is a redirect stub (post-launch it'll become the homepage),
+        // and a redirect would strip the email-link query string. Returning to
+        // comingsoon.html means the URL preserves the apiKey/oobCode/mode params
+        // that auth.isSignInWithEmailLink() needs to recognise this is a return
+        // visit and complete sign-in.
+        url: window.location.origin + '/comingsoon.html',
+        handleCodeInApp: true
+      };
+      await firebase.auth().sendSignInLinkToEmail(email, actionCodeSettings);
+      try { window.localStorage.setItem(PENDING_EMAIL_KEY, email); } catch(e) {}
+      setBetaModalMsg('success',
+        '✓ Sign-in link sent to ' + email + '. Check your inbox — and your spam folder, since the email is sent from a Firebase address you may not have received from before. Click the link on the same device to complete sign-in.');
+      btn.textContent = 'Send link';
+      input.value = '';
+    } catch (e) {
+      console.error('Beta sign-in send failed:', e);
+      setBetaModalMsg('error', e.message || 'Could not send sign-in link. Please try again.');
+      btn.disabled = false;
+      btn.textContent = 'Send link';
+    }
+  };
+
+  // ─── Handle return from email-link ─────────────────────────────────
+  // On page load, check whether the URL is an email-link sign-in URL.
+  // If so, complete the sign-in and redirect to stories.
+  (async function checkSignInLink(){
+    try {
+      // Quick pre-check before loading Firebase to avoid the ~30KB cost
+      // for normal page visits. Firebase email-link URLs always contain
+      // these query params.
+      const qs = window.location.search;
+      if (!/[?&](mode|oobCode|apiKey)=/.test(qs)) return;
+
+      await ensureFirebase();
+      const auth = firebase.auth();
+
+      if (!auth.isSignInWithEmailLink(window.location.href)) return;
+
+      let email = null;
+      try { email = window.localStorage.getItem(PENDING_EMAIL_KEY); } catch(e) {}
+
+      if (!email) {
+        // Different device than the one that initiated. Prompt the user.
+        email = window.prompt('Please confirm the email address you used to request the sign-in link:');
+        if (!email) return;
+        email = email.trim().toLowerCase();
+      }
+
+      // Show progress UI on the page
+      document.body.style.cursor = 'progress';
+
+      const result = await auth.signInWithEmailLink(email, window.location.href);
+      try { window.localStorage.removeItem(PENDING_EMAIL_KEY); } catch(e) {}
+
+      // Clear our session-cache verdict from prelaunch-guard so the next
+      // page does a fresh check (otherwise the cached "blocked" result
+      // would persist into the new authenticated session).
+      try { window.sessionStorage.removeItem('ct_access_verdict_v1'); } catch(e) {}
+
+      // Strip the email-link params from the URL before redirecting
+      // (they're single-use anyway, but tidy).
+      window.location.replace(POST_SIGNIN_REDIRECT);
+    } catch (e) {
+      console.error('Email-link sign-in failed:', e);
+      // If the link is expired/invalid, show a message inside the modal area.
+      // Open modal so the user has a clear path.
+      setTimeout(() => {
+        const msg = (e && e.code === 'auth/invalid-action-code')
+          ? 'That sign-in link has expired or has already been used. Request a new one below.'
+          : 'Sign-in failed: ' + (e?.message || 'unknown error') + '. Please request a new link.';
+        if (typeof window.openBetaModal === 'function') window.openBetaModal();
+        setBetaModalMsg('error', msg);
+        document.body.style.cursor = '';
+      }, 100);
+    }
+  })();
+})();
+</script>
+
+</body>
+</html>

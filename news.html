@@ -1,0 +1,1413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>Cricket Times â Test Cricket News & Analysis</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,300;8..60,400;8..60,500;8..60,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+:root{
+  --bg:#faf9f7;
+  --surface:#ffffff;
+  --surface2:#f5f4f2;
+  --surface3:#eceae6;
+  --border:#d8d4cc;
+  --border2:#c8c4bc;
+  --text:#1a1a18;
+  --text2:#4a4a46;
+  --text3:#7a7a74;
+  --accent:#a03020;
+  --accent-hover:#801810;
+  --accent-dim:rgba(160,48,32,0.08);
+  --gold:#c08018;
+  --gold-dim:rgba(192,128,24,0.10);
+  --green:#1a6848;
+  --blue:#1a4878;
+}
+
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Source Serif 4',Georgia,serif;
+  min-height:100vh;
+  line-height:1.6;
+}
+
+/* âââ MASTHEAD âââ */
+.masthead{
+  text-align:center;
+  padding:20px 24px 16px;
+  border-bottom:2px solid var(--text);
+  position:relative;
+}
+.masthead-date{
+  font-family:'Inter',sans-serif;
+  font-size:11px;
+  font-weight:500;
+  letter-spacing:1.2px;
+  text-transform:uppercase;
+  color:var(--text3);
+  margin-bottom:8px;
+}
+.masthead-logo{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(36px,8vw,58px);
+  font-weight:700;
+  letter-spacing:-1px;
+  line-height:1.1;
+}
+.masthead-logo span{ color:var(--accent); }
+.masthead-tagline{
+  font-family:'Inter',sans-serif;
+  font-size:11px;
+  font-weight:500;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  color:var(--text3);
+  margin-top:6px;
+}
+
+/* âââ NAV âââ */
+.nav-bar{
+  border-bottom:1px solid var(--border);
+  background:var(--surface);
+  position:sticky;
+  top:0;
+  z-index:100;
+}
+.nav-inner{
+  max-width:1400px;
+  margin:0 auto;
+  padding:0 24px;
+  display:flex;
+  justify-content:center;
+  gap:0;
+}
+.nav-link{
+  font-family:'Inter',sans-serif;
+  font-size:12px;
+  font-weight:600;
+  letter-spacing:0.5px;
+  text-transform:uppercase;
+  color:var(--text2);
+  text-decoration:none;
+  padding:14px 20px;
+  position:relative;
+  transition:color 0.2s;
+}
+.nav-link:hover{ color:var(--accent); }
+.nav-link.active{ color:var(--accent); }
+.nav-link.active::after{
+  content:'';
+  position:absolute;
+  bottom:0;
+  left:20px;
+  right:20px;
+  height:2px;
+  background:var(--accent);
+}
+.nav-link.external::after{
+  content:'â';
+  font-size:10px;
+  margin-left:4px;
+  opacity:0.6;
+}
+@media(max-width:900px){
+  .nav-inner{
+    overflow-x:auto;
+    justify-content:flex-start;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+  }
+  .nav-inner::-webkit-scrollbar{display:none}
+  .nav-link{ white-space:nowrap; padding:12px 14px; font-size:11px; }
+}
+
+/* âââ MAIN LAYOUT âââ */
+.main{ max-width:1400px; margin:0 auto; padding:0 24px; }
+
+/* âââ TICKER âââ */
+.ticker{
+  background:var(--accent);
+  color:#fff;
+  padding:10px 24px;
+  display:flex;
+  align-items:center;
+  gap:16px;
+  overflow:hidden;
+}
+.ticker-label{
+  font-family:'Inter',sans-serif;
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  background:rgba(255,255,255,0.2);
+  padding:4px 10px;
+  border-radius:3px;
+  flex-shrink:0;
+}
+.ticker-content{
+  font-size:13px;
+  font-weight:500;
+  white-space:nowrap;
+  animation:scroll-left 30s linear infinite;
+}
+@keyframes scroll-left{
+  0%{transform:translateX(100%)}
+  100%{transform:translateX(-100%)}
+}
+
+/* âââ HERO âââ */
+.hero-section{
+  display:grid;
+  grid-template-columns:1fr 340px;
+  gap:0;
+  border-bottom:1px solid var(--border);
+  padding:32px 0;
+}
+.hero-main{
+  padding-right:32px;
+  border-right:1px solid var(--border);
+}
+.hero-category{
+  font-family:'Inter',sans-serif;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  color:var(--accent);
+  margin-bottom:12px;
+}
+.hero-headline{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(32px,5vw,48px);
+  font-weight:700;
+  line-height:1.15;
+  letter-spacing:-0.5px;
+  margin-bottom:16px;
+}
+.hero-headline a{ color:inherit; text-decoration:none; }
+.hero-headline a:hover{ text-decoration:underline; text-decoration-thickness:2px; text-underline-offset:4px; }
+.hero-summary{ font-size:18px; line-height:1.6; color:var(--text2); margin-bottom:20px; }
+.hero-image{
+  width:100%;
+  aspect-ratio:16/10;
+  object-fit:cover;
+  border-radius:4px;
+  margin-bottom:16px;
+  background:var(--surface3);
+}
+.hero-meta{
+  font-family:'Inter',sans-serif;
+  font-size:12px;
+  color:var(--text3);
+  display:flex;
+  gap:16px;
+  align-items:center;
+}
+.hero-author{ font-weight:600; color:var(--text2); }
+
+/* âââ SIDEBAR âââ */
+.hero-sidebar{ padding-left:24px; }
+.sidebar-section{ margin-bottom:28px; }
+.sidebar-title{
+  font-family:'Inter',sans-serif;
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:1.8px;
+  text-transform:uppercase;
+  color:var(--text3);
+  padding-bottom:10px;
+  border-bottom:1px solid var(--border);
+  margin-bottom:16px;
+}
+.sidebar-item{
+  padding:12px 0;
+  border-bottom:1px solid var(--surface3);
+}
+.sidebar-item:last-child{ border-bottom:none; }
+.sidebar-item-num{
+  font-family:'Playfair Display',serif;
+  font-size:28px;
+  font-weight:700;
+  color:var(--surface3);
+  float:left;
+  margin-right:12px;
+  line-height:1;
+}
+.sidebar-item-headline{
+  font-family:'Playfair Display',serif;
+  font-size:15px;
+  font-weight:600;
+  line-height:1.35;
+}
+.sidebar-item-headline a{ color:inherit; text-decoration:none; }
+.sidebar-item-headline a:hover{ color:var(--accent); }
+.sidebar-item-meta{ font-family:'Inter',sans-serif; font-size:11px; color:var(--text3); margin-top:4px; }
+
+/* âââ QUIZ WIDGET âââ */
+.quiz-widget{
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:6px;
+  padding:16px;
+  margin-top:16px;
+}
+.quiz-widget-label{
+  font-family:'Inter',sans-serif;
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  color:var(--accent);
+  margin-bottom:10px;
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+.quiz-question-text{
+  font-family:'Playfair Display',serif;
+  font-size:14px;
+  font-weight:600;
+  line-height:1.45;
+  color:var(--text);
+  margin-bottom:12px;
+}
+.quiz-options{ display:flex; flex-direction:column; gap:7px; }
+.quiz-option{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  cursor:pointer;
+  padding:8px 10px;
+  border-radius:4px;
+  border:1px solid var(--border);
+  background:var(--surface);
+  transition:all 0.15s;
+  font-family:'Inter',sans-serif;
+  font-size:13px;
+  color:var(--text2);
+  user-select:none;
+}
+.quiz-option:hover{ border-color:var(--accent); background:var(--accent-dim); color:var(--accent); }
+.quiz-option input[type="radio"]{ accent-color:var(--accent); width:14px; height:14px; flex-shrink:0; pointer-events:none; }
+.quiz-option.correct{ border-color:var(--green); background:rgba(26,104,72,0.1); color:var(--green); font-weight:600; }
+.quiz-option.wrong{ border-color:#b03030; background:rgba(176,48,48,0.08); color:#b03030; }
+.quiz-option.disabled{ pointer-events:none; }
+.quiz-result{ margin-top:12px; padding:10px 12px; border-radius:4px; font-family:'Inter',sans-serif; font-size:12px; font-weight:600; display:none; }
+.quiz-result.show{ display:block; }
+.quiz-result.correct{ background:rgba(26,104,72,0.12); border:1px solid var(--green); color:var(--green); }
+.quiz-result.wrong{ background:rgba(176,48,48,0.08); border:1px solid #b03030; color:#b03030; }
+.quiz-contributed{ margin-top:9px; font-family:'Inter',sans-serif; font-size:10px; color:var(--text3); font-style:italic; }
+#quizNameInput:focus{ border-color:#1a1208 !important; background:#fff !important; }
+#quizNameSubmit:hover{ background:#b5171e !important; }
+
+@media(max-width:900px){
+  .hero-section{ grid-template-columns:1fr; }
+  .hero-main{ padding-right:0; border-right:none; padding-bottom:24px; border-bottom:1px solid var(--border); margin-bottom:24px; }
+  .hero-sidebar{ padding-left:0; }
+}
+
+/* âââ CONTENT GRID âââ */
+.content-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  gap:0;
+  padding:32px 0;
+  border-bottom:1px solid var(--border);
+}
+.content-col{
+  padding:0 24px;
+  border-right:1px solid var(--border);
+}
+.content-col:first-child{ padding-left:0; }
+.content-col:last-child{ border-right:none; padding-right:0; }
+.col-header{
+  font-family:'Inter',sans-serif;
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:1.8px;
+  text-transform:uppercase;
+  color:var(--accent);
+  padding-bottom:12px;
+  border-bottom:2px solid var(--accent);
+  margin-bottom:20px;
+}
+.article-card{ margin-bottom:24px; }
+.article-card:last-child{ margin-bottom:0; }
+.article-card-image{ width:100%; aspect-ratio:16/10; object-fit:cover; border-radius:3px; margin-bottom:12px; background:var(--surface3); }
+.article-card-headline{ font-family:'Playfair Display',serif; font-size:18px; font-weight:600; line-height:1.3; margin-bottom:8px; }
+.article-card-headline a{ color:inherit; text-decoration:none; }
+.article-card-headline a:hover{ color:var(--accent); }
+.article-card-summary{ font-size:14px; line-height:1.55; color:var(--text2); margin-bottom:10px; }
+.article-card-meta{ font-family:'Inter',sans-serif; font-size:11px; color:var(--text3); }
+.article-mini{ display:flex; gap:14px; padding:14px 0; border-top:1px solid var(--surface3); }
+.article-mini:first-of-type{ border-top:none; }
+.article-mini-image{ width:80px; height:60px; object-fit:cover; border-radius:3px; flex-shrink:0; background:var(--surface3); }
+.article-mini-content{ flex:1; }
+.article-mini-headline{ font-family:'Playfair Display',serif; font-size:14px; font-weight:600; line-height:1.35; }
+.article-mini-headline a{ color:inherit; text-decoration:none; }
+.article-mini-headline a:hover{ color:var(--accent); }
+.article-mini-meta{ font-family:'Inter',sans-serif; font-size:10px; color:var(--text3); margin-top:4px; }
+
+@media(max-width:900px){
+  .content-grid{ grid-template-columns:1fr; }
+  .content-col{ padding:0; border-right:none; padding-bottom:28px; margin-bottom:28px; border-bottom:1px solid var(--border); }
+  .content-col:last-child{ margin-bottom:0; padding-bottom:0; border-bottom:none; }
+}
+
+/* âââ ANALYSIS SECTION âââ */
+.analysis-section{
+  padding:40px 0;
+  border-bottom:1px solid var(--border);
+}
+.section-header{ display:flex; justify-content:space-between; align-items:center; margin-bottom:28px; }
+.section-title{ font-family:'Playfair Display',serif; font-size:26px; font-weight:700; }
+.section-link{ font-family:'Inter',sans-serif; font-size:12px; font-weight:600; color:var(--accent); text-decoration:none; }
+.section-link:hover{ text-decoration:underline; }
+.analysis-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:28px; }
+.analysis-card{ background:var(--surface); border:1px solid var(--border); border-radius:6px; overflow:hidden; transition:transform 0.2s, box-shadow 0.2s; }
+.analysis-card:hover{ transform:translateY(-3px); box-shadow:0 8px 30px rgba(0,0,0,0.08); }
+.analysis-card-image{ width:100%; aspect-ratio:16/9; object-fit:cover; background:var(--surface3); }
+.analysis-card-content{ padding:20px; }
+.analysis-card-category{ font-family:'Inter',sans-serif; font-size:10px; font-weight:700; letter-spacing:1.2px; text-transform:uppercase; color:var(--gold); margin-bottom:10px; }
+.analysis-card-headline{ font-family:'Playfair Display',serif; font-size:20px; font-weight:600; line-height:1.3; margin-bottom:10px; }
+.analysis-card-headline a{ color:inherit; text-decoration:none; }
+.analysis-card-headline a:hover{ color:var(--accent); }
+.analysis-card-excerpt{ font-size:14px; line-height:1.55; color:var(--text2); margin-bottom:14px; }
+.analysis-card-author{ font-family:'Inter',sans-serif; font-size:12px; font-weight:600; color:var(--text); }
+.analysis-card-author span{ color:var(--text3); font-weight:400; }
+@media(max-width:900px){ .analysis-grid{ grid-template-columns:1fr; gap:20px; } }
+
+/* âââ SNIPPETS STRIP âââ */
+.snippets-section{
+  padding:40px 0;
+  border-bottom:1px solid var(--border);
+}
+.snippets-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:28px;
+}
+.snippets-title{
+  font-family:'Playfair Display',serif;
+  font-size:26px;
+  font-weight:700;
+}
+.snippets-nav{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.snippets-page-label{
+  font-family:'Inter',sans-serif;
+  font-size:12px;
+  color:var(--text3);
+  min-width:60px;
+  text-align:center;
+}
+.snippets-btn{
+  width:36px;
+  height:36px;
+  border:1px solid var(--border);
+  background:var(--surface);
+  border-radius:4px;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transition:all 0.15s;
+  color:var(--text2);
+}
+.snippets-btn:hover:not(:disabled){
+  border-color:var(--accent);
+  color:var(--accent);
+  background:var(--accent-dim);
+}
+.snippets-btn:disabled{ opacity:0.3; cursor:default; }
+.snippets-btn svg{ width:16px; height:16px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.snippets-grid{
+  display:grid;
+  grid-template-columns:repeat(4, 1fr);
+  gap:20px;
+}
+@media(max-width:1100px){ .snippets-grid{ grid-template-columns:repeat(3,1fr); } }
+@media(max-width:760px)  { .snippets-grid{ grid-template-columns:repeat(2,1fr); } }
+@media(max-width:500px)  { .snippets-grid{ grid-template-columns:1fr; } }
+
+.snippet-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:6px;
+  padding:20px 22px;
+  display:flex;
+  flex-direction:column;
+  position:relative;
+  transition:transform 0.2s, box-shadow 0.2s;
+  min-height:130px;
+}
+.snippet-card:hover{ transform:translateY(-2px); box-shadow:0 6px 24px rgba(0,0,0,0.07); }
+.snippet-card::before{
+  content:'';
+  position:absolute;
+  top:0; left:0; right:0;
+  height:3px;
+  background:var(--accent);
+  border-radius:6px 6px 0 0;
+  opacity:0.6;
+}
+.snippet-card-rule{ width:28px; height:2px; background:var(--border2); margin-bottom:14px; flex-shrink:0; }
+.snippet-card-text{ font-family:'Source Serif 4',Georgia,serif; font-size:14px; line-height:1.65; color:var(--text2); flex:1; }
+
+/* âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+   VOICES PANEL
+âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
+.voices-section{
+  padding:0 0 48px;
+}
+.voices-stage{
+  display:flex;
+  align-items:center;
+  border:1px solid var(--border);
+  border-radius:6px;
+  overflow:hidden;
+  position:relative;
+  max-width:1400px;
+  margin:0 auto;
+  background:var(--surface);
+}
+.voices-stage::before{
+  content:'';
+  position:absolute;
+  top:0; left:0; right:0;
+  height:3px;
+  background:var(--accent);
+  border-radius:6px 6px 0 0;
+  opacity:0.6;
+  z-index:1;
+}
+/* Ticker track */
+.voices-ticker{
+  flex:1;
+  min-width:0;
+  overflow:hidden;
+  position:relative;
+  padding:16px 8px;
+}
+.voices-ticker::before,
+.voices-ticker::after{
+  content:'';
+  position:absolute;
+  top:0; bottom:0;
+  width:24px;
+  z-index:2;
+  pointer-events:none;
+}
+.voices-ticker::before{ left:0;  background:linear-gradient(to right, var(--surface), transparent); }
+.voices-ticker::after { right:0; background:linear-gradient(to left,  var(--surface), transparent); }
+
+.voices-ticker-inner{
+  display:flex;
+  width:max-content;
+  animation:voiceScroll var(--scroll-dur, 40s) linear infinite;
+}
+.voices-ticker-inner:hover{ animation-play-state:paused; }
+
+@keyframes voiceScroll{
+  0%   { transform:translateX(0); }
+  100% { transform:translateX(-50%); }
+}
+
+.voices-ticker-text{
+  font-family:'Source Serif 4',Georgia,serif;
+  font-size:14px;
+  font-weight:400;
+  font-style:normal;
+  line-height:1.5;
+  color:var(--text2);
+  white-space:nowrap;
+  padding-right:120px;
+}
+
+/* Right-side meta */
+.voices-meta{
+  display:flex;
+  align-items:center;
+  flex-shrink:0;
+  padding:0 16px 0 12px;
+  border-left:1px solid var(--border);
+}
+.voices-more-link{
+  font-family:'Inter',sans-serif;
+  font-size:11px;
+  font-weight:600;
+  color:var(--accent);
+  text-decoration:none;
+  display:inline-flex;
+  align-items:center;
+  gap:3px;
+  white-space:nowrap;
+  transition:opacity 0.2s;
+}
+.voices-more-link:hover{ opacity:0.7; }
+.voices-more-link svg{ width:10px; height:10px; stroke:currentColor; fill:none; stroke-width:2.5; transition:transform 0.2s; }
+.voices-more-link:hover svg{ transform:translateX(2px); }
+.voices-divider{
+  width:1px; height:14px;
+  background:var(--border);
+  flex-shrink:0;
+}
+</style>
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+  import { getFirestore, collection, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+  const firebaseConfig = {
+    apiKey: "AIzaSyBnfn9hK0y-p6nvIZ_AwoJnWD7DfDuIQd4",
+    authDomain: "hitwicket-cba02.firebaseapp.com",
+    projectId: "hitwicket-cba02",
+    storageBucket: "hitwicket-cba02.firebasestorage.app",
+    messagingSenderId: "196915483829",
+    appId: "1:196915483829:web:071c47af79914aec88dafc"
+  };
+  const app = initializeApp(firebaseConfig);
+  const db  = getFirestore(app);
+  window._quizDb           = db;
+  window._quizFsCollection = collection;
+  window._quizFsAddDoc     = addDoc;
+  window._quizFsTimestamp  = serverTimestamp;
+</script>
+</head>
+<body>
+
+<!-- MASTHEAD -->
+<header class="masthead">
+  <div class="masthead-date">Friday, February 27, 2026</div>
+  <h1 class="masthead-logo">Cricket <span>Times</span></h1>
+  <div class="masthead-tagline">The Definitive Voice of Test Cricket</div>
+</header>
+
+<!-- NAV -->
+<nav class="nav-bar">
+  <div class="nav-inner">
+    <a href="news.html" class="nav-link active">Stories</a>
+    <a href="#analysis" class="nav-link">Analysis</a>
+    <a href="countries.html" class="nav-link external">Countries</a>
+    <a href="batting-records.html" class="nav-link external">Batting</a>
+    <a href="#" class="nav-link">Bowling</a>
+    <a href="index.html" class="nav-link external">Compare</a>
+    <a href="simulation.html" class="nav-link external">Simulation</a>
+    <a href="voices.html" class="nav-link external">Voices</a>
+    <a href="voices.html" class="nav-link">Voices</a>
+    <a href="#" class="nav-link">Share</a>
+  </div>
+</nav>
+
+<!-- TICKER -->
+<div class="ticker" id="tickerBar">
+  <span class="ticker-label">Breaking</span>
+  <span class="ticker-content" id="tickerContent">
+    England announce squad for upcoming Ashes series â¢ Virat Kohli surpasses 9,000 Test runs â¢ Australia clinch Border-Gavaskar Trophy 3-1 â¢ ICC announces new Test Championship cycle format â¢ Ben Stokes hints at potential return to red-ball cricket
+  </span>
+</div>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- HERO -->
+  <section class="hero-section">
+    <article class="hero-main">
+      <div class="hero-category">Test Cricket</div>
+      <h2 class="hero-headline">
+        <a href="#">India's Dominance at Home: How Spin Bowling Has Redefined Test Cricket Strategy</a>
+      </h2>
+      <p class="hero-summary">
+        A deep dive into India's 17-series unbeaten streak at home and how their spin-heavy attack
+        has forced visiting teams to fundamentally rethink their approach to subcontinent tours.
+        From Ashwin's artistry to Jadeja's relentless accuracy, the numbers tell a compelling story.
+      </p>
+      <div class="hero-image" style="background:linear-gradient(135deg,#2a4a3a,#1a2a28);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.3);font-family:Inter,sans-serif;font-size:12px;">Featured Image</div>
+      <div class="hero-meta">
+        <span class="hero-author">By Rahul Dravid</span>
+        <span class="hero-time">12 min read</span>
+        <span>February 27, 2026</span>
+        <button class="audio-listen-btn" data-audio="true" onclick="toggleArticleAudio(this)"><svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg> Listen</button>
+      </div>
+    </article>
+
+    <aside class="hero-sidebar">
+      <div class="sidebar-section">
+        <h3 class="sidebar-title">Most Read</h3>
+        <div class="sidebar-item">
+          <span class="sidebar-item-num">1</span>
+          <h4 class="sidebar-item-headline"><a href="#">Smith's technique evolution: The making of a modern master</a></h4>
+          <div class="sidebar-item-meta">Analysis â¢ 8 min</div>
+        </div>
+        <div class="sidebar-item">
+          <span class="sidebar-item-num">2</span>
+          <h4 class="sidebar-item-headline"><a href="#">Why the Duke ball behaves differently in English conditions</a></h4>
+          <div class="sidebar-item-meta">Science â¢ 5 min</div>
+        </div>
+        <div class="sidebar-item">
+          <span class="sidebar-item-num">3</span>
+          <h4 class="sidebar-item-headline"><a href="#">The forgotten art of defensive batting</a></h4>
+          <div class="sidebar-item-meta">Opinion â¢ 6 min</div>
+        </div>
+        <div class="sidebar-item">
+          <span class="sidebar-item-num">4</span>
+          <h4 class="sidebar-item-headline"><a href="#">Root equals Tendulkar's century tally</a></h4>
+          <div class="sidebar-item-meta">News â¢ 3 min</div>
+        </div>
+      </div>
+
+      <div class="quiz-widget" id="quizWidget" style="display:none">
+        <div class="quiz-widget-label">
+          <svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2.5"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          Quiz
+        </div>
+        <div class="quiz-question-text" id="quizQuestionText"></div>
+        <div class="quiz-options" id="quizOptionsContainer"></div>
+        <div class="quiz-result" id="quizResult"></div>
+        <div class="quiz-contributed" id="quizContributedBy"></div>
+      </div>
+    </aside>
+  </section>
+
+  <!-- SNIPPETS STRIP -->
+  <section class="snippets-section" id="snippetsSection" style="display:none">
+    <div class="snippets-header">
+      <h2 class="snippets-title">From the Desk</h2>
+      <div class="snippets-nav">
+        <button class="snippets-btn" id="snippetsPrev" onclick="snippetsPage(-1, true)">
+          <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <span class="snippets-page-label" id="snippetsPageLabel"></span>
+        <button class="snippets-btn" id="snippetsNext" onclick="snippetsPage(1, true)">
+          <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="snippets-grid" id="snippetsGrid"></div>
+  </section>
+
+  <!-- THREE COLUMN GRID -->
+  <section class="content-grid">
+    <div class="content-col">
+      <h3 class="col-header">Latest News</h3>
+      <article class="article-card">
+        <div class="article-card-image" style="background:linear-gradient(135deg,#3a4a5a,#2a3a48);"></div>
+        <h4 class="article-card-headline"><a href="#">England Name Unchanged Squad for Final Test as Bazball Philosophy Faces Ultimate Examination</a></h4>
+        <p class="article-card-summary">The selectors have resisted calls for change despite the series deficit, backing the aggressive approach that has divided opinion.</p>
+        <div class="article-card-meta">2 hours ago <button class="audio-listen-btn" data-audio="true" onclick="toggleArticleAudio(this)"><svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg> Listen</button></div>
+      </article>
+      <article class="article-mini">
+        <div class="article-mini-image" style="background:linear-gradient(135deg,#4a5a4a,#3a4a38);"></div>
+        <div class="article-mini-content">
+          <h4 class="article-mini-headline"><a href="#">Warner's farewell century seals dominant win</a></h4>
+          <div class="article-mini-meta">4 hours ago</div>
+        </div>
+      </article>
+      <article class="article-mini">
+        <div class="article-mini-image" style="background:linear-gradient(135deg,#5a4a4a,#4a3a38);"></div>
+        <div class="article-mini-content">
+          <h4 class="article-mini-headline"><a href="#">Bumrah ruled out of remaining series with back injury</a></h4>
+          <div class="article-mini-meta">6 hours ago</div>
+        </div>
+      </article>
+      <article class="article-mini">
+        <div class="article-mini-image" style="background:linear-gradient(135deg,#4a4a5a,#38384a);"></div>
+        <div class="article-mini-content">
+          <h4 class="article-mini-headline"><a href="#">ICC confirms DRS technology upgrade for 2027</a></h4>
+          <div class="article-mini-meta">Yesterday</div>
+        </div>
+      </article>
+    </div>
+
+    <div class="content-col">
+      <h3 class="col-header">Features</h3>
+      <article class="article-card">
+        <div class="article-card-image" style="background:linear-gradient(135deg,#5a5040,#4a4030);"></div>
+        <h4 class="article-card-headline"><a href="#">The Numbers Behind Bradman: Why His Records May Never Be Broken</a></h4>
+        <p class="article-card-summary">Statistical analysis reveals just how far ahead of his peers the Don truly was, and why modern cricket's evolution makes his feats even more remarkable.</p>
+        <div class="article-card-meta">Analysis â¢ 15 min read <button class="audio-listen-btn" data-audio="true" onclick="toggleArticleAudio(this)"><svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg> Listen</button></div>
+      </article>
+      <article class="article-mini">
+        <div class="article-mini-image" style="background:linear-gradient(135deg,#404a50,#303a40);"></div>
+        <div class="article-mini-content">
+          <h4 class="article-mini-headline"><a href="#">Inside the mind of a Test opener</a></h4>
+          <div class="article-mini-meta">Interview â¢ 10 min</div>
+        </div>
+      </article>
+      <article class="article-mini">
+        <div class="article-mini-image" style="background:linear-gradient(135deg,#504a40,#403a30);"></div>
+        <div class="article-mini-content">
+          <h4 class="article-mini-headline"><a href="#">How data analytics is transforming field placements</a></h4>
+          <div class="article-mini-meta">Technology â¢ 8 min</div>
+        </div>
+      </article>
+      <article class="article-mini">
+        <div class="article-mini-image" style="background:linear-gradient(135deg,#405040,#304030);"></div>
+        <div class="article-mini-content">
+          <h4 class="article-mini-headline"><a href="#">The lost art of leg spin in Test cricket</a></h4>
+          <div class="article-mini-meta">History â¢ 12 min</div>
+        </div>
+      </article>
+    </div>
+
+    <div class="content-col">
+      <h3 class="col-header">Opinion</h3>
+      <article class="article-card">
+        <div class="article-card-image" style="background:linear-gradient(135deg,#604850,#503840);"></div>
+        <h4 class="article-card-headline"><a href="#">Test Cricket's Survival Depends on Embracing Change, Not Fighting It</a></h4>
+        <p class="article-card-summary">The game's oldest format must evolve or risk becoming a museum piece. Here's what needs to happen.</p>
+        <div class="article-card-meta">Michael Holding â¢ Opinion <button class="audio-listen-btn" data-audio="true" onclick="toggleArticleAudio(this)"><svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg> Listen</button></div>
+      </article>
+      <article class="article-mini">
+        <div class="article-mini-image" style="background:linear-gradient(135deg,#484858,#383848);"></div>
+        <div class="article-mini-content">
+          <h4 class="article-mini-headline"><a href="#">Why we need more day-night Tests</a></h4>
+          <div class="article-mini-meta">Ian Chappell</div>
+        </div>
+      </article>
+      <article class="article-mini">
+        <div class="article-mini-image" style="background:linear-gradient(135deg,#585048,#484038);"></div>
+        <div class="article-mini-content">
+          <h4 class="article-mini-headline"><a href="#">The case against impact player rules in Test</a></h4>
+          <div class="article-mini-meta">Ricky Ponting</div>
+        </div>
+      </article>
+      <article class="article-mini">
+        <div class="article-mini-image" style="background:linear-gradient(135deg,#485848,#384838);"></div>
+        <div class="article-mini-content">
+          <h4 class="article-mini-headline"><a href="#">Pitch preparation needs standardization</a></h4>
+          <div class="article-mini-meta">Sunil Gavaskar</div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- ANALYSIS -->
+  <section class="analysis-section" id="analysis">
+    <div class="section-header">
+      <h2 class="section-title">Deep Analysis</h2>
+      <a href="#" class="section-link">View all analysis â</a>
+    </div>
+    <div class="analysis-grid">
+      <article class="analysis-card">
+        <div class="analysis-card-image" style="background:linear-gradient(135deg,#2a4048,#1a3038);"></div>
+        <div class="analysis-card-content">
+          <div class="analysis-card-category">Statistical Deep Dive</div>
+          <h3 class="analysis-card-headline"><a href="#">Home vs Away: The Growing Disparity in Modern Test Cricket</a></h3>
+          <p class="analysis-card-excerpt">Our analysis of 500 Tests reveals home advantage has never been stronger. What's driving this trend?</p>
+          <div class="analysis-card-author">Dr. Sarah Williams <span>â¢ 20 min read</span> <button class="audio-listen-btn" data-audio="true" onclick="toggleArticleAudio(this)"><svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg> Listen</button></div>
+        </div>
+      </article>
+      <article class="analysis-card">
+        <div class="analysis-card-image" style="background:linear-gradient(135deg,#483828,#382818);"></div>
+        <div class="analysis-card-content">
+          <div class="analysis-card-category">Tactical Breakdown</div>
+          <h3 class="analysis-card-headline"><a href="#">Reverse Swing Mastery: Comparing Techniques Across Eras</a></h3>
+          <p class="analysis-card-excerpt">From Waqar to Bumrah, how has the art of reverse swing evolved and what makes today's exponents different?</p>
+          <div class="analysis-card-author">Wasim Akram <span>â¢ 18 min read</span> <button class="audio-listen-btn" data-audio="true" onclick="toggleArticleAudio(this)"><svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg> Listen</button></div>
+        </div>
+      </article>
+      <article class="analysis-card">
+        <div class="analysis-card-image" style="background:linear-gradient(135deg,#384838,#283828);"></div>
+        <div class="analysis-card-content">
+          <div class="analysis-card-category">Performance Metrics</div>
+          <h3 class="analysis-card-headline"><a href="#">The True Cost of Strike Rate: When Aggressive Play Backfires</a></h3>
+          <p class="analysis-card-excerpt">Examining the correlation between batting strike rates and match outcomes across different conditions.</p>
+          <div class="analysis-card-author">Jonathan Liew <span>â¢ 14 min read</span> <button class="audio-listen-btn" data-audio="true" onclick="toggleArticleAudio(this)"><svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg> Listen</button></div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+</main>
+
+<!-- STATS PROMO -->
+<section class="stats-promo">
+  <div class="stats-promo-inner">
+    <div class="stats-header">
+      <h2>Explore Test Cricket Statistics</h2>
+      <p>Comprehensive data and analysis tools covering every Test match ever played</p>
+    </div>
+    <div class="stats-cards">
+      <a href="countries.html" class="stat-card">
+        <div class="stat-card-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
+        <h3 class="stat-card-title">Countries</h3>
+        <p class="stat-card-desc">Head-to-head records and historical results between nations</p>
+      </a>
+      <a href="batting-records.html" class="stat-card">
+        <div class="stat-card-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></svg></div>
+        <h3 class="stat-card-title">Batting Records</h3>
+        <p class="stat-card-desc">All-time batting leaders with advanced filtering options</p>
+      </a>
+      <a href="index.html" class="stat-card">
+        <div class="stat-card-icon"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+        <h3 class="stat-card-title">Player Compare</h3>
+        <p class="stat-card-desc">Side-by-side statistical comparison of any two players</p>
+      </a>
+      <a href="simulation.html" class="stat-card">
+        <div class="stat-card-icon"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="3"/><circle cx="8" cy="8" r="1.5" fill="currentColor" stroke="none"/><circle cx="16" cy="8" r="1.5" fill="currentColor" stroke="none"/><circle cx="8" cy="16" r="1.5" fill="currentColor" stroke="none"/><circle cx="16" cy="16" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/></svg></div>
+        <h3 class="stat-card-title">Simulation</h3>
+        <p class="stat-card-desc">Custom weighted rankings based on your criteria</p>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- VOICES BAND -->
+<section class="voices-section" id="voicesSection" style="display:none">
+  <div style="max-width:1400px;margin:0 auto;padding:0 24px">
+    <div class="voices-stage">
+      <div class="voices-ticker" id="voicesTicker">
+        <div class="voices-ticker-inner" id="voicesTickerInner"></div>
+      </div>
+      <div class="voices-meta" id="voicesMeta"></div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">Cricket Times</div>
+      <nav class="footer-nav">
+        <a href="news.html">Stories</a>
+        <a href="#analysis">Analysis</a>
+        <a href="voices.html">Voices</a>
+        <a href="countries.html">Countries</a>
+        <a href="batting-records.html">Batting</a>
+        <a href="#">Bowling</a>
+        <a href="index.html">Compare</a>
+        <a href="simulation.html">Simulation</a>
+        <a href="#">About</a>
+        <a href="#">Contact</a>
+      </nav>
+    </div>
+    <div class="footer-bottom">
+      <span>Â© 2026 Cricket Times. All rights reserved.</span>
+      <span>Statistics powered by comprehensive Test cricket databases</span>
+    </div>
+  </div>
+</footer>
+
+<style>
+.stats-promo{
+  padding:48px 0;
+  background:linear-gradient(180deg,var(--surface2) 0%,var(--bg) 100%);
+  border-bottom:1px solid var(--border);
+}
+.stats-promo-inner{ max-width:1400px; margin:0 auto; padding:0 24px; }
+.stats-header{ text-align:center; margin-bottom:36px; }
+.stats-header h2{ font-family:'Playfair Display',serif; font-size:32px; font-weight:700; margin-bottom:8px; }
+.stats-header p{ font-size:16px; color:var(--text2); }
+.stats-cards{ display:grid; grid-template-columns:repeat(4,1fr); gap:20px; }
+.stat-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:24px;
+  text-align:center;
+  text-decoration:none;
+  color:inherit;
+  transition:all 0.25s;
+}
+.stat-card:hover{ border-color:var(--gold); transform:translateY(-4px); box-shadow:0 12px 40px rgba(192,128,24,0.12); }
+.stat-card-icon{ width:48px; height:48px; margin:0 auto 16px; background:var(--gold-dim); border-radius:12px; display:flex; align-items:center; justify-content:center; }
+.stat-card-icon svg{ width:24px; height:24px; stroke:var(--gold); fill:none; stroke-width:2; }
+.stat-card-title{ font-family:'Inter',sans-serif; font-size:14px; font-weight:700; margin-bottom:6px; }
+.stat-card-desc{ font-size:13px; color:var(--text3); line-height:1.45; }
+@media(max-width:900px){ .stats-cards{ grid-template-columns:repeat(2,1fr); gap:14px; } .stat-card{ padding:18px; } }
+
+.audio-listen-btn{
+  display:inline-flex; align-items:center; gap:5px; padding:5px 12px;
+  border-radius:20px; border:1px solid var(--border); background:var(--surface);
+  color:var(--text2); font-family:'Inter',sans-serif; font-size:11px; font-weight:600;
+  cursor:pointer; transition:all 0.2s; white-space:nowrap; vertical-align:middle;
+}
+.audio-listen-btn:hover{ background:var(--accent-dim); border-color:var(--accent); color:var(--accent); }
+.audio-listen-btn.playing{ background:var(--accent); border-color:var(--accent); color:#fff; animation:audio-pulse 1.5s ease-in-out infinite; }
+@keyframes audio-pulse{ 0%,100%{box-shadow:0 0 0 0 rgba(160,48,32,0.3)} 50%{box-shadow:0 0 0 6px rgba(160,48,32,0)} }
+.audio-listen-btn svg{ width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;flex-shrink:0; }
+.audio-listen-btn .audio-bars{ display:inline-flex;align-items:center;gap:2px;height:14px; }
+.audio-listen-btn .audio-bars span{ display:block;width:2px;background:currentColor;border-radius:1px;animation:audio-bar 0.8s ease-in-out infinite; }
+.audio-listen-btn .audio-bars span:nth-child(1){height:4px;animation-delay:0s}
+.audio-listen-btn .audio-bars span:nth-child(2){height:8px;animation-delay:0.15s}
+.audio-listen-btn .audio-bars span:nth-child(3){height:12px;animation-delay:0.3s}
+.audio-listen-btn .audio-bars span:nth-child(4){height:6px;animation-delay:0.45s}
+@keyframes audio-bar{ 0%,100%{transform:scaleY(1)} 50%{transform:scaleY(0.3)} }
+.footer{ background:var(--text); color:rgba(255,255,255,0.7); padding:48px 24px 32px; }
+.footer-inner{ max-width:1400px; margin:0 auto; }
+.footer-top{ display:flex; justify-content:space-between; align-items:flex-start; padding-bottom:32px; border-bottom:1px solid rgba(255,255,255,0.1); margin-bottom:24px; }
+.footer-brand{ font-family:'Playfair Display',serif; font-size:28px; font-weight:700; color:#fff; }
+.footer-nav{ display:flex; flex-wrap:wrap; gap:24px 32px; }
+.footer-nav a{ font-family:'Inter',sans-serif; font-size:12px; font-weight:500; color:rgba(255,255,255,0.6); text-decoration:none; }
+.footer-nav a:hover{ color:#fff; }
+.footer-bottom{ font-family:'Inter',sans-serif; font-size:11px; color:rgba(255,255,255,0.4); display:flex; justify-content:space-between; }
+@media(max-width:900px){ .footer-top{ flex-direction:column; gap:24px; } .footer-nav{ flex-wrap:wrap; gap:16px; } .footer-bottom{ flex-direction:column; gap:8px; } }
+
+</style>
+
+<script>
+// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// UTILS
+// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+const GH_OWNER  = 'joidevivre689103';
+const GH_REPO   = 'congenial-eureka';
+const GH_BRANCH = 'main';
+
+function rawUrl(file) {
+  return `https://raw.githubusercontent.com/${GH_OWNER}/${GH_REPO}/${GH_BRANCH}/${file}?t=${Date.now()}`;
+}
+
+async function ghFetch(file) {
+  const res = await fetch(rawUrl(file));
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error(`GitHub returned ${res.status} for ${file}`);
+  return res.json();
+}
+
+function escapeHTML(str) {
+  if (!str) return '';
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+function formatArticleDate(dateStr) {
+  if (!dateStr) return '';
+  return new Date(dateStr).toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' });
+}
+
+function timeAgo(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  const diffHrs  = Math.floor((Date.now() - d) / 3600000);
+  const diffDays = Math.floor(diffHrs / 24);
+  if (diffHrs < 1)  return 'Just now';
+  if (diffHrs < 24) return diffHrs + ' hours ago';
+  if (diffDays === 1) return 'Yesterday';
+  return d.toLocaleDateString('en-US', { month:'short', day:'numeric' });
+}
+
+// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// DYNAMIC DATE
+// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+document.querySelector('.masthead-date').textContent =
+  new Date().toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+
+// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// SMOOTH SCROLL
+// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    const href = a.getAttribute('href');
+    if (href === '#') return;
+    e.preventDefault();
+    const t = document.querySelector(href);
+    if (t) t.scrollIntoView({ behavior:'smooth', block:'start' });
+  });
+});
+
+// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// TICKER â from ticker.json
+// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+(async function loadTicker() {
+  try {
+    const data = await ghFetch('ticker.json');
+    if (!data) return;
+    if (data.enabled === false) {
+      document.getElementById('tickerBar').style.display = 'none';
+      return;
+    }
+    if (data.items && data.items.length > 0) {
+      document.getElementById('tickerContent').textContent = data.items.join(' â¢ ');
+    }
+  } catch(e) { /* keep default */ }
+})();
+
+// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ARTICLES â from articles.json
+// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+(async function loadArticles() {
+  try {
+    const data = await ghFetch('articles.json');
+    if (!data || !data.articles || data.articles.length === 0) return;
+
+    const articles = data.articles.filter(a => a.status === 'published');
+    if (articles.length === 0) return;
+
+    const heroArticle      = articles.find(a => a.placement === 'hero');
+    const newsCat          = articles.filter(a => a.category === 'news');
+    const featuresCat      = articles.filter(a => a.category === 'features');
+    const opinionCat       = articles.filter(a => a.category === 'opinion');
+    const analysisCat      = articles.filter(a => a.category === 'analysis');
+    const featuredArticles = articles.filter(a => a.placement === 'featured');
+
+    if (heroArticle) {
+      const heroMain = document.querySelector('.hero-main');
+      if (heroMain) {
+        const cat = heroArticle.category.charAt(0).toUpperCase() + heroArticle.category.slice(1);
+        heroMain.innerHTML = `
+          <div class="hero-category">${escapeHTML(cat)}</div>
+          <h2 class="hero-headline"><a href="article.html?id=${heroArticle.id}">${escapeHTML(heroArticle.headline)}</a></h2>
+          <p class="hero-summary">${escapeHTML(heroArticle.summary)}</p>
+          <div class="hero-image" style="background:linear-gradient(135deg,#2a4a3a,#1a2a28);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.3);font-family:Inter,sans-serif;font-size:12px;">Featured Image</div>
+          <div class="hero-meta">
+            <span class="hero-author">By ${escapeHTML(heroArticle.author)}</span>
+            <span class="hero-time">${heroArticle.readTime} min read</span>
+            <span>${formatArticleDate(heroArticle.date)}</span>
+            ${heroArticle.audioEnabled !== false ? `<button class="audio-listen-btn" data-audio="true" data-article-id="${heroArticle.id}" onclick="toggleArticleAudio(this)"><svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg> Listen</button>` : ''}
+          </div>`;
+      }
+    }
+
+    const mostRead = articles.slice(0, 4);
+    const sidebarSection = document.querySelector('.sidebar-section');
+    if (sidebarSection && mostRead.length > 0) {
+      sidebarSection.innerHTML = '<h3 class="sidebar-title">Most Read</h3>' +
+        mostRead.map((a, i) => `
+          <div class="sidebar-item">
+            <span class="sidebar-item-num">${i + 1}</span>
+            <h4 class="sidebar-item-headline"><a href="article.html?id=${a.id}">${escapeHTML(a.headline)}</a></h4>
+            <div class="sidebar-item-meta">${escapeHTML(a.category.charAt(0).toUpperCase() + a.category.slice(1))} â¢ ${a.readTime} min</div>
+          </div>`).join('');
+    }
+
+    const contentCols = document.querySelectorAll('.content-col');
+    if (contentCols.length >= 3) {
+      renderColumn(contentCols[0], 'Latest News',  newsCat.length     > 0 ? newsCat     : articles);
+      renderColumn(contentCols[1], 'Features',     featuresCat.length > 0 ? featuresCat : featuredArticles);
+      renderColumn(contentCols[2], 'Opinion',      opinionCat.length  > 0 ? opinionCat  : articles.slice(-3));
+    }
+
+    const analysisGrid     = document.querySelector('.analysis-grid');
+    const analysisArticles = analysisCat.length > 0 ? analysisCat : articles.filter(a => a.readTime >= 10);
+    if (analysisGrid && analysisArticles.length > 0) {
+      const colors = ['linear-gradient(135deg,#2a4048,#1a3038)','linear-gradient(135deg,#483828,#382818)','linear-gradient(135deg,#384838,#283828)'];
+      analysisGrid.innerHTML = analysisArticles.slice(0, 3).map((a, i) => `
+        <article class="analysis-card">
+          <div class="analysis-card-image" style="background:${colors[i % colors.length]};"></div>
+          <div class="analysis-card-content">
+            <div class="analysis-card-category">${escapeHTML(a.category.charAt(0).toUpperCase() + a.category.slice(1))}</div>
+            <h3 class="analysis-card-headline"><a href="article.html?id=${a.id}">${escapeHTML(a.headline)}</a></h3>
+            <p class="analysis-card-excerpt">${escapeHTML(a.summary)}</p>
+            <div class="analysis-card-author">${escapeHTML(a.author)} <span>â¢ ${a.readTime} min read</span>
+              ${a.audioEnabled !== false ? `<button class="audio-listen-btn" data-audio="true" data-article-id="${a.id}" onclick="toggleArticleAudio(this)"><svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg> Listen</button>` : ''}
+            </div>
+          </div>
+        </article>`).join('');
+    }
+  } catch(e) {
+    console.warn('Could not load articles.json:', e);
+  }
+})();
+
+// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// SNIPPETS
+// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+const SNIPPETS_PER_PAGE  = 4;
+const SNIPPETS_ROTATE_MS = 30000;
+let allSnippets   = [];
+let snippetPage   = 0;
+let snippetTimer  = null;
+let snippetPaused = false;
+
+function renderSnippetPage() {
+  const grid    = document.getElementById('snippetsGrid');
+  const prevBtn = document.getElementById('snippetsPrev');
+  const nextBtn = document.getElementById('snippetsNext');
+  const label   = document.getElementById('snippetsPageLabel');
+  const totalPages = Math.ceil(allSnippets.length / SNIPPETS_PER_PAGE);
+  const start      = snippetPage * SNIPPETS_PER_PAGE;
+  const page       = allSnippets.slice(start, start + SNIPPETS_PER_PAGE);
+  grid.style.transition = 'opacity 0.4s ease';
+  grid.style.opacity = '0';
+  setTimeout(() => {
+    grid.innerHTML = page.map(s => `
+      <div class="snippet-card">
+        <div class="snippet-card-rule"></div>
+        <p class="snippet-card-text">${escapeHTML(s.text)}</p>
+      </div>`).join('');
+    grid.style.opacity = '1';
+  }, 400);
+  prevBtn.disabled = snippetPage === 0;
+  nextBtn.disabled = snippetPage >= totalPages - 1;
+  if (totalPages > 1) {
+    label.innerHTML = Array.from({ length: totalPages }, (_, i) =>
+      `<span style="display:inline-block;width:6px;height:6px;border-radius:50%;margin:0 3px;background:${i === snippetPage ? 'var(--accent)' : 'var(--border2)'};transition:background 0.3s"></span>`
+    ).join('');
+  }
+}
+
+function snippetsPage(dir, manual) {
+  const totalPages = Math.ceil(allSnippets.length / SNIPPETS_PER_PAGE);
+  if (dir > 0) { snippetPage = snippetPage >= totalPages - 1 ? 0 : snippetPage + 1; }
+  else { snippetPage = snippetPage <= 0 ? totalPages - 1 : snippetPage - 1; }
+  renderSnippetPage();
+  if (manual !== false) resetSnippetTimer();
+}
+
+function startSnippetTimer() {
+  if (snippetTimer) clearInterval(snippetTimer);
+  snippetTimer = setInterval(() => { if (!snippetPaused) snippetsPage(1, false); }, SNIPPETS_ROTATE_MS);
+}
+function resetSnippetTimer() { startSnippetTimer(); }
+
+(async function loadSnippets() {
+  try {
+    const data = await ghFetch('snippets.json');
+    if (!data || !Array.isArray(data.snippets)) return;
+    allSnippets = data.snippets.filter(s => s.enabled && s.text && s.text.trim().length > 0);
+    if (allSnippets.length === 0) return;
+    document.getElementById('snippetsSection').style.display = 'block';
+    const totalPages = Math.ceil(allSnippets.length / SNIPPETS_PER_PAGE);
+    if (totalPages <= 1) document.querySelector('.snippets-nav').style.display = 'none';
+    renderSnippetPage();
+    if (totalPages > 1) {
+      startSnippetTimer();
+      const section = document.getElementById('snippetsSection');
+      section.addEventListener('mouseenter', () => { snippetPaused = true; });
+      section.addEventListener('mouseleave', () => { snippetPaused = false; });
+    }
+  } catch(e) {
+    console.warn('Could not load snippets.json:', e);
+  }
+})();
+
+// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// VOICES
+// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+(async function loadVoices() {
+  try {
+    const data = await ghFetch('voices.json');
+    if (!data || data.enabled === false) return;
+    const voices = (data.voices || []).filter(v => v.visible !== false);
+    if (voices.length === 0) return;
+
+    const rotate = data.rotate === true && voices.length > 1;
+    const stage  = document.querySelector('.voices-stage');
+    const inner  = document.getElementById('voicesTickerInner');
+    let idx = 0;
+    let rotateTimer = null;
+
+    function showVoice(i) {
+      const v    = voices[i];
+      const text = escapeHTML(v.voice) + ' â ' + escapeHTML(v.name);
+      // ~12 chars/sec, min 20s
+      const dur  = Math.max(20, Math.round(text.length / 12)) + 's';
+      inner.innerHTML =
+        `<span class="voices-ticker-text">${text}</span>` +
+        `<span class="voices-ticker-text" aria-hidden="true">${text}</span>`;
+      stage.style.setProperty('--scroll-dur', dur);
+      // restart animation cleanly
+      inner.style.animation = 'none';
+      inner.offsetHeight;
+      inner.style.animation = '';
+      return parseFloat(dur) * 1000; // ms
+    }
+
+    // Kick off rotation â each voice plays for exactly one full scroll cycle
+    function scheduleNext() {
+      if (!rotate) return;
+      const ms = showVoice(idx);
+      rotateTimer = setTimeout(() => {
+        idx = (idx + 1) % voices.length;
+        scheduleNext();
+      }, ms);
+    }
+
+    // Pause rotation while hovering
+    if (rotate) {
+      const ticker = document.getElementById('voicesTicker');
+      ticker.addEventListener('mouseenter', () => {
+        clearTimeout(rotateTimer);
+        inner.style.animationPlayState = 'paused';
+      });
+      ticker.addEventListener('mouseleave', () => {
+        inner.style.animationPlayState = 'running';
+        // Resume from current voice for remaining duration
+        const remaining = parseFloat(getComputedStyle(inner).getPropertyValue('--scroll-dur') ||
+          stage.style.getPropertyValue('--scroll-dur')) * 1000 * 0.5; // approx half remaining
+        rotateTimer = setTimeout(() => {
+          idx = (idx + 1) % voices.length;
+          scheduleNext();
+        }, remaining);
+      });
+    }
+
+    scheduleNext();
+    if (!rotate) showVoice(0); // static: just show first
+
+    document.getElementById('voicesSection').style.display = 'block';
+  } catch(e) {
+    console.warn('Could not load voices.json:', e);
+  }
+})();
+
+// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// RENDER COLUMN HELPER
+// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+function renderColumn(colEl, title, articles) {
+  if (!articles || articles.length === 0) return;
+  const gradients = [
+    'linear-gradient(135deg,#3a4a5a,#2a3a48)',
+    'linear-gradient(135deg,#4a5a4a,#3a4a38)',
+    'linear-gradient(135deg,#5a4a4a,#4a3a38)',
+    'linear-gradient(135deg,#4a4a5a,#38384a)',
+    'linear-gradient(135deg,#504a40,#403a30)'
+  ];
+  const lead = articles[0];
+  const rest = articles.slice(1, 5);
+  let html = `<h3 class="col-header">${escapeHTML(title)}</h3>
+    <article class="article-card">
+      <div class="article-card-image" style="background:${gradients[0]};"></div>
+      <h4 class="article-card-headline"><a href="article.html?id=${lead.id}">${escapeHTML(lead.headline)}</a></h4>
+      <p class="article-card-summary">${escapeHTML(lead.summary)}</p>
+      <div class="article-card-meta">${escapeHTML(lead.author)} â¢ ${lead.readTime} min read
+        ${lead.audioEnabled !== false ? `<button class="audio-listen-btn" data-audio="true" data-article-id="${lead.id}" onclick="toggleArticleAudio(this)"><svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg> Listen</button>` : ''}
+      </div>
+    </article>`;
+  rest.forEach((a, i) => {
+    html += `<article class="article-mini">
+      <div class="article-mini-image" style="background:${gradients[(i+1)%gradients.length]};"></div>
+      <div class="article-mini-content">
+        <h4 class="article-mini-headline"><a href="article.html?id=${a.id}">${escapeHTML(a.headline)}</a></h4>
+        <div class="article-mini-meta">${timeAgo(a.date)}
+          ${a.audioEnabled !== false ? `<button class="audio-listen-btn" data-audio="true" data-article-id="${a.id}" onclick="toggleArticleAudio(this)"><svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg> Listen</button>` : ''}
+        </div>
+      </div>
+    </article>`;
+  });
+  colEl.innerHTML = html;
+}
+
+// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// AUDIO
+// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+const AUDIO_ICON_LISTEN  = '<svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg> Listen';
+const AUDIO_ICON_PLAYING = '<span class="audio-bars"><span></span><span></span><span></span><span></span></span> Playing';
+
+let currentAudio = null, currentAudioBtn = null, currentUtterance = null;
+
+function resetBtn(btn) {
+  if (!btn) return;
+  btn.classList.remove('playing');
+  btn.innerHTML = AUDIO_ICON_LISTEN;
+}
+
+function getArticleText(btn) {
+  const article = btn.closest('article, .hero-main, .analysis-card, .article-card, .article-mini');
+  if (!article) return '';
+  const headlineEl = article.querySelector('.hero-headline a, .article-card-headline a, .article-mini-headline a, .analysis-card-headline a');
+  const headline   = headlineEl ? headlineEl.textContent.trim() : '';
+  const summaryEl  = article.querySelector('.hero-summary, .article-card-summary, .analysis-card-excerpt');
+  const summary    = summaryEl ? summaryEl.textContent.trim() : '';
+  return summary ? headline + '. ' + summary : headline;
+}
+
+function toggleArticleAudio(btn) {
+  if (btn.classList.contains('playing')) {
+    if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+    if (currentUtterance) { window.speechSynthesis.cancel(); currentUtterance = null; }
+    resetBtn(btn); currentAudioBtn = null; return;
+  }
+  if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+  if (currentUtterance) { window.speechSynthesis.cancel(); currentUtterance = null; }
+  if (currentAudioBtn && currentAudioBtn !== btn) resetBtn(currentAudioBtn);
+  const text = getArticleText(btn);
+  if (!text || !window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.rate = 0.95; utterance.pitch = 1.0;
+  const voices = window.speechSynthesis.getVoices();
+  const preferred = voices.find(v => v.name.includes('Google UK English')) ||
+                    voices.find(v => v.name.includes('Google US English')) ||
+                    voices.find(v => v.lang.startsWith('en') && v.localService) ||
+                    voices.find(v => v.lang.startsWith('en'));
+  if (preferred) utterance.voice = preferred;
+  btn.classList.add('playing'); btn.innerHTML = AUDIO_ICON_PLAYING;
+  currentAudioBtn = btn; currentUtterance = utterance;
+  const resumeTimer = setInterval(() => {
+    if (!window.speechSynthesis.speaking) clearInterval(resumeTimer);
+    else { window.speechSynthesis.pause(); window.speechSynthesis.resume(); }
+  }, 10000);
+  utterance.onend  = () => { clearInterval(resumeTimer); resetBtn(btn); currentAudioBtn = null; currentUtterance = null; };
+  utterance.onerror = (e) => { clearInterval(resumeTimer); if(e.error!=='canceled') console.warn('TTS:',e.error); resetBtn(btn); currentAudioBtn=null; currentUtterance=null; };
+  window.speechSynthesis.speak(utterance);
+}
+if (window.speechSynthesis) {
+  window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+  window.speechSynthesis.getVoices();
+}
+
+// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// QUIZ
+// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+(async function loadQuiz() {
+  try {
+    const data = await ghFetch('quiz.json');
+    if (!data) return;
+    const quiz = data.today || (data.question ? data : null);
+    if (!quiz || !quiz.question || !quiz.optionA || !quiz.optionB || !quiz.optionC || !quiz.correctAnswer) return;
+    document.getElementById('quizQuestionText').textContent = quiz.question;
+    const options = [{ label:'A', text:quiz.optionA },{ label:'B', text:quiz.optionB },{ label:'C', text:quiz.optionC }];
+    const container = document.getElementById('quizOptionsContainer');
+    let answered = false;
+    function buildNamePrompt(onSubmit) {
+      const wrap = document.createElement('div');
+      wrap.style.cssText = 'margin-top:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap';
+      wrap.innerHTML = `<input id="quizNameInput" type="text" placeholder="Your name (optional)" style="flex:1;min-width:160px;padding:7px 10px;border:1px solid #c8bca8;background:#f5f0e8;font-family:inherit;font-size:13px;outline:none;border-radius:3px"><button id="quizNameSubmit" style="padding:7px 14px;background:#1a1208;color:#f5f0e8;border:none;font-family:inherit;font-size:13px;cursor:pointer;border-radius:3px;white-space:nowrap">Submit name</button>`;
+      wrap.querySelector('#quizNameSubmit').addEventListener('click', () => { onSubmit(wrap.querySelector('#quizNameInput').value.trim()); wrap.remove(); });
+      return wrap;
+    }
+    options.forEach(opt => {
+      const label = document.createElement('label');
+      label.className = 'quiz-option';
+      label.innerHTML = `<input type="radio" name="quizAnswer" value="${opt.label}"><span>${opt.text}</span>`;
+      label.addEventListener('click', () => {
+        if (answered) return; answered = true;
+        const resultEl = document.getElementById('quizResult');
+        const isCorrect = opt.label === quiz.correctAnswer;
+        container.querySelectorAll('.quiz-option').forEach(el => {
+          el.classList.add('disabled');
+          const val = el.querySelector('input').value;
+          if (val === quiz.correctAnswer) el.classList.add('correct');
+          else if (val === opt.label && !isCorrect) el.classList.add('wrong');
+        });
+        label.querySelector('input').checked = true;
+        if (isCorrect) {
+          resultEl.textContent = 'ð Congratulations! That\'s the correct answer!';
+          resultEl.className = 'quiz-result show correct';
+          const prompt = buildNamePrompt(async (name) => {
+            try {
+              const db=window._quizDb, col=window._quizFsCollection, add=window._quizFsAddDoc, ts=window._quizFsTimestamp;
+              if (db && col && add) await add(col(db,'quiz_answers'),{ quizQuestion:quiz.question, answer:opt.label, name:name||'Anonymous', answeredAt:ts?ts():new Date().toISOString(), quizDate:quiz.date||new Date().toISOString().slice(0,10) });
+            } catch(e) { console.warn('Quiz save error:',e); }
+          });
+          resultEl.after(prompt);
+        } else {
+          resultEl.textContent = `Not quite â the correct answer is: ${options.find(o=>o.label===quiz.correctAnswer).text}`;
+          resultEl.className = 'quiz-result show wrong';
+        }
+      });
+      container.appendChild(label);
+    });
+    if (quiz.contributedBy) document.getElementById('quizContributedBy').textContent = `Contributed by: ${quiz.contributedBy}`;
+    document.getElementById('quizWidget').style.display = 'block';
+  } catch(e) { /* quiz widget stays hidden */ }
+})();
+// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// VOICES â from voices.json, preview of up to 4 on front page
+// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ââ voices loader above (ghFetch version) is canonical ââ
+</script>
+</html>

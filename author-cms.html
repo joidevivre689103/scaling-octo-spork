@@ -1,0 +1,1153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="robots" content="noindex, nofollow">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Write Article — Cricket Times</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <!-- Quill Editor -->
+  <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
+  <style>
+    :root {
+      --cream: #FAF7F2;
+      --cream-dark: #F0EBE3;
+      --ink: #1a1a1a;
+      --ink-light: #4a4a4a;
+      --crimson: #8B0000;
+      --crimson-dark: #6B0000;
+      --gold: #C9A227;
+      --rule: #d4d0c8;
+      --green: #2e7d32;
+      --green-light: #e8f5e9;
+      --amber: #f57c00;
+      --amber-light: #fff3e0;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Source Serif 4', Georgia, serif;
+      background: var(--cream);
+      color: var(--ink);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* ─── Auth Overlay ─────────────────────────────────────────────────── */
+    #auth-overlay {
+      position: fixed;
+      inset: 0;
+      background: var(--cream);
+      z-index: 99999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.3s ease;
+    }
+
+    #auth-overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .loading-msg {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 1.25rem;
+      color: var(--ink-light);
+      font-style: italic;
+    }
+
+    /* ─── Main Content ─────────────────────────────────────────────────── */
+    #main-content {
+      display: none;
+      min-height: 100vh;
+    }
+
+    #main-content.visible {
+      display: block;
+    }
+
+    /* ─── Header ───────────────────────────────────────────────────────── */
+    header {
+      background: var(--ink);
+      color: var(--cream);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .masthead {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .masthead a {
+      color: var(--cream);
+      text-decoration: none;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .back-link {
+      color: var(--cream);
+      text-decoration: none;
+      font-size: 0.9rem;
+      opacity: 0.8;
+      transition: opacity 0.2s;
+    }
+
+    .back-link:hover {
+      opacity: 1;
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      font-size: 0.85rem;
+    }
+
+    .user-email {
+      color: var(--cream);
+      opacity: 0.8;
+    }
+
+    .sign-out-btn {
+      background: transparent;
+      border: 1px solid var(--cream);
+      color: var(--cream);
+      padding: 0.4rem 0.8rem;
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .sign-out-btn:hover {
+      background: var(--cream);
+      color: var(--ink);
+    }
+
+    /* ─── Editor Container ─────────────────────────────────────────────── */
+    .editor-container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    .page-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 0.5rem;
+    }
+
+    .page-subtitle {
+      color: var(--ink-light);
+      font-size: 0.95rem;
+      margin-bottom: 2rem;
+    }
+
+    /* ─── Form Sections ────────────────────────────────────────────────── */
+    .form-section {
+      background: white;
+      border: 1px solid var(--rule);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .section-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--crimson);
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .form-row {
+      margin-bottom: 1.25rem;
+    }
+
+    .form-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .form-row label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--ink);
+      margin-bottom: 0.4rem;
+    }
+
+    .form-row input[type="text"],
+    .form-row textarea,
+    .form-row select {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: 1rem;
+      border: 1px solid var(--rule);
+      background: var(--cream);
+      transition: border-color 0.2s;
+    }
+
+    .form-row input:focus,
+    .form-row textarea:focus,
+    .form-row select:focus {
+      outline: none;
+      border-color: var(--crimson);
+    }
+
+    .form-row textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    .form-row .hint {
+      font-size: 0.8rem;
+      color: var(--ink-light);
+      margin-top: 0.35rem;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    @media (max-width: 600px) {
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* ─── Import Panel ─────────────────────────────────────────────────── */
+    .import-panel {
+      border: 2px dashed var(--rule);
+      padding: 1.5rem;
+      text-align: center;
+      margin-bottom: 1rem;
+      background: var(--cream);
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+
+    .import-panel:hover,
+    .import-panel.dragover {
+      border-color: var(--crimson);
+      background: white;
+    }
+
+    .import-panel p {
+      color: var(--ink-light);
+      font-size: 0.9rem;
+    }
+
+    .import-panel input[type="file"] {
+      display: none;
+    }
+
+    .import-status {
+      font-size: 0.85rem;
+      color: var(--green);
+      margin-top: 0.75rem;
+      display: none;
+    }
+
+    .import-status.show {
+      display: block;
+    }
+
+    .import-status.error {
+      color: var(--crimson);
+    }
+
+    /* ─── Quill Editor ─────────────────────────────────────────────────── */
+    #editor-container {
+      background: white;
+      min-height: 400px;
+    }
+
+    .ql-toolbar.ql-snow {
+      border: 1px solid var(--rule);
+      border-bottom: none;
+      background: var(--cream);
+    }
+
+    .ql-container.ql-snow {
+      border: 1px solid var(--rule);
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: 1rem;
+    }
+
+    .ql-editor {
+      min-height: 350px;
+    }
+
+    /* ─── Image Upload ─────────────────────────────────────────────────── */
+    .image-section {
+      display: flex;
+      gap: 1.5rem;
+      align-items: flex-start;
+    }
+
+    .image-upload-area {
+      flex: 1;
+    }
+
+    .image-upload-btn {
+      display: inline-block;
+      padding: 0.6rem 1.2rem;
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: 0.9rem;
+      background: var(--cream-dark);
+      border: 1px solid var(--rule);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .image-upload-btn:hover {
+      background: var(--cream);
+      border-color: var(--crimson);
+    }
+
+    .image-preview {
+      width: 150px;
+      height: 100px;
+      border: 1px solid var(--rule);
+      background: var(--cream);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .image-preview img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: cover;
+    }
+
+    .image-preview .placeholder {
+      font-size: 0.8rem;
+      color: var(--ink-light);
+    }
+
+    .image-info {
+      font-size: 0.8rem;
+      color: var(--ink-light);
+      margin-top: 0.5rem;
+    }
+
+    /* ─── Action Buttons ───────────────────────────────────────────────── */
+    .action-bar {
+      display: flex;
+      gap: 1rem;
+      justify-content: flex-end;
+      margin-top: 1.5rem;
+    }
+
+    .btn {
+      padding: 0.85rem 1.75rem;
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 1rem;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-secondary {
+      background: white;
+      border: 1px solid var(--rule);
+      color: var(--ink);
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--ink);
+    }
+
+    .btn-primary {
+      background: var(--crimson);
+      color: white;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: var(--crimson-dark);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* ─── Toast Notifications ──────────────────────────────────────────── */
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: var(--ink);
+      color: white;
+      padding: 1rem 1.5rem;
+      border-radius: 4px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s ease;
+      z-index: 10000;
+      max-width: 400px;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .toast.success {
+      background: var(--green);
+    }
+
+    .toast.error {
+      background: var(--crimson);
+    }
+
+    .toast-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+
+    .toast-message {
+      font-size: 0.9rem;
+      opacity: 0.9;
+    }
+
+    /* ─── My Submissions ───────────────────────────────────────────────── */
+    .submissions-section {
+      margin-top: 3rem;
+      padding-top: 2rem;
+      border-top: 2px solid var(--rule);
+    }
+
+    .submissions-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--ink);
+      margin-bottom: 1rem;
+    }
+
+    .submissions-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .submission-card {
+      background: white;
+      border: 1px solid var(--rule);
+      padding: 1rem 1.25rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .submission-info h4 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--ink);
+      margin-bottom: 0.25rem;
+    }
+
+    .submission-info p {
+      font-size: 0.85rem;
+      color: var(--ink-light);
+    }
+
+    .submission-status {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 0.3rem 0.6rem;
+      font-weight: 600;
+    }
+
+    .submission-status.pending {
+      background: var(--amber-light);
+      color: var(--amber);
+    }
+
+    .submission-status.published {
+      background: var(--green-light);
+      color: var(--green);
+    }
+
+    .submission-status.draft {
+      background: var(--cream-dark);
+      color: var(--ink-light);
+    }
+
+    .submission-status.rejected {
+      background: #ffebee;
+      color: var(--crimson);
+    }
+
+    .no-submissions {
+      text-align: center;
+      padding: 2rem;
+      color: var(--ink-light);
+      font-style: italic;
+    }
+
+    /* ─── Footer ───────────────────────────────────────────────────────── */
+    footer {
+      background: var(--ink);
+      color: var(--cream);
+      text-align: center;
+      padding: 1.5rem;
+      font-size: 0.85rem;
+      margin-top: 3rem;
+    }
+
+    footer a {
+      color: var(--gold);
+      text-decoration: none;
+    }
+
+    /* ─── Responsive ───────────────────────────────────────────────────── */
+    @media (max-width: 600px) {
+      .editor-container {
+        padding: 1.25rem;
+      }
+
+      header {
+        flex-direction: column;
+        gap: 0.75rem;
+        text-align: center;
+      }
+
+      .header-right {
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+
+      .action-bar {
+        flex-direction: column;
+      }
+
+      .btn {
+        width: 100%;
+      }
+
+      .image-section {
+        flex-direction: column;
+      }
+
+      .image-preview {
+        width: 100%;
+        height: 150px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       AUTH OVERLAY
+  ════════════════════════════════════════════════════════════════════════ -->
+  <div id="auth-overlay">
+    <p class="loading-msg">Loading editor...</p>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       MAIN CONTENT
+  ════════════════════════════════════════════════════════════════════════ -->
+  <div id="main-content">
+    <header>
+      <div class="masthead"><a href="stories.html">Cricket Times</a></div>
+      <div class="header-right">
+        <a href="author-dashboard.html" class="back-link">← Back to Dashboard</a>
+        <div class="user-info">
+          <span class="user-email" id="user-email"></span>
+          <button class="sign-out-btn" id="sign-out-btn">Sign Out</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="editor-container">
+      <h1 class="page-title">Write New Article</h1>
+      <p class="page-subtitle">Compose your article below. Once submitted, it will be reviewed before publication.</p>
+
+      <!-- Import Panel -->
+      <div class="form-section">
+        <div class="section-title">Import from Document (Optional)</div>
+        <div class="import-panel" id="import-panel">
+          <p>Drag & drop a <strong>.docx</strong> file here, or click to browse</p>
+          <input type="file" id="file-input" accept=".docx">
+        </div>
+        <p class="import-status" id="import-status"></p>
+      </div>
+
+      <!-- Article Details -->
+      <div class="form-section">
+        <div class="section-title">Article Details</div>
+        <div class="form-row">
+          <label for="headline">Headline *</label>
+          <input type="text" id="headline" placeholder="Enter your article headline">
+        </div>
+        <div class="form-grid">
+          <div class="form-row">
+            <label for="category">Category</label>
+            <select id="category">
+              <option value="analysis">Analysis</option>
+              <option value="news">News</option>
+              <option value="features">Features</option>
+              <option value="opinion">Opinion</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label for="read-time">Estimated Read Time (minutes)</label>
+            <input type="text" id="read-time" value="5">
+          </div>
+        </div>
+        <div class="form-row">
+          <label for="summary">Summary</label>
+          <textarea id="summary" placeholder="Brief summary of your article (1-2 sentences)"></textarea>
+          <p class="hint">This appears on the front page and in search results.</p>
+        </div>
+      </div>
+
+      <!-- Featured Image -->
+      <div class="form-section">
+        <div class="section-title">Featured Image (Optional)</div>
+        <div class="image-section">
+          <div class="image-upload-area">
+            <label class="image-upload-btn" for="image-input">Choose Image</label>
+            <input type="file" id="image-input" accept="image/*">
+            <p class="image-info" id="image-info">No image selected. Images will be auto-resized.</p>
+          </div>
+          <div class="image-preview" id="image-preview">
+            <span class="placeholder">No image</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Article Content -->
+      <div class="form-section">
+        <div class="section-title">Article Content *</div>
+        <div id="editor-container"></div>
+      </div>
+
+      <!-- Hidden fields -->
+      <input type="hidden" id="content-html" value="">
+      <input type="hidden" id="content-plain" value="">
+      <input type="hidden" id="image-data" value="">
+
+      <!-- Action Buttons -->
+      <div class="action-bar">
+        <button class="btn btn-secondary" id="save-draft-btn">Save Draft</button>
+        <button class="btn btn-primary" id="submit-btn">Submit for Review</button>
+      </div>
+
+      <!-- My Submissions -->
+      <div class="submissions-section">
+        <h2 class="submissions-title">My Submissions</h2>
+        <div class="submissions-list" id="submissions-list">
+          <p class="no-submissions">Loading your submissions...</p>
+        </div>
+      </div>
+
+    </main>
+
+    <footer>
+      <p>© 2026 Cricket Times · <a href="privacy.html">Privacy</a> · <a href="mailto:submissions@cricketimes.com">Contact</a></p>
+    </footer>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast">
+    <div class="toast-title"></div>
+    <div class="toast-message"></div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       SCRIPTS
+  ════════════════════════════════════════════════════════════════════════ -->
+  <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
+    import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
+    import { getFirestore, collection, doc, getDoc, getDocs, addDoc, updateDoc, query, where, orderBy, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
+    import { getStorage, ref, uploadString, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-storage.js';
+    import { getFunctions, httpsCallable } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-functions.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBnfn9hK0y-p6nvIZ_AwoJnWD7DfDuIQd4",
+      authDomain: "hitwicket-cba02.firebaseapp.com",
+      projectId: "hitwicket-cba02",
+      storageBucket: "hitwicket-cba02.firebasestorage.app",
+      messagingSenderId: "196915483829",
+      appId: "1:196915483829:web:071c47af79914aec88dafc"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
+    const functions = getFunctions(app); // us-central1 (matches setGlobalOptions in functions/index.js)
+
+    // Current user data
+    let currentUser = null;
+    let authorData = null;
+    let quillEditor = null;
+
+    // ─── DOM Elements ──────────────────────────────────────────────────────
+    const overlay = document.getElementById('auth-overlay');
+    const mainContent = document.getElementById('main-content');
+    const userEmailSpan = document.getElementById('user-email');
+    const signOutBtn = document.getElementById('sign-out-btn');
+
+    const importPanel = document.getElementById('import-panel');
+    const fileInput = document.getElementById('file-input');
+    const importStatus = document.getElementById('import-status');
+
+    const headlineInput = document.getElementById('headline');
+    const categorySelect = document.getElementById('category');
+    const readTimeInput = document.getElementById('read-time');
+    const summaryInput = document.getElementById('summary');
+
+    const imageInput = document.getElementById('image-input');
+    const imagePreview = document.getElementById('image-preview');
+    const imageInfo = document.getElementById('image-info');
+    const imageDataInput = document.getElementById('image-data');
+
+    const contentHtmlInput = document.getElementById('content-html');
+    const contentPlainInput = document.getElementById('content-plain');
+
+    const saveDraftBtn = document.getElementById('save-draft-btn');
+    const submitBtn = document.getElementById('submit-btn');
+
+    const submissionsList = document.getElementById('submissions-list');
+
+    // ─── Auth State ────────────────────────────────────────────────────────
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        currentUser = user;
+        overlay.classList.add('hidden');
+        mainContent.classList.add('visible');
+        userEmailSpan.textContent = user.email;
+
+        // Load author data
+        await loadAuthorData(user.uid);
+
+        // Check if agreement is signed
+        if (!authorData || !authorData.agreementSigned) {
+          showToast('error', 'Agreement Required', 'Please sign the contributor agreement first.');
+          setTimeout(() => window.location.href = 'contributor-agreement.html', 2000);
+          return;
+        }
+
+        // Initialize editor
+        initQuillEditor();
+
+        // Load submissions
+        await loadMySubmissions();
+      } else {
+        window.location.href = 'author-login.html';
+      }
+    });
+
+    // Sign out
+    signOutBtn.addEventListener('click', async () => {
+      await signOut(auth);
+      window.location.href = 'author-login.html';
+    });
+
+    // ─── Load Author Data ──────────────────────────────────────────────────
+    async function loadAuthorData(uid) {
+      try {
+        const docRef = doc(db, 'authors', uid);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          authorData = docSnap.data();
+        }
+      } catch (err) {
+        console.error('Error loading author data:', err);
+      }
+    }
+
+    // ─── Initialize Quill ──────────────────────────────────────────────────
+    function initQuillEditor() {
+      quillEditor = new Quill('#editor-container', {
+        theme: 'snow',
+        placeholder: 'Write your article here...',
+        modules: {
+          toolbar: [
+            [{ 'header': [2, 3, false] }],
+            ['bold', 'italic', 'underline'],
+            [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+            ['blockquote', 'link'],
+            ['clean']
+          ]
+        }
+      });
+
+      // Update hidden fields on change
+      quillEditor.on('text-change', () => {
+        contentHtmlInput.value = quillEditor.root.innerHTML;
+        contentPlainInput.value = quillEditor.getText().trim();
+      });
+    }
+
+    // ─── Document Import ───────────────────────────────────────────────────
+    importPanel.addEventListener('click', () => fileInput.click());
+
+    importPanel.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      importPanel.classList.add('dragover');
+    });
+
+    importPanel.addEventListener('dragleave', () => {
+      importPanel.classList.remove('dragover');
+    });
+
+    importPanel.addEventListener('drop', (e) => {
+      e.preventDefault();
+      importPanel.classList.remove('dragover');
+      const file = e.dataTransfer.files[0];
+      if (file) processDocFile(file);
+    });
+
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) processDocFile(file);
+    });
+
+    async function processDocFile(file) {
+      if (!file.name.endsWith('.docx')) {
+        showImportStatus('Only .docx files are supported', true);
+        return;
+      }
+
+      showImportStatus('Processing document...');
+
+      try {
+        const arrayBuffer = await file.arrayBuffer();
+        const result = await mammoth.convertToHtml({ arrayBuffer });
+        let html = result.value;
+
+        // Compress images in the HTML
+        html = await compressImagesInHtml(html);
+
+        // Extract first line as headline
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = html;
+        const firstBlock = tempDiv.querySelector('p, h1, h2, h3');
+        if (firstBlock && !headlineInput.value) {
+          headlineInput.value = firstBlock.textContent.trim();
+          firstBlock.remove();
+          html = tempDiv.innerHTML;
+        }
+
+        // Set content in Quill
+        quillEditor.root.innerHTML = html;
+        contentHtmlInput.value = html;
+        contentPlainInput.value = quillEditor.getText().trim();
+
+        // Auto-generate summary if empty
+        if (!summaryInput.value) {
+          const plainText = quillEditor.getText().trim();
+          const words = plainText.split(/\s+/).slice(0, 30).join(' ');
+          summaryInput.value = words + (plainText.split(/\s+/).length > 30 ? '...' : '');
+        }
+
+        // Auto-calculate read time
+        const wordCount = quillEditor.getText().trim().split(/\s+/).length;
+        readTimeInput.value = Math.max(1, Math.ceil(wordCount / 200));
+
+        const imgCount = (html.match(/<img/g) || []).length;
+        showImportStatus(`Document imported successfully${imgCount > 0 ? ` · ${imgCount} image(s)` : ''}`);
+
+      } catch (err) {
+        console.error('Import error:', err);
+        showImportStatus('Failed to import document', true);
+      }
+    }
+
+    // ─── Image Compression ─────────────────────────────────────────────────
+    async function compressImagesInHtml(html) {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      const imgs = [...doc.querySelectorAll('img[src^="data:"]')];
+      if (imgs.length === 0) return html;
+
+      const MAX_W = 1200;
+      const QUALITY = 0.75;
+
+      await Promise.all(imgs.map(img => new Promise(resolve => {
+        const src = img.getAttribute('src');
+        const image = new Image();
+        image.onload = () => {
+          const w = Math.min(image.naturalWidth, MAX_W);
+          const h = Math.round(image.naturalHeight * (w / image.naturalWidth));
+          const canvas = document.createElement('canvas');
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(image, 0, 0, w, h);
+          img.setAttribute('src', canvas.toDataURL('image/jpeg', QUALITY));
+          resolve();
+        };
+        image.onerror = resolve;
+        image.src = src;
+      })));
+
+      return doc.body.innerHTML;
+    }
+
+    function showImportStatus(msg, isError = false) {
+      importStatus.textContent = msg;
+      importStatus.classList.add('show');
+      importStatus.classList.toggle('error', isError);
+    }
+
+    // ─── Featured Image Upload ─────────────────────────────────────────────
+    imageInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      // Compress and resize
+      const compressed = await compressImage(file, 1200, 0.8);
+      imageDataInput.value = compressed;
+
+      // Show preview
+      imagePreview.innerHTML = `<img src="${compressed}" alt="Preview">`;
+
+      // Show info
+      const sizeKb = Math.round((compressed.length * 3 / 4) / 1024);
+      imageInfo.textContent = `Image ready (${sizeKb}KB)`;
+    });
+
+    async function compressImage(file, maxWidth, quality) {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            const w = Math.min(img.naturalWidth, maxWidth);
+            const h = Math.round(img.naturalHeight * (w / img.naturalWidth));
+            const canvas = document.createElement('canvas');
+            canvas.width = w;
+            canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, w, h);
+            resolve(canvas.toDataURL('image/jpeg', quality));
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // ─── Save / Submit ─────────────────────────────────────────────────────
+    saveDraftBtn.addEventListener('click', () => saveArticle('draft'));
+    submitBtn.addEventListener('click', () => saveArticle('pending'));
+
+    async function saveArticle(status) {
+      const headline = headlineInput.value.trim();
+      if (!headline) {
+        showToast('error', 'Validation Error', 'Headline is required.');
+        return;
+      }
+
+      const content = contentPlainInput.value.trim();
+      if (!content) {
+        showToast('error', 'Validation Error', 'Article content is required.');
+        return;
+      }
+
+      // Disable buttons
+      saveDraftBtn.disabled = true;
+      submitBtn.disabled = true;
+      submitBtn.textContent = status === 'pending' ? 'Submitting...' : 'Saving...';
+
+      try {
+        // Get next article ID
+        const nextId = await getNextArticleId();
+
+        // Build article data
+        const articleData = {
+          id: nextId,
+          headline,
+          category: categorySelect.value,
+          author: authorData?.name || currentUser.email.split('@')[0],
+          authorUid: currentUser.uid,
+          authorEmail: currentUser.email,
+          summary: summaryInput.value.trim(),
+          content: content,
+          contentHtml: contentHtmlInput.value,
+          readTime: parseInt(readTimeInput.value) || 5,
+          status: status,
+          placement: 'standard',
+          imageEnabled: !!imageDataInput.value,
+          image: imageDataInput.value || null,
+          imageUrl: null,
+          audioEnabled: false,
+          audioData: null,
+          date: new Date().toISOString().split('T')[0],
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        };
+
+        // Upload image to Firebase Storage if present
+        if (articleData.image) {
+          try {
+            const imageRef = ref(storage, `article-images/${nextId}.jpg`);
+            await uploadString(imageRef, articleData.image, 'data_url');
+            articleData.imageUrl = await getDownloadURL(imageRef);
+            articleData.image = null; // Clear base64 to save Firestore space
+          } catch (imgErr) {
+            console.error('Image upload failed:', imgErr);
+            // Continue without image URL — keep base64 as fallback
+          }
+        }
+
+        // Save to Firestore
+        await addDoc(collection(db, 'articles'), articleData);
+
+        // Reset form
+        resetForm();
+
+        // Reload submissions
+        await loadMySubmissions();
+
+        // Success message
+        if (status === 'pending') {
+          showToast('success', 'Submitted!', 'Your article has been submitted for review.');
+        } else {
+          showToast('success', 'Draft Saved', 'Your draft has been saved.');
+        }
+
+      } catch (err) {
+        console.error('Save error:', err);
+        showToast('error', 'Save Failed', 'Please try again.');
+      } finally {
+        saveDraftBtn.disabled = false;
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit for Review';
+      }
+    }
+
+    async function getNextArticleId() {
+      // IDs are assigned server-side. The old client-side scan
+      // (getDocs over the whole articles collection) no longer works once
+      // the Firestore rules scope reads to published + own submissions:
+      // Firestore rejects any query that could return unreadable docs.
+      // reserveArticleId (Cloud Function) checks the caller's contributor
+      // role and atomically increments counters/articles.
+      const reserve = httpsCallable(functions, 'reserveArticleId');
+      const res = await reserve();
+      return res.data.id;
+    }
+
+    function resetForm() {
+      headlineInput.value = '';
+      categorySelect.value = 'analysis';
+      readTimeInput.value = '5';
+      summaryInput.value = '';
+      quillEditor.root.innerHTML = '';
+      contentHtmlInput.value = '';
+      contentPlainInput.value = '';
+      imageDataInput.value = '';
+      imagePreview.innerHTML = '<span class="placeholder">No image</span>';
+      imageInfo.textContent = 'No image selected. Images will be auto-resized.';
+      importStatus.classList.remove('show');
+    }
+
+    // ─── Load My Submissions ───────────────────────────────────────────────
+    async function loadMySubmissions() {
+      try {
+        const q = query(
+          collection(db, 'articles'),
+          where('authorUid', '==', currentUser.uid),
+          orderBy('createdAt', 'desc')
+        );
+        const snapshot = await getDocs(q);
+
+        if (snapshot.empty) {
+          submissionsList.innerHTML = '<p class="no-submissions">No submissions yet. Write your first article above!</p>';
+          return;
+        }
+
+        submissionsList.innerHTML = '';
+        snapshot.forEach(docSnap => {
+          const data = docSnap.data();
+          const card = document.createElement('div');
+          card.className = 'submission-card';
+          card.innerHTML = `
+            <div class="submission-info">
+              <h4>${escapeHtml(data.headline)}</h4>
+              <p>${data.category} · ${data.date}</p>
+            </div>
+            <span class="submission-status ${data.status}">${formatStatus(data.status)}</span>
+          `;
+          submissionsList.appendChild(card);
+        });
+
+      } catch (err) {
+        console.error('Error loading submissions:', err);
+        submissionsList.innerHTML = '<p class="no-submissions">Failed to load submissions.</p>';
+      }
+    }
+
+    function formatStatus(status) {
+      const map = {
+        'draft': 'Draft',
+        'pending': 'Under Review',
+        'published': 'Published',
+        'rejected': 'Rejected'
+      };
+      return map[status] || status;
+    }
+
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    // ─── Toast ─────────────────────────────────────────────────────────────
+    function showToast(type, title, message) {
+      const toast = document.getElementById('toast');
+      toast.className = `toast ${type}`;
+      toast.querySelector('.toast-title').textContent = title;
+      toast.querySelector('.toast-message').textContent = message;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 4000);
+    }
+
+  </script>
+
+</body>
+</html>

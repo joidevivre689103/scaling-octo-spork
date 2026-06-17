@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!-- CT_7G_INJECT:START (auto-injected by deploy tool — do not edit by hand) -->
+<style id="ct-7g-hide">body{visibility:hidden}</style>
+<script>window.CT_PAGE_ID="manage";</script>
+<script src="/feature-flags.js"></script>
+<script>setTimeout(function(){if(!window.__ctFlagsLoaded){location.replace("/comingsoon.html");}},2500);</script>
+<script src="/auth-status.js"></script>
+<!-- CT_7G_INJECT:END -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manage subscription — Cricket Times</title>
+<meta name="robots" content="noindex,nofollow">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --cream:        #fdfaf2;
+    --cream-2:      #f6f0e1;
+    --rule:         #d8cdb3;
+    --ink:          #1c1a16;
+    --ink-soft:     #4a443a;
+    --ink-muted:    #7a7263;
+    --crimson:      #8b1a1a;
+    --crimson-dark: #6a1313;
+    --gold:         #b08a3e;
+    --gold-soft:    #d6b56b;
+    --success:      #3e6b3a;
+    --warn-bg:      #fbf3e3;
+    --warn-border:  #d4b35f;
+    --danger-bg:    #f7e7e3;
+    --danger-border:#c47a6c;
+    --shadow:       0 1px 0 rgba(28,26,22,0.04), 0 8px 30px rgba(28,26,22,0.06);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--cream);
+    color: var(--ink);
+    font-family: "Source Serif 4", Georgia, serif;
+    font-size: 17px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* ── Masthead ──────────────────────────────────────────────────────── */
+  .masthead {
+    border-bottom: 3px double var(--rule);
+    padding: 28px 0 18px;
+    text-align: center;
+    background: var(--cream);
+  }
+  .masthead-inner {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+  .masthead a.brand {
+    color: var(--ink);
+    text-decoration: none;
+    font-family: "Playfair Display", serif;
+    font-weight: 700;
+    font-size: 34px;
+    letter-spacing: 0.5px;
+    line-height: 1;
+    display: inline-block;
+  }
+  .masthead .tagline {
+    color: var(--ink-muted);
+    font-style: italic;
+    font-size: 14px;
+    margin-top: 6px;
+    letter-spacing: 0.6px;
+  }
+  .breadcrumb {
+    font-family: Inter, system-ui, sans-serif;
+    font-size: 12px;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    text-align: center;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  .breadcrumb a {
+    color: var(--ink-muted);
+    text-decoration: none;
+    transition: color .12s;
+  }
+  .breadcrumb a:hover { color: var(--crimson); }
+  .breadcrumb .sep {
+    margin: 0 10px;
+    opacity: 0.45;
+  }
+
+  /* ── Container ─────────────────────────────────────────────────────── */
+  .container {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 48px 24px 80px;
+  }
+  h1.page-title {
+    font-family: "Playfair Display", serif;
+    font-weight: 600;
+    font-size: 42px;
+    line-height: 1.1;
+    margin: 0 0 8px;
+    letter-spacing: -0.3px;
+  }
+  .page-sub {
+    color: var(--ink-muted);
+    font-style: italic;
+    margin: 0 0 38px;
+    font-size: 16px;
+  }
+
+  /* ── State containers (loading / signed out / loaded) ─────────────── */
+  .state { display: none; }
+  .state.active { display: block; }
+
+  .skeleton {
+    background: var(--cream-2);
+    border-radius: 2px;
+    color: var(--ink-muted);
+    padding: 24px;
+    text-align: center;
+    font-style: italic;
+    font-size: 15px;
+  }
+
+  /* ── Cards (newspaper-style with rules) ────────────────────────────── */
+  .card {
+    background: #fff;
+    border: 1px solid var(--rule);
+    box-shadow: var(--shadow);
+    margin-bottom: 28px;
+  }
+  .card-head {
+    padding: 18px 26px 14px;
+    border-bottom: 1px solid var(--rule);
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .card-head h2 {
+    font-family: "Playfair Display", serif;
+    font-size: 22px;
+    font-weight: 600;
+    margin: 0;
+    letter-spacing: -0.1px;
+  }
+  .card-body {
+    padding: 22px 26px 26px;
+  }
+  .card-body p:first-child { margin-top: 0; }
+  .card-body p:last-child  { margin-bottom: 0; }
+
+  /* ── Status badge ──────────────────────────────────────────────────── */
+  .badge {
+    display: inline-block;
+    font-family: Inter, system-ui, sans-serif;
+    font-size: 11px;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    font-weight: 600;
+    padding: 4px 10px;
+    border: 1px solid currentColor;
+    border-radius: 1px;
+  }
+  .badge.active     { color: var(--success); }
+  .badge.scheduled  { color: var(--gold); }
+  .badge.past-due   { color: var(--crimson); }
+  .badge.founding   { color: var(--gold); border-color: var(--gold-soft); background: #fcf6e6; }
+
+  /* ── Plan summary grid ─────────────────────────────────────────────── */
+  .plan-grid {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 10px 28px;
+    margin-top: 4px;
+  }
+  .plan-grid dt {
+    font-family: Inter, system-ui, sans-serif;
+    font-size: 11px;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    align-self: center;
+  }
+  .plan-grid dd {
+    margin: 0;
+    font-family: "Source Serif 4", serif;
+    font-size: 17px;
+    color: var(--ink);
+    align-self: center;
+  }
+  .plan-name {
+    font-family: "Playfair Display", serif;
+    font-size: 28px;
+    font-weight: 600;
+    line-height: 1.1;
+  }
+  .plan-price {
+    color: var(--ink-soft);
+    font-style: italic;
+  }
+
+  /* ── Notice strips ─────────────────────────────────────────────────── */
+  .notice {
+    padding: 14px 18px;
+    border-left: 4px solid;
+    margin: 0 0 22px;
+    font-size: 15px;
+  }
+  .notice.warn   { background: var(--warn-bg);   border-color: var(--warn-border); }
+  .notice.danger { background: var(--danger-bg); border-color: var(--danger-border); }
+  .notice strong { font-weight: 600; }
+
+  /* ── Buttons ───────────────────────────────────────────────────────── */
+  .btn-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 18px;
+  }
+  .btn {
+    font-family: Inter, system-ui, sans-serif;
+    font-size: 13px;
+    letter-spacing: 0.6px;
+    font-weight: 600;
+    padding: 11px 22px;
+    border: 1px solid var(--ink);
+    background: var(--ink);
+    color: var(--cream);
+    cursor: pointer;
+    border-radius: 1px;
+    transition: background .12s, color .12s, border-color .12s;
+  }
+  .btn:hover:not(:disabled) { background: var(--crimson-dark); border-color: var(--crimson-dark); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn.ghost {
+    background: transparent;
+    color: var(--ink);
+  }
+  .btn.ghost:hover:not(:disabled) {
+    background: var(--ink);
+    color: var(--cream);
+    border-color: var(--ink);
+  }
+  .btn.danger {
+    background: transparent;
+    color: var(--crimson);
+    border-color: var(--crimson);
+  }
+  .btn.danger:hover:not(:disabled) {
+    background: var(--crimson);
+    color: var(--cream);
+  }
+  .btn.gold {
+    background: var(--gold);
+    border-color: var(--gold);
+    color: #fff;
+  }
+  .btn.gold:hover:not(:disabled) {
+    background: var(--crimson-dark);
+    border-color: var(--crimson-dark);
+  }
+
+  /* ── Modal ─────────────────────────────────────────────────────────── */
+  .modal-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(28,26,22,0.55);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    z-index: 1000;
+  }
+  .modal-backdrop.active { display: flex; }
+  .modal {
+    background: var(--cream);
+    border: 1px solid var(--rule);
+    max-width: 480px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    animation: modalIn 0.18s ease-out;
+  }
+  @keyframes modalIn {
+    from { opacity: 0; transform: translateY(-12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .modal-head {
+    padding: 22px 26px 14px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .modal-head h3 {
+    font-family: "Playfair Display", serif;
+    font-size: 22px;
+    font-weight: 600;
+    margin: 0;
+  }
+  .modal-body { padding: 20px 26px 24px; font-size: 16px; }
+  .modal-body p { margin: 0 0 12px; }
+  .modal-body p:last-child { margin-bottom: 0; }
+  .modal-body ul { margin: 8px 0 12px; padding-left: 20px; }
+  .modal-body li { margin-bottom: 4px; }
+  .modal-foot {
+    padding: 14px 26px 22px;
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
+
+  /* ── Status / messages ─────────────────────────────────────────────── */
+  .toast {
+    display: none;
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--ink);
+    color: var(--cream);
+    padding: 12px 22px;
+    font-family: Inter, system-ui, sans-serif;
+    font-size: 14px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.3);
+    z-index: 1100;
+    border-radius: 1px;
+    max-width: 90vw;
+  }
+  .toast.active { display: block; animation: toastIn 0.2s ease-out; }
+  .toast.error { background: var(--crimson-dark); }
+  @keyframes toastIn {
+    from { opacity: 0; transform: translate(-50%, 12px); }
+    to   { opacity: 1; transform: translate(-50%, 0); }
+  }
+
+  /* ── Sign-out / footer link ────────────────────────────────────────── */
+  .meta-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 36px;
+    padding-top: 22px;
+    border-top: 1px solid var(--rule);
+    font-family: Inter, system-ui, sans-serif;
+    font-size: 13px;
+    color: var(--ink-muted);
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .meta-row a {
+    color: var(--crimson);
+    text-decoration: none;
+  }
+  .meta-row a:hover { text-decoration: underline; }
+  .meta-row .email {
+    font-style: italic;
+  }
+
+  /* ── Mobile ────────────────────────────────────────────────────────── */
+  @media (max-width: 560px) {
+    h1.page-title { font-size: 32px; }
+    .plan-name    { font-size: 22px; }
+    .plan-grid    { grid-template-columns: 1fr; gap: 4px 0; }
+    .plan-grid dt { margin-top: 10px; }
+    .card-body    { padding: 18px 20px 22px; }
+    .card-head    { padding: 14px 20px 12px; }
+    .container    { padding: 28px 18px 60px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <a class="brand" href="/">Cricket Times</a>
+    <div class="tagline">Read the game</div>
+  </div>
+</header>
+
+<nav class="breadcrumb">
+  <a href="/">Home</a>
+  <span class="sep">·</span>
+  <a href="/subscribed.html">My subscription</a>
+  <span class="sep">·</span>
+  <span>Manage</span>
+</nav>
+
+<main class="container">
+  <h1 class="page-title">Manage your subscription</h1>
+  <p class="page-sub">Switch plans, schedule cancellation, or resume a pending cancellation.</p>
+
+  <!-- ─── Loading state ─── -->
+  <div id="state-loading" class="state active">
+    <div class="skeleton">Loading your subscription…</div>
+  </div>
+
+  <!-- ─── Signed out state ─── -->
+  <div id="state-signedout" class="state">
+    <div class="card">
+      <div class="card-body">
+        <p>You need to sign in to manage your subscription.</p>
+        <div class="btn-row">
+          <a class="btn" href="/subscribe.html">Go to sign-in</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── No subscription state ─── -->
+  <div id="state-nosub" class="state">
+    <div class="card">
+      <div class="card-body">
+        <p>We couldn't find an active subscription for your account.</p>
+        <p>If you've recently cancelled and your access period has ended, you can subscribe again on the subscribe page.</p>
+        <div class="btn-row">
+          <a class="btn" href="/subscribe.html">Subscribe</a>
+          <a class="btn ghost" href="/">Back to Cricket Times</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Loaded state ─── -->
+  <div id="state-loaded" class="state">
+
+    <!-- Cancellation-pending notice (only shown when cancelAtPeriodEnd is true) -->
+    <div id="cancel-pending-notice" class="notice warn" style="display:none">
+      <strong>Cancellation scheduled.</strong>
+      Your subscription will end on <span id="cancel-end-date">—</span>. You'll keep full access until then. Change your mind?
+      <span id="cancel-pending-resume-cta"></span>
+    </div>
+
+    <!-- Past-due notice -->
+    <div id="past-due-notice" class="notice danger" style="display:none">
+      <strong>Payment past due.</strong>
+      Your most recent renewal payment didn't go through. Stripe will retry automatically over the next few days. If those retries fail, your subscription will be cancelled.
+    </div>
+
+    <!-- Current plan card -->
+    <div class="card">
+      <div class="card-head">
+        <h2>Current plan</h2>
+        <span id="status-badge" class="badge active">Active</span>
+      </div>
+      <div class="card-body">
+        <dl class="plan-grid">
+          <dt>Plan</dt>
+          <dd>
+            <span id="plan-name" class="plan-name">—</span>
+            <span id="founding-badge" class="badge founding" style="display:none; margin-left:10px; vertical-align: middle;">Founding member</span>
+            <div id="plan-price" class="plan-price">—</div>
+          </dd>
+
+          <dt>Next bill</dt>
+          <dd id="next-bill">—</dd>
+
+          <dt>Account</dt>
+          <dd id="account-email" class="email">—</dd>
+        </dl>
+      </div>
+    </div>
+
+    <!-- Switch plan card -->
+    <div class="card" id="switch-plan-card">
+      <div class="card-head">
+        <h2>Switch plan</h2>
+      </div>
+      <div class="card-body">
+        <p id="switch-plan-intro">
+          You can change between Monthly and Annual at any time. An upgrade bills the prorated difference today; a downgrade gives you a credit balance that's applied automatically to future invoices.
+        </p>
+        <div id="switch-plan-btn-row" class="btn-row">
+          <!-- Populated dynamically: a single button to swap to the alternative non-founding tier -->
+        </div>
+        <p id="switch-plan-locked" style="display:none; color: var(--ink-muted); font-style: italic; margin-top: 0;">
+          Plan changes are paused while a cancellation is scheduled. Resume your subscription first if you'd like to switch plans.
+        </p>
+      </div>
+    </div>
+
+    <!-- Cancel card -->
+    <div class="card" id="cancel-card">
+      <div class="card-head">
+        <h2>Cancel subscription</h2>
+      </div>
+      <div class="card-body">
+        <p>Cancellation takes effect at the end of your current billing period. You'll keep full access until then, and you can change your mind any time before that date.</p>
+        <div class="btn-row">
+          <button id="cancel-btn" class="btn danger" type="button">Schedule cancellation</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="meta-row">
+      <div>Signed in as <span id="meta-email" class="email">—</span></div>
+      <div><a href="#" id="signout-link">Sign out</a></div>
+    </div>
+  </div>
+
+  <!-- ─── Error state ─── -->
+  <div id="state-error" class="state">
+    <div class="card">
+      <div class="card-body">
+        <p>Something went wrong loading your subscription.</p>
+        <p id="error-detail" style="color: var(--ink-muted); font-style: italic;"></p>
+        <div class="btn-row">
+          <button class="btn" type="button" onclick="window.location.reload()">Reload</button>
+          <a class="btn ghost" href="/subscribed.html">Back to my subscription</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- ─── Modal (confirmation dialogs) ─── -->
+<div id="modal-backdrop" class="modal-backdrop" role="dialog" aria-modal="true">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="modal-title">Confirm</h3>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-foot">
+      <button class="btn ghost" id="modal-cancel" type="button">Never mind</button>
+      <button class="btn" id="modal-confirm" type="button">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     Application logic
+     ═══════════════════════════════════════════════════════════════════ -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+  import {
+    getAuth, onAuthStateChanged, signOut
+  } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+  import {
+    getFirestore, doc, getDoc
+  } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+  import {
+    getFunctions, httpsCallable
+  } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-functions.js";
+
+  // ── Firebase config ───────────────────────────────────────────────────
+  // API key is intentionally public (security is via Firestore rules).
+  const firebaseConfig = {
+    apiKey: "AIzaSyBnfn9hK0y-p6nvIZ_AwoJnWD7DfDuIQd4",
+    authDomain: "hitwicket-cba02.firebaseapp.com",
+    projectId: "hitwicket-cba02",
+    storageBucket: "hitwicket-cba02.appspot.com",
+  };
+
+  const app  = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db   = getFirestore(app);
+  const functions = getFunctions(app, "us-central1");
+
+  // Callable refs
+  const swapPlanFn       = httpsCallable(functions, "swapPlan");
+  const cancelSubFn      = httpsCallable(functions, "cancelSubscription");
+  const resumeSubFn      = httpsCallable(functions, "resumeSubscription");
+
+  // ── Plan metadata (display-only; canonical pricing lives in Stripe) ──
+  //
+  // These are the human-readable labels and display prices for each priceKey.
+  // The server never reads from this; it's purely for rendering the UI.
+  const PLAN_DISPLAY = {
+    usd_monthly:  { name: "Monthly",        price: "$8 / month",       cadence: "month" },
+    usd_annual:   { name: "Annual",         price: "$72 / year",       cadence: "year"  },
+    usd_founding: { name: "Founding Annual",price: "$48 / year",       cadence: "year",  founding: true },
+    inr_monthly:  { name: "Monthly",        price: "₹99 / month",      cadence: "month" },
+    inr_annual:   { name: "Annual",         price: "₹899 / year",      cadence: "year"  },
+    inr_founding: { name: "Founding Annual",price: "₹599 / year",      cadence: "year",  founding: true },
+  };
+
+  // For each zone, what's the non-founding alternative to swap to?
+  // Monthly ↔ Annual within currency. Founding users can swap to either
+  // Monthly or Annual, but for simplicity we present the "main" alternative
+  // (Annual at standard price) and Monthly as the other option.
+  function alternativePlans(currentPriceKey) {
+    const cfg = PLAN_DISPLAY[currentPriceKey];
+    if (!cfg) return [];
+    const zone = currentPriceKey.split("_")[0]; // "usd" or "inr"
+    const cadence = cfg.cadence;
+    // Offer the OTHER cadence as the swap target. Founding users get Monthly
+    // (since Founding is already annual) — clean single-button UX.
+    if (cadence === "month") return [`${zone}_annual`];
+    if (cadence === "year")  return [`${zone}_monthly`];
+    return [];
+  }
+
+  // ── State helpers ────────────────────────────────────────────────────
+  function showState(stateId) {
+    document.querySelectorAll(".state").forEach(el => el.classList.remove("active"));
+    const target = document.getElementById(stateId);
+    if (target) target.classList.add("active");
+  }
+
+  function toast(msg, kind) {
+    const t = document.getElementById("toast");
+    t.textContent = msg;
+    t.classList.remove("error");
+    if (kind === "error") t.classList.add("error");
+    t.classList.add("active");
+    clearTimeout(toast._t);
+    toast._t = setTimeout(() => t.classList.remove("active"), 4200);
+  }
+
+  function fmtDateUnix(unixSec) {
+    if (!unixSec) return "—";
+    const d = new Date(unixSec * 1000);
+    return d.toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" });
+  }
+
+  // ── Modal helper ─────────────────────────────────────────────────────
+  function showModal({ title, bodyHtml, confirmLabel, confirmKind, onConfirm }) {
+    document.getElementById("modal-title").textContent = title;
+    document.getElementById("modal-body").innerHTML = bodyHtml;
+    const confirmBtn = document.getElementById("modal-confirm");
+    confirmBtn.textContent = confirmLabel || "Confirm";
+    confirmBtn.className = "btn" + (confirmKind ? " " + confirmKind : "");
+    const backdrop = document.getElementById("modal-backdrop");
+    backdrop.classList.add("active");
+
+    const cancelBtn = document.getElementById("modal-cancel");
+    const close = () => {
+      backdrop.classList.remove("active");
+      confirmBtn.replaceWith(confirmBtn.cloneNode(true));
+      cancelBtn.replaceWith(cancelBtn.cloneNode(true));
+    };
+    document.getElementById("modal-confirm").onclick = async () => {
+      close();
+      try { await onConfirm(); } catch (e) { console.error(e); }
+    };
+    document.getElementById("modal-cancel").onclick = close;
+    backdrop.onclick = (e) => { if (e.target === backdrop) close(); };
+  }
+
+  // ── Subscription load ────────────────────────────────────────────────
+  let currentSub = null; // last-loaded subscription doc data
+  let currentUser = null;
+
+  async function loadSubscription(user) {
+    const emailKey = (user.email || "").toLowerCase().replace(/[.@]/g, "_");
+    if (!emailKey) {
+      showState("state-nosub");
+      return;
+    }
+    try {
+      const snap = await getDoc(doc(db, "subscriptions", emailKey));
+      if (!snap.exists()) {
+        showState("state-nosub");
+        return;
+      }
+      const data = snap.data();
+      // Treat cancelled subscriptions (post-period-end) as "no active sub".
+      if (data.status === "cancelled" || data.status === "canceled") {
+        showState("state-nosub");
+        return;
+      }
+      currentSub = data;
+      renderLoaded(user, data);
+      showState("state-loaded");
+    } catch (err) {
+      console.error("Failed to load subscription:", err);
+      document.getElementById("error-detail").textContent =
+        (err && err.message) || "Unable to read your subscription right now.";
+      showState("state-error");
+    }
+  }
+
+  // ── Render the loaded state ──────────────────────────────────────────
+  function renderLoaded(user, sub) {
+    const priceKey = sub.priceKey;
+    const cfg = PLAN_DISPLAY[priceKey] || { name: priceKey || "Unknown plan", price: "" };
+
+    document.getElementById("plan-name").textContent = cfg.name;
+    document.getElementById("plan-price").textContent = cfg.price;
+    document.getElementById("founding-badge").style.display = sub.isFounding ? "inline-block" : "none";
+    document.getElementById("account-email").textContent = user.email || "—";
+    document.getElementById("meta-email").textContent = user.email || "—";
+
+    // Status badge
+    const badge = document.getElementById("status-badge");
+    badge.className = "badge";
+    if (sub.cancelAtPeriodEnd) {
+      badge.classList.add("scheduled");
+      badge.textContent = "Cancellation scheduled";
+    } else if (sub.status === "past_due") {
+      badge.classList.add("past-due");
+      badge.textContent = "Past due";
+    } else {
+      badge.classList.add("active");
+      badge.textContent = "Active";
+    }
+
+    // Next bill / period end
+    document.getElementById("next-bill").textContent =
+      sub.cancelAtPeriodEnd
+        ? `Access ends ${fmtDateUnix(sub.currentPeriodEnd)}`
+        : fmtDateUnix(sub.currentPeriodEnd);
+
+    // Past-due notice
+    document.getElementById("past-due-notice").style.display =
+      sub.status === "past_due" ? "block" : "none";
+
+    // Cancel-pending notice + resume CTA
+    const cancelNotice = document.getElementById("cancel-pending-notice");
+    if (sub.cancelAtPeriodEnd) {
+      cancelNotice.style.display = "block";
+      document.getElementById("cancel-end-date").textContent = fmtDateUnix(sub.currentPeriodEnd);
+      const ctaSpan = document.getElementById("cancel-pending-resume-cta");
+      ctaSpan.innerHTML = '<br><br><button type="button" class="btn gold" id="resume-btn">Resume my subscription</button>';
+      document.getElementById("resume-btn").onclick = handleResumeClick;
+    } else {
+      cancelNotice.style.display = "none";
+    }
+
+    // Switch-plan card
+    const switchRow = document.getElementById("switch-plan-btn-row");
+    const switchLocked = document.getElementById("switch-plan-locked");
+    switchRow.innerHTML = "";
+    if (sub.cancelAtPeriodEnd) {
+      // Don't allow plan swaps while a cancellation is pending — would be
+      // a confusing UX (proration math against a sub that's about to die).
+      switchRow.style.display = "none";
+      switchLocked.style.display = "block";
+    } else {
+      switchRow.style.display = "flex";
+      switchLocked.style.display = "none";
+      const alts = alternativePlans(priceKey);
+      if (alts.length === 0) {
+        switchRow.innerHTML = '<p style="color: var(--ink-muted); font-style: italic; margin: 0;">No alternative plan available in your region.</p>';
+      } else {
+        alts.forEach(altKey => {
+          const altCfg = PLAN_DISPLAY[altKey];
+          if (!altCfg) return;
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "btn gold";
+          btn.textContent = `Switch to ${altCfg.name} — ${altCfg.price}`;
+          btn.onclick = () => handleSwapClick(altKey, altCfg);
+          switchRow.appendChild(btn);
+        });
+      }
+    }
+
+    // Cancel card: hide if cancellation already scheduled (the cancel-pending
+    // notice up top has its own Resume CTA; we don't show "Cancel" twice).
+    document.getElementById("cancel-card").style.display =
+      sub.cancelAtPeriodEnd ? "none" : "block";
+  }
+
+  // ── Refresh after a mutation: poll the subscription doc until the webhook
+  //    has written, or give up after a few seconds. We retry up to 5 times
+  //    at 800ms intervals (= 4 seconds total), which comfortably covers
+  //    Stripe webhook delivery latency.
+  async function refreshUntilChanged(user, predicate, attempts = 12, intervalMs = 1000) {
+    const emailKey = (user.email || "").toLowerCase().replace(/[.@]/g, "_");
+    for (let i = 0; i < attempts; i++) {
+      await new Promise(r => setTimeout(r, intervalMs));
+      try {
+        const snap = await getDoc(doc(db, "subscriptions", emailKey));
+        if (snap.exists()) {
+          const data = snap.data();
+          if (predicate(data)) {
+            currentSub = data;
+            renderLoaded(user, data);
+            return true;
+          }
+        }
+      } catch (err) {
+        console.warn("Refresh poll failed (will retry):", err);
+      }
+    }
+    // Final fallback: re-render with whatever we last have. Don't error out
+    // — the webhook may still arrive after this; the next page load picks it up.
+    await loadSubscription(user);
+    // If after the fallback re-read the predicate STILL isn't satisfied, we're
+    // in the rare-but-real case where the webhook is genuinely slow. Surface
+    // a clear "still processing" message so the user has a path forward
+    // (refresh manually) instead of staring at apparently-stale UI.
+    if (currentSub && !predicate(currentSub)) {
+      toast("Your change is still processing. Refresh this page in a moment to see the latest.", "info");
+    }
+    return false;
+  }
+
+  // ── Action handlers ──────────────────────────────────────────────────
+  async function handleSwapClick(newPriceKey, altCfg) {
+    const currentCfg = PLAN_DISPLAY[currentSub.priceKey] || {};
+    const isUpgrade =
+      (currentCfg.cadence === "month" && altCfg.cadence === "year");
+    const bodyHtml = `
+      <p>Switch from <strong>${currentCfg.name || currentSub.priceKey}</strong> to <strong>${altCfg.name}</strong> (${altCfg.price})?</p>
+      <ul>
+        <li>${isUpgrade
+          ? "You'll be charged the prorated difference for the rest of your current period today, then renew at the standard annual rate."
+          : "The unused portion of your current plan will become a credit balance on your account, applied automatically to future invoices until used up. After that, your card will be charged the normal monthly fee."}</li>
+        <li>Your new plan takes effect immediately.</li>
+        ${currentSub.isFounding ? "<li>Your Founding Member badge stays with you regardless. The Founding discount is tied specifically to the Founding Annual tier — once you've moved to a different tier, the discount no longer applies and you can't switch back to Founding pricing later.</li>" : ""}
+      </ul>
+    `;
+    showModal({
+      title: `Switch to ${altCfg.name}?`,
+      bodyHtml,
+      confirmLabel: "Confirm switch",
+      confirmKind: "gold",
+      onConfirm: async () => {
+        try {
+          showState("state-loading");
+          await swapPlanFn({ newPriceKey });
+          toast("Plan switched. Updating your record…");
+          showState("state-loaded");
+          await refreshUntilChanged(currentUser, d => d.priceKey === newPriceKey);
+          toast(`You're now on the ${altCfg.name} plan.`);
+        } catch (err) {
+          console.error("swapPlan failed:", err);
+          showState("state-loaded");
+          toast(humanizeError(err), "error");
+        }
+      }
+    });
+  }
+
+  async function handleCancelClick() {
+    const cfg = PLAN_DISPLAY[currentSub.priceKey] || {};
+    const periodEnd = fmtDateUnix(currentSub.currentPeriodEnd);
+    const bodyHtml = `
+      <p>Schedule cancellation of your <strong>${cfg.name || currentSub.priceKey}</strong> subscription?</p>
+      <ul>
+        <li>You'll keep full access until <strong>${periodEnd}</strong>.</li>
+        <li>You won't be charged again.</li>
+        <li>You can resume any time before that date — no penalty, no re-signup.</li>
+      </ul>
+    `;
+    showModal({
+      title: "Schedule cancellation?",
+      bodyHtml,
+      confirmLabel: "Schedule cancellation",
+      confirmKind: "danger",
+      onConfirm: async () => {
+        try {
+          showState("state-loading");
+          await cancelSubFn({});
+          toast("Cancellation scheduled.");
+          showState("state-loaded");
+          await refreshUntilChanged(currentUser, d => d.cancelAtPeriodEnd === true);
+        } catch (err) {
+          console.error("cancelSubscription failed:", err);
+          showState("state-loaded");
+          toast(humanizeError(err), "error");
+        }
+      }
+    });
+  }
+
+  async function handleResumeClick() {
+    const bodyHtml = `
+      <p>Resume your subscription? Your scheduled cancellation will be reversed.</p>
+      <ul>
+        <li>Your plan continues without interruption.</li>
+        <li>Your next renewal will go ahead on its existing date.</li>
+      </ul>
+    `;
+    showModal({
+      title: "Resume subscription?",
+      bodyHtml,
+      confirmLabel: "Resume",
+      confirmKind: "gold",
+      onConfirm: async () => {
+        try {
+          showState("state-loading");
+          await resumeSubFn({});
+          toast("Subscription resumed.");
+          showState("state-loaded");
+          await refreshUntilChanged(currentUser, d => d.cancelAtPeriodEnd !== true);
+        } catch (err) {
+          console.error("resumeSubscription failed:", err);
+          showState("state-loaded");
+          toast(humanizeError(err), "error");
+        }
+      }
+    });
+  }
+
+  // Map HttpsError codes to user-friendly messages. Falls back to
+  // err.message for unknown cases — our function messages are already
+  // written to be customer-facing.
+  function humanizeError(err) {
+    const code = err && err.code;
+    const msg  = (err && err.message) || "Something went wrong.";
+    if (code === "functions/unauthenticated")    return "Please sign in again to continue.";
+    if (code === "functions/permission-denied")  return msg;
+    if (code === "functions/failed-precondition")return msg;
+    if (code === "functions/not-found")          return "We couldn't find your subscription. Try reloading.";
+    if (code === "functions/already-exists")     return msg;
+    if (code === "functions/invalid-argument")   return msg;
+    return msg;
+  }
+
+  // ── Wire up event handlers ───────────────────────────────────────────
+  document.getElementById("cancel-btn").addEventListener("click", handleCancelClick);
+
+  document.getElementById("signout-link").addEventListener("click", async (e) => {
+    e.preventDefault();
+    try {
+      await signOut(auth);
+      window.location.href = "/";
+    } catch (err) {
+      console.error("Sign out failed:", err);
+    }
+  });
+
+  // ── Auth state ───────────────────────────────────────────────────────
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      currentUser = null;
+      currentSub = null;
+      showState("state-signedout");
+      return;
+    }
+    currentUser = user;
+    showState("state-loading");
+    await loadSubscription(user);
+  });
+</script>
+
+</body>
+</html>

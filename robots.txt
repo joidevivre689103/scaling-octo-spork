@@ -1,0 +1,34 @@
+# Cricket Times — robots.txt
+# Well-behaved crawlers respect these disallow rules.
+# Does NOT prevent access — only prevents indexing.
+
+User-agent: *
+
+# Admin & tooling
+Disallow: /cms.html
+Disallow: /admin.html
+Disallow: /secrets.html
+Disallow: /github-deploy-tool.html
+Disallow: /test.html
+Disallow: /reference.html
+Disallow: /architecture.html
+Disallow: /dat-compressor.html
+Disallow: /js-compressor.html
+Disallow: /storiesproto.html
+
+# Author portal & payments
+Disallow: /author-cms.html
+Disallow: /author-dashboard.html
+Disallow: /author-earnings.html
+Disallow: /author-login.html
+Disallow: /author-profile.html
+Disallow: /contributor-agreement.html
+Disallow: /payouts.html
+Disallow: /analytics-sync.html
+
+# Specialist / legacy (not in main nav)
+Disallow: /models.html
+Disallow: /backsim.html
+Disallow: /batting-records.html
+
+Sitemap: https://cricketimes.com/sitemap.xml

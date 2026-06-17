@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+<!-- CT_7G_INJECT:START (auto-injected by deploy tool — do not edit by hand) -->
+<style id="ct-7g-hide">body{visibility:hidden}</style>
+<script>window.CT_PAGE_ID="oracle-archive";</script>
+<script src="/auth-status.js"></script>
+<script>setTimeout(function(){if(!window.__ctFlagsLoaded){location.replace("/comingsoon.html");}},2500);</script>
+<!-- CT_7G_INJECT:END -->
+<!-- NOTE: the deploy tool auto-injects the 7-G gating block (CT_PAGE_ID
+     "oracle-archive" + hidden-body + watchdog + auth-status) immediately
+     after the charset tag on first deploy. Do not hand-write it here.
+     PREREQUISITE: add 'oracle-archive' to the PAID pages bucket in
+     settings/featureGates (admin → Access Tiers) BEFORE deploying, or the
+     bootstrap fail-closes and redirects everyone, admins included aside. -->
+<script src="/feature-flags.js"></script>
+<script src="/prelaunch-guard.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Oracle Archive — Cricket Times</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400;1,700&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300;1,400&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --cream: #f5f0e8;
+      --cream-dark: #ede6d4;
+      --cream-border: #d4c9b0;
+      --crimson: #8b1a1a;
+      --crimson-light: #a82020;
+      --crimson-dark: #6b1212;
+      --ink: #1a1208;
+      --ink-mid: #3d3020;
+      --ink-light: #6b5e4a;
+      --ink-faint: #9a8f7a;
+      --gold: #c8a44a;
+      --gold-light: #e2c97e;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--cream);
+      color: var(--ink);
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: 16px;
+      line-height: 1.6;
+    }
+
+    /* ── PAGE HEADER ── */
+    .page-header {
+      text-align: center;
+      padding: 44px 20px 8px;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+    .page-header h1 {
+      font-family: 'Playfair Display', serif;
+      font-weight: 900;
+      font-size: clamp(30px, 5vw, 44px);
+      letter-spacing: 0.01em;
+      color: var(--ink);
+    }
+    .page-header .deck {
+      font-family: 'IM Fell English', serif;
+      font-style: italic;
+      font-size: 17px;
+      color: var(--ink-light);
+      margin-top: 6px;
+    }
+    .rule-ornament {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      margin: 18px auto 0;
+      max-width: 320px;
+      color: var(--crimson);
+    }
+    .rule-ornament::before,
+    .rule-ornament::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--cream-border);
+    }
+    .rule-ornament span { font-size: 18px; }
+
+    /* ── ARCHIVE CONTAINER ── */
+    .oracle-archive-container {
+      max-width: 860px;
+      margin: 28px auto 70px;
+      padding: 0 20px;
+    }
+
+    /* ── CURRENT EDITION CARD ── */
+    .current-edition {
+      border: 2px solid var(--crimson);
+      background: #fffdf8;
+      padding: 26px 28px;
+      margin-bottom: 38px;
+      position: relative;
+      box-shadow: 4px 4px 0 var(--cream-dark);
+    }
+    .current-edition .badge {
+      position: absolute;
+      top: -12px;
+      left: 22px;
+      background: var(--crimson);
+      color: var(--cream);
+      font-family: 'Source Serif 4', serif;
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      padding: 3px 12px;
+    }
+    .current-edition h2 {
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      font-size: 26px;
+      color: var(--ink);
+    }
+    .current-edition .meta {
+      font-family: 'IM Fell English', serif;
+      font-style: italic;
+      color: var(--ink-light);
+      margin-top: 2px;
+    }
+    .current-edition .theme {
+      margin-top: 10px;
+      color: var(--ink-mid);
+    }
+    .current-edition .cta {
+      display: inline-block;
+      margin-top: 16px;
+      font-family: 'Source Serif 4', serif;
+      font-size: 13px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--cream);
+      background: var(--crimson);
+      padding: 9px 18px;
+      text-decoration: none;
+      transition: background 0.15s ease;
+    }
+    .current-edition .cta:hover { background: var(--crimson-dark); }
+
+    /* ── SECTION LABEL ── */
+    .section-label {
+      font-family: 'Source Serif 4', serif;
+      font-size: 12px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--ink-light);
+      border-bottom: 1px solid var(--cream-border);
+      padding-bottom: 8px;
+      margin-bottom: 22px;
+    }
+
+    /* ── EDITION CARDS ── */
+    .edition-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+      gap: 22px;
+    }
+    .edition-card {
+      display: block;
+      border: 1px solid var(--cream-border);
+      background: #fbf8f1;
+      padding: 20px 22px;
+      text-decoration: none;
+      color: inherit;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+    }
+    .edition-card:hover {
+      border-color: var(--crimson);
+      box-shadow: 3px 3px 0 var(--cream-dark);
+      transform: translateY(-1px);
+    }
+    .edition-card h3 {
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      font-size: 20px;
+      color: var(--ink);
+      line-height: 1.3;
+    }
+    .edition-card .meta {
+      font-family: 'IM Fell English', serif;
+      font-style: italic;
+      font-size: 14px;
+      color: var(--ink-light);
+      margin-top: 2px;
+    }
+    .edition-card .theme {
+      font-size: 14.5px;
+      color: var(--ink-mid);
+      margin-top: 10px;
+    }
+    .edition-card .foot {
+      margin-top: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      border-top: 1px dotted var(--cream-border);
+      padding-top: 10px;
+    }
+    .edition-card .qcount {
+      font-family: 'Source Serif 4', serif;
+      font-size: 12px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+    }
+    .edition-card .face {
+      font-family: 'Source Serif 4', serif;
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--crimson);
+    }
+
+    /* ── STATES ── */
+    .loading-state, .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--ink-light);
+    }
+    .empty-state .icon { font-size: 30px; margin-bottom: 10px; }
+    .empty-state h3 {
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      color: var(--ink-mid);
+      margin-bottom: 6px;
+    }
+    .loading-spinner {
+      width: 28px; height: 28px;
+      border: 3px solid var(--cream-border);
+      border-top-color: var(--crimson);
+      border-radius: 50%;
+      margin: 0 auto 14px;
+      animation: spin 0.9s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (max-width: 480px) {
+      .current-edition { padding: 22px 18px; }
+      .edition-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- MASTHEAD -->
+<header data-ct-nav="masthead"></header>
+
+<!-- PRIMARY NAV -->
+<nav data-ct-nav="primary"></nav>
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+  <h1>The Oracle Archive</h1>
+  <p class="deck">Every edition of the Test Cricket Oracle, preserved for the faithful</p>
+  <div class="rule-ornament"><span>✦</span></div>
+</div>
+
+<!-- EDITIONS -->
+<main class="oracle-archive-container" id="oracleArchiveContainer">
+  <div class="loading-state" id="loadingState">
+    <div class="loading-spinner"></div>
+    <p>Consulting the Oracle&hellip;</p>
+  </div>
+</main>
+
+<!-- FOOTER -->
+<footer data-ct-nav="footer"></footer>
+
+<!-- Firebase -->
+<script type="module">
+  // ───────────────────────────────────────────────────────────────────────
+  // ORACLE ARCHIVE — self-maintaining edition index [(g) 2026-06-03]
+  //
+  // Renders entirely from Firestore: the published editions in
+  // oracleEditions/ plus the config/currentOracle pointer. Rotation needs
+  // ZERO edits here — when the pointer moves and a new edition doc is
+  // published, this page reshuffles itself on next load.
+  //
+  // RULES CONTRACT: oracleEditions allows public read ONLY for docs with
+  // published == true, and Firestore list queries must PROVE compliance —
+  // so the where('published','==',true) clause below is load-bearing. A
+  // bare getDocs(collection(...)) is denied by rules. Do not remove it.
+  //
+  // GATING: this page carries no gate code. The injected ctPageBootstrap
+  // handles entry via requireAccess({page:'oracle-archive'}) — the page id
+  // must sit in the PAID bucket of settings/featureGates. Page-gate-first.
+  //
+  // LINK CONTRACT: archived editions link to /oracle/{id}/ — the pinned
+  // permalink page must have been deployed for that edition (manual step
+  // at rotation, or via a future deploy-tool "archive edition" helper).
+  // The current edition links to /oracle.html, which always exists.
+  // ───────────────────────────────────────────────────────────────────────
+  import { initializeApp, getApps, getApp }
+    from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
+  import { getFirestore, collection, getDocs, query, where, doc, getDoc }
+    from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
+
+  const _fbConfig = {
+    apiKey: "AIzaSyBnfn9hK0y-p6nvIZ_AwoJnWD7DfDuIQd4",
+    authDomain: "hitwicket-cba02.firebaseapp.com",
+    projectId: "hitwicket-cba02",
+    storageBucket: "hitwicket-cba02.firebasestorage.app",
+    messagingSenderId: "196915483829",
+    appId: "1:196915483829:web:071c47af79914aec88dafc"
+  };
+  const _app = getApps().length ? getApp() : initializeApp(_fbConfig);
+  const db = getFirestore(_app);
+
+  /* ── helpers ── */
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // Sort key from the human month string ("June 2026" → Date). Editions
+  // whose month doesn't parse sort oldest (epoch) and fall back to name
+  // order among themselves. Small collection — client-side sort is fine
+  // and avoids a composite index on (published, anything).
+  function monthSortKey(monthStr) {
+    const t = Date.parse(monthStr ? ('1 ' + monthStr) : '');
+    return Number.isNaN(t) ? 0 : t;
+  }
+
+  function editionCard(ed) {
+    const qn = Array.isArray(ed.questions) ? ed.questions.length : 0;
+    return `<a class="edition-card" href="/oracle/${encodeURIComponent(ed.id)}/">
+      <h3>${escHtml(ed.name || 'The Test Cricket Oracle')}</h3>
+      ${ed.month ? `<div class="meta">${escHtml(ed.month)}</div>` : ''}
+      ${ed.theme ? `<div class="theme">${escHtml(ed.theme)}</div>` : ''}
+      <div class="foot">
+        <span class="qcount">${qn ? qn + ' questions' : 'Edition'}</span>
+        <span class="face">Face the Oracle &rarr;</span>
+      </div>
+    </a>`;
+  }
+
+  function currentCard(ed) {
+    return `<div class="current-edition">
+      <span class="badge">Current Edition</span>
+      <h2>${escHtml(ed.name || 'The Test Cricket Oracle')}</h2>
+      ${ed.month ? `<div class="meta">${escHtml(ed.month)}</div>` : ''}
+      ${ed.theme ? `<div class="theme">${escHtml(ed.theme)}</div>` : ''}
+      <a class="cta" href="/oracle.html">Take this month&rsquo;s quiz &rarr;</a>
+    </div>`;
+  }
+
+  /* ── fetch + render ── */
+  async function loadEditions() {
+    const container = document.getElementById('oracleArchiveContainer');
+    let editions, currentId;
+    try {
+      // where('published','==',true) is REQUIRED by rules — see header note.
+      const [editionsSnap, pointerSnap] = await Promise.all([
+        getDocs(query(collection(db, 'oracleEditions'), where('published', '==', true))),
+        getDoc(doc(db, 'config', 'currentOracle'))
+      ]);
+      editions = editionsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+      currentId = pointerSnap.exists() ? (pointerSnap.data().editionId || null) : null;
+    } catch (err) {
+      console.error('Oracle archive load error:', err);
+      container.innerHTML = `<div class="empty-state">
+        <div class="icon">⚠️</div>
+        <h3>The Oracle is silent</h3>
+        <p>The archive could not be retrieved. Please try again shortly.</p>
+        <p style="font-family:monospace;font-size:12px;margin-top:8px;color:var(--crimson)">${escHtml(err.message)}</p>
+      </div>`;
+      return;
+    }
+
+    const current = editions.find(e => e.id === currentId) || null;
+    const archived = editions
+      .filter(e => e.id !== currentId)
+      .sort((a, b) =>
+        (monthSortKey(b.month) - monthSortKey(a.month))
+        || String(a.name || '').localeCompare(String(b.name || ''))
+      );
+
+    let html = '';
+    if (current) html += currentCard(current);
+    if (archived.length) {
+      html += `<div class="section-label">Past editions — ${archived.length}</div>`;
+      html += `<div class="edition-grid">${archived.map(editionCard).join('')}</div>`;
+    } else {
+      html += `<div class="empty-state">
+        <div class="icon">🏏</div>
+        <h3>The archive awaits</h3>
+        <p>Past editions of the Oracle will be preserved here as new ones are published.${current ? '' : ' No editions found yet.'}</p>
+      </div>`;
+    }
+    container.innerHTML = html;
+  }
+
+  loadEditions();
+</script>
+
+<script src="ct-nav.js"></script>
+</body>
+</html>

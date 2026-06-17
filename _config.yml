@@ -1,0 +1,48 @@
+# ============================================================================
+# _config.yml — Jekyll build config for GitHub Pages
+#
+# PURPOSE: stop Pages from serving backend / non-page content that lives in the
+# same repo. Before this file existed there was no _config.yml, so Jekyll ran
+# with defaults and copied EVERYTHING into the served site — which is why
+# functions/*.js, scripts/*, and intermediate data files are downloadable from
+# the live domain. This excludes them from the built site.
+#
+# DOES NOT AFFECT CLOUD FUNCTIONS DEPLOYMENT. The CI workflow reads functions/
+# from the repo source directly; Jekyll's exclude only removes it from the
+# _site output that Pages serves. The files stay in the repo and keep deploying.
+#
+# DO NOT add the derived data files here yet (data.json.gz, data.js,
+# sim_ratings.json, sim_model.json, calibration.json). The stats pages still
+# load them until §3 Phase 5 closes the static URLs. Excluding them now would
+# 404 them and break every stats page.
+#
+# DO NOT exclude page-loaded scripts: feature-flags.js, auth-status.js,
+# ct-nav.js, prelaunch-guard.js — pages <script src> these; they must stay served.
+# ============================================================================
+
+# Jekyll REPLACES (not merges) the default exclude list when you set this key,
+# so the standard defaults are repeated here alongside the new backend entries.
+exclude:
+  # --- Jekyll / build defaults (repeated so they stay excluded) ---
+  - node_modules
+  - vendor
+  - Gemfile
+  - Gemfile.lock
+  - .sass-cache
+  - .jekyll-cache
+
+  # --- Backend / non-page content: THE ACTUAL FIX ---
+  - functions/            # Cloud Functions source — must never be web-served
+  - scripts/              # data-pipeline scripts (sync_drive.py, fetch_raw.py, …)
+
+  # --- Defensive: raw/intermediate data by extension ---
+  # (raw files were moved to Firebase Storage in §1; these catch any stragglers.
+  #  NOTE: "*.dat.gz" does NOT match data.json.gz — different suffix — so the
+  #  live derived DB is untouched.)
+  - "*.py"
+  - "*.dat"
+  - "*.dat.gz"
+  - "*.xlsx"
+  - package.json
+  - package-lock.json
+  - README.md

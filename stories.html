@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!-- CT_7G_INJECT:START (auto-injected by deploy tool — do not edit by hand) -->
+<style id="ct-7g-hide">body{visibility:hidden}</style>
+<script>window.CT_PAGE_ID="stories";</script>
+<script src="/feature-flags.js"></script>
+<script src="/auth-status.js"></script>
+<script>setTimeout(function(){if(!window.__ctFlagsLoaded){location.replace("/comingsoon.html");}},2500);</script>
+<!-- CT_7G_INJECT:END -->
+<meta http-equiv="refresh" content="0; url=/">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<link rel="canonical" href="https://cricketimes.com/">
+<title>Cricket Times</title>
+
+<!--
+  Redirect stub [index swap 2026-06-05].
+
+  The stories homepage now lives at / (index.html). This stub preserves
+  every pre-swap bookmark, shared link, and crawler reference to
+  /stories.html by redirecting to the root. The canonical tag tells
+  search engines the root is the real page.
+
+  Pre-launch behaviour: this stub does not load prelaunch-guard.js — it
+  redirects to /, where the guard takes over (tier check; non-owners
+  bounce to /comingsoon.html). No loop: comingsoon remains a real page
+  until launch.
+
+  Deploy-tool note: 'stories' is NOT on the injector exception list, so
+  the injector may stamp its gating block into this head on deploy.
+  That is harmless here — the synchronous location.replace below (and
+  the meta refresh for no-JS browsers) navigates away before any async
+  gating resolves, and a hidden body is irrelevant on a page that
+  exists for zero seconds. The 'stories' entry in settings/featureGates
+  stays in the FREE bucket so a stamped bootstrap passes trivially.
+
+  DO NOT DELETE this file while old /stories.html links exist in the
+  wild (pre-swap shares, MailerLite emails, quiz "Back to Home" buttons
+  on the two Oracle near-duplicates — the latter slated for cleanup at
+  launch).
+-->
+
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Source Serif 4', Georgia, serif;
+    background: #f5f0e8;
+    color: #1a1208;
+  }
+  .stub {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    text-align: center;
+  }
+  .stub a {
+    color: #8b1a1a;
+    text-decoration: none;
+    border-bottom: 1px solid currentColor;
+  }
+</style>
+
+<script>
+  // JS fallback for browsers that don't honour meta refresh (rare).
+  // Runs synchronously so navigation happens before render.
+  window.location.replace('/');
+</script>
+</head>
+<body>
+<div class="stub">
+  <p>Redirecting to <a href="/">Cricket Times</a>&hellip;</p>
+</div>
+</body>
+</html>

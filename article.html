@@ -1,0 +1,2308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!-- CT_7G_INJECT:START (auto-injected by deploy tool — do not edit by hand) -->
+<style id="ct-7g-hide">body{visibility:hidden}</style>
+<script>window.CT_PAGE_ID="article";</script>
+<script>setTimeout(function(){if(!window.__ctFlagsLoaded){location.replace("/comingsoon.html");}},2500);</script>
+<script src="/auth-status.js"></script>
+<!-- CT_7G_INJECT:END -->
+<script src="/feature-flags.js"></script>
+<script src="/prelaunch-guard.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>Cricket Times — Article</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,300;8..60,400;8..60,500;8..60,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+:root{
+  --bg:#faf9f7;
+  --surface:#ffffff;
+  --surface2:#f5f4f2;
+  --surface3:#eceae6;
+  --border:#d8d4cc;
+  --border2:#c8c4bc;
+  --text:#1a1a18;
+  --text2:#4a4a46;
+  --text3:#7a7a74;
+  --accent:#a03020;
+  --accent-hover:#801810;
+  --accent-dim:rgba(160,48,32,0.08);
+  --gold:#c08018;
+  --gold-dim:rgba(192,128,24,0.10);
+  --green:#1a6848;
+  --blue:#1a4878;
+}
+
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Source Serif 4',Georgia,serif;
+  min-height:100vh;
+  line-height:1.6;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MASTHEAD
+═══════════════════════════════════════════════════════════════════════════ */
+.masthead{
+  text-align:center;
+  padding:20px 24px 16px;
+  border-bottom:2px solid var(--text);
+  position:relative;
+}
+.masthead-date{
+  font-family:'Inter',sans-serif;
+  font-size:11px;
+  font-weight:500;
+  letter-spacing:1.2px;
+  text-transform:uppercase;
+  color:var(--text3);
+  margin-bottom:8px;
+}
+.masthead-logo{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(36px,8vw,58px);
+  font-weight:700;
+  letter-spacing:-1px;
+  line-height:1.1;
+}
+.masthead-logo a{
+  color:inherit;
+  text-decoration:none;
+}
+.masthead-logo span{
+  color:var(--accent);
+}
+.masthead-tagline{
+  font-family:'Inter',sans-serif;
+  font-size:11px;
+  font-weight:500;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  color:var(--text3);
+  margin-top:6px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   NAVIGATION
+═══════════════════════════════════════════════════════════════════════════ */
+.nav-bar{
+  border-bottom:1px solid var(--border);
+  background:var(--surface);
+  position:sticky;
+  top:0;
+  z-index:100;
+}
+.nav-inner{
+  max-width:1400px;
+  margin:0 auto;
+  padding:0 24px;
+  display:flex;
+  justify-content:center;
+  gap:0;
+}
+.nav-link{
+  font-family:'Inter',sans-serif;
+  font-size:12px;
+  font-weight:600;
+  letter-spacing:0.5px;
+  text-transform:uppercase;
+  color:var(--text2);
+  text-decoration:none;
+  padding:14px 20px;
+  position:relative;
+  transition:color 0.2s;
+}
+.nav-link:hover{
+  color:var(--accent);
+}
+.nav-link.external::after{
+  content:'↗';
+  font-size:10px;
+  margin-left:4px;
+  opacity:0.6;
+}
+
+@media(max-width:900px){
+  .nav-inner{
+    overflow-x:auto;
+    justify-content:flex-start;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+  }
+  .nav-inner::-webkit-scrollbar{display:none}
+  .nav-link{
+    white-space:nowrap;
+    padding:12px 14px;
+    font-size:11px;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ARTICLE PAGE LAYOUT
+═══════════════════════════════════════════════════════════════════════════ */
+/* ── Side-by-side wrapper ── */
+.article-layout{
+  display:flex;
+  max-width:1320px;
+  margin:0 auto;
+  gap:0;
+  align-items:flex-start;
+}
+.article-layout-main{
+  flex:1;
+  min-width:0;
+  max-width:820px;
+  margin:0 auto;
+}
+.article-layout-sidebar{
+  width:380px;
+  flex-shrink:0;
+  position:sticky;
+  top:52px; /* below sticky nav */
+  max-height:calc(100vh - 60px);
+  overflow-y:auto;
+  border-left:1px solid var(--border);
+  scrollbar-width:thin;
+  scrollbar-color:var(--border2) transparent;
+}
+.article-layout-sidebar::-webkit-scrollbar{width:5px}
+.article-layout-sidebar::-webkit-scrollbar-track{background:transparent}
+.article-layout-sidebar::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+.article-layout-sidebar::-webkit-scrollbar-thumb:hover{background:var(--text3)}
+
+@media(max-width:1100px){
+  .article-layout{
+    flex-direction:column;
+    align-items:stretch;
+  }
+  .article-layout-main{
+    max-width:820px;
+    width:100%;
+    margin:0 auto;
+  }
+  .article-layout-sidebar{
+    width:100%;
+    max-width:820px;
+    margin:0 auto;
+    position:static;
+    max-height:none;
+    overflow-y:visible;
+    border-left:none;
+    border-top:1px solid var(--border);
+  }
+}
+
+.article-page{
+  max-width:820px;
+  margin:0 auto;
+  padding:48px 24px 80px;
+}
+
+/* ─── BREADCRUMB ─── */
+.breadcrumb{
+  font-family:'Inter',sans-serif;
+  font-size:12px;
+  font-weight:500;
+  color:var(--text3);
+  margin-bottom:32px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.breadcrumb a{
+  color:var(--accent);
+  text-decoration:none;
+}
+.breadcrumb a:hover{
+  text-decoration:underline;
+}
+.breadcrumb svg{
+  width:14px;
+  height:14px;
+  stroke:var(--text3);
+  fill:none;
+  stroke-width:2;
+}
+
+/* ─── ARTICLE HEADER ─── */
+.article-header{
+  margin-bottom:40px;
+  padding-bottom:32px;
+  border-bottom:1px solid var(--border);
+}
+.article-category{
+  font-family:'Inter',sans-serif;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  color:var(--accent);
+  margin-bottom:16px;
+  display:inline-block;
+}
+.article-headline{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(30px,5vw,46px);
+  font-weight:700;
+  line-height:1.15;
+  letter-spacing:-0.5px;
+  margin-bottom:20px;
+  color:var(--text);
+}
+.article-summary{
+  font-size:20px;
+  line-height:1.6;
+  color:var(--text2);
+  margin-bottom:24px;
+  font-style:italic;
+}
+.article-hero-image{
+  width:100%;
+  height:auto;
+  border-radius:4px;
+  margin-bottom:24px;
+  display:block;
+  font-size:13px;
+}
+
+/* ─── ARTICLE META ─── */
+.article-meta{
+  display:flex;
+  align-items:center;
+  gap:20px;
+  font-family:'Inter',sans-serif;
+  font-size:13px;
+  color:var(--text3);
+  flex-wrap:wrap;
+}
+.article-author-block{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.author-avatar{
+  width:44px;
+  height:44px;
+  border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),#c08018);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:16px;
+  font-weight:700;
+  color:#fff;
+  flex-shrink:0;
+}
+.author-info{
+  display:flex;
+  flex-direction:column;
+}
+.author-name{
+  font-weight:700;
+  color:var(--text);
+  font-size:14px;
+}
+.author-role{
+  font-size:12px;
+  color:var(--text3);
+}
+.meta-separator{
+  width:1px;
+  height:20px;
+  background:var(--border);
+}
+.meta-item{
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+.meta-item svg{
+  width:15px;
+  height:15px;
+  stroke:var(--text3);
+  fill:none;
+  stroke-width:2;
+}
+
+/* ─── AUDIO PLAYER BAR ─── */
+.article-audio-bar{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:14px 18px;
+  margin-top:24px;
+  font-family:'Inter',sans-serif;
+}
+.audio-play-btn{
+  width:40px;height:40px;border-radius:50%;
+  background:var(--accent);color:#fff;border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  transition:background 0.15s;
+}
+.audio-play-btn:hover{background:var(--accent-hover)}
+.audio-play-btn svg{width:18px;height:18px;fill:#fff;stroke:none;}
+.audio-bar-info{flex:1;min-width:0}
+.audio-bar-label{font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px}
+.audio-bar-sub{font-size:11px;color:var(--text3)}
+.audio-bar-progress{
+  flex:1;min-width:80px;height:4px;background:var(--border);border-radius:2px;
+  overflow:hidden;cursor:pointer;position:relative;
+}
+.audio-bar-progress-fill{height:100%;background:var(--accent);border-radius:2px;width:0%;transition:width 0.2s}
+.audio-bar-time{font-size:12px;color:var(--text3);font-variant-numeric:tabular-nums;white-space:nowrap;min-width:70px;text-align:right}
+@media(max-width:600px){
+  .article-audio-bar{flex-wrap:wrap;gap:10px;padding:12px 14px}
+  .audio-bar-progress{width:100%;order:10}
+  .audio-bar-time{order:9}
+}
+
+/* ─── ARTICLE BODY ─── */
+.article-body{
+  font-size:19px;
+  line-height:1.8;
+  color:var(--text);
+}
+.article-body p{
+  margin-bottom:24px;
+}
+.article-body h2{
+  font-family:'Playfair Display',serif;
+  font-size:28px;
+  font-weight:700;
+  margin:40px 0 16px;
+  color:var(--text);
+}
+.article-body h3{
+  font-family:'Playfair Display',serif;
+  font-size:22px;
+  font-weight:600;
+  margin:32px 0 14px;
+  color:var(--text);
+}
+.article-body blockquote{
+  border-left:3px solid var(--accent);
+  padding:16px 0 16px 24px;
+  margin:32px 0;
+  font-style:italic;
+  font-size:21px;
+  line-height:1.6;
+  color:var(--text2);
+}
+.article-body ul,
+.article-body ol{
+  margin:0 0 24px 28px;
+}
+.article-body li{
+  margin-bottom:10px;
+}
+.article-body strong{
+  font-weight:600;
+}
+.article-body a{
+  color:var(--accent);
+  text-decoration:underline;
+  text-underline-offset:3px;
+}
+.article-body a:hover{
+  color:var(--accent-hover);
+}
+.article-body img{
+  height:auto;
+  display:block;
+  border-radius:4px;
+  max-width:none;
+  cursor:zoom-in;
+}
+.article-body .img-scroll-wrap{
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+  margin:24px 0;
+  border:1px solid var(--border);
+  border-radius:6px;
+  padding:4px;
+}
+
+/* ─── IMAGE LIGHTBOX ─── */
+.img-lightbox{
+  position:fixed;inset:0;z-index:9999;
+  background:rgba(0,0,0,0.85);
+  display:flex;align-items:center;justify-content:center;
+  cursor:zoom-out;
+  opacity:0;transition:opacity 0.25s ease;
+  padding:24px;
+  overflow:auto;
+  -webkit-overflow-scrolling:touch;
+}
+.img-lightbox.active{opacity:1}
+.img-lightbox img{
+  max-width:95vw;
+  object-fit:contain;border-radius:6px;
+  box-shadow:0 8px 40px rgba(0,0,0,0.5);
+  cursor:default;
+  flex-shrink:0;
+}
+.img-lightbox-close{
+  position:absolute;top:16px;right:20px;
+  background:none;border:none;cursor:pointer;
+  color:#fff;font-size:32px;line-height:1;
+  opacity:0.7;transition:opacity 0.15s;
+}
+.img-lightbox-close:hover{opacity:1}
+
+/* ─── DROP CAP ─── */
+.article-body .first-paragraph::first-letter{
+  font-family:'Playfair Display',serif;
+  font-size:72px;
+  font-weight:700;
+  float:left;
+  line-height:0.8;
+  margin:6px 12px 0 0;
+  color:var(--accent);
+}
+
+/* ─── ARTICLE FOOTER / TAGS ─── */
+.article-footer{
+  margin-top:48px;
+  padding-top:32px;
+  border-top:1px solid var(--border);
+}
+.article-tags{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-bottom:32px;
+}
+.article-tag{
+  font-family:'Inter',sans-serif;
+  font-size:11px;
+  font-weight:600;
+  letter-spacing:0.5px;
+  text-transform:uppercase;
+  padding:6px 14px;
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:4px;
+  color:var(--text2);
+  text-decoration:none;
+  transition:all 0.15s;
+}
+.article-tag:hover{
+  background:var(--accent-dim);
+  border-color:var(--accent);
+  color:var(--accent);
+}
+
+/* ─── RELATED ARTICLES ─── */
+.related-section{
+  margin-top:48px;
+}
+.related-title{
+  font-family:'Inter',sans-serif;
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:1.8px;
+  text-transform:uppercase;
+  color:var(--text3);
+  padding-bottom:12px;
+  border-bottom:2px solid var(--accent);
+  margin-bottom:24px;
+}
+.related-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:24px;
+}
+.related-card{
+  text-decoration:none;
+  color:inherit;
+  transition:transform 0.2s;
+}
+.related-card:hover{
+  transform:translateY(-3px);
+}
+.related-card-image{
+  width:100%;
+  aspect-ratio:16/10;
+  border-radius:4px;
+  margin-bottom:12px;
+  background:var(--surface3);
+}
+.related-card-category{
+  font-family:'Inter',sans-serif;
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  color:var(--gold);
+  margin-bottom:6px;
+}
+.related-card-headline{
+  font-family:'Playfair Display',serif;
+  font-size:16px;
+  font-weight:600;
+  line-height:1.35;
+  margin-bottom:6px;
+}
+.related-card:hover .related-card-headline{
+  color:var(--accent);
+}
+.related-card-meta{
+  font-family:'Inter',sans-serif;
+  font-size:11px;
+  color:var(--text3);
+}
+
+@media(max-width:700px){
+  .related-grid{
+    grid-template-columns:1fr;
+    gap:20px;
+  }
+  .article-meta{
+    flex-direction:column;
+    align-items:flex-start;
+    gap:12px;
+  }
+  .meta-separator{display:none}
+}
+
+/* ─── SHARE BUTTON ─── */
+.share-btn{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  font-family:'Inter',sans-serif;
+  font-size:12px;
+  font-weight:600;
+  letter-spacing:0.3px;
+  color:var(--text2);
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:6px;
+  padding:7px 14px;
+  cursor:pointer;
+  transition:all 0.15s;
+  text-decoration:none;
+  white-space:nowrap;
+}
+.share-btn svg{
+  width:14px;
+  height:14px;
+  stroke:currentColor;
+  fill:none;
+  stroke-width:2;
+  flex-shrink:0;
+}
+.share-btn:hover{
+  background:var(--accent-dim);
+  border-color:var(--accent);
+  color:var(--accent);
+}
+.share-btn.copied{
+  background:rgba(26,104,72,0.1);
+  border-color:var(--green);
+  color:var(--green);
+}
+.article-id-chip{
+  font-family:'Inter',sans-serif;
+  font-size:11px;
+  font-weight:500;
+  color:var(--text3);
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:4px;
+  padding:3px 8px;
+  letter-spacing:0.2px;
+}
+/* ─── COPY TOAST ─── */
+#copyToast{
+  position:fixed;
+  bottom:28px;
+  left:50%;
+  transform:translateX(-50%) translateY(20px);
+  background:var(--text);
+  color:#fff;
+  font-family:'Inter',sans-serif;
+  font-size:13px;
+  font-weight:500;
+  padding:10px 20px;
+  border-radius:8px;
+  pointer-events:none;
+  opacity:0;
+  transition:opacity 0.2s, transform 0.2s;
+  z-index:9999;
+  white-space:nowrap;
+}
+#copyToast.show{
+  opacity:1;
+  transform:translateX(-50%) translateY(0);
+}
+
+/* ─── NO ARTICLE / ERROR STATE ─── */
+.article-not-found{
+  text-align:center;
+  padding:100px 24px;
+}
+.article-not-found h2{
+  font-family:'Playfair Display',serif;
+  font-size:36px;
+  font-weight:700;
+  margin-bottom:16px;
+}
+.article-not-found p{
+  font-size:18px;
+  color:var(--text2);
+  margin-bottom:32px;
+}
+.article-not-found a{
+  font-family:'Inter',sans-serif;
+  font-size:14px;
+  font-weight:600;
+  color:var(--accent);
+  text-decoration:none;
+  padding:12px 28px;
+  border:2px solid var(--accent);
+  border-radius:6px;
+  transition:all 0.15s;
+  display:inline-block;
+}
+.article-not-found a:hover{
+  background:var(--accent);
+  color:#fff;
+}
+
+/* ── Withdrawn-article notice ────────────────────────────────────────────
+   Sits in place of the article body. Preserves URL for inbound links,
+   shows a small icon + headline-style notice + return link. Intentionally
+   restrained — looks editorial, not like an error page. */
+.withdrawn-notice{
+  max-width:560px;
+  margin:48px auto 96px;
+  padding:48px 32px;
+  text-align:center;
+  border:1px solid var(--border, rgba(0,0,0,0.08));
+  border-radius:8px;
+  background:rgba(0,0,0,0.015);
+}
+.withdrawn-notice-icon{
+  width:48px;
+  height:48px;
+  margin:0 auto 20px;
+  color:var(--text3, #888);
+}
+.withdrawn-notice-icon svg{
+  width:100%;
+  height:100%;
+}
+.withdrawn-notice h2{
+  font-family:'Playfair Display',serif;
+  font-size:24px;
+  font-weight:600;
+  margin-bottom:14px;
+  color:var(--text, #1a1208);
+  letter-spacing:-0.01em;
+}
+.withdrawn-notice p{
+  font-size:15px;
+  line-height:1.65;
+  color:var(--text2, #4a4036);
+  margin-bottom:24px;
+  max-width:440px;
+  margin-left:auto;
+  margin-right:auto;
+}
+.withdrawn-back-link{
+  font-family:'Inter',sans-serif;
+  font-size:13px;
+  font-weight:600;
+  color:var(--accent, #8b1a1a);
+  text-decoration:none;
+  letter-spacing:0.01em;
+  border-bottom:1px solid currentColor;
+  padding-bottom:1px;
+}
+.withdrawn-back-link:hover{
+  opacity:0.7;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   FOOTER
+═══════════════════════════════════════════════════════════════════════════ */
+.footer{
+  background:var(--text);
+  color:rgba(255,255,255,0.7);
+  padding:48px 24px 32px;
+}
+.footer-inner{
+  max-width:1400px;
+  margin:0 auto;
+}
+.footer-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  padding-bottom:32px;
+  border-bottom:1px solid rgba(255,255,255,0.1);
+  margin-bottom:24px;
+}
+.footer-brand{
+  font-family:'Playfair Display',serif;
+  font-size:28px;
+  font-weight:700;
+  color:#fff;
+}
+.footer-nav{
+  display:flex;
+  gap:32px;
+}
+.footer-nav a{
+  font-family:'Inter',sans-serif;
+  font-size:12px;
+  font-weight:500;
+  color:rgba(255,255,255,0.6);
+  text-decoration:none;
+}
+.footer-nav a:hover{color:#fff}
+
+.footer-bottom{
+  font-family:'Inter',sans-serif;
+  font-size:11px;
+  color:rgba(255,255,255,0.4);
+  display:flex;
+  justify-content:space-between;
+}
+
+@media(max-width:900px){
+  .footer-top{
+    flex-direction:column;
+    gap:24px;
+  }
+  .footer-nav{
+    flex-wrap:wrap;
+    gap:16px;
+  }
+  .footer-bottom{
+    flex-direction:column;
+    gap:8px;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   COMMENTS MODULE
+═══════════════════════════════════════════════════════════════════════════ */
+.comments-section{
+  padding:28px 24px 40px;
+}
+.comments-header{
+  font-family:'Playfair Display',Georgia,serif;
+  font-size:20px;
+  font-weight:700;
+  color:var(--text);
+  margin-bottom:4px;
+}
+.comments-subtext{
+  font-family:'Source Serif 4','Source Serif Pro',Georgia,serif;
+  font-size:13px;
+  color:var(--text3);
+  margin-bottom:24px;
+}
+.comments-divider{
+  border:none;
+  border-top:2px solid var(--accent);
+  margin-bottom:28px;
+  width:60px;
+}
+
+/* ── Comment form ── */
+.comment-form{
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:18px;
+  margin-bottom:24px;
+}
+.comment-form-row{
+  margin-bottom:14px;
+}
+.comment-form-row input{
+  width:100%;
+  max-width:340px;
+  font-family:'Source Serif 4','Source Serif Pro',Georgia,serif;
+  font-size:15px;
+  padding:10px 14px;
+  border:1px solid var(--border);
+  border-radius:6px;
+  background:var(--surface);
+  color:var(--text);
+  outline:none;
+  transition:border-color 0.2s;
+}
+.comment-form-row input:focus{
+  border-color:var(--accent);
+}
+.comment-form textarea{
+  width:100%;
+  min-height:100px;
+  font-family:'Source Serif 4','Source Serif Pro',Georgia,serif;
+  font-size:15px;
+  line-height:1.6;
+  padding:12px 14px;
+  border:1px solid var(--border);
+  border-radius:6px;
+  background:var(--surface);
+  color:var(--text);
+  resize:vertical;
+  outline:none;
+  transition:border-color 0.2s;
+  box-sizing:border-box;
+}
+.comment-form textarea:focus{
+  border-color:var(--accent);
+}
+.comment-form-footer{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-top:12px;
+  flex-wrap:wrap;
+  gap:8px;
+}
+.comment-word-count{
+  font-family:'Source Serif 4',Georgia,serif;
+  font-size:12px;
+  color:var(--text3);
+}
+.comment-word-count.over-limit{
+  color:#c0392b;
+  font-weight:600;
+}
+.comment-submit-btn{
+  font-family:'Playfair Display',Georgia,serif;
+  font-size:14px;
+  font-weight:600;
+  letter-spacing:0.04em;
+  padding:10px 28px;
+  border:none;
+  border-radius:6px;
+  background:var(--accent);
+  color:#fff;
+  cursor:pointer;
+  transition:background 0.2s,transform 0.1s;
+}
+.comment-submit-btn:hover:not(:disabled){
+  background:var(--accent-hover);
+  transform:translateY(-1px);
+}
+.comment-submit-btn:disabled{
+  opacity:0.5;
+  cursor:not-allowed;
+}
+.comment-error{
+  font-family:'Source Serif 4',Georgia,serif;
+  font-size:13px;
+  color:#c0392b;
+  margin-top:10px;
+  min-height:18px;
+}
+.comment-success{
+  font-family:'Source Serif 4',Georgia,serif;
+  font-size:13px;
+  color:var(--green);
+  margin-top:10px;
+  min-height:18px;
+}
+.comments-closed-msg{
+  font-family:'Source Serif 4',Georgia,serif;
+  font-size:14px;
+  color:var(--text3);
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:20px 24px;
+  text-align:center;
+  margin-bottom:32px;
+}
+
+/* ── Comment list ── */
+.comment-list{
+  list-style:none;
+  padding:0;
+  margin:0;
+}
+.comment-item{
+  padding:16px 0;
+  border-bottom:1px solid var(--border);
+  position:relative;
+}
+.comment-item:has(.comment-delete-btn){
+  padding-bottom:40px;
+}
+.comment-item:last-child{
+  border-bottom:none;
+}
+.comment-meta{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:8px;
+}
+.comment-avatar{
+  width:34px;
+  height:34px;
+  border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),var(--gold));
+  color:#fff;
+  font-family:'Playfair Display',Georgia,serif;
+  font-size:13px;
+  font-weight:700;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-shrink:0;
+}
+.comment-author{
+  font-family:'Playfair Display',Georgia,serif;
+  font-size:15px;
+  font-weight:700;
+  color:var(--text);
+}
+.comment-date{
+  font-family:'Source Serif 4',Georgia,serif;
+  font-size:12px;
+  color:var(--text3);
+  margin-left:auto;
+}
+.comment-body{
+  font-family:'Source Serif 4',Georgia,serif;
+  font-size:14px;
+  line-height:1.6;
+  color:var(--text2);
+  padding-left:44px;
+}
+.comment-delete-btn{
+  position:absolute;
+  bottom:16px;
+  right:4px;
+  background:rgba(192,57,43,0.06);
+  border:1px solid rgba(192,57,43,0.15);
+  cursor:pointer;
+  font-size:13px;
+  color:#c0392b;
+  padding:3px 8px;
+  border-radius:4px;
+  transition:color 0.2s,background 0.2s,border-color 0.2s;
+  opacity:0.8;
+  z-index:2;
+}
+.comment-delete-btn:hover{
+  color:#fff;
+  background:#c0392b;
+  border-color:#c0392b;
+  opacity:1;
+}
+.comments-empty{
+  font-family:'Source Serif 4',Georgia,serif;
+  font-size:14px;
+  color:var(--text3);
+  text-align:center;
+  padding:24px 0;
+  font-style:italic;
+}
+.comment-count-badge{
+  font-family:'Source Serif 4',Georgia,serif;
+  font-size:13px;
+  color:var(--text3);
+  font-weight:400;
+}
+
+/* ── Comment disclaimer ── */
+.comment-disclaimer{
+  display:flex;
+  align-items:flex-start;
+  gap:8px;
+  margin-top:12px;
+  padding:10px 12px;
+  background:var(--surface3);
+  border-radius:6px;
+  cursor:pointer;
+}
+.comment-disclaimer input[type="checkbox"]{
+  margin-top:2px;
+  accent-color:var(--accent);
+  flex-shrink:0;
+  cursor:pointer;
+}
+.comment-disclaimer-text{
+  font-family:'Source Serif 4',Georgia,serif;
+  font-size:11.5px;
+  line-height:1.5;
+  color:var(--text3);
+  user-select:none;
+}
+
+/* ── Admin login (subtle footer link) ── */
+/* [2026-06-06, items c+f] Editor-login styles retired with the form.
+   New: anonymous composer prompt + inline reaction sign-in link. */
+.comments-signin-prompt{
+  font-family:'Source Serif 4',Georgia,serif;
+  font-size:14px;
+  color:var(--text2);
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-left:3px solid var(--accent);
+  padding:14px 16px;
+  margin-bottom:8px;
+  line-height:1.6;
+}
+.comments-signin-prompt a{
+  color:var(--accent);
+  font-weight:600;
+  text-decoration:none;
+}
+.comments-signin-prompt a:hover{
+  text-decoration:underline;
+}
+.comment-react-signin{
+  font-family:'Inter',sans-serif;
+  font-size:11px;
+  margin-left:10px;
+  align-self:center;
+}
+.comment-react-signin a{
+  color:var(--accent);
+  text-decoration:none;
+}
+.comment-react-signin a:hover{
+  text-decoration:underline;
+}
+.admin-logged-in{
+  font-family:'Inter',sans-serif;
+  font-size:11px;
+  color:var(--green);
+  text-align:center;
+  margin-top:12px;
+}
+
+/* ── Comment reactions ── */
+.comment-reactions{
+  display:flex;
+  gap:4px;
+  padding-left:44px;
+  margin-top:8px;
+}
+.comment-react-btn{
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  background:none;
+  border:1px solid transparent;
+  border-radius:20px;
+  padding:3px 10px;
+  cursor:pointer;
+  font-family:'Inter',sans-serif;
+  font-size:12px;
+  font-weight:500;
+  color:var(--text3);
+  transition:all 0.15s;
+}
+.comment-react-btn:hover{
+  background:var(--surface2);
+  border-color:var(--border);
+}
+.comment-react-btn.reacted{
+  border-color:var(--border2);
+  background:var(--surface2);
+}
+.comment-react-btn .react-icon{
+  font-size:15px;
+  line-height:1;
+  transition:transform 0.2s;
+}
+.comment-react-btn:hover .react-icon{
+  transform:scale(1.2);
+}
+.comment-react-btn.reacted .react-icon{
+  transform:scale(1.15);
+}
+.comment-react-btn[data-reaction="like"].reacted{
+  color:var(--blue);
+}
+.comment-react-btn[data-reaction="dislike"].reacted{
+  color:var(--accent);
+}
+.comment-react-btn[data-reaction="love"].reacted{
+  color:#d63384;
+}
+.react-count{
+  min-width:8px;
+  text-align:center;
+}
+
+@media(max-width:1100px){
+  .comments-section{padding:28px 24px 40px}
+}
+@media(max-width:600px){
+  .comments-section{padding:20px 16px 40px}
+  .comment-form{padding:16px}
+  .comment-form-row input{max-width:100%}
+  .comment-body{padding-left:0;margin-top:6px}
+  .comment-reactions{padding-left:0}
+  .comment-date{margin-left:0}
+  .comment-meta{flex-wrap:wrap}
+}
+</style>
+</head>
+<body>
+<!-- ── PREVIEW GATE — remove when the linked article is finished ── -->
+<!-- This gate exists because article.html is intentionally allowlisted by
+     prelaunch-guard.js (so the coming-soon CTA "Read the evidence" works
+     without sign-in). Until the linked article is fully authored, this
+     password screen prevents random visitors who guess at article URLs
+     from seeing draft content. Remove the entire block (between the two
+     marker comments) once the article is ready for general access. -->
+<style>
+#previewGate{position:fixed;inset:0;z-index:99999;background:#1a1410;display:flex;align-items:center;justify-content:center;font-family:'Source Serif 4',Georgia,serif}
+#previewGate.hidden{display:none}
+.pg-box{background:#faf7f2;border:1px solid #c8b89a;border-top:3px solid #8b1a1a;padding:2.5rem 2rem;max-width:360px;width:90%;text-align:center}
+.pg-logo{font-family:'Playfair Display',Georgia,serif;font-size:1.8rem;font-weight:700;color:#8b1a1a;margin-bottom:0.25rem}
+.pg-sub{font-size:0.72rem;letter-spacing:0.15em;text-transform:uppercase;color:#8a7a6a;margin-bottom:1.75rem}
+.pg-label{font-size:0.65rem;letter-spacing:0.15em;text-transform:uppercase;color:#3d3530;display:block;margin-bottom:0.5rem;text-align:left}
+.pg-input{width:100%;border:1px solid #c8b89a;padding:0.7rem 0.9rem;font-family:'Source Serif 4',Georgia,serif;font-size:0.95rem;color:#1a1410;background:#fff;outline:none;margin-bottom:0.75rem}
+.pg-input:focus{border-color:#8b1a1a}
+.pg-btn{width:100%;background:#8b1a1a;color:#f5f0e8;border:none;padding:0.8rem;font-family:'Playfair Display',Georgia,serif;font-size:0.9rem;font-weight:600;cursor:pointer;letter-spacing:0.05em}
+.pg-btn:hover{background:#a02020}
+.pg-error{color:#8b1a1a;font-size:0.75rem;margin-top:0.5rem;min-height:1em}
+.pg-note{font-size:0.65rem;color:#8a7a6a;margin-top:1rem;line-height:1.6}
+</style>
+<div id="previewGate">
+  <div class="pg-box">
+    <div class="pg-logo">Cricket Times</div>
+    <div class="pg-sub">Preview Access</div>
+    <label class="pg-label" for="pgPw">Password</label>
+    <input type="password" id="pgPw" class="pg-input" placeholder="Enter preview password" onkeydown="if(event.key==='Enter')pgUnlock()" autocomplete="current-password" />
+    <button class="pg-btn" onclick="pgUnlock()">Enter</button>
+    <div class="pg-error" id="pgError"></div>
+    <p class="pg-note">This site is under construction.<br/>Public launch coming soon.</p>
+  </div>
+</div>
+<script>
+(function(){
+  const PG_PASSWORD = 'cricketimes2026';
+  const PG_KEY = 'ct_preview_auth';
+  function pgUnlock() {
+    const val = document.getElementById('pgPw').value;
+    if (val === PG_PASSWORD) {
+      localStorage.setItem(PG_KEY, '1');
+      document.getElementById('previewGate').classList.add('hidden');
+    } else {
+      const err = document.getElementById('pgError');
+      err.textContent = 'Incorrect password.';
+      document.getElementById('pgPw').value = '';
+      document.getElementById('pgPw').focus();
+      setTimeout(() => { err.textContent = ''; }, 2500);
+    }
+  }
+  window.pgUnlock = pgUnlock;
+  if (localStorage.getItem(PG_KEY) === '1') {
+    document.getElementById('previewGate').classList.add('hidden');
+  }
+}());
+</script>
+<!-- ── END PREVIEW GATE ── -->
+
+<div id="copyToast">🔗 Link copied to clipboard</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     MASTHEAD
+═══════════════════════════════════════════════════════════════════════════ -->
+<header data-ct-nav="masthead"></header>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     NAVIGATION
+═══════════════════════════════════════════════════════════════════════════ -->
+<nav class="nav-bar">
+  <div class="nav-inner">
+    <a href="stories.html" class="nav-link">All Stories</a>
+    <a href="stories.html#analysis" class="nav-link">Analysis</a>
+    <a href="subscribe.html" class="nav-link">Subscribe</a>
+    <a href="#" class="nav-link" id="navShareLink" onclick="shareArticle(event)">Share</a>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     ARTICLE CONTENT (populated by JS)
+═══════════════════════════════════════════════════════════════════════════ -->
+<!-- Article + Comments side-by-side wrapper -->
+<div class="article-layout">
+  <div class="article-layout-main">
+    <div id="articleContainer"></div>
+  </div>
+  <aside class="article-layout-sidebar" id="commentsRoot"></aside>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     FOOTER
+═══════════════════════════════════════════════════════════════════════════ -->
+<footer data-ct-nav="footer"></footer>
+
+<script type="module">
+import { initializeApp }    from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
+import { getFirestore, doc, getDoc, collection, query, where, orderBy, limit, getDocs }
+  from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
+
+// ═══════════════════════════════════════════════════════════════════════════
+// FIREBASE INIT
+// ═══════════════════════════════════════════════════════════════════════════
+const firebaseConfig = {
+  apiKey:            "AIzaSyBnfn9hK0y-p6nvIZ_AwoJnWD7DfDuIQd4",
+  authDomain:        "hitwicket-cba02.firebaseapp.com",
+  projectId:         "hitwicket-cba02",
+  storageBucket:     "hitwicket-cba02.firebasestorage.app",
+  messagingSenderId: "196915483829",
+  appId:             "1:196915483829:web:071c47af79914aec88dafc"
+};
+const app = initializeApp(firebaseConfig);
+const db  = getFirestore(app);
+
+// ═══════════════════════════════════════════════════════════════════════════
+// LOAD ARTICLE FROM FIRESTORE
+// Articles are stored in the `articles` collection with auto-generated
+// Firestore doc IDs. The URL param ?id=N maps to the numeric `id` field
+// on each document — so we query where('id', '==', N) AND filter by
+// everPublished==true to match the Firestore rule (which permits public
+// reads of articles that are currently published OR have ever been
+// published, preserving the archive's permanent-record semantics).
+//
+// We expose window._articleLoadComplete as a Promise that resolves once
+// this IIFE finishes (in any code path — success, withdrawn, not-found,
+// or error). Other modules (notably loadComments) await this to avoid
+// rendering before they know the article's withdrawn flag.
+// ═══════════════════════════════════════════════════════════════════════════
+window._articleLoadComplete = (async function() {
+  const container = document.getElementById('articleContainer');
+  const params    = new URLSearchParams(window.location.search);
+  const articleId = params.get('id');
+
+  if (!articleId) { showNotFound(container); return; }
+
+  // Show a loading skeleton while Firestore fetches
+  container.innerHTML = `
+    <div style="max-width:820px;margin:60px auto;padding:0 24px;text-align:center;
+                font-family:'Inter',sans-serif;font-size:14px;color:var(--text3);">
+      Loading article…
+    </div>`;
+
+  try {
+    // ── Fetch the main article ──────────────────────────────────────────────
+    // The everPublished filter is required by Firestore rules, which permit
+    // reads where status=='published' OR everPublished==true. Filtering on
+    // everPublished (rather than status) gives archive-respecting behavior:
+    // articles pulled off the live feed (status flipped to draft/archived)
+    // remain readable here so archive.html links continue to work forever.
+    const articleQuery = query(
+      collection(db, 'articles'),
+      where('id', '==', parseInt(articleId)),
+      where('everPublished', '==', true),
+      limit(1)
+    );
+    const articleSnap = await getDocs(articleQuery);
+
+    if (articleSnap.empty) { showNotFound(container); return; }
+
+    const articleDoc = articleSnap.docs[0];
+    const article = { firestoreId: articleDoc.id, ...articleDoc.data() };
+
+    // Set page title
+    document.title = `${article.headline} — Cricket Times`;
+
+    // ── Withdrawn articles short-circuit ────────────────────────────────────
+    // If an article has been withdrawn, we still resolve its URL (so links
+    // from elsewhere on the web don't break) but render a withdrawal notice
+    // in place of all original content. No related articles, no comments
+    // sidebar, no audio bar.
+    if (article.withdrawn === true) {
+      // Hide the comments sidebar entirely
+      const cs = document.getElementById('commentsRoot');
+      if (cs) cs.style.display = 'none';
+      // Signal to the comments module (which loads on a setTimeout) that it
+      // should skip its Firestore query and not render anything.
+      window._articleWithdrawn = true;
+      renderWithdrawn(container, article);
+      return;
+    }
+
+    // ── Fetch up to 3 related articles (same category, published) ──────────
+    const relatedQuery = query(
+      collection(db, 'articles'),
+      where('category', '==', article.category),
+      where('status',   '==', 'published'),
+      orderBy('date', 'desc'),
+      limit(4)                       // fetch 4, drop self below
+    );
+    const relatedSnap = await getDocs(relatedQuery);
+    const related = relatedSnap.docs
+      .map(d => ({ id: d.id, ...d.data() }))
+      .filter(a => String(a.id) !== String(articleId))
+      .filter(a => a.withdrawn !== true)
+      .slice(0, 3);
+
+    // ── Render ─────────────────────────────────────────────────────────────
+    renderArticle(container, article, related);
+
+  } catch(err) {
+    console.error('Firestore error:', err);
+    container.innerHTML = `
+      <div style="max-width:820px;margin:60px auto;padding:0 24px;text-align:center;
+                  font-family:'Inter',sans-serif;font-size:14px;color:var(--text3);">
+        Failed to load article. Please try again.
+      </div>`;
+  }
+})();
+
+// ═══════════════════════════════════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════════════════════════════════
+function renderArticle(container, article, related) {
+  const categoryLabel  = article.category
+    ? article.category.charAt(0).toUpperCase() + article.category.slice(1) : '';
+  const authorInitials = getInitials(article.author);
+  const formattedDate  = formatDate(article.date);
+  const bodyHTML       = renderArticleBody(article);
+
+  const gradients = [
+    'linear-gradient(135deg,#2a4048,#1a3038)',
+    'linear-gradient(135deg,#483828,#382818)',
+    'linear-gradient(135deg,#384838,#283828)',
+    'linear-gradient(135deg,#3a4a5a,#2a3a48)',
+    'linear-gradient(135deg,#504a40,#403a30)'
+  ];
+
+  const relatedHTML = related.length > 0 ? `
+    <div class="related-section">
+      <h3 class="related-title">More from Cricket Times</h3>
+      <div class="related-grid">
+        ${related.map((r, i) => `
+          <a href="article.html?id=${r.id}" class="related-card">
+            <div class="related-card-image" style="background:${gradients[i % gradients.length]};"></div>
+            <div class="related-card-category">${esc(r.category ? r.category.charAt(0).toUpperCase() + r.category.slice(1) : '')}</div>
+            <div class="related-card-headline">${esc(r.headline)}</div>
+            <div class="related-card-meta">${esc(r.author)} • ${r.readTime} min read</div>
+          </a>
+        `).join('')}
+      </div>
+    </div>` : '';
+
+  const tagMap = {
+    news:     ['Breaking News','Test Cricket','Match Report'],
+    analysis: ['Deep Dive','Statistics','Data Analysis'],
+    features: ['Long Read','Profile','History'],
+    opinion:  ['Commentary','Editorial','Debate']
+  };
+  const tags = tagMap[article.category] || ['Test Cricket'];
+
+  container.innerHTML = `
+    <main class="article-page">
+      <div class="breadcrumb">
+        <a href="stories.html">Home</a>
+        <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+        <a href="stories.html">${esc(categoryLabel)}</a>
+        <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+        <span>Article</span>
+      </div>
+
+      <header class="article-header">
+        <div class="article-category">${esc(categoryLabel)}</div>
+        <h1 class="article-headline">${esc(article.headline)}</h1>
+        ${article.summary ? `<p class="article-summary">${esc(article.summary)}</p>` : ''}
+
+        ${article.imageEnabled && (article.imageUrl || article.image)
+          ? `<img class="article-hero-image" src="${esc(article.imageUrl || article.image)}" alt="${esc(article.headline)}">`
+          : ''}
+
+        <div class="article-meta">
+          <div class="article-author-block">
+            <div class="author-avatar">${esc(authorInitials)}</div>
+            <div class="author-info">
+              <span class="author-name">${esc(article.author)}</span>
+              <span class="author-role">Cricket Times ${esc(categoryLabel)}</span>
+            </div>
+          </div>
+          <div class="meta-separator"></div>
+          <div class="meta-item">
+            <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <span>${formattedDate}</span>
+          </div>
+          <div class="meta-separator"></div>
+          <div class="meta-item">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/></svg>
+            <span>${article.readTime} min read</span>
+          </div>
+          <div class="meta-separator"></div>
+          <span class="article-id-chip">ID #${article.id}</span>
+          <button class="share-btn" id="shareBtn" title="Copy link to this article">
+            <svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/>
+              <circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+              <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+            Share
+          </button>
+        </div>
+      </header>
+
+      ${article.audioEnabled !== false && (article.audioUrl || article.audioData)
+        ? `<div class="article-audio-bar" id="audioBar">
+            <button class="audio-play-btn" id="audioPlayBtn" onclick="toggleAudioPlayback()" title="Listen to this article">
+              <svg viewBox="0 0 24 24" id="audioPlayIcon"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            </button>
+            <div class="audio-bar-info">
+              <div class="audio-bar-label">Listen to this article</div>
+              <div class="audio-bar-sub">Narrated by the author</div>
+            </div>
+            <div class="audio-bar-progress" id="audioProgress" onclick="seekAudio(event)">
+              <div class="audio-bar-progress-fill" id="audioProgressFill"></div>
+            </div>
+            <div class="audio-bar-time" id="audioTime">0:00 / 0:00</div>
+            <audio id="articleAudio" src="${esc(article.audioUrl || '')}" preload="metadata"></audio>
+          </div>`
+        : ''}
+
+      <div class="article-body">${bodyHTML}</div>
+
+      <div class="article-footer">
+        <div class="article-tags">
+          ${tags.map(t => `<a href="stories.html" class="article-tag">${esc(t)}</a>`).join('')}
+        </div>
+        ${relatedHTML}
+      </div>
+
+      <div class="ct-newsletter-block" style="margin:40px 0 0;">
+        <span class="nl-kicker">The Cricket Times Dispatch</span>
+        <h3>Get new analysis in your inbox</h3>
+        <p>Subscribe for summaries of our latest stories and statistical deep dives, delivered to your inbox when new pieces are published.</p>
+        <form id="ct-nl-form" novalidate>
+          <div class="nl-row">
+            <input type="email" id="ct-nl-email" placeholder="your@email.com" required autocomplete="email" />
+            <button type="submit" id="ct-nl-btn">Subscribe</button>
+          </div>
+          <p class="nl-note">No spam. Unsubscribe anytime. &nbsp;·&nbsp; <a href="subscribe.html">Full signup &amp; privacy info</a></p>
+          <div class="nl-msg" id="ct-nl-msg"></div>
+        </form>
+      </div>
+
+    </main>`;
+
+  // Wire share button now that it's in the DOM
+  document.getElementById('shareBtn').addEventListener('click', shareArticle);
+
+  // Wire audio player if present
+  const audioEl = document.getElementById('articleAudio');
+  if (audioEl) {
+    // If audioUrl is empty but audioData exists (base64 from ElevenLabs), set src
+    if (!article.audioUrl && article.audioData) {
+      audioEl.src = article.audioData;
+    }
+
+    // WebM files from MediaRecorder often have Infinity duration.
+    // Fix: once metadata loads, if duration is Infinity, seek to a huge
+    // number to force the browser to discover the real duration, then reset.
+    var _realDuration = 0;
+    var _durationFixed = false;
+
+    audioEl.addEventListener('loadedmetadata', function() {
+      if (!isFinite(audioEl.duration)) {
+        // Seek to a very large time to force browser to find real duration
+        audioEl.currentTime = 1e10;
+      } else {
+        _realDuration = audioEl.duration;
+        _durationFixed = true;
+        updateAudioTime(audioEl, _realDuration);
+      }
+    });
+
+    audioEl.addEventListener('durationchange', function() {
+      if (isFinite(audioEl.duration) && audioEl.duration > 0) {
+        _realDuration = audioEl.duration;
+        if (!_durationFixed) {
+          _durationFixed = true;
+          audioEl.currentTime = 0; // reset to start after the seek trick
+        }
+        updateAudioTime(audioEl, _realDuration);
+      }
+    });
+
+    audioEl.addEventListener('timeupdate', function() {
+      if (_realDuration > 0) {
+        const fill = document.getElementById('audioProgressFill');
+        fill.style.width = ((audioEl.currentTime / _realDuration) * 100) + '%';
+        updateAudioTime(audioEl, _realDuration);
+      }
+    });
+    audioEl.addEventListener('ended', function() {
+      document.getElementById('audioPlayIcon').innerHTML = '<polygon points="5 3 19 12 5 21 5 3"/>';
+      document.getElementById('audioProgressFill').style.width = '0%';
+      updateAudioTime(audioEl, _realDuration);
+    });
+    audioEl.addEventListener('error', function() {
+      const bar = document.getElementById('audioBar');
+      if (bar) {
+        bar.querySelector('.audio-bar-sub').textContent = 'Audio unavailable';
+        bar.querySelector('.audio-play-btn').disabled = true;
+        bar.querySelector('.audio-play-btn').style.opacity = '0.4';
+      }
+    });
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// AUDIO PLAYBACK
+// ═══════════════════════════════════════════════════════════════════════════
+function toggleAudioPlayback() {
+  const audio = document.getElementById('articleAudio');
+  const icon = document.getElementById('audioPlayIcon');
+  if (!audio) return;
+  if (audio.paused) {
+    audio.play().catch(function(e) { console.warn('Audio play failed:', e); });
+    icon.innerHTML = '<rect x="6" y="4" width="4" height="16" fill="#fff" stroke="none"/><rect x="14" y="4" width="4" height="16" fill="#fff" stroke="none"/>';
+  } else {
+    audio.pause();
+    icon.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"/>';
+  }
+}
+function seekAudio(e) {
+  const audio = document.getElementById('articleAudio');
+  if (!audio) return;
+  // Use the bar's data attribute for real duration if available
+  var dur = parseFloat(document.getElementById('audioProgress').dataset.duration) || audio.duration || 0;
+  if (!isFinite(dur) || dur <= 0) return;
+  const bar = document.getElementById('audioProgress');
+  const rect = bar.getBoundingClientRect();
+  const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+  audio.currentTime = pct * dur;
+}
+function updateAudioTime(audio, realDuration) {
+  const el = document.getElementById('audioTime');
+  if (!el) return;
+  var cur = audio.currentTime || 0;
+  var dur = realDuration || audio.duration || 0;
+  if (!isFinite(dur)) dur = 0;
+  el.textContent = formatAudioTime(cur) + ' / ' + formatAudioTime(dur);
+  // Store real duration on progress bar for seek
+  var prog = document.getElementById('audioProgress');
+  if (prog && dur > 0) prog.dataset.duration = dur;
+}
+function formatAudioTime(s) {
+  var m = Math.floor(s / 60);
+  var sec = Math.floor(s % 60);
+  return m + ':' + (sec < 10 ? '0' : '') + sec;
+}
+// Expose to global scope (script type="module" scopes functions)
+window.toggleAudioPlayback = toggleAudioPlayback;
+window.seekAudio = seekAudio;
+
+// ═══════════════════════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════════════════════
+function renderArticleBody(article) {
+  // Prefer rich HTML (preserves images from docx import)
+  if (article.contentHtml && article.contentHtml.trim()) {
+    const div = document.createElement('div');
+    div.innerHTML = article.contentHtml;
+    // Give first paragraph the drop-cap class
+    const firstP = div.querySelector('p');
+    if (firstP) firstP.classList.add('first-paragraph');
+    // Wrap standalone images in a horizontal-scroll container
+    div.querySelectorAll('img').forEach(img => {
+      const wrap = document.createElement('div');
+      wrap.className = 'img-scroll-wrap';
+      img.parentNode.insertBefore(wrap, img);
+      wrap.appendChild(img);
+    });
+    return div.innerHTML;
+  }
+  if (article.content && article.content.trim()) {
+    const paragraphs = article.content.split(/\n\n+/).filter(p => p.trim());
+    return paragraphs.map((p, i) => {
+      const trimmed = p.trim();
+      if (trimmed.startsWith('## '))  return `<h2>${esc(trimmed.slice(3))}</h2>`;
+      if (trimmed.startsWith('### ')) return `<h3>${esc(trimmed.slice(4))}</h3>`;
+      if (trimmed.startsWith('> '))   return `<blockquote>${esc(trimmed.slice(2))}</blockquote>`;
+      return `<p${i === 0 ? ' class="first-paragraph"' : ''}>${esc(trimmed)}</p>`;
+    }).join('\n');
+  }
+  const summary = article.summary || article.headline;
+  return `
+    <p class="first-paragraph">${esc(summary)}</p>
+    <p>This story is developing. Full coverage and in-depth analysis will be published shortly
+       as more details become available from our correspondents on the ground.</p>
+    <p>Cricket Times is committed to delivering comprehensive reporting on every aspect of
+       Test cricket. Our editorial team works around the clock to bring you the most accurate
+       and insightful coverage of the game's oldest and most revered format.</p>
+    <blockquote>Test cricket remains the ultimate examination of skill, temperament,
+       and endurance — the truest test of a cricketer's mettle.</blockquote>
+    <p>Check back soon for the complete story. In the meantime, explore our related coverage
+       below for more context on this developing story.</p>`;
+}
+
+function showNotFound(container) {
+  container.innerHTML = `
+    <div class="article-not-found">
+      <h2>Article Not Found</h2>
+      <p>The article you're looking for may have been removed, or the link may be outdated.</p>
+      <a href="stories.html">← Back to Cricket Times</a>
+    </div>`;
+}
+
+// Render a withdrawn article — keeps URL alive for incoming links,
+// preserves headline and ID for identity, but replaces all original
+// content with a withdrawal notice. No summary, no hero image, no audio,
+// no body, no tags, no related articles, no comments.
+function renderWithdrawn(container, article) {
+  const categoryLabel = article.category
+    ? article.category.charAt(0).toUpperCase() + article.category.slice(1) : '';
+
+  container.innerHTML = `
+    <main class="article-page">
+      <div class="breadcrumb">
+        <a href="stories.html">Home</a>
+        <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+        <a href="stories.html">${esc(categoryLabel)}</a>
+        <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+        <span>Withdrawn</span>
+      </div>
+
+      <header class="article-header">
+        <div class="article-category">${esc(categoryLabel)}</div>
+        <h1 class="article-headline">${esc(article.headline)}</h1>
+        <div class="article-meta" style="border-top:none;padding-top:0;margin-top:18px">
+          <span class="article-id-chip">ID #${article.id}</span>
+        </div>
+      </header>
+
+      <div class="withdrawn-notice">
+        <div class="withdrawn-notice-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+               stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="8" y1="12" x2="16" y2="12"/>
+          </svg>
+        </div>
+        <h2>This article was withdrawn</h2>
+        <p>Cricket Times preserves the URL so links from elsewhere on the web don't break, but the original content is no longer published here.</p>
+        <a href="stories.html" class="withdrawn-back-link">← Back to Cricket Times</a>
+      </div>
+    </main>`;
+}
+
+function esc(str) {
+  if (!str) return '';
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function getInitials(name) {
+  if (!name) return '?';
+  return name.split(/\s+/).map(w => w[0]).join('').toUpperCase().slice(0, 2);
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  return d.toLocaleDateString('en-US',
+    { weekday:'long', month:'long', day:'numeric', year:'numeric' });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SHARE / COPY LINK
+// ═══════════════════════════════════════════════════════════════════════════
+function shareArticle(e) {
+  const btn = e.currentTarget;
+  const url = window.location.href;
+
+  if (navigator.share) {
+    navigator.share({ title: document.title, url }).catch(() => {});
+    return;
+  }
+
+  navigator.clipboard.writeText(url).then(() => {
+    showCopyToast();
+    btn.classList.add('copied');
+    btn.innerHTML = `<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Copied!`;
+    setTimeout(() => {
+      btn.classList.remove('copied');
+      btn.innerHTML = `<svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/>
+        <circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg> Share`;
+    }, 2500);
+  }).catch(() => {
+    const inp = document.createElement('input');
+    inp.value = url;
+    document.body.appendChild(inp);
+    inp.select();
+    document.execCommand('copy');
+    document.body.removeChild(inp);
+    showCopyToast();
+  });
+}
+
+// Wire nav Share link (it's in the DOM at page load, outside the dynamic container)
+document.getElementById('navShareLink').addEventListener('click', e => {
+  e.preventDefault();
+  shareArticle({ currentTarget: e.currentTarget });
+});
+
+function showCopyToast() {
+  const toast = document.getElementById('copyToast');
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2500);
+}
+
+/* ─── IMAGE LIGHTBOX ─── */
+(function(){
+  let overlay = null;
+  function openLightbox(src){
+    if(overlay) overlay.remove();
+    overlay = document.createElement('div');
+    overlay.className = 'img-lightbox';
+    overlay.innerHTML = `<button class="img-lightbox-close" aria-label="Close">&times;</button><img src="${src}" alt="Expanded view">`;
+    document.body.appendChild(overlay);
+    requestAnimationFrame(()=> overlay.classList.add('active'));
+    overlay.addEventListener('click', function(e){
+      // Only close when clicking the backdrop or close button, not the image
+      if(e.target === overlay || e.target.classList.contains('img-lightbox-close'))
+        closeLightbox();
+    });
+    document.addEventListener('keydown', onKey);
+  }
+  function closeLightbox(){
+    if(!overlay) return;
+    overlay.classList.remove('active');
+    setTimeout(()=>{ if(overlay){overlay.remove(); overlay=null;} }, 250);
+    document.removeEventListener('keydown', onKey);
+  }
+  function onKey(e){ if(e.key==='Escape') closeLightbox(); }
+  document.addEventListener('click', function(e){
+    const img = e.target.closest('.article-body img');
+    if(img) openLightbox(img.src);
+  });
+})();
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     COMMENTS MODULE
+═══════════════════════════════════════════════════════════════════════════ -->
+<script type="module">
+import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
+import { getFirestore, collection, query, where, orderBy, getDocs, addDoc, deleteDoc, doc, getDoc, setDoc, serverTimestamp, updateDoc, increment }
+  from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
+import { getAuth, onAuthStateChanged }
+  from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
+
+const COMMENTS_COLLECTION = 'comments';
+const MAX_WORDS   = 200;
+const MAX_COMMENTS = 50;
+// [2026-06-06, item f] ADMIN_EMAIL retired. Admin status now comes from the
+// requireAccess verdict (settings/userTypes via feature-flags.js), restoring
+// parity for both superadmin accounts. Sign-in itself is the site-wide
+// auth-status.js pill + /login.html — the bespoke editor-login form is gone,
+// and with it the signInWithEmailAndPassword/signOut imports.
+
+// Re-use the existing Firebase app
+const app  = getApps()[0];
+const db   = getFirestore(app);
+const auth = getAuth(app);
+
+// ── Profanity word list ──────────────────────────────────────────────────
+const PROFANITY_LIST = [
+  'fuck','shit','ass','asshole','bitch','bastard','damn','dick','piss',
+  'cock','cunt','slut','whore','wanker','twat','bollocks','motherfucker',
+  'bullshit','jackass','dumbass','dipshit','shithead','fuckhead','fucker',
+  'nigger','nigga','faggot','retard','retarded','spastic','spaz',
+  'chutiya','madarchod','bhenchod','gaandu','randi','harami','lauda',
+  'lund','choot','bhosdike','saala','kutta','kamina'
+];
+
+function buildProfanityRegex() {
+  const escaped = PROFANITY_LIST.map(w => {
+    return w
+      .replace(/a/g,'[a@4]')
+      .replace(/e/g,'[e3]')
+      .replace(/i/g,'[i1!]')
+      .replace(/o/g,'[o0]')
+      .replace(/s/g,'[s$5]')
+      .replace(/t/g,'[t7]');
+  });
+  return new RegExp('\\b(' + escaped.join('|') + ')\\b', 'gi');
+}
+const PROFANITY_REGEX = buildProfanityRegex();
+function containsProfanity(text) { return PROFANITY_REGEX.test(text); }
+function wordCount(text) { const t = text.trim(); return t ? t.split(/\s+/).length : 0; }
+
+function cGetInitials(name) {
+  return name.split(/\s+/).map(w => w[0]).join('').toUpperCase().slice(0, 2);
+}
+function timeAgo(date) {
+  const s = Math.floor((Date.now() - date.getTime()) / 1000);
+  if (s < 60)     return 'Just now';
+  if (s < 3600)   return Math.floor(s / 60) + 'm ago';
+  if (s < 86400)  return Math.floor(s / 3600) + 'h ago';
+  if (s < 604800) return Math.floor(s / 86400) + 'd ago';
+  return date.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+}
+function cEsc(str) {
+  if (!str) return '';
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+// [2026-06-06, items c+f] The free-signup handoff URL (spec §9.4, via the
+// (b) handoff contract): state rides a sanitized same-origin returnUrl;
+// ?intent=signup PRE-SELECTS the Create account tab on login.html but
+// nothing auto-triggers on return. #commentsRoot brings the reader back to
+// the composer (the aside exists in static HTML, so the anchor resolves
+// even before comments finish rendering). login.html's sanitizer preserves
+// pathname + search + hash for same-origin values — verified 2026-06-06.
+function loginHref() {
+  const target = location.pathname + location.search + '#commentsRoot';
+  return '/login.html?intent=signup&returnUrl=' + encodeURIComponent(target);
+}
+
+// ── Init ─────────────────────────────────────────────────────────────────
+const artId = new URLSearchParams(window.location.search).get('id');
+const root  = document.getElementById('commentsRoot');
+if (!artId || !root) { /* no article, skip */ } else {
+
+let isAdmin     = false;   // requireAccess verdict.isAdmin (admin/superadmin role)
+let canPost     = false;   // requireAccess({feature:'postComment'}).allowed
+let canReact    = false;   // requireAccess({feature:'reactComment'}).allowed
+let currentUser = null;    // Firebase Auth user (null = anonymous)
+let profile     = null;    // users/{uid} doc data — displayName source
+let comments    = [];
+
+// [2026-06-06, item f] The comments soft-gate. Access verdicts come
+// exclusively from the requireAccess primitive in feature-flags.js — never
+// inline-checked. 'postComment' and 'reactComment' are registered in
+// featureGates.loggedIn.features (any signed-in user qualifies).
+//
+// The first onAuthStateChanged callback fires on every page load, signed in
+// or not, so it now drives the initial comments render — replacing the old
+// setTimeout(600). loadComments() still awaits the article-load promise, so
+// the withdrawal check is unaffected.
+onAuthStateChanged(auth, async user => {
+  currentUser = user || null;
+  isAdmin = false; canPost = false; canReact = false; profile = null;
+  if (user && user.email) {
+    try {
+      const FF = window.CTFeatureFlags;
+      const [vPost, vReact, profSnap] = await Promise.all([
+        FF.requireAccess(db, { feature: 'postComment',  email: user.email }),
+        FF.requireAccess(db, { feature: 'reactComment', email: user.email }),
+        getDoc(doc(db, 'users', user.uid))          // .exists() — modular: method, not property
+      ]);
+      canPost  = !!vPost.allowed;
+      canReact = !!vReact.allowed;
+      isAdmin  = !!vPost.isAdmin;
+      profile  = profSnap.exists() ? profSnap.data() : null;
+    } catch (e) {
+      console.warn('Comments access check failed:', e.message);
+      // Fail closed for posting/reacting; the comments themselves still render.
+    }
+  }
+  loadComments();
+});
+
+async function loadComments() {
+  // Wait for the article load IIFE to finish before we touch Firestore or
+  // the DOM. The article load decides whether the article was withdrawn —
+  // if it was, comments shouldn't render at all.
+  if (window._articleLoadComplete) {
+    try { await window._articleLoadComplete; } catch (_) { /* article load errors handled there */ }
+  }
+  if (window._articleWithdrawn) return;
+  try {
+    const q = query(
+      collection(db, COMMENTS_COLLECTION),
+      where('articleId', '==', artId),
+      orderBy('timestamp', 'desc')
+    );
+    const snap = await getDocs(q);
+    comments = snap.docs.map(d => {
+      const data = d.data();
+      return {
+        id: d.id,
+        name: data.name,
+        text: data.text,
+        timestamp: data.timestamp ? data.timestamp.toDate() : new Date(),
+        likes: data.likes || 0,
+        dislikes: data.dislikes || 0,
+        loves: data.loves || 0
+      };
+    });
+  } catch(e) {
+    console.warn('Comments load error:', e.message);
+    comments = [];
+  }
+  renderComments();
+}
+
+function renderComments() {
+  // Withdrawal short-circuit: even if comments were loaded before the
+  // article-load IIFE flagged the article as withdrawn, never render them.
+  if (window._articleWithdrawn) return;
+
+  const count    = comments.length;
+  const isClosed = count >= MAX_COMMENTS;
+
+  let html = '<div class="comments-section">';
+  html += '<hr class="comments-divider">';
+  html += '<h3 class="comments-header">Reader Comments '
+        + '<span class="comment-count-badge">(' + count
+        + (isClosed ? ' — closed' : '') + ')</span></h3>';
+  html += '<p class="comments-subtext">Share your thoughts — keep it civil, max '
+        + MAX_WORDS + ' words.</p>';
+
+  if (isClosed) {
+    html += '<div class="comments-closed-msg">Comments are closed — this article has '
+          + 'reached the maximum of ' + MAX_COMMENTS + ' comments.</div>';
+  } else if (!currentUser) {
+    // [2026-06-06, items c+f] The free-signup entry point: anonymous readers
+    // see a sign-in prompt where the composer would be. Comments below stay
+    // fully readable — that's the "soft" in soft-gate.
+    html += '<div class="comments-signin-prompt">Join the conversation — '
+          + '<a href="' + loginHref() + '">sign in or create a free account</a>'
+          + ' to comment.</div>';
+  } else if (!canPost) {
+    // Signed in but featureGates denies postComment (misconfigured doc or a
+    // deliberate lockdown). Fail closed with a neutral message.
+    html += '<div class="comments-closed-msg">Commenting is temporarily unavailable.</div>';
+  } else {
+    // Account-level pseudonym: the name field is prefilled from
+    // users/{uid}.displayName and stays editable — edits persist back to the
+    // profile on post (see the submit handler).
+    const presetName = (profile && profile.displayName) ? String(profile.displayName) : '';
+    html += '<div class="comment-form" id="commentForm">';
+    html += '  <div class="comment-form-row">';
+    html += '    <input type="text" id="commentName" placeholder="Your name" maxlength="60" autocomplete="off" value="' + cEsc(presetName).replace(/"/g, '&quot;') + '">';
+    html += '  </div>';
+    html += '  <textarea id="commentText" placeholder="Write your comment…" maxlength="2000"></textarea>';
+    html += '  <label class="comment-disclaimer">';
+    html += '    <input type="checkbox" id="commentDisclaimer">';
+    html += '    <span class="comment-disclaimer-text">I agree that Cricket Times reserves the right to delete my comment(s) if deemed inappropriate, irrelevant, offensive, or for any other reason whatsoever.</span>';
+    html += '  </label>';
+    html += '  <div class="comment-form-footer">';
+    html += '    <span class="comment-word-count" id="commentWordCount">0 / ' + MAX_WORDS + ' words</span>';
+    html += '    <button class="comment-submit-btn" id="commentSubmitBtn" disabled>Post Comment</button>';
+    html += '  </div>';
+    html += '  <div class="comment-error" id="commentError"></div>';
+    html += '  <div class="comment-success" id="commentSuccess"></div>';
+    html += '</div>';
+  }
+
+  if (count === 0) {
+    html += '<div class="comments-empty">No comments yet — be the first to share your thoughts.</div>';
+  } else {
+    html += '<ul class="comment-list">';
+    comments.forEach(c => {
+      html += '<li class="comment-item" data-id="' + c.id + '">';
+      html += '  <div class="comment-meta">';
+      html += '    <div class="comment-avatar">' + cEsc(cGetInitials(c.name)) + '</div>';
+      html += '    <span class="comment-author">' + cEsc(c.name) + '</span>';
+      html += '    <span class="comment-date">' + timeAgo(c.timestamp) + '</span>';
+      html += '  </div>';
+      html += '  <div class="comment-body">' + cEsc(c.text) + '</div>';
+      // Reaction buttons
+      const voted = getVotedReactions(c.id);
+      html += '  <div class="comment-reactions">';
+      html += '    <button class="comment-react-btn' + (voted.like ? ' reacted' : '') + '" data-reaction="like" data-cid="' + c.id + '">'
+            + '<span class="react-icon">👍</span><span class="react-count">' + (c.likes || '') + '</span></button>';
+      html += '    <button class="comment-react-btn' + (voted.dislike ? ' reacted' : '') + '" data-reaction="dislike" data-cid="' + c.id + '">'
+            + '<span class="react-icon">👎</span><span class="react-count">' + (c.dislikes || '') + '</span></button>';
+      html += '    <button class="comment-react-btn' + (voted.love ? ' reacted' : '') + '" data-reaction="love" data-cid="' + c.id + '">'
+            + '<span class="react-icon">❤️</span><span class="react-count">' + (c.loves || '') + '</span></button>';
+      html += '  </div>';
+      if (isAdmin) {
+        html += '  <button class="comment-delete-btn" title="Delete comment" data-delete="' + c.id + '">🗑</button>';
+      }
+      html += '</li>';
+    });
+    html += '</ul>';
+  }
+
+  // [2026-06-06, item f] The bespoke editor-login form is retired — sign-in
+  // is the auth-status pill's job, and admin status comes from the
+  // requireAccess verdict. A small badge remains as the only admin chrome.
+  if (isAdmin) {
+    html += '<div class="admin-logged-in">✓ Admin mode</div>';
+  }
+
+  html += '</div>';
+  root.innerHTML = html;
+
+  // Wire form events — only when the composer rendered (signed-in + allowed)
+  if (!isClosed && currentUser && canPost) {
+    const nameEl       = document.getElementById('commentName');
+    const textEl       = document.getElementById('commentText');
+    const countEl      = document.getElementById('commentWordCount');
+    const btnEl        = document.getElementById('commentSubmitBtn');
+    const errorEl      = document.getElementById('commentError');
+    const successEl    = document.getElementById('commentSuccess');
+    const disclaimerEl = document.getElementById('commentDisclaimer');
+
+    function updateWordCount() {
+      const wc = wordCount(textEl.value);
+      countEl.textContent = wc + ' / ' + MAX_WORDS + ' words';
+      countEl.classList.toggle('over-limit', wc > MAX_WORDS);
+      btnEl.disabled = !(nameEl.value.trim() && textEl.value.trim() && wc <= MAX_WORDS && disclaimerEl.checked);
+    }
+    textEl.addEventListener('input', updateWordCount);
+    nameEl.addEventListener('input', updateWordCount);
+    disclaimerEl.addEventListener('change', updateWordCount);
+
+    btnEl.addEventListener('click', async () => {
+      errorEl.textContent = '';
+      successEl.textContent = '';
+
+      const name = nameEl.value.trim();
+      const text = textEl.value.trim();
+
+      if (!name) { errorEl.textContent = 'Please enter your name.'; return; }
+      if (name.length < 2) { errorEl.textContent = 'Name must be at least 2 characters.'; return; }
+      if (!text) { errorEl.textContent = 'Please write a comment.'; return; }
+      if (wordCount(text) > MAX_WORDS) {
+        errorEl.textContent = 'Your comment exceeds the ' + MAX_WORDS + '-word limit.';
+        return;
+      }
+      if (containsProfanity(name) || containsProfanity(text)) {
+        errorEl.textContent = 'Your comment contains inappropriate language. Please revise and try again.';
+        return;
+      }
+
+      btnEl.disabled = true;
+      btnEl.textContent = 'Posting…';
+
+      try {
+        // [2026-06-06, item f] Schema gains identity + zeroed reaction
+        // counters. firestore.rules validates all of it at create: authorUid
+        // must equal the caller's uid, emailKey must match the rules-side
+        // emailKey() of the caller's email, and the three counters must be 0.
+        // The email is lowercased before encoding because the rules helper
+        // calls .lower() — the shared emailToKey is the single client encoder.
+        await addDoc(collection(db, COMMENTS_COLLECTION), {
+          articleId: artId,
+          name: name,
+          text: text,
+          timestamp: serverTimestamp(),
+          authorUid: currentUser.uid,
+          emailKey: window.CTFeatureFlags.emailToKey(currentUser.email.toLowerCase()),
+          likes: 0,
+          dislikes: 0,
+          loves: 0
+        });
+        // Account-level pseudonym: an edited name persists to
+        // users/{uid}.displayName (the rules allow owner updates to exactly
+        // that field), becoming the stable byline for future comments.
+        if (profile && name !== profile.displayName) {
+          try {
+            await setDoc(doc(db, 'users', currentUser.uid), { displayName: name }, { merge: true });
+            profile.displayName = name;
+          } catch (dnErr) {
+            console.warn('displayName persist failed (non-fatal):', dnErr.message);
+          }
+        }
+        successEl.textContent = 'Comment posted successfully!';
+        textEl.value = '';
+        countEl.textContent = '0 / ' + MAX_WORDS + ' words';
+        setTimeout(loadComments, 800);
+      } catch(e) {
+        errorEl.textContent = 'Failed to post comment. Please try again.';
+        console.error('Comment post error:', e);
+        btnEl.disabled = false;
+        btnEl.textContent = 'Post Comment';
+      }
+    });
+  }
+
+  // Wire admin delete buttons
+  if (isAdmin) {
+    root.querySelectorAll('[data-delete]').forEach(btn => {
+      btn.addEventListener('click', async function() {
+        const docId = this.getAttribute('data-delete');
+        if (!confirm('Delete this comment permanently?')) return;
+        try {
+          await deleteDoc(doc(db, COMMENTS_COLLECTION, docId));
+          loadComments();
+        } catch(e) {
+          alert('Failed to delete: ' + e.message);
+        }
+      });
+    });
+  }
+
+  // Wire reaction buttons
+  root.querySelectorAll('.comment-react-btn').forEach(btn => {
+    btn.addEventListener('click', async function() {
+      // [2026-06-06, item f] Reactions are loggedIn-gated (reactComment).
+      // An anonymous or denied click swaps in an inline message instead of
+      // firing a write the rules would reject anyway. Anonymous → sign-in
+      // link (pre-select, never auto-trigger — same (b) handoff as the
+      // composer). Signed-in but denied (featureGates missing reactComment,
+      // or a deliberate lockdown) → an honest "unavailable" notice; never
+      // tell a signed-in user to sign in.
+      if (!currentUser || !canReact) {
+        const row = this.closest('.comment-reactions');
+        if (row && !row.querySelector('.comment-react-signin')) {
+          const span = document.createElement('span');
+          span.className = 'comment-react-signin';
+          if (!currentUser) {
+            const a = document.createElement('a');
+            a.href = loginHref();
+            a.textContent = 'Sign in to react';
+            span.appendChild(a);
+          } else {
+            span.textContent = 'Reactions are temporarily unavailable.';
+          }
+          row.appendChild(span);
+        }
+        return;
+      }
+      const cid      = this.getAttribute('data-cid');
+      const reaction = this.getAttribute('data-reaction');
+      const voted    = getVotedReactions(cid);
+
+      // If already reacted with this type, undo it
+      if (voted[reaction]) {
+        try {
+          await updateDoc(doc(db, COMMENTS_COLLECTION, cid), {
+            [reaction + 's']: increment(-1)
+          });
+          removeVotedReaction(cid, reaction);
+          loadComments();
+        } catch(e) { console.error('Reaction undo error:', e); }
+        return;
+      }
+
+      // Otherwise, add the reaction
+      try {
+        await updateDoc(doc(db, COMMENTS_COLLECTION, cid), {
+          [reaction + 's']: increment(1)
+        });
+        saveVotedReaction(cid, reaction);
+        loadComments();
+      } catch(e) { console.error('Reaction error:', e); }
+    });
+  });
+
+  // [2026-06-06, item f] Admin login/logout wiring removed with the form —
+  // see the comment at the retired ADMIN_EMAIL constant.
+}
+
+// ── Reaction vote tracking ───────────────────────────────────────────────
+// [2026-06-06, item f fix] Keyed PER USER (uid), stored in localStorage.
+// The old single sessionStorage key was shared by every account in the
+// browser: after a sign-out/sign-in, the new user's first click on an
+// already-reacted icon read the PREVIOUS user's vote and decremented it.
+// Per-uid keys give each account its own toggle state; localStorage (vs
+// sessionStorage) keeps it across tabs and restarts. Known limit: state is
+// per browser, so the same user on another device could react again —
+// per-user reaction docs in Firestore are the future refinement; meanwhile
+// the rules bound every write to ±1 per counter, so abuse is capped.
+function reactionStoreKey() {
+  return 'ct_reactions:' + (currentUser ? currentUser.uid : 'anon');
+}
+function getVotedReactions(commentId) {
+  try {
+    const stored = JSON.parse(localStorage.getItem(reactionStoreKey()) || '{}');
+    return stored[commentId] || {};
+  } catch(e) { return {}; }
+}
+function saveVotedReaction(commentId, reaction) {
+  try {
+    const key = reactionStoreKey();
+    const stored = JSON.parse(localStorage.getItem(key) || '{}');
+    if (!stored[commentId]) stored[commentId] = {};
+    stored[commentId][reaction] = true;
+    localStorage.setItem(key, JSON.stringify(stored));
+  } catch(e) {}
+}
+function removeVotedReaction(commentId, reaction) {
+  try {
+    const key = reactionStoreKey();
+    const stored = JSON.parse(localStorage.getItem(key) || '{}');
+    if (stored[commentId]) {
+      delete stored[commentId][reaction];
+      localStorage.setItem(key, JSON.stringify(stored));
+    }
+  } catch(e) {}
+}
+
+} // end if artId && root
+</script>
+
+<style>
+.ct-newsletter-block{border:1px solid var(--border);border-top:3px solid var(--accent);background:var(--surface2);padding:1.5rem 1.75rem;font-family:'Source Serif 4',Georgia,serif;}
+.ct-newsletter-block .nl-kicker{font-size:0.6rem;letter-spacing:0.25em;text-transform:uppercase;color:var(--accent);margin-bottom:0.5rem;display:block;}
+.ct-newsletter-block h3{font-family:'Playfair Display',Georgia,serif;font-size:1.15rem;font-weight:600;color:var(--text);margin:0 0 0.4rem;line-height:1.3;}
+.ct-newsletter-block p{font-size:0.85rem;color:var(--text2);line-height:1.65;margin:0 0 1rem;}
+.ct-newsletter-block .nl-row{display:flex;gap:0.5rem;flex-wrap:wrap;}
+.ct-newsletter-block input[type="email"]{flex:1;min-width:180px;border:1px solid var(--border);padding:0.6rem 0.85rem;font-family:'Source Serif 4',Georgia,serif;font-size:0.9rem;color:var(--text);background:#fff;outline:none;}
+.ct-newsletter-block input[type="email"]:focus{border-color:var(--accent);}
+.ct-newsletter-block button{background:var(--accent);color:#fff;border:none;padding:0.6rem 1.25rem;font-family:'Playfair Display',Georgia,serif;font-size:0.85rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:background 0.2s;}
+.ct-newsletter-block button:hover{background:var(--accent-hover);}
+.ct-newsletter-block button:disabled{opacity:0.6;cursor:not-allowed;}
+.ct-newsletter-block .nl-note{font-size:0.7rem;color:var(--text3);margin-top:0.6rem;}
+.ct-newsletter-block .nl-note a{color:var(--accent);}
+.ct-newsletter-block .nl-msg{font-size:0.85rem;margin-top:0.75rem;padding:0.5rem 0.75rem;display:none;}
+.ct-newsletter-block .nl-msg.success{display:block;background:#f0f7f0;border:1px solid #7aab7a;color:#2d5a2d;}
+.ct-newsletter-block .nl-msg.error{display:block;background:#fdf0f0;border:1px solid #c87a7a;color:#7a2020;}
+</style>
+
+<script>
+(function(){
+  var FORM_ACTION='https://assets.mailerlite.com/jsonp/2259944/forms/184395234410497566/subscribe';
+  function initNlForm(){
+    var form=document.getElementById('ct-nl-form');
+    var btn=document.getElementById('ct-nl-btn');
+    var msg=document.getElementById('ct-nl-msg');
+    if(!form)return;
+    form.addEventListener('submit',function(e){
+      e.preventDefault();
+      var email=document.getElementById('ct-nl-email').value.trim();
+      if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){msg.className='nl-msg error';msg.textContent='Please enter a valid email address.';return;}
+      btn.disabled=true;btn.textContent='…';msg.className='nl-msg';
+      var payload=new FormData();
+      payload.append('fields[email]',email);
+      payload.append('ml-submit','1');
+      payload.append('anticsrf','true');
+      payload.append('ajax','1');
+      fetch(FORM_ACTION,{method:'POST',body:payload})
+        .then(function(res){
+          if(res.ok){form.innerHTML='<p class="nl-msg success" style="display:block;margin:0;">✓ Subscribed! You\'ll hear from us with the next dispatch.</p>';}
+          else{throw new Error();}
+        })
+        .catch(function(){msg.className='nl-msg error';msg.textContent='Something went wrong. Try the full signup page.';btn.disabled=false;btn.textContent='Subscribe';});
+    });
+  }
+  // Article loads dynamically so poll briefly for the form to appear
+  var attempts=0;
+  var poll=setInterval(function(){
+    if(document.getElementById('ct-nl-form')){clearInterval(poll);initNlForm();}
+    if(++attempts>20)clearInterval(poll);
+  },300);
+}());
+</script>
+
+<script src="support-widget.js" defer></script>
+<script src="ct-nav.js"></script>
+</body>
+</html>

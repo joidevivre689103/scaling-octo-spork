@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="robots" content="noindex, nofollow">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contributor Agreement — Cricket Times</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --cream: #FAF7F2;
+      --cream-dark: #F0EBE3;
+      --ink: #1a1a1a;
+      --ink-light: #4a4a4a;
+      --crimson: #8B0000;
+      --crimson-dark: #6B0000;
+      --gold: #C9A227;
+      --rule: #d4d0c8;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Source Serif 4', Georgia, serif;
+      background: var(--cream);
+      color: var(--ink);
+      line-height: 1.7;
+      min-height: 100vh;
+    }
+
+    #auth-overlay {
+      position: fixed;
+      inset: 0;
+      background: var(--cream);
+      z-index: 99999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.3s ease;
+    }
+
+    #auth-overlay.hidden { opacity: 0; pointer-events: none; }
+
+    .login-card {
+      background: white;
+      border: 1px solid var(--rule);
+      padding: 3rem 2.5rem;
+      max-width: 400px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+
+    .login-card h1 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--crimson);
+      margin-bottom: 0.5rem;
+    }
+
+    .login-card .subtitle {
+      font-size: 0.95rem;
+      color: var(--ink-light);
+      margin-bottom: 2rem;
+      font-style: italic;
+    }
+
+    .login-card input {
+      width: 100%;
+      padding: 0.85rem 1rem;
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: 1rem;
+      border: 1px solid var(--rule);
+      background: var(--cream);
+      margin-bottom: 1rem;
+    }
+
+    .login-card input:focus { outline: none; border-color: var(--crimson); }
+
+    .login-card button {
+      width: 100%;
+      padding: 0.9rem;
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 1rem;
+      font-weight: 600;
+      background: var(--crimson);
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    .login-card button:hover { background: var(--crimson-dark); }
+
+    .login-error { color: var(--crimson); font-size: 0.9rem; margin-top: 1rem; display: none; }
+    .login-error.show { display: block; }
+
+    #main-content { display: none; min-height: 100vh; }
+    #main-content.visible { display: block; }
+
+    header {
+      background: var(--ink);
+      color: var(--cream);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .masthead {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    .masthead a { color: var(--cream); text-decoration: none; }
+
+    .user-info { display: flex; align-items: center; gap: 1rem; font-size: 0.85rem; }
+    .user-email { color: var(--cream); opacity: 0.8; }
+
+    .sign-out-btn {
+      background: transparent;
+      border: 1px solid var(--cream);
+      color: var(--cream);
+      padding: 0.4rem 0.8rem;
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+
+    .sign-out-btn:hover { background: var(--cream); color: var(--ink); }
+
+    .agreement-container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 3rem 2rem 4rem;
+    }
+
+    .page-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--ink);
+      text-align: center;
+      margin-bottom: 0.5rem;
+    }
+
+    .page-date {
+      text-align: center;
+      font-size: 0.9rem;
+      color: var(--ink-light);
+      font-style: italic;
+      margin-bottom: 2.5rem;
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin: 2rem 0;
+    }
+
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--rule);
+    }
+
+    .divider span {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 0.85rem;
+      color: var(--ink-light);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .agreement-section { margin-bottom: 2rem; }
+
+    .agreement-section h2 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--crimson);
+      margin-bottom: 0.75rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .agreement-section h3 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--ink);
+      margin: 1.25rem 0 0.5rem;
+    }
+
+    .agreement-section p { margin-bottom: 0.75rem; text-align: justify; }
+    .agreement-section ul { margin: 0.5rem 0 1rem 1.5rem; }
+    .agreement-section li { margin-bottom: 0.4rem; }
+
+    .already-signed {
+      background: #e8f5e9;
+      border: 1px solid #a5d6a7;
+      border-radius: 4px;
+      padding: 1.5rem;
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .already-signed h3 {
+      font-family: 'Playfair Display', Georgia, serif;
+      color: #2e7d32;
+      margin-bottom: 0.5rem;
+    }
+
+    .already-signed p { color: #388e3c; font-size: 0.95rem; }
+
+    .acceptance-form {
+      background: white;
+      border: 2px solid var(--rule);
+      padding: 2rem;
+      margin-top: 2.5rem;
+    }
+
+    .acceptance-form h3 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--ink);
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+
+    .form-row { margin-bottom: 1.25rem; }
+
+    .form-row label {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-bottom: 0.4rem;
+      color: var(--ink);
+    }
+
+    .form-row input[type="text"] {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: 1rem;
+      border: 1px solid var(--rule);
+      background: var(--cream);
+    }
+
+    .form-row input[type="text"]:focus { outline: none; border-color: var(--crimson); }
+
+    .checkbox-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      margin: 1.5rem 0;
+    }
+
+    .checkbox-row input[type="checkbox"] {
+      width: 1.25rem;
+      height: 1.25rem;
+      margin-top: 0.15rem;
+      accent-color: var(--crimson);
+      cursor: pointer;
+    }
+
+    .checkbox-row label { font-size: 0.95rem; line-height: 1.5; cursor: pointer; }
+
+    .submit-btn {
+      width: 100%;
+      padding: 1rem;
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 1.1rem;
+      font-weight: 600;
+      background: var(--crimson);
+      color: white;
+      border: none;
+      cursor: pointer;
+      margin-top: 1rem;
+    }
+
+    .submit-btn:hover:not(:disabled) { background: var(--crimson-dark); }
+    .submit-btn:disabled { background: #ccc; cursor: not-allowed; }
+
+    .form-error {
+      color: var(--crimson);
+      font-size: 0.9rem;
+      margin-top: 1rem;
+      text-align: center;
+      display: none;
+    }
+
+    .form-error.show { display: block; }
+
+    .success-message {
+      display: none;
+      background: #e8f5e9;
+      border: 2px solid #a5d6a7;
+      padding: 2rem;
+      text-align: center;
+      margin-top: 2.5rem;
+    }
+
+    .success-message.show { display: block; }
+
+    .success-message h3 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 1.5rem;
+      color: #2e7d32;
+      margin-bottom: 0.75rem;
+    }
+
+    .success-message p { color: #388e3c; margin-bottom: 1rem; }
+    .success-message a { color: var(--crimson); font-weight: 600; }
+
+    footer {
+      background: var(--ink);
+      color: var(--cream);
+      text-align: center;
+      padding: 1.5rem;
+      font-size: 0.85rem;
+      margin-top: 3rem;
+    }
+
+    footer a { color: var(--gold); text-decoration: none; }
+
+    @media (max-width: 600px) {
+      .agreement-container { padding: 2rem 1.25rem 3rem; }
+      .page-title { font-size: 1.75rem; }
+      .login-card { padding: 2rem 1.5rem; }
+      header { flex-direction: column; gap: 0.75rem; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="auth-overlay">
+    <div class="login-card">
+      <h1>Cricket Times</h1>
+      <p class="subtitle">Contributor Portal</p>
+      <input type="email" id="login-email" placeholder="Email address">
+      <input type="password" id="login-password" placeholder="Password">
+      <button id="login-btn">Sign In</button>
+      <p class="login-error" id="login-error"></p>
+    </div>
+  </div>
+
+  <div id="main-content">
+    <header>
+      <div class="masthead"><a href="stories.html">Cricket Times</a></div>
+      <div class="user-info">
+        <span class="user-email" id="user-email"></span>
+        <button class="sign-out-btn" id="sign-out-btn">Sign Out</button>
+      </div>
+    </header>
+
+    <main class="agreement-container">
+      <h1 class="page-title">Contributor Agreement</h1>
+      <p class="page-date">Effective Date: April 2026</p>
+
+      <div class="already-signed" id="already-signed" style="display: none;">
+        <h3>✓ Agreement Signed</h3>
+        <p>You accepted this agreement on <span id="signed-date"></span>.</p>
+      </div>
+
+      <div class="divider"><span>Terms</span></div>
+
+      <section class="agreement-section">
+        <h2>1. Relationship</h2>
+        <p>This agreement establishes the terms under which you ("Contributor") may submit content to Cricket Times ("Publication").</p>
+        <p>You are an <strong>independent contractor</strong>, not an employee, partner, or agent of Cricket Times. This agreement does not create an employment relationship, and you are not entitled to employee benefits of any kind.</p>
+      </section>
+
+      <section class="agreement-section">
+        <h2>2. Content Submissions</h2>
+        <ul>
+          <li>You grant Cricket Times a <strong>non-exclusive, perpetual, worldwide license</strong> to publish, display, distribute, and archive your submitted content across all platforms and formats.</li>
+          <li>You <strong>retain ownership</strong> of your work and may republish it elsewhere, with appropriate attribution to its original publication on Cricket Times.</li>
+          <li>You warrant that all submitted content is your original work and does not infringe on any third party's rights.</li>
+          <li>Cricket Times reserves the right to <strong>not publish your submission</strong> for any reason whatsoever. Cricket Times also reserves the right to <strong>edit your submission</strong> to meet our editorial guidelines or for any other reason whatsoever at our sole discretion.</li>
+        </ul>
+      </section>
+
+      <section class="agreement-section">
+        <h2>3. Compensation</h2>
+        
+        <h3>Revenue Model</h3>
+        <p>Cricket Times operates on a reader-supported model. Revenue comes from one-time contributions, subscriptions (providing access to archives and other exclusive content), and advertisements. Any other sources of revenue may be considered in the future at Cricket Times' sole discretion.</p>
+
+        <h3>Payout Structure</h3>
+        <ul>
+          <li><strong>One-time contributions</strong> are pooled and distributed to contributors, after adjusting for Cricket Times costs, based on each article's share of total page views for that period.</li>
+          <li><strong>Subscription revenue</strong> is pooled and distributed to contributors, after adjusting for Cricket Times costs, based on each contributor's share of archive views for that period.</li>
+          <li><strong>Advertisement revenue</strong> will be used for Cricket Times expenses and will not be shared with contributors. Any excess after expenses will be treated as part of Cricket Times income.</li>
+          <li>Cricket Times retains a percentage of collected revenue to cover platform costs (hosting, tools, maintenance, salaries, and any other expenses). This percentage may change from time to time at Cricket Times' sole discretion.</li>
+          <li>Payouts are calculated and distributed <strong>monthly</strong>, subject to a minimum payout threshold. Amounts below this threshold will accumulate until the threshold is met.</li>
+        </ul>
+
+        <h3>No Guaranteed Payment</h3>
+        <p>Compensation depends entirely on reader support. If no donations or subscriptions are received in a given period, no payouts will be made. Cricket Times makes no guarantee of any minimum payment.</p>
+      </section>
+
+      <section class="agreement-section">
+        <h2>4. Tax Responsibilities</h2>
+        
+        <h3>You Are Responsible for Your Own Taxes</h3>
+        <p>As an independent contractor, you are solely responsible for reporting and paying all applicable taxes on payments received from Cricket Times.</p>
+
+        <h3>US-Based Contributors</h3>
+        <ul>
+          <li>You agree to provide a completed <strong><a href="https://www.irs.gov/pub/irs-pdf/fw9.pdf" target="_blank" style="color:var(--crimson)">IRS Form W-9</a></strong> before receiving any payment.</li>
+          <li>Cricket Times will issue you an <strong>IRS Form 1099-NEC</strong> by January 31 of the following year if you are paid <strong>$600 or more</strong> in a calendar year.</li>
+        </ul>
+
+        <h3>International Contributors (Non-US)</h3>
+        <ul>
+          <li>You agree to provide a completed <strong><a href="https://www.irs.gov/pub/irs-pdf/fw8ben.pdf" target="_blank" style="color:var(--crimson)">IRS Form W-8BEN</a></strong> (or <a href="https://www.irs.gov/pub/irs-pdf/fw8bene.pdf" target="_blank" style="color:var(--crimson)">W-8BEN-E</a> for entities) to certify your foreign status.</li>
+          <li>You are responsible for complying with tax laws in your country of residence.</li>
+          <li>Cricket Times is generally not required to withhold US taxes on payments to foreign contractors, but you should consult your own tax advisor.</li>
+        </ul>
+
+        <h3>Record Keeping</h3>
+        <p>Cricket Times will maintain records of all payments made to you. You are responsible for maintaining your own records for tax purposes.</p>
+      </section>
+
+      <section class="agreement-section">
+        <h2>5. Payment Method</h2>
+        <p>Payments will be made via a mutually agreed method (e.g., Wise, direct bank transfer, UPI, or other). You are responsible for any fees charged by your chosen payment provider.</p>
+      </section>
+
+      <section class="agreement-section">
+        <h2>6. Termination</h2>
+        <p>Either party may terminate this agreement at any time with written notice. Upon termination:</p>
+        <ul>
+          <li>Any unpaid amounts owed to you will be paid out (subject to the minimum threshold).</li>
+          <li>Cricket Times retains the license to continue displaying previously published content.</li>
+        </ul>
+      </section>
+
+      <section class="agreement-section">
+        <h2>7. Modifications</h2>
+        <p>Cricket Times may update this agreement from time to time. Contributors will be notified of material changes. Continued submissions after notification constitutes acceptance of the updated terms.</p>
+      </section>
+
+      <section class="agreement-section">
+        <h2>8. Limitation of Liability</h2>
+        <p>Cricket Times is provided "as is." Cricket Times is not liable for any indirect, incidental, or consequential damages arising from this agreement or your contributions.</p>
+      </section>
+
+      <div class="divider"><span>Acceptance</span></div>
+
+      <div class="acceptance-form" id="acceptance-form">
+        <h3>Sign This Agreement</h3>
+        <div class="form-row">
+          <label for="full-name">Full Legal Name</label>
+          <input type="text" id="full-name" placeholder="As it appears on tax documents">
+        </div>
+        <div class="checkbox-row">
+          <input type="checkbox" id="agree-checkbox">
+          <label for="agree-checkbox">I have read, understood, and agree to the terms of this Contributor Agreement. I confirm that I am responsible for my own taxes and will provide the required tax documentation (W-9 or W-8BEN) before receiving any payment.</label>
+        </div>
+        <button class="submit-btn" id="submit-btn" disabled>Accept Agreement</button>
+        <p class="form-error" id="form-error"></p>
+      </div>
+
+      <div class="success-message" id="success-message">
+        <h3>Agreement Accepted</h3>
+        <p>Thank you for joining Cricket Times as a contributor.</p>
+        <p><a href="author-dashboard.html">Go to Author Dashboard →</a></p>
+      </div>
+
+    </main>
+
+    <footer>
+      <p>© 2026 Cricket Times · <a href="privacy.html">Privacy</a> · <a href="mailto:submissions@cricketimes.com">Contact</a></p>
+    </footer>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+    import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBnfn9hK0y-p6nvIZ_AwoJnWD7DfDuIQd4",
+      authDomain: "hitwicket-cba02.firebaseapp.com",
+      projectId: "hitwicket-cba02",
+      storageBucket: "hitwicket-cba02.firebasestorage.app",
+      messagingSenderId: "196915483829",
+      appId: "1:196915483829:web:071c47af79914aec88dafc"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const overlay = document.getElementById('auth-overlay');
+    const mainContent = document.getElementById('main-content');
+    const loginEmail = document.getElementById('login-email');
+    const loginPassword = document.getElementById('login-password');
+    const loginBtn = document.getElementById('login-btn');
+    const loginError = document.getElementById('login-error');
+    const userEmailSpan = document.getElementById('user-email');
+    const signOutBtn = document.getElementById('sign-out-btn');
+    const alreadySigned = document.getElementById('already-signed');
+    const signedDateSpan = document.getElementById('signed-date');
+    const acceptanceForm = document.getElementById('acceptance-form');
+    const fullNameInput = document.getElementById('full-name');
+    const agreeCheckbox = document.getElementById('agree-checkbox');
+    const submitBtn = document.getElementById('submit-btn');
+    const formError = document.getElementById('form-error');
+    const successMessage = document.getElementById('success-message');
+
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        overlay.classList.add('hidden');
+        mainContent.classList.add('visible');
+        userEmailSpan.textContent = user.email;
+        await checkAgreementStatus(user.uid);
+      } else {
+        overlay.classList.remove('hidden');
+        mainContent.classList.remove('visible');
+      }
+    });
+
+    loginBtn.addEventListener('click', async () => {
+      const email = loginEmail.value.trim();
+      const password = loginPassword.value;
+
+      if (!email || !password) {
+        showLoginError('Please enter email and password.');
+        return;
+      }
+
+      loginBtn.disabled = true;
+      loginBtn.textContent = 'Signing in...';
+
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+      } catch (err) {
+        console.error(err);
+        showLoginError(friendlyError(err.code));
+        loginBtn.disabled = false;
+        loginBtn.textContent = 'Sign In';
+      }
+    });
+
+    loginPassword.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') loginBtn.click();
+    });
+
+    signOutBtn.addEventListener('click', async () => {
+      await signOut(auth);
+      window.location.reload();
+    });
+
+    async function checkAgreementStatus(uid) {
+      try {
+        const docRef = doc(db, 'authors', uid);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists() && docSnap.data().agreementSigned) {
+          const data = docSnap.data();
+          const signedDate = data.agreementDate?.toDate?.() || new Date(data.agreementDate);
+          signedDateSpan.textContent = signedDate.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+          });
+          alreadySigned.style.display = 'block';
+          acceptanceForm.style.display = 'none';
+
+          if (data.name) {
+            fullNameInput.value = data.name;
+          }
+        }
+      } catch (err) {
+        console.error('Error checking agreement status:', err);
+      }
+    }
+
+    function validateForm() {
+      const nameValid = fullNameInput.value.trim().length >= 2;
+      const checkboxValid = agreeCheckbox.checked;
+      submitBtn.disabled = !(nameValid && checkboxValid);
+    }
+
+    fullNameInput.addEventListener('input', validateForm);
+    agreeCheckbox.addEventListener('change', validateForm);
+
+    submitBtn.addEventListener('click', async () => {
+      const user = auth.currentUser;
+      if (!user) return;
+
+      const fullName = fullNameInput.value.trim();
+      if (!fullName || !agreeCheckbox.checked) {
+        showFormError('Please fill in your name and check the agreement box.');
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Submitting...';
+      formError.classList.remove('show');
+
+      try {
+        const docRef = doc(db, 'authors', user.uid);
+        
+        // First check if doc exists
+        const existingDoc = await getDoc(docRef);
+        
+        const dataToSave = {
+          name: fullName,
+          email: user.email,
+          agreementSigned: true,
+          agreementDate: serverTimestamp(),
+          agreementVersion: '2026-04',
+          updatedAt: serverTimestamp()
+        };
+        
+        // If doc doesn't exist, add initial fields
+        if (!existingDoc.exists()) {
+          dataToSave.taxFormReceived = false;
+          dataToSave.taxFormType = null;
+          dataToSave.paymentMethod = null;
+          dataToSave.paymentDetails = null;
+          dataToSave.totalEarnings = 0;
+          dataToSave.pendingPayout = 0;
+          dataToSave.createdAt = serverTimestamp();
+        }
+        
+        await setDoc(docRef, dataToSave, { merge: true });
+
+        acceptanceForm.style.display = 'none';
+        successMessage.classList.add('show');
+
+      } catch (err) {
+        console.error('Error saving agreement:', err);
+        console.error('Error code:', err.code);
+        console.error('Error message:', err.message);
+        
+        // Show more specific error message
+        let errorMsg = 'Failed to save. ';
+        if (err.code === 'permission-denied') {
+          errorMsg += 'Permission denied. Please contact support.';
+        } else if (err.code === 'unavailable') {
+          errorMsg += 'Service unavailable. Please try again.';
+        } else {
+          errorMsg += err.message || 'Please try again.';
+        }
+        
+        showFormError(errorMsg);
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Accept Agreement';
+      }
+    });
+
+    function showLoginError(msg) {
+      loginError.textContent = msg;
+      loginError.classList.add('show');
+    }
+
+    function showFormError(msg) {
+      formError.textContent = msg;
+      formError.classList.add('show');
+    }
+
+    function friendlyError(code) {
+      const map = {
+        'auth/invalid-email': 'Invalid email address.',
+        'auth/user-not-found': 'No account found with this email.',
+        'auth/wrong-password': 'Incorrect password.',
+        'auth/invalid-credential': 'Invalid email or password.',
+        'auth/invalid-login-credentials': 'Invalid email or password.',
+        'auth/too-many-requests': 'Too many attempts. Try again later.'
+      };
+      return map[code] || 'Login failed. Please try again.';
+    }
+  </script>
+
+</body>
+</html>

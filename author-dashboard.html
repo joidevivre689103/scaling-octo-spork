@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="robots" content="noindex, nofollow">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Author Dashboard — Cricket Times</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --cream: #FAF7F2;
+      --cream-dark: #F0EBE3;
+      --ink: #1a1a1a;
+      --ink-light: #4a4a4a;
+      --crimson: #8B0000;
+      --crimson-dark: #6B0000;
+      --gold: #C9A227;
+      --rule: #d4d0c8;
+      --green: #2e7d32;
+      --green-light: #e8f5e9;
+      --amber: #f57c00;
+      --amber-light: #fff3e0;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Source Serif 4', Georgia, serif;
+      background: var(--cream);
+      color: var(--ink);
+      line-height: 1.7;
+      min-height: 100vh;
+    }
+
+    /* ─── Auth Overlay ─────────────────────────────────────────────────── */
+    #auth-overlay {
+      position: fixed;
+      inset: 0;
+      background: var(--cream);
+      z-index: 99999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.3s ease;
+    }
+
+    #auth-overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .loading-msg {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 1.25rem;
+      color: var(--ink-light);
+      font-style: italic;
+    }
+
+    /* ─── Main Content ─────────────────────────────────────────────────── */
+    #main-content {
+      display: none;
+      min-height: 100vh;
+    }
+
+    #main-content.visible {
+      display: block;
+    }
+
+    /* ─── Header ───────────────────────────────────────────────────────── */
+    header {
+      background: var(--ink);
+      color: var(--cream);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .masthead {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .masthead a {
+      color: var(--cream);
+      text-decoration: none;
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      font-size: 0.85rem;
+    }
+
+    .user-email {
+      color: var(--cream);
+      opacity: 0.8;
+    }
+
+    .sign-out-btn {
+      background: transparent;
+      border: 1px solid var(--cream);
+      color: var(--cream);
+      padding: 0.4rem 0.8rem;
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .sign-out-btn:hover {
+      background: var(--cream);
+      color: var(--ink);
+    }
+
+    /* ─── Dashboard Container ──────────────────────────────────────────── */
+    .dashboard {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2.5rem 2rem 4rem;
+    }
+
+    .welcome-section {
+      margin-bottom: 2.5rem;
+    }
+
+    .welcome-section h1 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 0.25rem;
+    }
+
+    .welcome-section p {
+      color: var(--ink-light);
+      font-size: 1rem;
+    }
+
+    /* ─── Status Cards ─────────────────────────────────────────────────── */
+    .status-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .status-card {
+      background: white;
+      border: 1px solid var(--rule);
+      padding: 1.25rem;
+    }
+
+    .status-card.success {
+      border-left: 4px solid var(--green);
+      background: var(--green-light);
+    }
+
+    .status-card.warning {
+      border-left: 4px solid var(--amber);
+      background: var(--amber-light);
+    }
+
+    .status-card .label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--ink-light);
+      margin-bottom: 0.35rem;
+    }
+
+    .status-card .value {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    .status-card.success .value {
+      color: var(--green);
+    }
+
+    .status-card.warning .value {
+      color: var(--amber);
+    }
+
+    .status-card a {
+      color: var(--crimson);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .status-card a:hover {
+      text-decoration: underline;
+    }
+
+    /* ─── Section Divider ──────────────────────────────────────────────── */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin: 2rem 0 1.5rem;
+    }
+
+    .divider::before,
+    .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--rule);
+    }
+
+    .divider span {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 0.85rem;
+      color: var(--ink-light);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    /* ─── Tool Cards ───────────────────────────────────────────────────── */
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.25rem;
+    }
+
+    .tool-card {
+      background: white;
+      border: 1px solid var(--rule);
+      padding: 1.5rem;
+      text-decoration: none;
+      color: var(--ink);
+      transition: all 0.2s;
+      display: block;
+    }
+
+    .tool-card:hover {
+      border-color: var(--crimson);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      transform: translateY(-2px);
+    }
+
+    .tool-card.disabled {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    .tool-card h3 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: var(--crimson);
+      margin-bottom: 0.5rem;
+    }
+
+    .tool-card p {
+      font-size: 0.9rem;
+      color: var(--ink-light);
+      line-height: 1.5;
+    }
+
+    .tool-card .badge {
+      display: inline-block;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 0.2rem 0.5rem;
+      background: var(--cream-dark);
+      color: var(--ink-light);
+      margin-top: 0.75rem;
+    }
+
+    .tool-card .badge.required {
+      background: var(--amber-light);
+      color: var(--amber);
+    }
+
+    /* ─── Earnings Section ─────────────────────────────────────────────── */
+    .earnings-summary {
+      background: white;
+      border: 1px solid var(--rule);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .earnings-summary h3 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--ink);
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .earnings-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.5rem 0;
+      font-size: 0.95rem;
+    }
+
+    .earnings-row .label {
+      color: var(--ink-light);
+    }
+
+    .earnings-row .amount {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-weight: 600;
+    }
+
+    .earnings-row.total {
+      border-top: 1px solid var(--rule);
+      margin-top: 0.5rem;
+      padding-top: 0.75rem;
+    }
+
+    .earnings-row.total .amount {
+      color: var(--crimson);
+      font-size: 1.1rem;
+    }
+
+    /* ─── Footer ───────────────────────────────────────────────────────── */
+    footer {
+      background: var(--ink);
+      color: var(--cream);
+      text-align: center;
+      padding: 1.5rem;
+      font-size: 0.85rem;
+      margin-top: 3rem;
+    }
+
+    footer a {
+      color: var(--gold);
+      text-decoration: none;
+    }
+
+    /* ─── Responsive ───────────────────────────────────────────────────── */
+    @media (max-width: 600px) {
+      .dashboard {
+        padding: 1.5rem 1.25rem 3rem;
+      }
+
+      .welcome-section h1 {
+        font-size: 1.5rem;
+      }
+
+      header {
+        flex-direction: column;
+        gap: 0.75rem;
+        text-align: center;
+      }
+
+      .status-row {
+        grid-template-columns: 1fr;
+      }
+
+      .tools-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       AUTH OVERLAY — shown until Firebase Auth confirms login
+  ════════════════════════════════════════════════════════════════════════ -->
+  <div id="auth-overlay">
+    <p class="loading-msg">Loading dashboard...</p>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       MAIN CONTENT — visible after authentication
+  ════════════════════════════════════════════════════════════════════════ -->
+  <div id="main-content">
+    <header>
+      <div class="masthead"><a href="stories.html">Cricket Times</a></div>
+      <div class="user-info">
+        <span class="user-email" id="user-email"></span>
+        <button class="sign-out-btn" id="sign-out-btn">Sign Out</button>
+      </div>
+    </header>
+
+    <main class="dashboard">
+      <!-- Welcome -->
+      <div class="welcome-section">
+        <h1>Welcome, <span id="author-name">Author</span></h1>
+        <p>Manage your contributions, view earnings, and submit new articles.</p>
+      </div>
+
+      <!-- Status Cards -->
+      <div class="status-row">
+        <div class="status-card" id="agreement-status">
+          <div class="label">Contributor Agreement</div>
+          <div class="value" id="agreement-value">Checking...</div>
+        </div>
+        <div class="status-card" id="tax-status">
+          <div class="label">Tax Form</div>
+          <div class="value" id="tax-value">Checking...</div>
+        </div>
+        <div class="status-card" id="payment-status">
+          <div class="label">Payment Method</div>
+          <div class="value" id="payment-value">Checking...</div>
+        </div>
+      </div>
+
+      <!-- Earnings -->
+      <div class="earnings-summary">
+        <h3>Earnings Summary</h3>
+        <div class="earnings-row">
+          <span class="label">Total Earned (All Time)</span>
+          <span class="amount" id="total-earnings">$0.00</span>
+        </div>
+        <div class="earnings-row">
+          <span class="label">Pending Payout</span>
+          <span class="amount" id="pending-payout">$0.00</span>
+        </div>
+        <div class="earnings-row total">
+          <span class="label">Next Payout</span>
+          <span class="amount" id="next-payout">—</span>
+        </div>
+      </div>
+
+      <div class="divider"><span>Author Tools</span></div>
+
+      <!-- Tool Cards -->
+      <div class="tools-grid">
+        <a href="author-cms.html" class="tool-card" id="cms-card">
+          <h3>Write Article</h3>
+          <p>Draft and submit new articles for publication on Cricket Times.</p>
+        </a>
+
+        <a href="contributor-agreement.html" class="tool-card" id="agreement-card">
+          <h3>Contributor Agreement</h3>
+          <p>View or sign the contributor agreement.</p>
+          <span class="badge required" id="agreement-badge" style="display:none;">Action Required</span>
+        </a>
+
+        <a href="author-profile.html" class="tool-card">
+          <h3>Profile & Payment</h3>
+          <p>Update your payment method, tax information, and author bio.</p>
+        </a>
+
+        <a href="payouts.html" class="tool-card">
+          <h3>Payout Ledger</h3>
+          <p>View the transparent record of all contributions and payouts.</p>
+        </a>
+
+        <a href="stories.html" class="tool-card">
+          <h3>View Site</h3>
+          <p>See your published articles on the live Cricket Times site.</p>
+        </a>
+      </div>
+
+    </main>
+
+    <footer>
+      <p>© 2026 Cricket Times · <a href="privacy.html">Privacy</a> · <a href="mailto:submissions@cricketimes.com">Contact</a></p>
+    </footer>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       FIREBASE + LOGIC
+  ════════════════════════════════════════════════════════════════════════ -->
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+    import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+    import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBnfn9hK0y-p6nvIZ_AwoJnWD7DfDuIQd4",
+      authDomain: "hitwicket-cba02.firebaseapp.com",
+      projectId: "hitwicket-cba02",
+      storageBucket: "hitwicket-cba02.firebasestorage.app",
+      messagingSenderId: "196915483829",
+      appId: "1:196915483829:web:071c47af79914aec88dafc"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // DOM Elements
+    const overlay = document.getElementById('auth-overlay');
+    const mainContent = document.getElementById('main-content');
+    const userEmailSpan = document.getElementById('user-email');
+    const signOutBtn = document.getElementById('sign-out-btn');
+    const authorNameSpan = document.getElementById('author-name');
+
+    // Status elements
+    const agreementStatus = document.getElementById('agreement-status');
+    const agreementValue = document.getElementById('agreement-value');
+    const agreementBadge = document.getElementById('agreement-badge');
+    const taxStatus = document.getElementById('tax-status');
+    const taxValue = document.getElementById('tax-value');
+    const paymentStatus = document.getElementById('payment-status');
+    const paymentValue = document.getElementById('payment-value');
+
+    // Earnings elements
+    const totalEarningsSpan = document.getElementById('total-earnings');
+    const pendingPayoutSpan = document.getElementById('pending-payout');
+    const nextPayoutSpan = document.getElementById('next-payout');
+
+    // Auth state listener
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        // User is signed in
+        overlay.classList.add('hidden');
+        mainContent.classList.add('visible');
+        userEmailSpan.textContent = user.email;
+
+        // Load author data
+        await loadAuthorData(user.uid, user.email);
+      } else {
+        // Not signed in — redirect to login
+        window.location.href = 'author-login.html';
+      }
+    });
+
+    // Sign out handler
+    signOutBtn.addEventListener('click', async () => {
+      await signOut(auth);
+      window.location.href = 'author-login.html';
+    });
+
+    // Load author data from Firestore
+    async function loadAuthorData(uid, email) {
+      try {
+        const docRef = doc(db, 'authors', uid);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+
+          // Set author name
+          authorNameSpan.textContent = data.name || email.split('@')[0];
+
+          // Agreement status
+          if (data.agreementSigned) {
+            agreementStatus.classList.add('success');
+            agreementValue.textContent = '✓ Signed';
+          } else {
+            agreementStatus.classList.add('warning');
+            agreementValue.innerHTML = '<a href="contributor-agreement.html">Sign Now →</a>';
+            agreementBadge.style.display = 'inline-block';
+          }
+
+          // Tax form status
+          if (data.taxFormReceived) {
+            taxStatus.classList.add('success');
+            taxValue.textContent = `✓ ${data.taxFormType || 'Received'}`;
+          } else {
+            taxStatus.classList.add('warning');
+            taxValue.innerHTML = '<a href="author-profile.html">Submit →</a>';
+          }
+
+          // Payment method status
+          if (data.paymentMethod) {
+            paymentStatus.classList.add('success');
+            paymentValue.textContent = `✓ ${data.paymentMethod}`;
+          } else {
+            paymentStatus.classList.add('warning');
+            paymentValue.innerHTML = '<a href="author-profile.html">Add →</a>';
+          }
+
+          // Earnings
+          const totalEarnings = data.totalEarnings || 0;
+          const pendingPayout = data.pendingPayout || 0;
+          totalEarningsSpan.textContent = formatCurrency(totalEarnings);
+          pendingPayoutSpan.textContent = formatCurrency(pendingPayout);
+
+          // Next payout estimate (if pending > minimum threshold)
+          const minThreshold = 10; // $10 minimum
+          if (pendingPayout >= minThreshold) {
+            nextPayoutSpan.textContent = `~${formatCurrency(pendingPayout)} (end of month)`;
+          } else if (pendingPayout > 0) {
+            nextPayoutSpan.textContent = `Below $${minThreshold} threshold`;
+          } else {
+            nextPayoutSpan.textContent = '—';
+          }
+
+        } else {
+          // No author document yet — prompt to sign agreement
+          authorNameSpan.textContent = email.split('@')[0];
+
+          agreementStatus.classList.add('warning');
+          agreementValue.innerHTML = '<a href="contributor-agreement.html">Sign Now →</a>';
+          agreementBadge.style.display = 'inline-block';
+
+          taxStatus.classList.add('warning');
+          taxValue.textContent = 'Pending';
+
+          paymentStatus.classList.add('warning');
+          paymentValue.textContent = 'Pending';
+        }
+
+      } catch (err) {
+        console.error('Error loading author data:', err);
+        authorNameSpan.textContent = email.split('@')[0];
+      }
+    }
+
+    // Format currency
+    function formatCurrency(amount) {
+      return '$' + amount.toFixed(2);
+    }
+  </script>
+
+</body>
+</html>

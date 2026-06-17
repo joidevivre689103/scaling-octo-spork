@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="robots" content="noindex, nofollow">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payout Management — Cricket Times</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --cream: #FAF7F2;
+      --cream-dark: #F0EBE3;
+      --ink: #1a1a1a;
+      --ink-light: #4a4a4a;
+      --crimson: #8B0000;
+      --crimson-dark: #6B0000;
+      --gold: #C9A227;
+      --rule: #d4d0c8;
+      --green: #2e7d32;
+      --green-light: #e8f5e9;
+      --amber: #f57c00;
+      --amber-light: #fff3e0;
+      --blue: #1976d2;
+      --blue-light: #e3f2fd;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Source Serif 4', Georgia, serif;
+      background: var(--cream);
+      color: var(--ink);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* ─── Auth Overlay ─────────────────────────────────────────────────── */
+    #auth-overlay {
+      position: fixed;
+      inset: 0;
+      background: var(--cream);
+      z-index: 99999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #auth-overlay.hidden { display: none; }
+
+    .login-card {
+      background: white;
+      border: 1px solid var(--rule);
+      padding: 2.5rem 2rem;
+      max-width: 380px;
+      width: 90%;
+      text-align: center;
+    }
+
+    .login-card h1 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 1.5rem;
+      color: var(--crimson);
+      margin-bottom: 0.5rem;
+    }
+
+    .login-card .subtitle {
+      font-size: 0.9rem;
+      color: var(--ink-light);
+      margin-bottom: 1.5rem;
+    }
+
+    .login-card input {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: 1rem;
+      border: 1px solid var(--rule);
+      background: var(--cream);
+      margin-bottom: 0.75rem;
+    }
+
+    .login-card input:focus {
+      outline: none;
+      border-color: var(--crimson);
+    }
+
+    .login-card button {
+      width: 100%;
+      padding: 0.85rem;
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 1rem;
+      font-weight: 600;
+      background: var(--crimson);
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    .login-card button:hover { background: var(--crimson-dark); }
+
+    .login-error {
+      color: var(--crimson);
+      font-size: 0.85rem;
+      margin-top: 0.75rem;
+      display: none;
+    }
+
+    .login-error.show { display: block; }
+
+    /* ─── Main Content ─────────────────────────────────────────────────── */
+    #main-content { display: none; }
+    #main-content.visible { display: block; }
+
+    /* ─── Header ───────────────────────────────────────────────────────── */
+    header {
+      background: var(--ink);
+      color: var(--cream);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .masthead {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    .masthead a { color: var(--cream); text-decoration: none; }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      font-size: 0.85rem;
+    }
+
+    .header-right a {
+      color: var(--cream);
+      text-decoration: none;
+      opacity: 0.8;
+    }
+
+    .header-right a:hover { opacity: 1; }
+
+    .sign-out-btn {
+      background: transparent;
+      border: 1px solid var(--cream);
+      color: var(--cream);
+      padding: 0.4rem 0.8rem;
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+
+    .sign-out-btn:hover {
+      background: var(--cream);
+      color: var(--ink);
+    }
+
+    /* ─── Container ────────────────────────────────────────────────────── */
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    .page-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+    }
+
+    .page-subtitle {
+      color: var(--ink-light);
+      margin-bottom: 2rem;
+    }
+
+    /* ─── Summary Cards ────────────────────────────────────────────────── */
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .summary-card {
+      background: white;
+      border: 1px solid var(--rule);
+      padding: 1.25rem;
+      text-align: center;
+    }
+
+    .summary-card .label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--ink-light);
+      margin-bottom: 0.4rem;
+    }
+
+    .summary-card .value {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    .summary-card .value.green { color: var(--green); }
+    .summary-card .value.red { color: var(--crimson); }
+    .summary-card .value.blue { color: var(--blue); }
+
+    /* ─── Tabs ─────────────────────────────────────────────────────────── */
+    .tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      border-bottom: 2px solid var(--rule);
+      padding-bottom: 0.5rem;
+    }
+
+    .tab-btn {
+      padding: 0.6rem 1.25rem;
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 0.95rem;
+      font-weight: 600;
+      background: none;
+      border: none;
+      color: var(--ink-light);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -0.6rem;
+      transition: all 0.2s;
+    }
+
+    .tab-btn:hover { color: var(--ink); }
+
+    .tab-btn.active {
+      color: var(--crimson);
+      border-bottom-color: var(--crimson);
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* ─── Section Header ───────────────────────────────────────────────── */
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .section-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    .add-btn {
+      padding: 0.5rem 1rem;
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: 0.85rem;
+      background: var(--green);
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .add-btn:hover { background: #1b5e20; }
+
+    /* ─── Tables ───────────────────────────────────────────────────────── */
+    .data-table {
+      width: 100%;
+      background: white;
+      border: 1px solid var(--rule);
+      border-collapse: collapse;
+      margin-bottom: 1.5rem;
+    }
+
+    .data-table th {
+      text-align: left;
+      padding: 0.75rem 1rem;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--ink-light);
+      background: var(--cream);
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .data-table td {
+      padding: 0.75rem 1rem;
+      font-size: 0.9rem;
+      border-bottom: 1px solid var(--rule);
+      vertical-align: middle;
+    }
+
+    .data-table tr:last-child td { border-bottom: none; }
+
+    .data-table .amount {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-weight: 600;
+    }
+
+    .data-table .amount.positive { color: var(--green); }
+    .data-table .amount.negative { color: var(--crimson); }
+
+    .data-table .actions { display: flex; gap: 0.5rem; }
+
+    .data-table .btn-sm {
+      padding: 0.3rem 0.6rem;
+      font-size: 0.75rem;
+      border: 1px solid var(--rule);
+      background: white;
+      cursor: pointer;
+    }
+
+    .data-table .btn-sm:hover { background: var(--cream); }
+    .data-table .btn-sm.delete { color: var(--crimson); border-color: var(--crimson); }
+    .data-table .btn-sm.delete:hover { background: #ffebee; }
+
+    .empty-row {
+      text-align: center;
+      color: var(--ink-light);
+      padding: 2rem !important;
+      font-style: italic;
+    }
+
+    /* ─── Author Payouts Section ───────────────────────────────────────── */
+    .author-payout-card {
+      background: white;
+      border: 1px solid var(--rule);
+      margin-bottom: 1rem;
+    }
+
+    .author-payout-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 1.25rem;
+      background: var(--cream);
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .author-payout-header .name {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-weight: 600;
+      font-size: 1rem;
+    }
+
+    .author-payout-header .stats {
+      display: flex;
+      gap: 1.5rem;
+      font-size: 0.85rem;
+      color: var(--ink-light);
+    }
+
+    .author-payout-header .stats strong { color: var(--ink); }
+
+    .author-payout-body { padding: 1rem 1.25rem; }
+
+    .author-articles {
+      font-size: 0.85rem;
+      margin-bottom: 1rem;
+      list-style: none;
+    }
+
+    .author-articles li {
+      padding: 0.4rem 0;
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px dashed var(--rule);
+    }
+
+    .author-articles li:last-child { border-bottom: none; }
+
+    .author-payout-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem 1.25rem;
+      background: var(--green-light);
+      border-top: 1px solid #a5d6a7;
+    }
+
+    .author-payout-footer .due {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--green);
+    }
+
+    .mark-paid-btn {
+      padding: 0.5rem 1rem;
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: 0.85rem;
+      background: var(--green);
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    .mark-paid-btn:hover { background: #1b5e20; }
+    .mark-paid-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* ─── Modal ────────────────────────────────────────────────────────── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 10000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: white;
+      border: 1px solid var(--rule);
+      padding: 1.5rem;
+      width: 90%;
+      max-width: 450px;
+    }
+
+    .modal-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 1.25rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .modal .form-row { margin-bottom: 1rem; }
+
+    .modal .form-row label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-bottom: 0.35rem;
+    }
+
+    .modal .form-row input,
+    .modal .form-row select {
+      width: 100%;
+      padding: 0.65rem 0.85rem;
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: 0.95rem;
+      border: 1px solid var(--rule);
+      background: var(--cream);
+    }
+
+    .modal .form-row input:focus,
+    .modal .form-row select:focus {
+      outline: none;
+      border-color: var(--crimson);
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: 1.25rem;
+    }
+
+    .modal-actions button {
+      flex: 1;
+      padding: 0.75rem;
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 0.95rem;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+    }
+
+    .modal-actions .btn-cancel {
+      background: var(--cream);
+      border: 1px solid var(--rule);
+      color: var(--ink);
+    }
+
+    .modal-actions .btn-save { background: var(--crimson); color: white; }
+    .modal-actions .btn-save:hover { background: var(--crimson-dark); }
+
+    /* ─── Toast ────────────────────────────────────────────────────────── */
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: var(--ink);
+      color: white;
+      padding: 1rem 1.5rem;
+      border-radius: 4px;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s;
+      z-index: 20000;
+    }
+
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.success { background: var(--green); }
+    .toast.error { background: var(--crimson); }
+
+    /* ─── Month Filter ─────────────────────────────────────────────────── */
+    .month-filter {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .month-filter label {
+      font-size: 0.85rem;
+      color: var(--ink-light);
+    }
+
+    .month-filter select {
+      padding: 0.5rem 1rem;
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: 0.9rem;
+      border: 1px solid var(--rule);
+      background: white;
+    }
+
+    /* ─── Footer ───────────────────────────────────────────────────────── */
+    footer {
+      background: var(--ink);
+      color: var(--cream);
+      text-align: center;
+      padding: 1.5rem;
+      font-size: 0.85rem;
+      margin-top: 3rem;
+    }
+
+    footer a { color: var(--gold); text-decoration: none; }
+
+    @media (max-width: 768px) {
+      .container { padding: 1.25rem; }
+      header { flex-direction: column; gap: 0.75rem; }
+      .tabs { flex-wrap: wrap; }
+      .section-header { flex-direction: column; gap: 0.75rem; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Auth Overlay -->
+  <div id="auth-overlay">
+    <div class="login-card">
+      <h1>Cricket Times</h1>
+      <p class="subtitle">Payout Management</p>
+      <input type="email" id="login-email" placeholder="Email">
+      <input type="password" id="login-password" placeholder="Password">
+      <button id="login-btn">Sign In</button>
+      <p class="login-error" id="login-error"></p>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div id="main-content">
+    <header>
+      <div class="masthead"><a href="stories.html">Cricket Times</a></div>
+      <div class="header-right">
+        <a href="admin.html">Admin</a>
+        <a href="cms.html">CMS</a>
+        <button class="sign-out-btn" id="sign-out-btn">Sign Out</button>
+      </div>
+    </header>
+
+    <main class="container">
+      <h1 class="page-title">Payout Management</h1>
+      <p class="page-subtitle">Track revenue, expenses, and author compensation</p>
+
+      <!-- Summary Cards -->
+      <div class="summary-grid">
+        <div class="summary-card">
+          <div class="label">Total Revenue</div>
+          <div class="value green" id="sum-revenue">$0.00</div>
+        </div>
+        <div class="summary-card">
+          <div class="label">Total Expenses</div>
+          <div class="value red" id="sum-expenses">$0.00</div>
+        </div>
+        <div class="summary-card">
+          <div class="label">Author Payouts</div>
+          <div class="value blue" id="sum-payouts">$0.00</div>
+        </div>
+        <div class="summary-card">
+          <div class="label">Balance</div>
+          <div class="value" id="sum-balance">$0.00</div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="income">Income</button>
+        <button class="tab-btn" data-tab="expenses">Expenses</button>
+        <button class="tab-btn" data-tab="author-payouts">Author Payouts</button>
+        <button class="tab-btn" data-tab="payment-history">Payment History</button>
+      </div>
+
+      <!-- Income Tab -->
+      <div class="tab-content active" id="tab-income">
+        <div class="section-header">
+          <h2 class="section-title">Revenue</h2>
+          <button class="add-btn" onclick="openModal('income')">+ Add Income</button>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr><th>Date</th><th>Source</th><th>Description</th><th>Amount</th><th>Actions</th></tr>
+          </thead>
+          <tbody id="income-tbody"></tbody>
+        </table>
+      </div>
+
+      <!-- Expenses Tab -->
+      <div class="tab-content" id="tab-expenses">
+        <div class="section-header">
+          <h2 class="section-title">Expenses</h2>
+          <button class="add-btn" onclick="openModal('expense')">+ Add Expense</button>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr><th>Date</th><th>Category</th><th>Description</th><th>Amount</th><th>Actions</th></tr>
+          </thead>
+          <tbody id="expenses-tbody"></tbody>
+        </table>
+      </div>
+
+      <!-- Author Payouts Tab -->
+      <div class="tab-content" id="tab-author-payouts">
+        <div class="section-header">
+          <h2 class="section-title">Calculate Author Payouts</h2>
+        </div>
+        <div class="month-filter">
+          <label>Period:</label>
+          <select id="payout-month"></select>
+          <button class="add-btn" onclick="calculatePayouts()">Calculate Payouts</button>
+        </div>
+        <div id="author-payouts-list">
+          <p style="color:var(--ink-light);font-style:italic;padding:2rem;text-align:center">
+            Select a month and click "Calculate Payouts" to see author earnings based on article views.
+          </p>
+        </div>
+      </div>
+
+      <!-- Payment History Tab -->
+      <div class="tab-content" id="tab-payment-history">
+        <div class="section-header">
+          <h2 class="section-title">Payment History</h2>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr><th>Date</th><th>Author</th><th>Period</th><th>Method</th><th>Amount</th><th>Status</th></tr>
+          </thead>
+          <tbody id="payments-tbody"></tbody>
+        </table>
+      </div>
+    </main>
+
+    <footer>
+      <p>© 2026 Cricket Times · <a href="admin.html">Admin</a></p>
+    </footer>
+  </div>
+
+  <!-- Add/Edit Modal -->
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal">
+      <h3 class="modal-title" id="modal-title">Add Entry</h3>
+      <input type="hidden" id="modal-id">
+      <input type="hidden" id="modal-type">
+      <div class="form-row">
+        <label for="modal-date">Date</label>
+        <input type="date" id="modal-date">
+      </div>
+      <div class="form-row" id="row-source">
+        <label for="modal-source">Source</label>
+        <select id="modal-source">
+          <option value="Buy Me a Coffee">Buy Me a Coffee</option>
+          <option value="BMC Subscription">BMC Subscription</option>
+          <option value="Direct Donation">Direct Donation</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="form-row" id="row-category" style="display:none">
+        <label for="modal-category">Category</label>
+        <select id="modal-category">
+          <option value="Hosting">Hosting</option>
+          <option value="Domain">Domain</option>
+          <option value="Tools">Tools</option>
+          <option value="BMC Fees">BMC Fees</option>
+          <option value="Payment Fees">Payment Fees</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label for="modal-description">Description</label>
+        <input type="text" id="modal-description" placeholder="Brief description">
+      </div>
+      <div class="form-row">
+        <label for="modal-amount">Amount ($)</label>
+        <input type="number" id="modal-amount" step="0.01" min="0" placeholder="0.00">
+      </div>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+        <button class="btn-save" onclick="saveEntry()">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+    import { getFirestore, collection, doc, getDoc, getDocs, addDoc, updateDoc, deleteDoc, query, where, orderBy, serverTimestamp, Timestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBnfn9hK0y-p6nvIZ_AwoJnWD7DfDuIQd4",
+      authDomain: "hitwicket-cba02.firebaseapp.com",
+      projectId: "hitwicket-cba02",
+      storageBucket: "hitwicket-cba02.firebasestorage.app",
+      messagingSenderId: "196915483829",
+      appId: "1:196915483829:web:071c47af79914aec88dafc"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const ADMIN_EMAIL = 'joseph.ivan@outlook.com';
+
+    let incomeEntries = [], expenseEntries = [], paymentHistory = [], authors = [], articles = [];
+
+    window.openModal = openModal;
+    window.closeModal = closeModal;
+    window.saveEntry = saveEntry;
+    window.deleteEntry = deleteEntry;
+    window.calculatePayouts = calculatePayouts;
+    window.markAsPaid = markAsPaid;
+
+    onAuthStateChanged(auth, async (user) => {
+      if (user && user.email === ADMIN_EMAIL) {
+        document.getElementById('auth-overlay').classList.add('hidden');
+        document.getElementById('main-content').classList.add('visible');
+        await loadAllData();
+        setupTabs();
+        populateMonthSelector();
+      } else if (user) {
+        document.getElementById('login-error').textContent = 'Access denied. Admin only.';
+        document.getElementById('login-error').classList.add('show');
+        await signOut(auth);
+      }
+    });
+
+    document.getElementById('login-btn').addEventListener('click', async () => {
+      try {
+        await signInWithEmailAndPassword(auth, document.getElementById('login-email').value.trim(), document.getElementById('login-password').value);
+      } catch { document.getElementById('login-error').textContent = 'Invalid credentials'; document.getElementById('login-error').classList.add('show'); }
+    });
+
+    document.getElementById('login-password').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('login-btn').click(); });
+    document.getElementById('sign-out-btn').addEventListener('click', async () => { await signOut(auth); location.reload(); });
+
+    async function loadAllData() {
+      const [ledgerSnap, paymentsSnap, authorsSnap, articlesSnap] = await Promise.all([
+        getDocs(query(collection(db, 'ledger'), orderBy('date', 'desc'))),
+        getDocs(query(collection(db, 'authorPayments'), orderBy('paidAt', 'desc'))),
+        getDocs(collection(db, 'authors')),
+        getDocs(query(collection(db, 'articles'), where('status', '==', 'published')))
+      ]);
+      incomeEntries = []; expenseEntries = [];
+      ledgerSnap.forEach(d => { const data = { id: d.id, ...d.data() }; data.type === 'income' ? incomeEntries.push(data) : expenseEntries.push(data); });
+      paymentHistory = []; paymentsSnap.forEach(d => paymentHistory.push({ id: d.id, ...d.data() }));
+      authors = []; authorsSnap.forEach(d => authors.push({ id: d.id, ...d.data() }));
+      articles = []; articlesSnap.forEach(d => articles.push({ id: d.id, ...d.data() }));
+      updateSummary(); renderIncome(); renderExpenses(); renderPayments();
+    }
+
+    function updateSummary() {
+      const rev = incomeEntries.reduce((s, e) => s + (e.amount || 0), 0);
+      const exp = expenseEntries.reduce((s, e) => s + (e.amount || 0), 0);
+      const pay = paymentHistory.reduce((s, e) => s + (e.amount || 0), 0);
+      document.getElementById('sum-revenue').textContent = '$' + rev.toFixed(2);
+      document.getElementById('sum-expenses').textContent = '$' + exp.toFixed(2);
+      document.getElementById('sum-payouts').textContent = '$' + pay.toFixed(2);
+      const bal = rev - exp - pay;
+      document.getElementById('sum-balance').textContent = '$' + bal.toFixed(2);
+      document.getElementById('sum-balance').className = 'value ' + (bal >= 0 ? 'green' : 'red');
+    }
+
+    function renderIncome() {
+      const tbody = document.getElementById('income-tbody');
+      tbody.innerHTML = incomeEntries.length ? incomeEntries.map(e => `<tr><td>${fmtDate(e.date)}</td><td>${esc(e.source)}</td><td>${esc(e.description)}</td><td class="amount positive">+$${(e.amount||0).toFixed(2)}</td><td class="actions"><button class="btn-sm" onclick="openModal('income','${e.id}')">Edit</button><button class="btn-sm delete" onclick="deleteEntry('${e.id}')">Delete</button></td></tr>`).join('') : '<tr><td colspan="5" class="empty-row">No income recorded</td></tr>';
+    }
+
+    function renderExpenses() {
+      const tbody = document.getElementById('expenses-tbody');
+      tbody.innerHTML = expenseEntries.length ? expenseEntries.map(e => `<tr><td>${fmtDate(e.date)}</td><td>${esc(e.category)}</td><td>${esc(e.description)}</td><td class="amount negative">-$${(e.amount||0).toFixed(2)}</td><td class="actions"><button class="btn-sm" onclick="openModal('expense','${e.id}')">Edit</button><button class="btn-sm delete" onclick="deleteEntry('${e.id}')">Delete</button></td></tr>`).join('') : '<tr><td colspan="5" class="empty-row">No expenses recorded</td></tr>';
+    }
+
+    function renderPayments() {
+      const tbody = document.getElementById('payments-tbody');
+      tbody.innerHTML = paymentHistory.length ? paymentHistory.map(p => `<tr><td>${fmtDate(p.paidAt)}</td><td>${esc(p.authorName)}</td><td>${esc(p.period)}</td><td>${esc(p.method)}</td><td class="amount positive">$${(p.amount||0).toFixed(2)}</td><td style="color:var(--green)">✓ Paid</td></tr>`).join('') : '<tr><td colspan="6" class="empty-row">No payments made yet</td></tr>';
+    }
+
+    function setupTabs() {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+      }));
+    }
+
+    function populateMonthSelector() {
+      const sel = document.getElementById('payout-month'), now = new Date();
+      sel.innerHTML = Array.from({ length: 12 }, (_, i) => {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        return `<option value="${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}">${d.toLocaleDateString('en-US',{month:'long',year:'numeric'})}</option>`;
+      }).join('');
+    }
+
+    async function calculatePayouts() {
+      const period = document.getElementById('payout-month').value;
+      const [year, month] = period.split('-').map(Number);
+      const container = document.getElementById('author-payouts-list');
+      container.innerHTML = '<p style="text-align:center;padding:2rem;color:var(--ink-light)">Calculating...</p>';
+      
+      // Load monthly view data
+      const viewsSnap = await getDocs(query(collection(db, 'articleViews'), where('month', '==', period)));
+      const monthlyViews = {};
+      viewsSnap.forEach(d => { monthlyViews[d.data().articleId] = d.data(); });
+      
+      const monthIncome = incomeEntries.filter(e => { const d = toDate(e.date); return d.getFullYear() === year && d.getMonth() + 1 === month; });
+      const totalIncome = monthIncome.reduce((s, e) => s + (e.amount || 0), 0);
+      const platformPct = 30, authorPool = totalIncome * (1 - platformPct / 100);
+      
+      // Group by author using monthly view data
+      const authorArticles = {};
+      Object.values(monthlyViews).forEach(v => {
+        if (!v.authorUid) return;
+        if (!authorArticles[v.authorUid]) authorArticles[v.authorUid] = { name: v.authorName || 'Unknown', articles: [], totalViews: 0 };
+        authorArticles[v.authorUid].articles.push({ id: v.articleId, headline: v.headline, views: v.views || 0 });
+        authorArticles[v.authorUid].totalViews += v.views || 0;
+      });
+      
+      const totalViews = Object.values(authorArticles).reduce((s, a) => s + a.totalViews, 0);
+      
+      if (!Object.keys(authorArticles).length || !totalIncome) {
+        const hasViews = Object.keys(monthlyViews).length > 0;
+        container.innerHTML = `<div style="text-align:center;padding:2rem;color:var(--ink-light)">
+          <p>No payout data for this period</p>
+          <p style="font-size:0.85rem;margin-top:0.5rem">Income: $${totalIncome.toFixed(2)} · View records: ${Object.keys(monthlyViews).length}</p>
+          ${!hasViews ? '<p style="font-size:0.85rem;margin-top:0.5rem"><a href="analytics-sync.html" style="color:var(--blue)">→ Add view data in Analytics Sync</a></p>' : ''}
+        </div>`;
+        return;
+      }
+      
+      let html = `<div style="background:var(--blue-light);border:1px solid #90caf9;padding:1rem;margin-bottom:1rem;font-size:0.9rem">
+        <strong>Period:</strong> ${new Date(year,month-1).toLocaleDateString('en-US',{month:'long',year:'numeric'})} · 
+        <strong>Income:</strong> $${totalIncome.toFixed(2)} · 
+        <strong>Platform (${platformPct}%):</strong> $${(totalIncome*platformPct/100).toFixed(2)} · 
+        <strong>Author Pool:</strong> $${authorPool.toFixed(2)} · 
+        <strong>Total Views:</strong> ${totalViews.toLocaleString()}
+      </div>`;
+      
+      Object.entries(authorArticles).forEach(([uid, data]) => {
+        const pct = totalViews ? data.totalViews / totalViews * 100 : 0;
+        const payout = authorPool * pct / 100;
+        const paid = paymentHistory.some(p => p.authorUid === uid && p.period === period);
+        html += `<div class="author-payout-card">
+          <div class="author-payout-header">
+            <span class="name">${esc(data.name)}</span>
+            <div class="stats">
+              <span><strong>${data.articles.length}</strong> articles</span>
+              <span><strong>${data.totalViews.toLocaleString()}</strong> views</span>
+              <span><strong>${pct.toFixed(1)}%</strong></span>
+            </div>
+          </div>
+          <div class="author-payout-body">
+            <ul class="author-articles">
+              ${data.articles.map(a=>`<li><span>${esc(a.headline)} <small style="color:var(--ink-light)">(${a.id})</small></span><span>${a.views.toLocaleString()} views</span></li>`).join('')}
+            </ul>
+          </div>
+          <div class="author-payout-footer">
+            <span class="due">${paid ? '✓ Paid' : 'Due: $' + payout.toFixed(2)}</span>
+            <button class="mark-paid-btn" onclick="markAsPaid('${uid}','${esc(data.name)}','${period}',${payout})" ${paid ? 'disabled' : ''}>${paid ? 'Already Paid' : 'Mark as Paid'}</button>
+          </div>
+        </div>`;
+      });
+      container.innerHTML = html;
+    }
+
+    async function markAsPaid(uid, name, period, amount) {
+      if (!confirm(`Mark $${amount.toFixed(2)} as paid to ${name}?`)) return;
+      const author = authors.find(a => a.id === uid);
+      await addDoc(collection(db, 'authorPayments'), { authorUid: uid, authorName: name, period, amount, method: author?.paymentMethod || 'Unknown', paidAt: serverTimestamp() });
+      if (author) await updateDoc(doc(db, 'authors', uid), { totalEarnings: (author.totalEarnings || 0) + amount, lastPaidAt: serverTimestamp() });
+      showToast('Payment recorded'); await loadAllData(); calculatePayouts();
+    }
+
+    function openModal(type, id = null) {
+      document.getElementById('modal-type').value = type;
+      document.getElementById('modal-id').value = id || '';
+      document.getElementById('modal-title').textContent = id ? 'Edit Entry' : (type === 'income' ? 'Add Income' : 'Add Expense');
+      document.getElementById('row-source').style.display = type === 'income' ? 'block' : 'none';
+      document.getElementById('row-category').style.display = type === 'expense' ? 'block' : 'none';
+      if (id) {
+        const e = (type === 'income' ? incomeEntries : expenseEntries).find(x => x.id === id);
+        if (e) { document.getElementById('modal-date').value = fmtDateInput(e.date); document.getElementById('modal-source').value = e.source || ''; document.getElementById('modal-category').value = e.category || ''; document.getElementById('modal-description').value = e.description || ''; document.getElementById('modal-amount').value = e.amount || ''; }
+      } else { document.getElementById('modal-date').value = new Date().toISOString().split('T')[0]; document.getElementById('modal-description').value = ''; document.getElementById('modal-amount').value = ''; }
+      document.getElementById('modal-overlay').classList.add('open');
+    }
+
+    function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); }
+
+    async function saveEntry() {
+      const type = document.getElementById('modal-type').value, id = document.getElementById('modal-id').value;
+      const data = { type, date: Timestamp.fromDate(new Date(document.getElementById('modal-date').value + 'T12:00:00')), amount: parseFloat(document.getElementById('modal-amount').value) || 0, description: document.getElementById('modal-description').value.trim(), updatedAt: serverTimestamp() };
+      if (type === 'income') data.source = document.getElementById('modal-source').value; else data.category = document.getElementById('modal-category').value;
+      if (!data.date || data.amount <= 0) { showToast('Fill date and amount', 'error'); return; }
+      id ? await updateDoc(doc(db, 'ledger', id), data) : await addDoc(collection(db, 'ledger'), { ...data, createdAt: serverTimestamp() });
+      closeModal(); showToast('Saved'); await loadAllData();
+    }
+
+    async function deleteEntry(id) { if (!confirm('Delete?')) return; await deleteDoc(doc(db, 'ledger', id)); showToast('Deleted'); await loadAllData(); }
+
+    function toDate(d) { return d?.toDate ? d.toDate() : new Date(d || Date.now()); }
+    function fmtDate(d) { return toDate(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); }
+    function fmtDateInput(d) { return toDate(d).toISOString().split('T')[0]; }
+    function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+    function showToast(m, t = 'success') { const el = document.getElementById('toast'); el.textContent = m; el.className = 'toast ' + t + ' show'; setTimeout(() => el.classList.remove('show'), 3000); }
+  </script>
+</body>
+</html>

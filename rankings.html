@@ -1,0 +1,1942 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!-- CT_7G_INJECT:START (auto-injected by deploy tool — do not edit by hand) -->
+<style id="ct-7g-hide">body{visibility:hidden}</style>
+<script>window.CT_PAGE_ID="rankings";</script>
+<script src="/auth-status.js"></script>
+<script>setTimeout(function(){if(!window.__ctFlagsLoaded){location.replace("/comingsoon.html");}},2500);</script>
+<!-- CT_7G_INJECT:END -->
+<script src="/feature-flags.js"></script>
+<script src="/prelaunch-guard.js"></script>
+<script src="/ct-data-loader.js"></script><!-- Phase 3 §3: gated derived-data loader -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>Player Rankings — Cricket Times</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Password Gate Styles */
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+.site-content{display:block}
+
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+:root{
+  --bg:#FDF6E3;--surface:#FFFDF7;--surface2:#F5EDDA;--surface3:#E8DCC8;
+  --border:#D4C5A9;--border2:#c8b898;
+  --text:#1A1A1A;--text2:#444;--text3:#888;
+  --accent:#8B0000;--accent-hover:#6B0000;--accent-light:#A52A2A;--accent-dim:rgba(139,0,0,0.06);--accent-glow:rgba(139,0,0,0.04);
+  --gold:#B8860B;--gold-dim:rgba(184,134,11,0.10);--green:#1E6B3A;--blue:#1A5276;
+  --green-dim:rgba(30,107,58,0.10);
+  --red:#d04040;--red-dim:rgba(208,64,64,0.10);
+  --blue-light:#2471A3;--blue-dim:rgba(26,82,118,0.10);
+  --card-bg:#FFFDF7;--shadow:rgba(0,0,0,0.08);--radius:6px;
+  --text1:#1A1A1A;--text4:#aaa;--border-light:#E8DCC8;--surface4:#E8DCC8;
+}
+body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia,serif;min-height:100vh;overflow-x:hidden}
+
+/* Header */
+.header{
+  padding:22px 32px 16px;position:relative;
+  background:linear-gradient(180deg,var(--surface2) 0%,var(--bg) 100%);
+  border-bottom:1px solid var(--border);
+}
+.header::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 25% -20%,var(--accent-glow),transparent 60%);pointer-events:none}
+.hdr-inner{max-width:1440px;margin:0 auto;position:relative;display:flex;justify-content:space-between;align-items:center}
+.brand{display:flex;align-items:center;gap:12px}
+.brand-icon{
+  width:36px;height:36px;border-radius:8px;
+  background:linear-gradient(135deg,var(--accent),#6B0000);
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:800;color:#fff;letter-spacing:-0.5px;
+  box-shadow:0 3px 14px rgba(139,0,0,0.30);
+}
+.brand h1{font-family:'Playfair Display',serif;font-size:21px;letter-spacing:-0.3px}
+.brand-sub{font-size:11.5px;color:var(--text3);margin-top:2px;margin-left:48px}
+
+.hdr-nav{display:flex;align-items:center;gap:8px}
+.share-btn{
+  background:var(--surface);border:1px solid var(--border);border-radius:8px;
+  padding:8px 16px;cursor:pointer;display:flex;align-items:center;gap:8px;
+  font-family:'Source Serif 4',serif;font-size:13px;font-weight:600;
+  color:var(--text2);transition:all 0.2s;
+}
+.share-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-dim)}
+.share-btn svg{width:16px;height:16px;stroke:currentColor;fill:none}
+.nav-link{
+  background:var(--surface);border:1px solid var(--border);border-radius:8px;
+  padding:8px 16px;cursor:pointer;display:flex;align-items:center;gap:7px;
+  font-family:'Source Serif 4',serif;font-size:13px;font-weight:600;
+  color:var(--text2);transition:all 0.2s;text-decoration:none;
+}
+.nav-link:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-dim)}
+.nav-link.active{border-color:var(--accent);color:var(--accent);background:var(--accent-dim)}
+.nav-link svg{width:15px;height:15px;stroke:currentColor;fill:none;flex-shrink:0}
+
+/* ── Bowling-records UX parity ── */
+
+/* Page header */
+.main{max-width:1400px;margin:0 auto;padding:32px 24px 80px}
+.page-head{margin-bottom:28px;padding-bottom:20px;border-bottom:2px solid var(--text1)}
+.page-title{font-family:'Playfair Display',serif;font-size:clamp(26px,4vw,38px);font-weight:700;letter-spacing:-0.5px;line-height:1.1;margin-bottom:6px}
+.page-desc{font-family:'Inter',sans-serif;font-size:12px;font-weight:500;letter-spacing:0.8px;text-transform:uppercase;color:var(--text3)}
+
+/* Filter panel — matches bowling-records .fp */
+.filter-panel{
+  background:var(--surface);border:1px solid var(--border);
+  padding:18px 22px;margin-bottom:0;
+}
+.filter-panel:first-of-type{border-radius:10px 10px 0 0}
+.filter-panel + .filter-panel{border-top:1px dashed var(--border2)}
+.filter-panel:last-of-type{border-radius:0 0 10px 10px;margin-bottom:24px}
+.filter-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.filter-label{font-family:'Inter',sans-serif;font-size:11px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:var(--text3);white-space:nowrap}
+.filter-select{
+  font-family:'Inter',sans-serif;font-size:12px;font-weight:500;
+  padding:7px 28px 7px 11px;border:1px solid var(--border);border-radius:6px;
+  background:var(--surface2) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237a7a74' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 8px center;
+  -webkit-appearance:none;appearance:none;color:var(--text1);cursor:pointer;
+  transition:border-color 0.15s;
+}
+.filter-select:hover{border-color:var(--border2)}
+.filter-select:focus{outline:none;border-color:var(--accent);background-color:var(--surface)}
+
+/* Info panel */
+.info-panel{
+  background:rgba(26,82,118,0.05);border:1px solid rgba(26,82,118,0.15);
+  border-radius:8px;padding:12px 16px;margin-bottom:20px;
+  display:flex;align-items:flex-start;gap:10px;
+}
+.info-panel svg{width:16px;height:16px;stroke:var(--blue);fill:none;flex-shrink:0;margin-top:1px}
+.info-text{font-family:'Inter',sans-serif;font-size:12px;color:var(--text2);line-height:1.5}
+.info-text strong{color:var(--text1);font-weight:600}
+
+/* Weights panel */
+.weights-panel{
+  background:var(--surface);border:1px solid var(--border);border-radius:10px;
+  overflow:hidden;margin-bottom:24px;
+}
+.wp-head{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:16px 20px;cursor:pointer;user-select:none;
+  border-bottom:1px solid var(--border);background:var(--surface2);
+}
+.wp-head-title{font-family:'Inter',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3);display:flex;align-items:center;gap:8px}
+.wp-head-title svg{width:14px;height:14px;stroke:var(--accent);fill:none}
+.wp-toggle{color:var(--text3);display:flex;align-items:center;gap:6px;font-family:'Inter',sans-serif;font-size:11px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase}
+.wp-toggle svg{width:16px;height:16px;stroke:currentColor;fill:none;transition:transform 0.2s}
+.weights-panel.open .wp-toggle svg{transform:rotate(180deg)}
+.wp-body{display:none;padding:20px}
+.weights-panel.open .wp-body{display:block}
+.wp-actions{display:flex;gap:8px;padding:0 20px 16px;justify-content:flex-end}
+.wp-reset{
+  font-family:'Inter',sans-serif;font-size:11px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;
+  color:var(--text3);background:none;border:1px solid var(--border);border-radius:6px;
+  padding:7px 14px;cursor:pointer;transition:all 0.15s;
+}
+.wp-reset:hover{color:var(--accent);border-color:var(--accent);background:var(--accent-dim)}
+.wp-export{
+  display:inline-flex;align-items:center;gap:6px;
+  font-family:'Inter',sans-serif;font-size:11px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;
+  color:var(--text2);background:var(--surface);border:1px solid var(--border);border-radius:6px;
+  padding:7px 14px;cursor:pointer;transition:all 0.15s;white-space:nowrap;
+}
+.wp-export svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;flex-shrink:0}
+.wp-export:hover{color:var(--accent);border-color:var(--accent);background:var(--accent-dim)}
+
+/* Results panel */
+.results-panel{
+  background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;
+}
+.rp-header{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:16px 20px;border-bottom:1px solid var(--border);background:var(--surface2);
+}
+.rp-title{font-family:'Inter',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3)}
+.rp-stats{display:flex;gap:16px}
+.rp-stat{font-family:'Inter',sans-serif;font-size:12px;color:var(--text3)}
+.rp-stat strong{color:var(--text1);font-weight:600}
+
+/* Results table — matches rec-table */
+.results-table{width:100%;border-collapse:collapse}
+.results-table thead th{
+  font-family:'Inter',sans-serif;font-size:10px;font-weight:700;letter-spacing:0.8px;
+  text-transform:uppercase;color:var(--text3);
+  padding:10px 14px;text-align:left;
+  background:var(--surface2);border-bottom:2px solid var(--border);
+  white-space:nowrap;
+}
+.results-table thead th.num{text-align:right}
+.results-table tbody tr{transition:background 0.12s}
+.results-table tbody tr:hover{background:var(--accent-glow)}
+.results-table tbody tr:not(:last-child){border-bottom:1px solid var(--surface3)}
+.results-table td{
+  padding:11px 14px;font-family:'Source Serif 4',serif;font-size:13px;color:var(--text1);
+}
+.results-table td.num{
+  text-align:right;font-variant-numeric:tabular-nums;font-weight:500;
+}
+.results-table td.player-name{font-weight:600;white-space:nowrap}
+.results-table td.country{font-family:'Inter',sans-serif;font-size:11px;color:var(--text3);font-weight:500}
+.results-table td.points{
+  color:var(--accent);font-weight:700;font-family:'Playfair Display',serif;font-size:14px;
+}
+.results-table td.rank{
+  font-family:'Inter',sans-serif;font-size:11px;font-weight:700;color:var(--text4);text-align:right;
+}
+
+/* Era dropdown — matches bowling style */
+.era-multi-select{position:relative}
+.era-toggle-btn{
+  font-family:'Inter',sans-serif;font-size:12px;font-weight:500;
+  display:flex;align-items:center;gap:8px;
+  background:var(--surface2);border:1px solid var(--border);border-radius:6px;
+  padding:7px 11px;cursor:pointer;color:var(--text1);
+  min-width:110px;justify-content:space-between;transition:border-color 0.15s;
+}
+.era-toggle-btn:hover{border-color:var(--border2)}
+.era-toggle-btn svg{flex-shrink:0;stroke:var(--text3)}
+.era-dropdown{
+  position:absolute;top:calc(100% + 4px);left:0;
+  background:var(--surface);border:1px solid var(--border);border-radius:8px;
+  box-shadow:0 8px 24px rgba(0,0,0,0.10);
+  padding:6px 0;min-width:155px;z-index:200;display:none;
+}
+.era-dropdown.show{display:block}
+.era-option{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 14px;cursor:pointer;
+  font-family:'Inter',sans-serif;font-size:12px;color:var(--text1);transition:background 0.12s;
+}
+.era-option:hover{background:var(--surface2)}
+.era-option input[type="checkbox"]{width:13px;height:13px;accent-color:var(--accent);cursor:pointer}
+
+/* Scrollable table wrapper on mobile */
+.table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+@media(max-width:767px){
+  .main{padding:16px 14px 60px}
+  .page-title{font-size:26px}
+  .results-table{min-width:680px}
+  .filter-row{gap:8px}
+}
+
+  background:var(--surface);border:1px solid var(--border);border-radius:14px;
+  margin-bottom:24px;overflow:hidden;
+}
+/* Weight Groups Grid */
+.weights-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
+  gap:16px;
+}
+
+.weight-group{
+  background:var(--surface2);border:1px solid var(--border);border-radius:10px;
+  padding:16px 18px;
+}
+.weight-group.has-error{border-color:var(--red)}
+
+.wg-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.wg-title{font-size:13px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:8px}
+.wg-title svg{width:16px;height:16px;stroke:var(--accent);fill:none}
+.wg-reset-btn{
+  font-size:11px;color:var(--text3);background:none;border:1px solid var(--border);
+  border-radius:4px;padding:4px 8px;cursor:pointer;font-family:'Source Serif 4',serif;font-weight:500;
+  transition:all 0.2s;
+}
+.wg-reset-btn:hover{color:var(--accent);border-color:var(--accent)}
+
+/* Total input row */
+.wg-total-row{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 14px;margin-bottom:10px;
+  background:linear-gradient(135deg,var(--accent-dim),rgba(184,134,11,0.05));
+  border:2px solid var(--accent);border-radius:8px;
+}
+.wg-total-label{flex:1;font-size:12px;font-weight:600;color:var(--accent)}
+.wg-total-input{
+  width:80px;background:var(--surface);border:2px solid var(--accent);border-radius:6px;
+  padding:8px 10px;color:var(--accent);font-family:'Source Serif 4',serif;font-size:14px;
+  font-weight:700;text-align:center;outline:none;
+}
+.wg-total-input:focus{background:var(--surface)}
+.wg-total-input::placeholder{color:var(--text3);font-weight:400}
+.wg-total-unit{font-size:12px;color:var(--accent);font-weight:600}
+
+/* Sub-total status */
+.wg-subtotal{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:6px 12px;margin-bottom:8px;
+  background:var(--surface);border-radius:5px;
+  font-size:11px;
+}
+.wg-subtotal-label{color:var(--text3)}
+.wg-subtotal-value{font-weight:700}
+.wg-subtotal-value.valid{color:var(--green)}
+.wg-subtotal-value.invalid{color:var(--red)}
+
+/* Weight Item Row */
+.weight-item{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 12px;margin-bottom:6px;
+  background:var(--surface);border:1px solid var(--border);border-radius:6px;
+  transition:border-color 0.2s;
+}
+.weight-item:last-child{margin-bottom:0}
+.weight-item:hover{border-color:var(--border2)}
+.weight-item.has-value{border-color:rgba(184,134,11,0.4);background:rgba(184,134,11,0.03)}
+.weight-item.disabled{opacity:0.5;pointer-events:none}
+
+.wi-label{flex:1;font-size:12px;font-weight:500;color:var(--text)}
+.wi-input{
+  width:70px;background:var(--surface2);border:1px solid var(--border);border-radius:5px;
+  padding:6px 8px;color:var(--text);font-family:'Source Serif 4',serif;font-size:12px;
+  font-weight:600;text-align:center;outline:none;
+}
+.wi-input:focus{border-color:var(--accent);background:var(--surface)}
+.wi-input::placeholder{color:var(--text3);font-weight:400}
+.wi-unit{font-size:11px;color:var(--text3);font-weight:500;min-width:16px}
+
+/* Auto-populated row */
+.weight-item.auto-row{
+  background:var(--surface);border-color:var(--border);
+}
+.wi-auto{
+  font-size:13px;font-weight:600;color:var(--text);min-width:50px;text-align:center;
+}
+.wi-auto-badge{
+  font-size:9px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;
+  background:var(--blue-dim);color:var(--blue);padding:2px 6px;border-radius:3px;
+}
+
+/* Group note */
+.wg-note{
+  display:flex;align-items:center;gap:6px;margin-top:10px;padding:8px 10px;
+  background:var(--surface);border-radius:5px;
+  font-size:10px;color:var(--text3);line-height:1.4;
+}
+.wg-note svg{width:14px;height:14px;stroke:var(--text3);fill:none;flex-shrink:0}
+
+/* Apply suggested weights button */
+.wg-apply-suggested:hover{
+  background:rgba(26,82,118,0.15);border-color:var(--blue);
+}
+
+.result-badge{
+  display:inline-block;padding:3px 8px;border-radius:4px;
+  font-size:10px;font-weight:600;letter-spacing:0.3px;text-transform:uppercase;
+}
+.result-badge.win{background:var(--green-dim);color:var(--green)}
+.result-badge.loss{background:var(--red-dim);color:var(--red)}
+.result-badge.draw{background:var(--surface2);color:var(--text2)}
+
+@media(max-width:768px){
+  .header{padding:16px 18px 14px}
+  .hdr-inner{flex-direction:column;align-items:flex-start;gap:12px}
+  .brand-sub{margin-left:0;margin-top:4px}
+  .hdr-nav{flex-wrap:wrap}
+  .nav-link span{display:none}
+  .nav-link{padding:8px 10px}
+  .share-btn{padding:8px 10px;font-size:0}
+  .share-btn svg{margin:0}
+  .share-btn span{display:none}
+  .main{padding:16px 18px 40px}
+  .weights-panel .wp-body{padding:0 14px 14px}
+  .weights-panel .wp-head{padding:12px 14px}
+  .weights-grid{grid-template-columns:1fr}
+  .rp-header{flex-direction:column;align-items:flex-start;gap:10px}
+}
+
+.header{display:none !important}
+header.header{display:none !important}
+
+/* ═══ Cricket Times Masthead & Nav ═══ */
+.ct-masthead{text-align:center;padding:20px 24px 16px;border-bottom:2px solid var(--text1);position:relative;background:var(--bg)}
+.ct-masthead-date{font-family:'Inter',sans-serif;font-size:11px;font-weight:500;letter-spacing:1.2px;text-transform:uppercase;color:var(--text3);margin-bottom:8px}
+.ct-masthead-logo{font-family:'Playfair Display',serif;font-size:clamp(36px,8vw,58px);font-weight:700;letter-spacing:-1px;line-height:1.1}
+.ct-masthead-logo a{text-decoration:none;color:inherit}
+.ct-masthead-logo span{color:var(--accent)}
+.ct-masthead-tagline{font-family:'Inter',sans-serif;font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-top:6px}
+.ct-nav-bar{border-bottom:1px solid var(--border);background:var(--surface);position:sticky;top:0;z-index:100}
+.ct-nav-inner{max-width:1400px;margin:0 auto;padding:0 24px;display:flex;justify-content:center;gap:0}
+.ct-nav-link{font-family:'Inter',sans-serif;font-size:12px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;color:var(--text2);text-decoration:none;padding:14px 20px;position:relative;transition:color 0.2s}
+.ct-nav-link:hover{color:var(--accent)}
+.ct-nav-link.active{color:var(--accent)}
+.ct-nav-link.active::after{content:'';position:absolute;bottom:0;left:20px;right:20px;height:2px;background:var(--accent)}
+@media(max-width:900px){
+  .ct-nav-inner{overflow-x:auto;justify-content:flex-start;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .ct-nav-inner::-webkit-scrollbar{display:none}
+  .ct-nav-link{white-space:nowrap;padding:12px 14px;font-size:11px}
+}
+.ct-footer{background:var(--text);color:rgba(255,255,255,0.7);padding:48px 24px 32px;margin-top:60px}
+.ct-footer-inner{max-width:1400px;margin:0 auto}
+.ct-footer-top{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:32px;border-bottom:1px solid rgba(255,255,255,0.1);margin-bottom:24px}
+.ct-footer-brand{font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:#fff}
+.ct-footer-nav{display:flex;gap:32px}
+.ct-footer-nav a{font-family:'Inter',sans-serif;font-size:12px;font-weight:500;color:rgba(255,255,255,0.6);text-decoration:none}
+.ct-footer-nav a:hover{color:#fff}
+.ct-footer-bottom{font-family:'Inter',sans-serif;font-size:11px;color:rgba(255,255,255,0.4);display:flex;justify-content:space-between}
+@media(max-width:900px){.ct-footer-top{flex-direction:column;gap:24px}.ct-footer-nav{flex-wrap:wrap;gap:16px}.ct-footer-bottom{flex-direction:column;gap:8px}}
+
+</style>
+<!-- data.js removed (Phase 3 §3): dataset now loaded via CTData from the gated serveDerivedData endpoint -->
+</head>
+<body>
+<!-- ── PREVIEW GATE — remove before go-live ── -->
+<style>
+#previewGate{position:fixed;inset:0;z-index:99999;background:#1a1410;display:flex;align-items:center;justify-content:center;font-family:'Source Serif 4',Georgia,serif}
+#previewGate.hidden{display:none}
+.pg-box{background:#faf7f2;border:1px solid #c8b89a;border-top:3px solid #8b1a1a;padding:2.5rem 2rem;max-width:360px;width:90%;text-align:center}
+.pg-logo{font-family:'Playfair Display',Georgia,serif;font-size:1.8rem;font-weight:700;color:#8b1a1a;margin-bottom:0.25rem}
+.pg-sub{font-size:0.72rem;letter-spacing:0.15em;text-transform:uppercase;color:#8a7a6a;margin-bottom:1.75rem}
+.pg-label{font-size:0.65rem;letter-spacing:0.15em;text-transform:uppercase;color:#3d3530;display:block;margin-bottom:0.5rem;text-align:left}
+.pg-input{width:100%;border:1px solid #c8b89a;padding:0.7rem 0.9rem;font-family:'Source Serif 4',Georgia,serif;font-size:0.95rem;color:#1a1410;background:#fff;outline:none;margin-bottom:0.75rem}
+.pg-input:focus{border-color:#8b1a1a}
+.pg-btn{width:100%;background:#8b1a1a;color:#f5f0e8;border:none;padding:0.8rem;font-family:'Playfair Display',Georgia,serif;font-size:0.9rem;font-weight:600;cursor:pointer;letter-spacing:0.05em}
+.pg-btn:hover{background:#a02020}
+.pg-error{color:#8b1a1a;font-size:0.75rem;margin-top:0.5rem;min-height:1em}
+.pg-note{font-size:0.65rem;color:#8a7a6a;margin-top:1rem;line-height:1.6}
+</style>
+<!-- Preview-password gate removed (Phase 3 §3): replaced by the 7.5 bootstrap (prelaunch-guard + requireAccess) -->
+
+<!-- Data loading overlay -->
+<div id="dataLoadingOverlay" style="
+  position:fixed;inset:0;background:var(--bg);z-index:9999;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
+">
+  <div style="
+    width:40px;height:40px;border:3px solid var(--border);
+    border-top-color:var(--accent);border-radius:50%;
+    animation:spin 0.8s linear infinite;
+  "></div>
+  <div style="font-family:'Inter',sans-serif;font-size:13px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;color:var(--text3)">Loading player data…</div>
+</div>
+<style>@keyframes spin{to{transform:rotate(360deg)}}
+/* ══ Cricket Times Support Banner ══ */
+.ct-support-banner{max-width:1400px;margin:0 auto;padding:0 24px}
+.ct-support-inner{border-top:3px double var(--border2,#c8c4bc);border-bottom:3px double var(--border2,#c8c4bc);padding:36px 0;display:flex;align-items:center;gap:40px}
+.ct-support-icon{flex-shrink:0;width:72px;height:72px;border:2px solid var(--accent,#a03020);border-radius:50%;display:flex;align-items:center;justify-content:center}
+.ct-support-icon svg{width:32px;height:32px;stroke:var(--accent,#a03020);fill:none;stroke-width:1.5}
+.ct-support-content{flex:1}
+.ct-support-headline{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;line-height:1.3;margin-bottom:8px;color:var(--text,#1a1a18)}
+.ct-support-headline em{font-style:italic;color:var(--accent,#a03020)}
+.ct-support-body{font-family:'Source Serif 4',Georgia,serif;font-size:15px;color:var(--text2,#4a4a46);line-height:1.6;max-width:560px}
+.ct-support-actions{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:8px}
+.ct-support-btn{display:inline-flex;align-items:center;gap:8px;padding:12px 28px;background:var(--accent,#a03020);color:#fff;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;letter-spacing:0.5px;text-decoration:none;border:none;cursor:pointer;transition:all 0.2s ease}
+.ct-support-btn:hover{background:var(--accent-hover,#801810);transform:translateY(-1px)}
+.ct-support-btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2}
+.ct-support-aside{font-family:'Inter',sans-serif;font-size:10px;color:var(--text3,#7a7a74);letter-spacing:0.3px;text-align:center;max-width:220px}
+@media(max-width:768px){.ct-support-inner{flex-direction:column;text-align:center;gap:24px;padding:28px 0}.ct-support-body{margin:0 auto}.ct-support-headline{font-size:20px}}
+
+</style>
+
+
+<div class="site-content" id="siteContent">
+<header data-ct-nav="masthead"></header>
+<nav data-ct-nav="primary"></nav>
+
+<header class="header">
+  <div class="hdr-inner">
+    <div class="brand">
+      <div class="brand-icon">TC</div>
+      <div>
+        <h1>Test Cricket Side by Side</h1>
+        <div class="brand-sub">Simulation Weights</div>
+      </div>
+    </div>
+    <nav class="hdr-nav">
+      <a class="nav-link" href="countries.html">
+        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        <span>Countries</span>
+      </a>
+      <a class="nav-link" href="batting.html">
+        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="3" y1="15" x2="21" y2="15"></line><line x1="9" y1="3" x2="9" y2="21"></line></svg>
+        <span>Batting</span>
+      </a>
+      <a class="nav-link" href="bowling.html">
+        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M8 12a4 4 0 0 1 8 0"></path><line x1="12" y1="8" x2="12" y2="12"></line></svg>
+        <span>Bowling</span>
+      </a>
+      <a class="nav-link" href="compare.html">
+        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span>Compare</span>
+      </a>
+      <a class="nav-link active" href="simulation.html">
+        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="3"></rect><circle cx="8" cy="8" r="1.5" fill="currentColor" stroke="none"></circle><circle cx="16" cy="8" r="1.5" fill="currentColor" stroke="none"></circle><circle cx="8" cy="16" r="1.5" fill="currentColor" stroke="none"></circle><circle cx="16" cy="16" r="1.5" fill="currentColor" stroke="none"></circle><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"></circle></svg>
+        <span>Simulation</span>
+      </a>
+      <button class="share-btn" onclick="sharePage()">
+        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="18" cy="5" r="3"></circle>
+          <circle cx="6" cy="12" r="3"></circle>
+          <circle cx="18" cy="19" r="3"></circle>
+          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+          <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+        </svg>
+        <span>Share</span>
+      </button>
+      <button class="share-btn export-btn" id="exportBtn" onclick="exportToExcel()">
+        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        <span>Excel</span>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<main class="main">
+  <div class="page-head">
+    <h2 class="page-title">Simulation Weights</h2>
+    <p class="page-desc">Configure weights for different performance factors to run custom simulations</p>
+  </div>
+
+  <div class="info-panel">
+    <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+    <div class="info-text">
+      <strong>How it works:</strong> Use our pre-configured models to see immediate results based on our proprietary algorithms, or set up your own custom weights when you choose the Custom model from the dropdown.
+    </div>
+  </div>
+
+  <!-- Player Type & Model Type Filter -->
+  <div class="filter-panel" style="border-bottom-left-radius:0;border-bottom-right-radius:0;margin-bottom:0;padding-bottom:14px">
+    <div style="margin-bottom:12px">
+      <span style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3)">Simulation Setup</span>
+    </div>
+    <div class="filter-row" style="flex-wrap:wrap;gap:16px 24px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <label class="filter-label">Player Type</label>
+        <select class="filter-select" id="playerTypeFilter" onchange="handlePlayerTypeChange()">
+          <option value="batter">Batter</option>
+          <option value="bowler">Bowler</option>
+        </select>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <label class="filter-label">Model Type</label>
+        <select class="filter-select" id="modelTypeFilter" onchange="saveLastFilter(); toggleWeightsPanel(); updatePreview(); updateResultsTable()">
+          <option value="Stranted">Stranted</option>
+          <option value="Tencliffe15">Tencliffe15</option>
+          <option value="Bradlar99">Bradlar99</option>
+          <option value="Harjosh86">Harjosh86</option>
+          <option value="Custom Batting">Custom</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Batting Filter -->
+  <div class="filter-panel" id="battingFilterPanel" style="border-radius:0;margin-bottom:0;padding-bottom:14px;border-top:1px dashed var(--border)">
+    <div style="margin-bottom:12px">
+      <span style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3)">Batting Filters</span>
+    </div>
+    <div class="filter-row" style="flex-wrap:wrap;gap:16px 24px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <label class="filter-label">Runs</label>
+        <select class="filter-select" id="runsFilter" onchange="updateResultsTable()">
+          <option value="0">No Minimum</option>
+          <option value="1000">1,000+</option>
+          <option value="2000">2,000+</option>
+          <option value="3000">3,000+</option>
+          <option value="4000">4,000+</option>
+          <option value="5000">5,000+</option>
+          <option value="6000">6,000+</option>
+          <option value="7000">7,000+</option>
+          <option value="8000">8,000+</option>
+          <option value="10000">10,000+</option>
+        </select>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <label class="filter-label">Avg</label>
+        <select class="filter-select" id="avgFilter" onchange="updateResultsTable()">
+          <option value="0">No Minimum</option>
+          <option value="25">25+</option>
+          <option value="30">30+</option>
+          <option value="35">35+</option>
+          <option value="40">40+</option>
+          <option value="45">45+</option>
+          <option value="48">48+</option>
+          <option value="50">50+</option>
+          <option value="51">51+</option>
+          <option value="52">52+</option>
+          <option value="53">53+</option>
+          <option value="54">54+</option>
+          <option value="55">55+</option>
+          <option value="60">60+</option>
+        </select>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <label class="filter-label">SR</label>
+        <select class="filter-select" id="srFilter" onchange="updateResultsTable()">
+          <option value="0">No Minimum</option>
+          <option value="30">30+</option>
+          <option value="35">35+</option>
+          <option value="40">40+</option>
+          <option value="45">45+</option>
+          <option value="48">48+</option>
+          <option value="50">50+</option>
+          <option value="51">51+</option>
+          <option value="52">52+</option>
+          <option value="53">53+</option>
+          <option value="54">54+</option>
+          <option value="55">55+</option>
+          <option value="60">60+</option>
+          <option value="65">65+</option>
+          <option value="70">70+</option>
+        </select>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <label class="filter-label">Era</label>
+        <div class="era-multi-select" id="eraFilterContainer">
+          <button class="era-toggle-btn" id="eraToggleBtn" onclick="toggleEraDropdown()">
+            <span id="eraSelectedText">All Eras</span>
+            <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="era-dropdown" id="eraDropdown">
+            <label class="era-option"><input type="checkbox" value="all" checked onchange="handleEraChange(this)"> All Eras</label>
+            <label class="era-option"><input type="checkbox" value="1877-1899" onchange="handleEraChange(this)"> 1877–1899</label>
+            <label class="era-option"><input type="checkbox" value="1900-1918" onchange="handleEraChange(this)"> 1900–1918</label>
+            <label class="era-option"><input type="checkbox" value="1919-1939" onchange="handleEraChange(this)"> 1919–1939</label>
+            <label class="era-option"><input type="checkbox" value="1945-1970" onchange="handleEraChange(this)"> 1945–1970</label>
+            <label class="era-option"><input type="checkbox" value="1971-1999" onchange="handleEraChange(this)"> 1971–1999</label>
+            <label class="era-option"><input type="checkbox" value="2000-2025" onchange="handleEraChange(this)"> 2000–2025</label>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <label class="filter-label">Players</label>
+        <select class="filter-select" id="playerFilter" onchange="updateResultsTable()">
+          <option value="5">Top 5</option>
+          <option value="10" selected>Top 10</option>
+          <option value="20">Top 20</option>
+          <option value="25">Top 25</option>
+          <option value="50">Top 50</option>
+          <option value="100">Top 100</option>
+          <option value="all">All</option>
+        </select>
+      </div>
+      <button class="wp-reset" onclick="clearFilters()" style="margin-left:auto">Clear Filters</button>
+      <button class="wp-export" onclick="exportToExcel()" title="Download current results as .xlsx — respects active filters, weights, and player limit">
+        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        Export to Excel
+      </button>
+    </div>
+  </div>
+
+  <!-- Bowling Filter -->
+  <div class="filter-panel" id="bowlingFilterPanel" style="display:none;border-top:1px dashed var(--border);border-top-left-radius:0;border-top-right-radius:0;padding-top:14px">
+    <div style="margin-bottom:12px;display:flex;align-items:center;gap:8px">
+      <span style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3)">Bowling Filters</span>
+    </div>
+    <div class="filter-row" style="flex-wrap:wrap;gap:16px 24px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <label class="filter-label">Wickets</label>
+        <select class="filter-select" id="bowlWktsFilter" onchange="updateResultsTable()">
+          <option value="0">No Minimum</option>
+          <option value="50">50+</option>
+          <option value="100" selected>100+</option>
+          <option value="120">120+</option>
+          <option value="150">150+</option>
+          <option value="200">200+</option>
+          <option value="250">250+</option>
+          <option value="300">300+</option>
+          <option value="350">350+</option>
+          <option value="400">400+</option>
+          <option value="450">450+</option>
+          <option value="500">500+</option>
+          <option value="550">550+</option>
+          <option value="600">600+</option>
+        </select>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <label class="filter-label">Bowl Avg</label>
+        <select class="filter-select" id="bowlAvgFilter" onchange="updateResultsTable()">
+          <option value="0">No Maximum</option>
+          <option value="20">20 &amp; under</option>
+          <option value="22">22 &amp; under</option>
+          <option value="24">24 &amp; under</option>
+          <option value="25">25 &amp; under</option>
+          <option value="26">26 &amp; under</option>
+          <option value="28">28 &amp; under</option>
+          <option value="30">30 &amp; under</option>
+          <option value="32">32 &amp; under</option>
+          <option value="34">34 &amp; under</option>
+          <option value="36">36 &amp; under</option>
+          <option value="38">38 &amp; under</option>
+          <option value="40">40 &amp; under</option>
+        </select>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <label class="filter-label">Bowl SR</label>
+        <select class="filter-select" id="bowlSRFilter" onchange="updateResultsTable()">
+          <option value="0">No Maximum</option>
+          <option value="35">35 &amp; under</option>
+          <option value="40">40 &amp; under</option>
+          <option value="45">45 &amp; under</option>
+          <option value="50">50 &amp; under</option>
+          <option value="52">52 &amp; under</option>
+          <option value="55">55 &amp; under</option>
+          <option value="60">60 &amp; under</option>
+          <option value="65">65 &amp; under</option>
+          <option value="70">70 &amp; under</option>
+          <option value="75">75 &amp; under</option>
+          <option value="80">80 &amp; under</option>
+          <option value="85">85 &amp; under</option>
+          <option value="90">90 &amp; under</option>
+          <option value="95">95 &amp; under</option>
+          <option value="100">100 &amp; under</option>
+        </select>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <label class="filter-label">Econ</label>
+        <select class="filter-select" id="bowlEconFilter" onchange="updateResultsTable()">
+          <option value="0">No Maximum</option>
+          <option value="2">2.0 &amp; under</option>
+          <option value="2.5">2.5 &amp; under</option>
+          <option value="2.8">2.8 &amp; under</option>
+          <option value="3">3.0 &amp; under</option>
+          <option value="3.5">3.5 &amp; under</option>
+          <option value="4">4.0 &amp; under</option>
+          <option value="4.5">4.5 &amp; under</option>
+          <option value="5">5.0 &amp; under</option>
+          <option value="5.5">5.5 &amp; under</option>
+          <option value="6">6.0 &amp; under</option>
+        </select>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <label class="filter-label">Era</label>
+        <div class="era-multi-select" id="bowlEraFilterContainer">
+          <button class="era-toggle-btn" id="bowlEraToggleBtn" onclick="toggleBowlEraDropdown()">
+            <span id="bowlEraSelectedText">All Eras</span>
+            <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="era-dropdown" id="bowlEraDropdown">
+            <label class="era-option"><input type="checkbox" value="all" checked onchange="handleBowlEraChange(this)"> All Eras</label>
+            <label class="era-option"><input type="checkbox" value="1877-1899" onchange="handleBowlEraChange(this)"> 1877–1899</label>
+            <label class="era-option"><input type="checkbox" value="1900-1918" onchange="handleBowlEraChange(this)"> 1900–1918</label>
+            <label class="era-option"><input type="checkbox" value="1919-1939" onchange="handleBowlEraChange(this)"> 1919–1939</label>
+            <label class="era-option"><input type="checkbox" value="1945-1970" onchange="handleBowlEraChange(this)"> 1945–1970</label>
+            <label class="era-option"><input type="checkbox" value="1971-1999" onchange="handleBowlEraChange(this)"> 1971–1999</label>
+            <label class="era-option"><input type="checkbox" value="2000-2025" onchange="handleBowlEraChange(this)"> 2000–2025</label>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <label class="filter-label">Players</label>
+        <select class="filter-select" id="bowlPlayerFilter" onchange="updateResultsTable()">
+          <option value="5">Top 5</option>
+          <option value="10" selected>Top 10</option>
+          <option value="20">Top 20</option>
+          <option value="25">Top 25</option>
+          <option value="50">Top 50</option>
+          <option value="100">Top 100</option>
+          <option value="all">All</option>
+        </select>
+      </div>
+      <button class="wp-reset" onclick="clearBowlFilters()" style="margin-left:auto">Clear Filters</button>
+      <button class="wp-export" onclick="exportToExcel()" title="Download current results as .xlsx — respects active filters, weights, and player limit">
+        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        Export to Excel
+      </button>
+    </div>
+  </div>
+
+  <div class="weights-panel open" id="weightsPanel" style="display:none">
+    <div class="wp-head" onclick="this.parentElement.classList.toggle('open')">
+      <span class="wp-title">Custom Weights</span>
+      <div class="wp-toggle">
+        <span>Toggle</span>
+        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+      </div>
+    </div>
+    <div class="wp-body">
+    <p style="font-size:12px;color:var(--text3);margin:14px 0 18px">Set your own factor weights below, or select a pre-configured model from the dropdown above to use weights from backsim.</p>
+
+    <div id="battingWeightsSection">
+    <div style="margin-bottom:16px">
+      <span style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--accent);display:flex;align-items:center;gap:6px">
+        <svg viewBox="0 0 24 24" width="14" height="14" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="stroke:var(--accent);fill:none"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        Batting Weights
+      </span>
+    </div>
+    <div class="weights-grid" style="margin-bottom:20px" id="battingModelsGrid">
+    </div>
+    </div>
+
+    <div id="bowlingWeightsSection" style="display:none">
+    <div style="margin-bottom:16px">
+      <span style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--blue);display:flex;align-items:center;gap:6px">
+        <svg viewBox="0 0 24 24" width="14" height="14" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="stroke:var(--blue);fill:none"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Bowling Weights
+      </span>
+    </div>
+    <div class="weights-grid" id="bowlingModelsGrid">
+    </div>
+    </div>
+
+    <div class="wp-actions">
+      <button class="wp-reset" onclick="resetWeights()">Reset All</button>
+    </div>
+    </div><!-- end wp-body -->
+  </div>
+
+  <!-- Results Table -->
+  <div class="results-panel">
+    <div class="rp-header">
+      <span class="rp-title">Simulation Results <span id="activeModelLabel" style="font-weight:500;color:var(--accent);font-size:13px"></span></span>
+      <div class="rp-stats">
+        <span class="rp-stat">Players: <strong id="playerCount">10</strong></span>
+      </div>
+    </div>
+    <div class="table-scroll">
+    <table class="results-table">
+      <thead id="resultsHead">
+        <tr>
+          <th class="num">#</th>
+          <th>Player</th>
+          <th>Country</th>
+          <th>Span</th>
+          <th class="num">Tests</th>
+          <th class="num">Runs</th>
+          <th class="num">Avg</th>
+          <th class="num">SR</th>
+          <th class="num">Points</th>
+        </tr>
+      </thead>
+      <tbody id="resultsBody">
+      </tbody>
+    </table>
+    </div><!-- end table-scroll -->
+  </div>
+</main>
+
+<script>
+// Model definitions
+// Named models (configured via backsim, not editable here)
+// Phase 3 §3: dataset + derived player list, populated in boot() after the gated load.
+let D = null;
+let playerData = [];
+
+const battingModels = {
+  tencliffe15: { name: 'Tencliffe15', factors: ['runs','average','strikeRate'] },
+  bradlar99: { name: 'Bradlar99', factors: ['runs','average','strikeRate'] },
+  harjosh86: { name: 'Harjosh86', factors: ['runs','average','strikeRate'] },
+  stranted: { name: 'Stranted', factors: ['homeWinPct','homeDrawPct','homeLossPct','awayWinPct','awayDrawPct','awayLossPct'] }
+};
+const bowlingModels = {
+  sharan7080: { name: 'Sharan7080', factors: ['wickets','average','strikeRate','economy'] },
+  dale20: { name: 'Dale20', factors: ['wickets','average','strikeRate','economy'] },
+  mal40: { name: 'Mal40', factors: ['wickets','average','strikeRate','economy'] },
+  bap25: { name: 'Bap2.5', factors: ['wickets','average','strikeRate','economy'] },
+  denstrat: { name: 'Denstrat', factors: ['bowlHomeWinPct','bowlHomeDrawPct','bowlHomeLossPct','bowlAwayWinPct','bowlAwayDrawPct','bowlAwayLossPct'] },
+  longevityCompBowl: { name: 'Longevity — Compartmentalized', factors: ['gte25','gte50','gte75','gte100','gte125','gte150','gte175','gte200'] },
+  longevityContBowl: { name: 'Longevity — Continuous', factors: ['firstTestPts','incrPtsPerTest'] },
+  keyParamsBowl: { name: 'Key Parameters', factors: ['average','strikeRate','economyRate'] },
+  momBowl: { name: 'MOM', factors: ['pointsPerAward'] },
+  fiveWktsBowl: { name: '5 Wickets in Innings', factors: ['firstPts', 'additionalPts'] },
+  tenWktsBowl: { name: '10 Wickets in Match', factors: ['firstPts', 'additionalPts'] },
+  sigmam: { name: 'Σm — Mix & Match', factors: ['_coreModel','_longevityModel','_useKeyParams','_useMom','_use5wkt','_use10wkt'], isSigmam: true }
+};
+
+// Custom user-configurable cards (editable on this page)
+// Each factor is its own "model" internally but they share a group total
+const customModels = {
+  custom_batting: { name: 'Custom Batting', factors: ['runs','average','strikeRate'] },
+  custom_bowling: { name: 'Custom Bowling', factors: ['average','strikeRate','economy'] }
+};
+
+const allModels = { ...battingModels, ...bowlingModels, ...customModels };
+
+const factorLabels = {
+  runs: 'Runs', average: 'Average', strikeRate: 'Strike Rate',
+  wickets: 'Wickets', economy: 'Economy',
+  homeWinPct: '% Team Runs — Home Wins', homeDrawPct: '% Team Runs — Home Draws', homeLossPct: '% Team Runs — Home Losses',
+  awayWinPct: '% Team Runs — Away Wins', awayDrawPct: '% Team Runs — Away Draws', awayLossPct: '% Team Runs — Away Losses',
+  bowlHomeWinPct: '% Wkts — Home Wins', bowlHomeDrawPct: '% Wkts — Home Draws', bowlHomeLossPct: '% Wkts — Home Losses',
+  bowlAwayWinPct: '% Wkts — Away Wins', bowlAwayDrawPct: '% Wkts — Away Draws', bowlAwayLossPct: '% Wkts — Away Losses'
+};
+
+// Icons for individual factor cards
+const factorIcons = {
+  runs: '<path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/>',
+  average: '<line x1="4" y1="12" x2="20" y2="12"/><polyline points="8 8 4 12 8 16"/><polyline points="16 8 20 12 16 16"/>',
+  strikeRate: '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
+  wickets: '<circle cx="12" cy="12" r="10"/><path d="M12 8v4l2 2"/>',
+  economy: '<path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>'
+};
+
+// Config: all models get factor slots
+const config = {};
+for (const [key, model] of Object.entries(allModels)) {
+  if (model.isSigmam) {
+    config[key] = { _coreModel: '', _longevityModel: '', _useKeyParams: false, _useMom: false };
+  } else {
+    config[key] = {};
+    model.factors.forEach(f => { config[key][f] = 0; });
+  }
+}
+
+// Render individual factor cards for custom batting/bowling
+function renderModelCards() {
+  const batGrid = document.getElementById('battingModelsGrid');
+  const bowlGrid = document.getElementById('bowlingModelsGrid');
+  batGrid.innerHTML = '';
+  bowlGrid.innerHTML = '';
+
+  function buildFactorCard(groupKey, factor) {
+    const icon = factorIcons[factor] || '<circle cx="12" cy="12" r="10"/>';
+    const cardId = `${groupKey}_${factor}`;
+    return `<div class="weight-group" id="${cardId}_card">
+      <div class="wg-header">
+        <span class="wg-title"><svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${icon}</svg>${factorLabels[factor]}</span>
+        <button class="wg-reset-btn" onclick="clearFactor('${groupKey}','${factor}')">Reset</button>
+      </div>
+      <div class="weight-item" id="${groupKey}_${factor}_item" style="margin-bottom:6px">
+        <span class="wi-label">Weight</span>
+        <input type="number" class="wi-input" id="${groupKey}_${factor}" min="0" max="100" placeholder="0" value="" oninput="onFactorInput('${groupKey}','${factor}')">
+        <span class="wi-unit">%</span>
+      </div>
+    </div>`;
+  }
+
+  // Build batting factor cards
+  customModels.custom_batting.factors.forEach(f => {
+    batGrid.innerHTML += buildFactorCard('custom_batting', f);
+  });
+  // Add shared total row after the grid
+  const batTotal = document.createElement('div');
+  batTotal.className = 'wg-subtotal';
+  batTotal.style.cssText = 'margin-top:8px;padding:0 4px';
+  batTotal.innerHTML = `<span class="wg-subtotal-label">Total:</span><span class="wg-subtotal-value" id="custom_batting_subtotal">0 / 100%</span>`;
+  batGrid.parentNode.insertBefore(batTotal, batGrid.nextSibling);
+
+  // Build bowling factor cards
+  customModels.custom_bowling.factors.forEach(f => {
+    bowlGrid.innerHTML += buildFactorCard('custom_bowling', f);
+  });
+  // Add shared total row after the grid
+  const bowlTotal = document.createElement('div');
+  bowlTotal.className = 'wg-subtotal';
+  bowlTotal.style.cssText = 'margin-top:8px;padding:0 4px';
+  bowlTotal.innerHTML = `<span class="wg-subtotal-label">Total:</span><span class="wg-subtotal-value" id="custom_bowling_subtotal">0 / 100%</span>`;
+  bowlGrid.parentNode.insertBefore(bowlTotal, bowlGrid.nextSibling);
+}
+
+function onFactorInput(model, factor) {
+  const input = document.getElementById(`${model}_${factor}`);
+  let val = parseInt(input.value) || 0;
+  if (val < 0) val = 0;
+  if (val > 100) { val = 100; input.value = 100; }
+  config[model][factor] = val;
+
+  // Check total doesn't exceed 100
+  const total = Object.values(config[model]).reduce((s, v) => s + v, 0);
+  if (total > 100) {
+    const excess = total - 100;
+    val = Math.max(0, val - excess);
+    config[model][factor] = val;
+    input.value = val;
+  }
+
+  // Update subtotal display
+  updateModelSubtotal(model);
+
+  // Highlight filled items
+  const item = document.getElementById(`${model}_${factor}_item`);
+  if (val > 0) { item.classList.add('has-value'); } else { item.classList.remove('has-value'); }
+
+  updateTags();
+  updatePreview();
+  if (typeof updateResultsTable === 'function') updateResultsTable();
+}
+
+function updateModelSubtotal(model) {
+  const total = Object.values(config[model]).reduce((s, v) => s + v, 0);
+  const el = document.getElementById(`${model}_subtotal`);
+  if (!el) return;
+  el.textContent = `${total} / 100%`;
+  if (total === 0) {
+    el.className = 'wg-subtotal-value';
+  } else if (total === 100) {
+    el.className = 'wg-subtotal-value valid';
+  } else {
+    el.className = 'wg-subtotal-value invalid';
+  }
+  // Highlight individual factor cards when total is invalid
+  const modelDef = customModels[model];
+  if (modelDef) {
+    modelDef.factors.forEach(f => {
+      const card = document.getElementById(`${model}_${f}_card`);
+      if (card) {
+        if (total > 0 && total !== 100) card.classList.add('has-error');
+        else card.classList.remove('has-error');
+      }
+    });
+  }
+}
+
+// Legacy compat stubs
+const inputMap = {};
+const itemMap = {};
+function updateTotalNoAuto() {}
+function updateTotal() {}
+function autoCalculateThirdCategory() {}
+function updateSub() {}
+function updateSubtotal() {}
+function updateGrandTotal() {
+  if (typeof updateResultsTable === 'function') updateResultsTable();
+}
+
+function updateTags() {}
+
+function updatePreview() {}
+
+function clearFactor(model, factor) {
+  config[model][factor] = 0;
+  const input = document.getElementById(`${model}_${factor}`);
+  if (input) input.value = '';
+  const item = document.getElementById(`${model}_${factor}_item`);
+  if (item) item.classList.remove('has-value');
+  updateModelSubtotal(model);
+  updateTags();
+  updatePreview();
+  if (typeof updateResultsTable === 'function') updateResultsTable();
+}
+
+function clearGroup(group) {
+  resetCategory(group);
+}
+
+function resetCategory(model) {
+  if (!config[model]) return;
+  for (const factor of Object.keys(config[model])) {
+    config[model][factor] = 0;
+    const input = document.getElementById(`${model}_${factor}`);
+    if (input) input.value = '';
+    const item = document.getElementById(`${model}_${factor}_item`);
+    if (item) item.classList.remove('has-value');
+  }
+  updateModelSubtotal(model);
+  updateTags();
+  updatePreview();
+  if (typeof updateResultsTable === 'function') updateResultsTable();
+}
+
+function resetWeights() {
+  for (const model of Object.keys(config)) {
+    resetCategory(model);
+  }
+}
+
+function applyWeights() {} // No-op — custom weights apply live
+
+// Render cards on load
+renderModelCards();
+
+// Player data from actual Test cricket database
+// Build playerData from data.js D.P at runtime
+// D.P entries are arrays: [0]id [1]name [2]fullName [3]country [4]from [5]to
+// [6]tests [7]inn [8]no [9]runs [10]? [11]avg [12]sr [13]hs [14]? [15]?
+// [16]? [17]bowlOv [18]bowlMd [19]bowlRuns [20]bowlWkts [21]bowlAvg
+// [22]bowlEcon [23]bowlSR [24]5WI [25]10WM [26]bestBowl [27]? [28]? [29]mom
+// [30]batHand [31]bowlType [32]homeResultPct [33]awayResultPct
+// [34]bowlHomeResultPct [35]bowlAwayResultPct
+function buildPlayerData() {
+  if (typeof D === 'undefined' || !D.P) return [];
+  return D.P.map(p => ({
+    name: p[1], runs: p[9], avg: p[11], sr: p[10] > 0 ? Math.round((p[9] / p[10]) * 10000) / 100 : 0, tests: p[6],
+    from: p[4], to: p[5], country: p[3], mom: p[29] || 0,
+    homeResultPct: p[32] || {win:0,draw:0,loss:0},
+    awayResultPct: p[33] || {win:0,draw:0,loss:0},
+    bowlWkts: p[20] || 0, bowlAvg: p[21] || 0,
+    bowlSR: p[23] || 0, bowlEcon: p[22] || 0,
+    bowlTests: p[6],
+    bowl5wi: p[24] || 0,
+    bowl10wm: p[25] || 0,
+    bowlHomeResultPct: p[34] || null,
+    bowlAwayResultPct: p[35] || null,
+  }));
+}
+
+// Phase 3 §3: load the gated dataset, build player data, then render.
+(async function boot() {
+  const overlay = document.getElementById('dataLoadingOverlay');
+  try {
+    D = await CTData.load('data');          // gated fetch (Bearer token + browser gzip inflate)
+  } catch (e) {
+    console.error('Failed to load match data:', e);
+    return;                                 // page is gated; non-entitled users are redirected before this runs
+  }
+  playerData = buildPlayerData();
+  if (overlay) overlay.style.display = 'none';
+  if (typeof updateResultsTable === 'function') updateResultsTable();
+})();
+
+// playerData is built in boot() after the gated load (Phase 3 §3)
+function calculatePoints(player) {
+  // Get the currently selected model from the dropdown
+  const modelTypeEl = document.getElementById('modelTypeFilter');
+  const selectedModelLabel = modelTypeEl ? modelTypeEl.value : '';
+  
+  // Map dropdown label to config key
+  const labelToKey = {};
+  for (const [key, model] of Object.entries(allModels)) {
+    labelToKey[model.name] = key;
+  }
+  const activeModelKey = labelToKey[selectedModelLabel];
+  if (!activeModelKey || !config[activeModelKey]) return 0;
+  
+  return calcPointsForModel(player, activeModelKey);
+}
+
+// Recursive helper — used by sigmam to delegate to component models
+function calcPointsForModel(player, modelKey) {
+  const model = allModels[modelKey];
+  if (!model || !config[modelKey]) return 0;
+  const factors = config[modelKey];
+  let points = 0;
+
+  // ── Sigmam Mix & Match: sum of selected component models ──
+  if (model.isSigmam) {
+    let total = 0;
+    const cfg = config[modelKey];
+    // Core model (mandatory)
+    if (cfg._coreModel && allModels[cfg._coreModel] && config[cfg._coreModel]) {
+      total += calcPointsForModel(player, cfg._coreModel);
+    }
+    // Longevity (optional)
+    if (cfg._longevityModel && allModels[cfg._longevityModel] && config[cfg._longevityModel]) {
+      total += calcPointsForModel(player, cfg._longevityModel);
+    }
+    // Key Parameters (optional)
+    if (cfg._useKeyParams && config['keyParamsBowl']) {
+      total += calcPointsForModel(player, 'keyParamsBowl');
+    }
+    // MOM (optional)
+    if (cfg._useMom && config['momBowl']) {
+      total += calcPointsForModel(player, 'momBowl');
+    }
+    // 5 Wickets in Innings (optional)
+    if (cfg._use5wkt && config['fiveWktsBowl']) {
+      total += calcPointsForModel(player, 'fiveWktsBowl');
+    }
+    // 10 Wickets in Match (optional)
+    if (cfg._use10wkt && config['tenWktsBowl']) {
+      total += calcPointsForModel(player, 'tenWktsBowl');
+    }
+    return total;
+  }
+
+  // ── MOM models: MOM awards × points per award ──
+  if (modelKey === 'momBowl') {
+    const ptsPerAward = factors.pointsPerAward || 0;
+    return (player.mom || 0) * ptsPerAward;
+  }
+
+  // ── Milestone models: 5WI / 10WM — first instance + additional ──
+  if (modelKey === 'fiveWktsBowl' || modelKey === 'tenWktsBowl') {
+    const count = modelKey === 'fiveWktsBowl' ? (player.bowl5wi || 0) : (player.bowl10wm || 0);
+    if (count <= 0) return 0;
+    const firstPts = factors.firstPts || 0;
+    const additionalPts = factors.additionalPts || 0;
+    return firstPts + Math.max(0, count - 1) * additionalPts;
+  }
+
+  // ── Key Parameters bowling: (input - stat) per factor ──
+  if (modelKey === 'keyParamsBowl') {
+    const statMap = { average: player.bowlAvg || 0, strikeRate: player.bowlSR || 0, economyRate: player.bowlEcon || 0 };
+    for (const [factor, weight] of Object.entries(factors)) {
+      if (weight > 0 && statMap[factor] !== undefined) {
+        points += weight - statMap[factor];
+      }
+    }
+    return points;
+  }
+
+  // ── Longevity Continuous: firstTestPts + (tests - 1) × incrPtsPerTest ──
+  if (modelKey === 'longevityContBowl') {
+    const firstPts = factors.firstTestPts || 0;
+    const incrPts  = factors.incrPtsPerTest || 0;
+    const tests = player.bowlTests || player.tests || 0;
+    if (tests <= 0) return 0;
+    return firstPts + (tests - 1) * incrPts;
+  }
+
+  // ── Longevity Compartmentalized: highest matching threshold ──
+  if (modelKey === 'longevityCompBowl') {
+    const longevityTests = player.bowlTests || player.tests || 0;
+    const longevityMap = {
+      gte25:  longevityTests >= 25  ? 1 : 0,
+      gte50:  longevityTests >= 50  ? 1 : 0,
+      gte75:  longevityTests >= 75  ? 1 : 0,
+      gte100: longevityTests >= 100 ? 1 : 0,
+      gte125: longevityTests >= 125 ? 1 : 0,
+      gte150: longevityTests >= 150 ? 1 : 0,
+      gte175: longevityTests >= 175 ? 1 : 0,
+      gte200: longevityTests >= 200 ? 1 : 0
+    };
+    for (const [factor, weight] of Object.entries(factors)) {
+      if (weight > 0 && longevityMap[factor]) {
+        points = weight; // last matching threshold wins (ascending order)
+      }
+    }
+    return points;
+  }
+
+  // Map factor keys to actual player data values
+  const battingFactorMap = {
+    runs: player.runs || 0,
+    average: player.avg || 0,
+    strikeRate: player.sr || 0
+  };
+  
+  const bowlingFactorMap = {
+    wickets: player.bowlWkts || 0,
+    average: player.bowlAvg || 0,
+    strikeRate: player.bowlSR || 0,
+    economy: player.bowlEcon || 0
+  };
+  
+  const completenessMap = {
+    homeWinPct: (player.homeResultPct && player.homeResultPct.win) || 0,
+    homeDrawPct: (player.homeResultPct && player.homeResultPct.draw) || 0,
+    homeLossPct: (player.homeResultPct && player.homeResultPct.loss) || 0,
+    awayWinPct: (player.awayResultPct && player.awayResultPct.win) || 0,
+    awayDrawPct: (player.awayResultPct && player.awayResultPct.draw) || 0,
+    awayLossPct: (player.awayResultPct && player.awayResultPct.loss) || 0
+  };
+  const bowlingCompletenessMap = {
+    bowlHomeWinPct: (player.bowlHomeResultPct && player.bowlHomeResultPct.win) || 0,
+    bowlHomeDrawPct: (player.bowlHomeResultPct && player.bowlHomeResultPct.draw) || 0,
+    bowlHomeLossPct: (player.bowlHomeResultPct && player.bowlHomeResultPct.loss) || 0,
+    bowlAwayWinPct: (player.bowlAwayResultPct && player.bowlAwayResultPct.win) || 0,
+    bowlAwayDrawPct: (player.bowlAwayResultPct && player.bowlAwayResultPct.draw) || 0,
+    bowlAwayLossPct: (player.bowlAwayResultPct && player.bowlAwayResultPct.loss) || 0
+  };
+  // Denstrat uses factor keys without the 'bowl' prefix but maps to bowling completeness data
+  const denstratMap = {
+    homeWinPct:  bowlingCompletenessMap.bowlHomeWinPct,
+    homeDrawPct: bowlingCompletenessMap.bowlHomeDrawPct,
+    homeLossPct: bowlingCompletenessMap.bowlHomeLossPct,
+    awayWinPct:  bowlingCompletenessMap.bowlAwayWinPct,
+    awayDrawPct: bowlingCompletenessMap.bowlAwayDrawPct,
+    awayLossPct: bowlingCompletenessMap.bowlAwayLossPct
+  };
+  
+  const battingModelKeys = ['tencliffe15', 'bradlar99', 'harjosh86', 'custom_batting'];
+  const bowlingModelKeys = ['sharan7080', 'dale20', 'mal40', 'bap25', 'custom_bowling'];
+
+  // ── Denstrat: bowling completeness pct (factor keys may be prefixed or not) ──
+  if (modelKey === 'denstrat') {
+    for (const [factor, weight] of Object.entries(factors)) {
+      if (factor.startsWith('_')) continue;
+      if (weight > 0) {
+        // Support both bowlHomeWinPct-style and homeWinPct-style factor keys
+        const score = bowlingCompletenessMap[factor] || denstratMap[factor] || 0;
+        points += score * (weight / 100);
+      }
+    }
+    // Apply Denstrat multiplier (passed from models.html)
+    const mult = factors._multiplier || 1;
+    points *= mult;
+    return points;
+  }
+
+  // ── Standard weighted models ──
+  for (const [factor, weight] of Object.entries(factors)) {
+    if (weight > 0) {
+      let score = 0;
+      if (modelKey === 'stranted') {
+        score = completenessMap[factor] || 0;
+      } else if (battingModelKeys.includes(modelKey)) {
+        score = battingFactorMap[factor] || 0;
+      } else if (bowlingModelKeys.includes(modelKey)) {
+        score = bowlingFactorMap[factor] || 0;
+      }
+      points += score * (weight / 100);
+    }
+  }
+  
+  return points;
+}
+
+function updateResultsTable() {
+  const tbody = document.getElementById('resultsBody');
+  const thead = document.getElementById('resultsHead');
+  const playerType = document.getElementById('playerTypeFilter').value;
+  const isBowler = playerType === 'bowler';
+  
+  // Update table headers based on player type
+  if (isBowler) {
+    thead.innerHTML = '<tr><th class="num">#</th><th>Player</th><th>Country</th><th>Span</th><th class="num">Tests</th><th class="num">Wickets</th><th class="num">Avg</th><th class="num">SR</th><th class="num">Econ</th><th class="num">Points</th></tr>';
+  } else {
+    thead.innerHTML = '<tr><th class="num">#</th><th>Player</th><th>Country</th><th>Span</th><th class="num">Tests</th><th class="num">Runs</th><th class="num">Avg</th><th class="num">SR</th><th class="num">Points</th></tr>';
+  }
+  
+  // Check if the selected model has any weights set
+  const modelTypeEl = document.getElementById('modelTypeFilter');
+  const selectedLabel = modelTypeEl ? modelTypeEl.value : '';
+  const labelToKeyMap = {};
+  for (const [key, model] of Object.entries(allModels)) { labelToKeyMap[model.name] = key; }
+  const selectedKey = labelToKeyMap[selectedLabel];
+  const anyWeightsSet = selectedKey && config[selectedKey] ? Object.values(config[selectedKey]).some(v => v > 0) : false;
+  
+  // Update active model label in results header
+  const activeModelLabel = document.getElementById('activeModelLabel');
+  if (activeModelLabel) {
+    activeModelLabel.textContent = selectedLabel ? '\u2014 ' + selectedLabel : '';
+  }
+  
+  // Get batting stat filters
+  const minRuns = parseFloat(document.getElementById('runsFilter').value) || 0;
+  const minAvg = parseFloat(document.getElementById('avgFilter').value) || 0;
+  const minSR = parseFloat(document.getElementById('srFilter').value) || 0;
+  const selectedEras = getSelectedEras();
+  const playerLimit = document.getElementById('playerFilter').value;
+  
+  // Get bowling stat filters
+  const minBowlWkts = parseFloat(document.getElementById('bowlWktsFilter').value) || 0;
+  const maxBowlAvg = parseFloat(document.getElementById('bowlAvgFilter').value) || 0;
+  const maxBowlSR = parseFloat(document.getElementById('bowlSRFilter').value) || 0;
+  const maxBowlEcon = parseFloat(document.getElementById('bowlEconFilter').value) || 0;
+  const selectedBowlEras = typeof getSelectedBowlEras === 'function' ? getSelectedBowlEras() : ['all'];
+  const bowlPlayerLimit = document.getElementById('bowlPlayerFilter') ? document.getElementById('bowlPlayerFilter').value : 'all';
+  
+  // Filter players
+  const filteredByStats = playerData.filter(player => {
+    if (isBowler) {
+      // Bowling mode: apply bowling filters
+      const bowlWkts = player.bowlWkts || 0;
+      const bowlAvg = player.bowlAvg || 0;
+      const bowlSR = player.bowlSR || 0;
+      const bowlEcon = player.bowlEcon || 0;
+      
+      if (minBowlWkts > 0 && bowlWkts < minBowlWkts) return false;
+      if (maxBowlAvg > 0 && (bowlWkts === 0 || bowlAvg > maxBowlAvg)) return false;
+      if (maxBowlSR > 0 && (bowlWkts === 0 || bowlSR > maxBowlSR)) return false;
+      if (maxBowlEcon > 0 && (bowlWkts === 0 || bowlEcon > maxBowlEcon)) return false;
+      
+      // Bowling era filter
+      if (!selectedBowlEras.includes('all')) {
+        const playerFrom = player.from || 0;
+        const playerTo = player.to || 9999;
+        const matchesBowlEra = selectedBowlEras.some(era => {
+          const [eraStart, eraEnd] = era.split('-').map(Number);
+          return !(playerTo < eraStart || playerFrom > eraEnd);
+        });
+        if (!matchesBowlEra) return false;
+      }
+    } else {
+      // Batting mode: apply batting filters, optionally bowling filters
+      if (player.runs < minRuns || player.avg < minAvg || player.sr < minSR) return false;
+      
+      if (!selectedEras.includes('all')) {
+        const playerFrom = player.from || 0;
+        const playerTo = player.to || 9999;
+        const matchesEra = selectedEras.some(era => {
+          const [eraStart, eraEnd] = era.split('-').map(Number);
+          return !(playerTo < eraStart || playerFrom > eraEnd);
+        });
+        if (!matchesEra) return false;
+      }
+    }
+    
+    return true;
+  });
+  
+  // Calculate points for filtered players
+  const playersWithPoints = filteredByStats.map(player => ({
+    ...player,
+    points: calculatePoints(player)
+  }));
+  
+  // For bowling models using avg/SR/econ (lower = better), sort ascending
+  // For models using wickets or completeness % (higher = better), sort descending
+  const activeModelFactors = (selectedKey && allModels[selectedKey]) ? allModels[selectedKey].factors : [];
+  const isLowerBetter = isBowler && !activeModelFactors.includes('wickets') && selectedKey !== 'denstrat' && selectedKey !== 'sigmam';
+  playersWithPoints.sort((a, b) => isLowerBetter ? a.points - b.points : b.points - a.points);
+  
+  // Apply player limit
+  const effectiveLimit = isBowler ? bowlPlayerLimit : playerLimit;
+  
+  const limitedPlayers = effectiveLimit === 'all' 
+    ? playersWithPoints 
+    : playersWithPoints.slice(0, parseInt(effectiveLimit));
+  
+  // Update player count
+  document.getElementById('playerCount').textContent = limitedPlayers.length;
+  
+  // Render table rows
+  if (isBowler) {
+    tbody.innerHTML = limitedPlayers.map((player, index) => `
+    <tr>
+      <td class="num">${index + 1}</td>
+      <td class="player-name">${player.name}</td>
+      <td>${player.country || '—'}</td>
+      <td>${player.from && player.to ? player.from + '–' + player.to : '—'}</td>
+      <td class="num">${player.bowlTests || 0}</td>
+      <td class="num">${(player.bowlWkts || 0).toLocaleString()}</td>
+      <td class="num">${(player.bowlAvg || 0).toFixed(2)}</td>
+      <td class="num">${(player.bowlSR || 0).toFixed(2)}</td>
+      <td class="num">${(player.bowlEcon || 0).toFixed(2)}</td>
+      <td class="num points">${anyWeightsSet ? player.points.toFixed(1) : '—'}</td>
+    </tr>
+  `).join('');
+  } else {
+    tbody.innerHTML = limitedPlayers.map((player, index) => `
+    <tr>
+      <td class="num">${index + 1}</td>
+      <td class="player-name">${player.name}</td>
+      <td>${player.country || '—'}</td>
+      <td>${player.from && player.to ? player.from + '–' + player.to : '—'}</td>
+      <td class="num">${player.tests || 0}</td>
+      <td class="num">${player.runs.toLocaleString()}</td>
+      <td class="num">${player.avg.toFixed(2)}</td>
+      <td class="num">${player.sr.toFixed(2)}</td>
+      <td class="num points">${anyWeightsSet ? player.points.toFixed(1) : '—'}</td>
+    </tr>
+  `).join('');
+  }
+}
+
+// Era multi-select functions
+function toggleEraDropdown() {
+  const dropdown = document.getElementById('eraDropdown');
+  dropdown.classList.toggle('show');
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function(e) {
+  const container = document.getElementById('eraFilterContainer');
+  if (container && !container.contains(e.target)) {
+    document.getElementById('eraDropdown').classList.remove('show');
+  }
+});
+
+function getSelectedEras() {
+  const checkboxes = document.querySelectorAll('#eraDropdown input[type="checkbox"]:checked');
+  return Array.from(checkboxes).map(cb => cb.value);
+}
+
+function handleEraChange(checkbox) {
+  const allCheckbox = document.querySelector('#eraDropdown input[value="all"]');
+  const eraCheckboxes = document.querySelectorAll('#eraDropdown input[type="checkbox"]:not([value="all"])');
+  
+  if (checkbox.value === 'all') {
+    // If "All Eras" is checked, uncheck all others
+    if (checkbox.checked) {
+      eraCheckboxes.forEach(cb => cb.checked = false);
+    }
+  } else {
+    // If any specific era is checked, uncheck "All Eras"
+    if (checkbox.checked) {
+      allCheckbox.checked = false;
+    }
+    
+    // If no eras selected, select "All Eras"
+    const anySelected = Array.from(eraCheckboxes).some(cb => cb.checked);
+    if (!anySelected) {
+      allCheckbox.checked = true;
+    }
+  }
+  
+  updateEraButtonText();
+  updateResultsTable();
+}
+
+function updateEraButtonText() {
+  const selectedEras = getSelectedEras();
+  const textEl = document.getElementById('eraSelectedText');
+  
+  if (selectedEras.includes('all') || selectedEras.length === 0) {
+    textEl.textContent = 'All Eras';
+  } else if (selectedEras.length === 1) {
+    textEl.textContent = selectedEras[0];
+  } else {
+    textEl.textContent = selectedEras.length + ' Eras';
+  }
+}
+
+function clearFilters() {
+  document.getElementById('runsFilter').value = '0';
+  document.getElementById('avgFilter').value = '0';
+  document.getElementById('srFilter').value = '0';
+  document.getElementById('playerFilter').value = '10';
+  
+  // Reset era checkboxes
+  const allCheckbox = document.querySelector('#eraDropdown input[value="all"]');
+  const eraCheckboxes = document.querySelectorAll('#eraDropdown input[type="checkbox"]:not([value="all"])');
+  allCheckbox.checked = true;
+  eraCheckboxes.forEach(cb => cb.checked = false);
+  updateEraButtonText();
+  
+  updateResultsTable();
+}
+
+// Player Type & Model Type functions
+const modelOptions = {
+  batter: [
+    { value: 'Stranted', label: 'Stranted' },
+    { value: 'Tencliffe15', label: 'Tencliffe15' },
+    { value: 'Bradlar99', label: 'Bradlar99' },
+    { value: 'Harjosh86', label: 'Harjosh86' },
+    { value: 'Custom Batting', label: 'Custom' }
+  ],
+  bowler: [
+    { value: 'Sharan7080', label: 'Sharan7080' },
+    { value: 'Dale20', label: 'Dale20' },
+    { value: 'Mal40', label: 'Mal40' },
+    { value: 'Bap2.5', label: 'Bap2.5' },
+    { value: 'Denstrat', label: 'Denstrat' },
+    { value: 'Σm — Mix & Match', label: 'Σm' },
+    { value: 'Custom Bowling', label: 'Custom' }
+  ]
+};
+
+function saveLastFilter() {} // no-op — purely URL-param driven
+
+function toggleWeightsPanel() {
+  const modelTypeEl = document.getElementById('modelTypeFilter');
+  const selected = modelTypeEl ? modelTypeEl.value : '';
+  const isCustom = (selected === 'Custom Batting' || selected === 'Custom Bowling');
+  const panel = document.getElementById('weightsPanel');
+  if (panel) {
+    panel.style.display = isCustom ? '' : 'none';
+  }
+}
+
+function handlePlayerTypeChange() {
+  const playerType = document.getElementById('playerTypeFilter').value;
+  const modelSelect = document.getElementById('modelTypeFilter');
+  
+  // Clear and repopulate model options
+  modelSelect.innerHTML = '';
+  const options = modelOptions[playerType] || [];
+  options.forEach(opt => {
+    const option = document.createElement('option');
+    option.value = opt.value;
+    option.textContent = opt.label;
+    modelSelect.appendChild(option);
+  });
+  
+  // Toggle filter panels visibility based on player type
+  const batFilterPanel = document.getElementById('battingFilterPanel');
+  const bowlFilterPanel = document.getElementById('bowlingFilterPanel');
+  if (batFilterPanel) batFilterPanel.style.display = playerType === 'batter' ? '' : 'none';
+  if (bowlFilterPanel) bowlFilterPanel.style.display = playerType === 'bowler' ? '' : 'none';
+
+  // Toggle weight sections
+  const batWeights = document.getElementById('battingWeightsSection');
+  const bowlWeights = document.getElementById('bowlingWeightsSection');
+  if (batWeights) batWeights.style.display = playerType === 'batter' ? '' : 'none';
+  if (bowlWeights) bowlWeights.style.display = playerType === 'bowler' ? '' : 'none';
+  
+  toggleWeightsPanel();
+  updateResultsTable();
+}
+
+// Initialize model dropdown on load
+(function initFilter() {
+  handlePlayerTypeChange();
+  toggleWeightsPanel();
+})();
+
+// Bowling filter functions
+function toggleBowlEraDropdown() {
+  const dropdown = document.getElementById('bowlEraDropdown');
+  dropdown.classList.toggle('show');
+}
+
+// Close bowling era dropdown when clicking outside
+document.addEventListener('click', function(e) {
+  const container = document.getElementById('bowlEraFilterContainer');
+  if (container && !container.contains(e.target)) {
+    document.getElementById('bowlEraDropdown').classList.remove('show');
+  }
+});
+
+function getSelectedBowlEras() {
+  const checkboxes = document.querySelectorAll('#bowlEraDropdown input[type="checkbox"]:checked');
+  return Array.from(checkboxes).map(cb => cb.value);
+}
+
+function handleBowlEraChange(checkbox) {
+  const allCheckbox = document.querySelector('#bowlEraDropdown input[value="all"]');
+  const eraCheckboxes = document.querySelectorAll('#bowlEraDropdown input[type="checkbox"]:not([value="all"])');
+  
+  if (checkbox.value === 'all') {
+    if (checkbox.checked) {
+      eraCheckboxes.forEach(cb => cb.checked = false);
+    }
+  } else {
+    if (checkbox.checked) {
+      allCheckbox.checked = false;
+    }
+    
+    const anySelected = Array.from(eraCheckboxes).some(cb => cb.checked);
+    if (!anySelected) {
+      allCheckbox.checked = true;
+    }
+  }
+  
+  updateBowlEraButtonText();
+  updateResultsTable();
+}
+
+function updateBowlEraButtonText() {
+  const selectedEras = getSelectedBowlEras();
+  const textEl = document.getElementById('bowlEraSelectedText');
+  
+  if (selectedEras.includes('all') || selectedEras.length === 0) {
+    textEl.textContent = 'All Eras';
+  } else if (selectedEras.length === 1) {
+    textEl.textContent = selectedEras[0];
+  } else {
+    textEl.textContent = selectedEras.length + ' Eras';
+  }
+}
+
+function clearBowlFilters() {
+  document.getElementById('bowlWktsFilter').value = '100';
+  document.getElementById('bowlAvgFilter').value = '0';
+  document.getElementById('bowlSRFilter').value = '0';
+  document.getElementById('bowlEconFilter').value = '0';
+  document.getElementById('bowlPlayerFilter').value = '10';
+  
+  // Reset bowling era checkboxes
+  const allCheckbox = document.querySelector('#bowlEraDropdown input[value="all"]');
+  const eraCheckboxes = document.querySelectorAll('#bowlEraDropdown input[type="checkbox"]:not([value="all"])');
+  allCheckbox.checked = true;
+  eraCheckboxes.forEach(cb => cb.checked = false);
+  updateBowlEraButtonText();
+  
+  updateResultsTable();
+}
+
+// Initialize
+updateGrandTotal();
+updateResultsTable();
+
+// Load config from URL params (sent from models page)
+(function loadConfigFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  const configParam = params.get('config');
+  const playerType = params.get('playerType');
+  const modelType = params.get('modelType');
+
+  if (!configParam) return;
+
+  try {
+    const incoming = typeof configParam === 'string' && configParam.startsWith('{') 
+      ? JSON.parse(configParam) 
+      : JSON.parse(decodeURIComponent(configParam));
+
+    // Populate the config (model weight values in memory)
+    for (const [model, factors] of Object.entries(incoming)) {
+      if (!config[model]) {
+        // Create config slot for unknown models
+        config[model] = {};
+      }
+      // Sigmam uses string/boolean config, not numeric weights
+      if (allModels[model] && allModels[model].isSigmam) {
+        config[model] = {
+          _coreModel: factors._coreModel || '',
+          _longevityModel: factors._longevityModel || '',
+          _useKeyParams: !!factors._useKeyParams,
+          _useMom: !!factors._useMom,
+          _use5wkt: !!factors._use5wkt,
+          _use10wkt: !!factors._use10wkt
+        };
+      } else {
+        for (const [factor, weight] of Object.entries(factors)) {
+          config[model][factor] = weight;
+          // Try to update input if it exists in DOM (only custom cards are rendered)
+          const input = document.getElementById(`${model}_${factor}`);
+          if (input) {
+            input.value = weight > 0 ? weight : '';
+            const item = document.getElementById(`${model}_${factor}_item`);
+            if (item) {
+              if (weight > 0) item.classList.add('has-value');
+              else item.classList.remove('has-value');
+            }
+          }
+        }
+      }
+      if (typeof updateModelSubtotal === 'function') updateModelSubtotal(model);
+    }
+
+    // Set player type and model type if provided
+    if (playerType) {
+      const ptSelect = document.getElementById('playerTypeFilter');
+      if (ptSelect) {
+        ptSelect.value = playerType;
+        // Repopulate model dropdown for this player type (without triggering updateResultsTable yet)
+        const modelSelect = document.getElementById('modelTypeFilter');
+        if (modelSelect) {
+          modelSelect.innerHTML = '';
+          const options = modelOptions[playerType] || [];
+          options.forEach(opt => {
+            const option = document.createElement('option');
+            option.value = opt.value;
+            option.textContent = opt.label;
+            modelSelect.appendChild(option);
+          });
+        }
+        // Toggle filter panels and weight sections for this player type
+        const batFilterPanel = document.getElementById('battingFilterPanel');
+        const bowlFilterPanel = document.getElementById('bowlingFilterPanel');
+        if (batFilterPanel) batFilterPanel.style.display = playerType === 'batter' ? '' : 'none';
+        if (bowlFilterPanel) bowlFilterPanel.style.display = playerType === 'bowler' ? '' : 'none';
+        const batWeights = document.getElementById('battingWeightsSection');
+        const bowlWeights = document.getElementById('bowlingWeightsSection');
+        if (batWeights) batWeights.style.display = playerType === 'batter' ? '' : 'none';
+        if (bowlWeights) bowlWeights.style.display = playerType === 'bowler' ? '' : 'none';
+      }
+    }
+    if (modelType) {
+      const mtSelect = document.getElementById('modelTypeFilter');
+      if (mtSelect) {
+        const optionExists = Array.from(mtSelect.options).some(o => o.value === modelType);
+        if (optionExists) {
+          mtSelect.value = modelType;
+        }
+      }
+    }
+
+    // Persist the incoming filter selection
+    saveLastFilter();
+
+    // Refresh everything once with the correct model selected
+    updateTags();
+    updatePreview();
+    toggleWeightsPanel();
+    updateResultsTable();
+
+  } catch (e) {
+    console.warn('Failed to parse config from URL:', e);
+  }
+})();
+
+// Final safety: ensure model dropdown always has a valid selection
+(function ensureValidModelSelection() {
+  const mtSelect = document.getElementById('modelTypeFilter');
+  if (mtSelect && mtSelect.options.length > 0 && mtSelect.selectedIndex === -1) {
+    mtSelect.selectedIndex = 0;
+    saveLastFilter();
+    toggleWeightsPanel();
+    updateResultsTable();
+  }
+})();
+
+// Share functionality
+function sharePage(){
+  const shareUrl = window.location.href;
+  
+  const shareTitle = 'Test Cricket Simulation Weights';
+  const shareText = 'Configure weights for different performance factors to run custom simulations';
+  
+  if(navigator.share && navigator.canShare && navigator.canShare({url: shareUrl})){
+    navigator.share({
+      title: shareTitle,
+      text: shareText,
+      url: shareUrl
+    }).catch(err => {
+      if(err.name !== 'AbortError'){
+        fallbackShare(shareUrl);
+      }
+    });
+  } else {
+    fallbackShare(shareUrl);
+  }
+}
+
+function fallbackShare(url){
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(url).then(()=>{
+      showCopiedFeedback();
+    }).catch(()=>{
+      showShareDialog(url);
+    });
+  } else {
+    showShareDialog(url);
+  }
+}
+
+function showCopiedFeedback(){
+  const btn = document.querySelector('.share-btn');
+  const originalHTML = btn.innerHTML;
+  btn.innerHTML = '<svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;stroke:currentColor;fill:none"><polyline points="20 6 9 17 4 12"></polyline></svg><span>Copied!</span>';
+  btn.style.color = 'var(--green)';
+  btn.style.borderColor = 'var(--green)';
+  setTimeout(()=>{
+    btn.innerHTML = originalHTML;
+    btn.style.color = '';
+    btn.style.borderColor = '';
+  }, 2000);
+}
+
+function showShareDialog(url){
+  prompt('Copy this URL to share:', url);
+}
+
+// Export to Excel function
+function exportToExcel(){
+  const playerType = document.getElementById('playerTypeFilter').value;
+  const isBowler = playerType === 'bowler';
+  const modelTypeEl = document.getElementById('modelTypeFilter');
+  const selectedLabel = modelTypeEl ? modelTypeEl.value : '';
+  const labelToKeyMap = {};
+  for (const [key, model] of Object.entries(allModels)) { labelToKeyMap[model.name] = key; }
+  const selectedKey = labelToKeyMap[selectedLabel];
+  const anyWeightsSet = selectedKey && config[selectedKey] ? Object.values(config[selectedKey]).some(v => v > 0) : false;
+  
+  // Get filters
+  const minRuns = parseFloat(document.getElementById('runsFilter').value) || 0;
+  const minAvg = parseFloat(document.getElementById('avgFilter').value) || 0;
+  const minSR = parseFloat(document.getElementById('srFilter').value) || 0;
+  const selectedEras = getSelectedEras();
+  const playerLimit = document.getElementById('playerFilter').value;
+  const minBowlWkts = parseFloat(document.getElementById('bowlWktsFilter').value) || 0;
+  const maxBowlAvg = parseFloat(document.getElementById('bowlAvgFilter').value) || 0;
+  const maxBowlSR = parseFloat(document.getElementById('bowlSRFilter').value) || 0;
+  const maxBowlEcon = parseFloat(document.getElementById('bowlEconFilter').value) || 0;
+  const selectedBowlEras = typeof getSelectedBowlEras === 'function' ? getSelectedBowlEras() : ['all'];
+  const bowlPlayerLimit = document.getElementById('bowlPlayerFilter') ? document.getElementById('bowlPlayerFilter').value : 'all';
+  
+  // Filter players (same logic as updateResultsTable)
+  const filteredByStats = playerData.filter(player => {
+    if (isBowler) {
+      const bowlWkts = player.bowlWkts || 0;
+      if (minBowlWkts > 0 && bowlWkts < minBowlWkts) return false;
+      if (maxBowlAvg > 0 && (bowlWkts === 0 || (player.bowlAvg || 0) > maxBowlAvg)) return false;
+      if (maxBowlSR > 0 && (bowlWkts === 0 || (player.bowlSR || 0) > maxBowlSR)) return false;
+      if (maxBowlEcon > 0 && (bowlWkts === 0 || (player.bowlEcon || 0) > maxBowlEcon)) return false;
+      if (!selectedBowlEras.includes('all')) {
+        const playerFrom = player.from || 0;
+        const playerTo = player.to || 9999;
+        const matchesBowlEra = selectedBowlEras.some(era => {
+          const [eraStart, eraEnd] = era.split('-').map(Number);
+          return !(playerTo < eraStart || playerFrom > eraEnd);
+        });
+        if (!matchesBowlEra) return false;
+      }
+    } else {
+      if (player.runs < minRuns || player.avg < minAvg || player.sr < minSR) return false;
+      if (!selectedEras.includes('all')) {
+        const playerFrom = player.from || 0;
+        const playerTo = player.to || 9999;
+        const matchesEra = selectedEras.some(era => {
+          const [eraStart, eraEnd] = era.split('-').map(Number);
+          return !(playerTo < eraStart || playerFrom > eraEnd);
+        });
+        if (!matchesEra) return false;
+      }
+    }
+    return true;
+  });
+  
+  const playersWithPoints = filteredByStats.map(player => ({
+    ...player,
+    points: calculatePoints(player)
+  }));
+  const exportActiveFactors = (selectedKey && allModels[selectedKey]) ? allModels[selectedKey].factors : [];
+  const exportIsLowerBetter = isBowler && !exportActiveFactors.includes('wickets') && selectedKey !== 'denstrat' && selectedKey !== 'sigmam';
+  playersWithPoints.sort((a, b) => exportIsLowerBetter ? a.points - b.points : b.points - a.points);
+  
+  const effectiveLimit = isBowler ? bowlPlayerLimit : playerLimit;
+  const limitedPlayers = effectiveLimit === 'all' 
+    ? playersWithPoints 
+    : playersWithPoints.slice(0, parseInt(effectiveLimit));
+  
+  if(limitedPlayers.length === 0){alert('No data to export');return;}
+  
+  const wb = XLSX.utils.book_new();
+  
+  // Main results sheet
+  let resultsData;
+  if (isBowler) {
+    resultsData = limitedPlayers.map((player, index) => ({
+      'Rank': index + 1,
+      'Tests': player.bowlTests || 0,
+      'Player': player.name,
+      'Country': player.country || '—',
+      'Wickets': player.bowlWkts || 0,
+      'Average': (player.bowlAvg || 0).toFixed(2),
+      'Strike Rate': (player.bowlSR || 0).toFixed(2),
+      'Economy': (player.bowlEcon || 0).toFixed(2),
+      'Points': anyWeightsSet ? player.points.toFixed(1) : '—'
+    }));
+  } else {
+    resultsData = limitedPlayers.map((player, index) => ({
+      'Rank': index + 1,
+      'Tests': player.tests || 0,
+      'Player': player.name,
+      'Country': player.country || '—',
+      'Runs': player.runs,
+      'Average': player.avg.toFixed(2),
+      'Strike Rate': player.sr.toFixed(2),
+      'Points': anyWeightsSet ? player.points.toFixed(1) : '—'
+    }));
+  }
+  const wsResults = XLSX.utils.json_to_sheet(resultsData);
+  wsResults['!cols'] = [{wch:6},{wch:25},{wch:12},{wch:8},{wch:8},{wch:10},{wch:8},{wch:8}];
+  XLSX.utils.book_append_sheet(wb, wsResults, 'Simulation Results');
+  
+  // Weights configuration sheet
+  const weightsData = [
+    ['Weight Configuration', '', ''],
+    ['', '', ''],
+    ['Model', 'Factor', 'Weight %']
+  ];
+  for (const [model, factors] of Object.entries(config)) {
+    const modelName = allModels[model].name;
+    let first = true;
+    for (const [factor, val] of Object.entries(factors)) {
+      weightsData.push([first ? modelName : '', factorLabels[factor], val]);
+      first = false;
+    }
+    weightsData.push(['', '', '']);
+  }
+  const wsWeights = XLSX.utils.aoa_to_sheet(weightsData);
+  wsWeights['!cols'] = [{wch: 18}, {wch: 14}, {wch: 10}];
+  XLSX.utils.book_append_sheet(wb, wsWeights, 'Weights');
+  
+  // Generate filename
+  const fname = 'simulation_results.xlsx';
+  XLSX.writeFile(wb, fname);
+}
+</script>
+
+<!-- SheetJS for Excel Export -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<!-- ══ Support Banner ══ -->
+<div class="ct-support-banner">
+  <div class="ct-support-inner">
+    <div class="ct-support-icon">
+      <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M12 2a2.5 2.5 0 0 0-2.5 2.5h5A2.5 2.5 0 0 0 12 2z"/><circle cx="12" cy="19" r="2" fill="var(--accent,#a03020)" stroke="none"/></svg>
+    </div>
+    <div class="ct-support-content">
+      <div class="ct-support-headline">Support <em>Independent</em> Cricket Stories</div>
+      <div class="ct-support-body">Cricket Times is free and independent. If you find value in our stories, analyses and tools, consider buying me a coffee to keep the scoreboard ticking.</div>
+    </div>
+    <div class="ct-support-actions">
+      <a href="https://buymeacoffee.com/YOUR_USERNAME" target="_blank" rel="noopener" class="ct-support-btn">
+        <svg viewBox="0 0 24 24"><path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><line x1="6" y1="2" x2="6" y2="4"/><line x1="10" y1="2" x2="10" y2="4"/><line x1="14" y1="2" x2="14" y2="4"/></svg>
+        Buy Me a Coffee
+      </a>
+      <span class="ct-support-aside">This is a personal contribution, not a donation — contributions are not tax-deductible.</span>
+    </div>
+  </div>
+</div>
+
+<footer data-ct-nav="footer"></footer>
+</div><!-- end site-content -->
+
+<!-- Legacy compat Firebase removed (Phase 3 §3): feature-flags.js is the sole Firebase owner; db was unused -->
+<script src="ct-nav.js"></script>
+</body>
+</html>

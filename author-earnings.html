@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="robots" content="noindex, nofollow">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Earnings — Cricket Times</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --cream: #FAF7F2;
+      --cream-dark: #F0EBE3;
+      --ink: #1a1a1a;
+      --ink-light: #4a4a4a;
+      --crimson: #8B0000;
+      --crimson-dark: #6B0000;
+      --gold: #C9A227;
+      --rule: #d4d0c8;
+      --green: #2e7d32;
+      --green-light: #e8f5e9;
+      --amber: #f57c00;
+      --amber-light: #fff3e0;
+      --blue: #1976d2;
+      --blue-light: #e3f2fd;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Source Serif 4', Georgia, serif;
+      background: var(--cream);
+      color: var(--ink);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* ─── Auth Overlay ─────────────────────────────────────────────────── */
+    #auth-overlay {
+      position: fixed;
+      inset: 0;
+      background: var(--cream);
+      z-index: 99999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #auth-overlay.hidden { display: none; }
+
+    .loading-msg {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 1.25rem;
+      color: var(--ink-light);
+      font-style: italic;
+    }
+
+    /* ─── Main Content ─────────────────────────────────────────────────── */
+    #main-content { display: none; }
+    #main-content.visible { display: block; }
+
+    /* ─── Header ───────────────────────────────────────────────────────── */
+    header {
+      background: var(--ink);
+      color: var(--cream);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .masthead {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    .masthead a { color: var(--cream); text-decoration: none; }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      font-size: 0.85rem;
+    }
+
+    .header-right a {
+      color: var(--cream);
+      text-decoration: none;
+      opacity: 0.8;
+    }
+
+    .header-right a:hover { opacity: 1; }
+
+    .sign-out-btn {
+      background: transparent;
+      border: 1px solid var(--cream);
+      color: var(--cream);
+      padding: 0.4rem 0.8rem;
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+
+    .sign-out-btn:hover {
+      background: var(--cream);
+      color: var(--ink);
+    }
+
+    /* ─── Container ────────────────────────────────────────────────────── */
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    .page-header {
+      margin-bottom: 2rem;
+    }
+
+    .page-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+    }
+
+    .page-subtitle {
+      color: var(--ink-light);
+    }
+
+    /* ─── Summary Cards ────────────────────────────────────────────────── */
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .summary-card {
+      background: white;
+      border: 1px solid var(--rule);
+      padding: 1.5rem;
+      text-align: center;
+    }
+
+    .summary-card .label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--ink-light);
+      margin-bottom: 0.5rem;
+    }
+
+    .summary-card .value {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 1.75rem;
+      font-weight: 700;
+    }
+
+    .summary-card .value.green { color: var(--green); }
+    .summary-card .value.amber { color: var(--amber); }
+    .summary-card .value.blue { color: var(--blue); }
+
+    .summary-card .subtext {
+      font-size: 0.8rem;
+      color: var(--ink-light);
+      margin-top: 0.25rem;
+    }
+
+    /* ─── Section ──────────────────────────────────────────────────────── */
+    .section {
+      margin-bottom: 2.5rem;
+    }
+
+    .section-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid var(--rule);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* ─── Articles Table ───────────────────────────────────────────────── */
+    .articles-table {
+      width: 100%;
+      background: white;
+      border: 1px solid var(--rule);
+      border-collapse: collapse;
+    }
+
+    .articles-table th {
+      text-align: left;
+      padding: 0.75rem 1rem;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--ink-light);
+      background: var(--cream);
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .articles-table td {
+      padding: 0.85rem 1rem;
+      font-size: 0.9rem;
+      border-bottom: 1px solid var(--rule);
+      vertical-align: top;
+    }
+
+    .articles-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .articles-table .article-title {
+      font-weight: 600;
+      color: var(--ink);
+      margin-bottom: 0.2rem;
+    }
+
+    .articles-table .article-id {
+      font-size: 0.75rem;
+      color: var(--ink-light);
+    }
+
+    .articles-table .article-date {
+      font-size: 0.8rem;
+      color: var(--ink-light);
+    }
+
+    .articles-table .views {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-weight: 600;
+      color: var(--blue);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 3rem 2rem;
+      color: var(--ink-light);
+      font-style: italic;
+    }
+
+    /* ─── Monthly Breakdown ────────────────────────────────────────────── */
+    .monthly-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1rem;
+    }
+
+    .month-card {
+      background: white;
+      border: 1px solid var(--rule);
+    }
+
+    .month-card-header {
+      padding: 0.75rem 1rem;
+      background: var(--cream);
+      border-bottom: 1px solid var(--rule);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .month-card-header .month-name {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-weight: 600;
+    }
+
+    .month-card-header .month-total {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-weight: 700;
+      color: var(--green);
+    }
+
+    .month-card-body {
+      padding: 0.75rem 1rem;
+    }
+
+    .month-stat {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.4rem 0;
+      font-size: 0.85rem;
+      border-bottom: 1px dashed var(--rule);
+    }
+
+    .month-stat:last-child {
+      border-bottom: none;
+    }
+
+    .month-stat .label {
+      color: var(--ink-light);
+    }
+
+    .month-stat .value {
+      font-weight: 600;
+    }
+
+    .month-stat .value.views {
+      color: var(--blue);
+    }
+
+    .month-stat .value.earnings {
+      color: var(--green);
+    }
+
+    /* ─── Payment History ──────────────────────────────────────────────── */
+    .payments-table {
+      width: 100%;
+      background: white;
+      border: 1px solid var(--rule);
+      border-collapse: collapse;
+    }
+
+    .payments-table th {
+      text-align: left;
+      padding: 0.75rem 1rem;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--ink-light);
+      background: var(--cream);
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .payments-table td {
+      padding: 0.75rem 1rem;
+      font-size: 0.9rem;
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .payments-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .payments-table .amount {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-weight: 600;
+      color: var(--green);
+    }
+
+    .payments-table .status {
+      display: inline-block;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 0.2rem 0.5rem;
+      border-radius: 3px;
+    }
+
+    .payments-table .status.paid {
+      background: var(--green-light);
+      color: var(--green);
+    }
+
+    .payments-table .status.pending {
+      background: var(--amber-light);
+      color: var(--amber);
+    }
+
+    /* ─── Info Box ─────────────────────────────────────────────────────── */
+    .info-box {
+      background: var(--blue-light);
+      border: 1px solid #90caf9;
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.5rem;
+      font-size: 0.9rem;
+    }
+
+    .info-box h4 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-weight: 600;
+      color: var(--blue);
+      margin-bottom: 0.35rem;
+    }
+
+    .info-box p {
+      color: var(--ink-light);
+      line-height: 1.5;
+    }
+
+    /* ─── Pending Payout Banner ────────────────────────────────────────── */
+    .pending-banner {
+      background: var(--amber-light);
+      border: 1px solid #ffcc80;
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .pending-banner .text h3 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 1rem;
+      color: var(--amber);
+      margin-bottom: 0.2rem;
+    }
+
+    .pending-banner .text p {
+      font-size: 0.85rem;
+      color: var(--ink-light);
+    }
+
+    .pending-banner .amount {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--amber);
+    }
+
+    /* ─── Footer ───────────────────────────────────────────────────────── */
+    footer {
+      background: var(--ink);
+      color: var(--cream);
+      text-align: center;
+      padding: 1.5rem;
+      font-size: 0.85rem;
+      margin-top: 3rem;
+    }
+
+    footer a { color: var(--gold); text-decoration: none; }
+
+    /* ─── Responsive ───────────────────────────────────────────────────── */
+    @media (max-width: 768px) {
+      .container { padding: 1.25rem; }
+      header { flex-direction: column; gap: 0.75rem; text-align: center; }
+      .header-right { flex-wrap: wrap; justify-content: center; }
+      .page-title { font-size: 1.5rem; }
+      .pending-banner { flex-direction: column; gap: 1rem; text-align: center; }
+      .articles-table, .payments-table { font-size: 0.8rem; }
+      .articles-table th, .articles-table td,
+      .payments-table th, .payments-table td { padding: 0.6rem 0.75rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Auth Overlay -->
+  <div id="auth-overlay">
+    <p class="loading-msg">Loading your earnings...</p>
+  </div>
+
+  <!-- Main Content -->
+  <div id="main-content">
+    <header>
+      <div class="masthead"><a href="stories.html">Cricket Times</a></div>
+      <div class="header-right">
+        <a href="author-dashboard.html">Dashboard</a>
+        <a href="author-cms.html">Write</a>
+        <a href="author-profile.html">Profile</a>
+        <button class="sign-out-btn" id="sign-out-btn">Sign Out</button>
+      </div>
+    </header>
+
+    <main class="container">
+      <div class="page-header">
+        <h1 class="page-title">My Earnings</h1>
+        <p class="page-subtitle">Track your article performance and compensation</p>
+      </div>
+
+      <!-- Pending Payout Banner (shown if amount due > 0) -->
+      <div class="pending-banner" id="pending-banner" style="display:none">
+        <div class="text">
+          <h3>💰 Payout Pending</h3>
+          <p>Your next payout is being processed. Payouts are sent monthly when balance exceeds $10.</p>
+        </div>
+        <div class="amount" id="pending-amount">$0.00</div>
+      </div>
+
+      <!-- Summary Cards -->
+      <div class="summary-grid">
+        <div class="summary-card">
+          <div class="label">Total Earned</div>
+          <div class="value green" id="total-earned">$0.00</div>
+          <div class="subtext">All time</div>
+        </div>
+        <div class="summary-card">
+          <div class="label">Amount Due</div>
+          <div class="value amber" id="amount-due">$0.00</div>
+          <div class="subtext">Unpaid balance</div>
+        </div>
+        <div class="summary-card">
+          <div class="label">Total Views</div>
+          <div class="value blue" id="total-views">0</div>
+          <div class="subtext">Across all articles</div>
+        </div>
+        <div class="summary-card">
+          <div class="label">Articles</div>
+          <div class="value" id="article-count">0</div>
+          <div class="subtext">Published</div>
+        </div>
+      </div>
+
+      <!-- How Earnings Work -->
+      <div class="info-box">
+        <h4>How Earnings Work</h4>
+        <p>Your share is calculated monthly based on your article views as a percentage of total site views. 
+           Revenue from Buy Me a Coffee donations and subscriptions is pooled, with 70% distributed to authors 
+           proportional to their views. Payouts are processed monthly when your balance exceeds $10.</p>
+      </div>
+
+      <!-- My Articles -->
+      <div class="section">
+        <h2 class="section-title">📝 My Articles</h2>
+        <table class="articles-table">
+          <thead>
+            <tr>
+              <th>Article</th>
+              <th>Published</th>
+              <th style="text-align:right">Total Views</th>
+            </tr>
+          </thead>
+          <tbody id="articles-tbody">
+            <tr><td colspan="3" class="empty-state">Loading articles...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Monthly Breakdown -->
+      <div class="section">
+        <h2 class="section-title">📊 Monthly Breakdown</h2>
+        <div class="monthly-grid" id="monthly-grid">
+          <div class="empty-state">Loading monthly data...</div>
+        </div>
+      </div>
+
+      <!-- Payment History -->
+      <div class="section">
+        <h2 class="section-title">💳 Payment History</h2>
+        <table class="payments-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Period</th>
+              <th>Method</th>
+              <th style="text-align:right">Amount</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="payments-tbody">
+            <tr><td colspan="5" class="empty-state">Loading payment history...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+    </main>
+
+    <footer>
+      <p>© 2026 Cricket Times · <a href="author-dashboard.html">Author Portal</a> · <a href="privacy.html">Privacy</a></p>
+    </footer>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+    import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+    import { getFirestore, collection, doc, getDoc, getDocs, query, where, orderBy } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBnfn9hK0y-p6nvIZ_AwoJnWD7DfDuIQd4",
+      authDomain: "hitwicket-cba02.firebaseapp.com",
+      projectId: "hitwicket-cba02",
+      storageBucket: "hitwicket-cba02.firebasestorage.app",
+      messagingSenderId: "196915483829",
+      appId: "1:196915483829:web:071c47af79914aec88dafc"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // State
+    let currentUser = null;
+    let authorData = null;
+    let myArticles = [];
+    let myPayments = [];
+    let siteRevenue = [];
+    let monthlyViews = []; // Monthly view records for this author
+
+    // Auth state
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        currentUser = user;
+        document.getElementById('auth-overlay').classList.add('hidden');
+        document.getElementById('main-content').classList.add('visible');
+        await loadAllData();
+      } else {
+        window.location.href = 'author-login.html';
+      }
+    });
+
+    // Sign out
+    document.getElementById('sign-out-btn').addEventListener('click', async () => {
+      await signOut(auth);
+      window.location.href = 'author-login.html';
+    });
+
+    // Load all data
+    async function loadAllData() {
+      try {
+        // Load author profile
+        const authorDoc = await getDoc(doc(db, 'authors', currentUser.uid));
+        if (authorDoc.exists()) {
+          authorData = authorDoc.data();
+        }
+
+        // Load my articles
+        const articlesQuery = query(
+          collection(db, 'articles'),
+          where('authorUid', '==', currentUser.uid),
+          where('status', '==', 'published')
+        );
+        const articlesSnap = await getDocs(articlesQuery);
+        myArticles = [];
+        articlesSnap.forEach(d => myArticles.push({ id: d.id, ...d.data() }));
+
+        // Load monthly view data for this author
+        const viewsQuery = query(
+          collection(db, 'articleViews'),
+          where('authorUid', '==', currentUser.uid)
+        );
+        const viewsSnap = await getDocs(viewsQuery);
+        monthlyViews = [];
+        viewsSnap.forEach(d => monthlyViews.push({ id: d.id, ...d.data() }));
+
+        // Load all monthly view data (for share calculation)
+        const allViewsSnap = await getDocs(collection(db, 'articleViews'));
+        const allMonthlyViews = [];
+        allViewsSnap.forEach(d => allMonthlyViews.push({ id: d.id, ...d.data() }));
+        
+        // Store for share calculation
+        window._allMonthlyViews = allMonthlyViews;
+
+        // Load my payments
+        const paymentsQuery = query(
+          collection(db, 'authorPayments'),
+          where('authorUid', '==', currentUser.uid),
+          orderBy('paidAt', 'desc')
+        );
+        const paymentsSnap = await getDocs(paymentsQuery);
+        myPayments = [];
+        paymentsSnap.forEach(d => myPayments.push({ id: d.id, ...d.data() }));
+
+        // Load site revenue (ledger income entries)
+        const revenueQuery = query(
+          collection(db, 'ledger'),
+          where('type', '==', 'income'),
+          orderBy('date', 'desc')
+        );
+        const revenueSnap = await getDocs(revenueQuery);
+        siteRevenue = [];
+        revenueSnap.forEach(d => siteRevenue.push({ id: d.id, ...d.data() }));
+
+        renderAll();
+      } catch (err) {
+        console.error('Error loading data:', err);
+      }
+    }
+
+    // Render everything
+    function renderAll() {
+      renderSummary();
+      renderArticles();
+      renderMonthlyBreakdown();
+      renderPayments();
+    }
+
+    // Render summary cards
+    function renderSummary() {
+      const totalPaid = myPayments.reduce((sum, p) => sum + (p.amount || 0), 0);
+      const totalViews = monthlyViews.reduce((sum, v) => sum + (v.views || 0), 0);
+
+      // Calculate amount due (total earned - total paid)
+      const totalEarned = authorData?.totalEarnings || totalPaid;
+      const amountDue = Math.max(0, totalEarned - totalPaid);
+
+      document.getElementById('total-earned').textContent = '$' + totalEarned.toFixed(2);
+      document.getElementById('amount-due').textContent = '$' + amountDue.toFixed(2);
+      document.getElementById('total-views').textContent = totalViews.toLocaleString();
+      document.getElementById('article-count').textContent = myArticles.length;
+
+      // Show pending banner if amount due > 0
+      if (amountDue > 0) {
+        document.getElementById('pending-banner').style.display = 'flex';
+        document.getElementById('pending-amount').textContent = '$' + amountDue.toFixed(2);
+      }
+    }
+
+    // Render articles table
+    function renderArticles() {
+      const tbody = document.getElementById('articles-tbody');
+      
+      if (myArticles.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3" class="empty-state">No published articles yet. <a href="author-cms.html">Write your first article!</a></td></tr>';
+        return;
+      }
+
+      // Calculate total views per article from monthly data
+      const articleViewTotals = {};
+      monthlyViews.forEach(v => {
+        articleViewTotals[v.articleId] = (articleViewTotals[v.articleId] || 0) + (v.views || 0);
+      });
+
+      // Sort by views descending
+      const sorted = [...myArticles].sort((a, b) => 
+        (articleViewTotals[b.id] || 0) - (articleViewTotals[a.id] || 0)
+      );
+
+      tbody.innerHTML = sorted.map(article => {
+        const pubDate = formatDate(article.publishedAt || article.createdAt);
+        const views = articleViewTotals[article.id] || 0;
+        
+        return `
+          <tr>
+            <td>
+              <div class="article-title">${escapeHtml(article.headline || 'Untitled')}</div>
+              <div class="article-id">ID: ${article.id}</div>
+            </td>
+            <td class="article-date">${pubDate}</td>
+            <td class="views" style="text-align:right">${views.toLocaleString()}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // Render monthly breakdown
+    function renderMonthlyBreakdown() {
+      const container = document.getElementById('monthly-grid');
+      const platformCut = 0.30; // 30% platform fee
+      const allMonthlyViews = window._allMonthlyViews || [];
+
+      // Group my views by month
+      const myViewsByMonth = {};
+      monthlyViews.forEach(v => {
+        if (!myViewsByMonth[v.month]) myViewsByMonth[v.month] = { views: 0, articles: [] };
+        myViewsByMonth[v.month].views += v.views || 0;
+        myViewsByMonth[v.month].articles.push({
+          id: v.articleId,
+          headline: v.headline,
+          views: v.views || 0
+        });
+      });
+
+      // Group all site views by month
+      const siteViewsByMonth = {};
+      allMonthlyViews.forEach(v => {
+        if (!siteViewsByMonth[v.month]) siteViewsByMonth[v.month] = 0;
+        siteViewsByMonth[v.month] += v.views || 0;
+      });
+
+      // Group revenue by month
+      const revenueByMonth = {};
+      siteRevenue.forEach(entry => {
+        const date = toDate(entry.date);
+        const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        if (!revenueByMonth[key]) revenueByMonth[key] = 0;
+        revenueByMonth[key] += entry.amount || 0;
+      });
+
+      // Get all months that have either views or revenue
+      const allMonths = new Set([
+        ...Object.keys(myViewsByMonth),
+        ...Object.keys(revenueByMonth)
+      ]);
+
+      if (allMonths.size === 0) {
+        container.innerHTML = '<div class="empty-state">No earnings data yet. Your monthly breakdown will appear here once your articles get views and donations come in.</div>';
+        return;
+      }
+
+      // Sort months descending
+      const sortedMonths = Array.from(allMonths).sort().reverse();
+
+      container.innerHTML = sortedMonths.slice(0, 6).map(monthKey => {
+        const [year, month] = monthKey.split('-');
+        const monthName = new Date(year, month - 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+        
+        const revenue = revenueByMonth[monthKey] || 0;
+        const authorPool = revenue * (1 - platformCut);
+        const myViews = myViewsByMonth[monthKey]?.views || 0;
+        const siteViews = siteViewsByMonth[monthKey] || 0;
+        const myShare = siteViews > 0 ? (myViews / siteViews) * 100 : 0;
+        const myEarnings = authorPool * (myShare / 100);
+        const articleCount = myViewsByMonth[monthKey]?.articles?.length || 0;
+
+        return `
+          <div class="month-card">
+            <div class="month-card-header">
+              <span class="month-name">${monthName}</span>
+              <span class="month-total">$${myEarnings.toFixed(2)}</span>
+            </div>
+            <div class="month-card-body">
+              <div class="month-stat">
+                <span class="label">Your Articles</span>
+                <span class="value">${articleCount}</span>
+              </div>
+              <div class="month-stat">
+                <span class="label">Your Views</span>
+                <span class="value views">${myViews.toLocaleString()}</span>
+              </div>
+              <div class="month-stat">
+                <span class="label">Site Total Views</span>
+                <span class="value">${siteViews.toLocaleString()}</span>
+              </div>
+              <div class="month-stat">
+                <span class="label">Your Share</span>
+                <span class="value">${myShare.toFixed(1)}%</span>
+              </div>
+              <div class="month-stat">
+                <span class="label">Site Revenue</span>
+                <span class="value">$${revenue.toFixed(2)}</span>
+              </div>
+              <div class="month-stat">
+                <span class="label">Author Pool (70%)</span>
+                <span class="value">$${authorPool.toFixed(2)}</span>
+              </div>
+              <div class="month-stat" style="border-top:1px solid var(--rule);padding-top:0.6rem;margin-top:0.3rem">
+                <span class="label"><strong>Your Earnings</strong></span>
+                <span class="value earnings"><strong>$${myEarnings.toFixed(2)}</strong></span>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Render payment history
+    function renderPayments() {
+      const tbody = document.getElementById('payments-tbody');
+
+      if (myPayments.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No payments yet. Payouts are processed monthly when your balance exceeds $10.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = myPayments.map(payment => {
+        const paidDate = formatDate(payment.paidAt);
+        return `
+          <tr>
+            <td>${paidDate}</td>
+            <td>${escapeHtml(payment.period || '-')}</td>
+            <td>${escapeHtml(payment.method || 'Unknown')}</td>
+            <td class="amount" style="text-align:right">$${(payment.amount || 0).toFixed(2)}</td>
+            <td><span class="status paid">Paid</span></td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // Helpers
+    function toDate(d) {
+      if (!d) return new Date();
+      return d.toDate ? d.toDate() : new Date(d);
+    }
+
+    function formatDate(d) {
+      return toDate(d).toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric', 
+        year: 'numeric' 
+      });
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+  </script>
+
+</body>
+</html>

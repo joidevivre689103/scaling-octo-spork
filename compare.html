@@ -1,0 +1,3454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!-- CT_7G_INJECT:START (auto-injected by deploy tool — do not edit by hand) -->
+<style id="ct-7g-hide">body{visibility:hidden}</style>
+<script>window.CT_PAGE_ID="compare";</script>
+<script>setTimeout(function(){if(!window.__ctFlagsLoaded){location.replace("/comingsoon.html");}},2500);</script>
+<script src="/auth-status.js"></script>
+<!-- CT_7G_INJECT:END -->
+<script src="/feature-flags.js"></script>
+<script src="/prelaunch-guard.js"></script>
+<script src="/ct-data-loader.js"></script><!-- Phase 3 §3: gated derived-data loader -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>Compare - Cricket Times</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+:root{
+  --bg:#faf9f7;--surface:#ffffff;--surface2:#f5f4f2;--surface3:#eceae6;
+  --border:#d8d4cc;--border2:#c8c4bc;
+  --text:#1a1a18;--text2:#4a4a46;--text3:#7a7a74;
+  --accent:#a03020;--accent-hover:#801810;--accent-dim:rgba(160,48,32,0.08);--accent-glow:rgba(160,48,32,0.06);
+  --gold:#c08018;--gold-dim:rgba(192,128,24,0.10);--green:#1a6848;--blue:#1a4878;
+  --green:#1a9a60;--green-dim:rgba(26,154,96,0.10);
+  --red:#d04040;
+  --p1:#c08018;--p2:#1a9a60;--p3:#2870d0;--p4:#c04060;--p5:#8050d0;
+  --p6:#d06020;--p7:#10a0a0;--p8:#6040c0;--p9:#c02080;--p10:#508030;
+}
+body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-height:100vh;overflow-x:hidden;-webkit-tap-highlight-color:rgba(0,0,0,0.1);touch-action:manipulation}
+
+/* Header */
+.header{
+  padding:22px 32px 16px;position:relative;
+  background:linear-gradient(180deg,#eaecf0 0%,var(--bg) 100%);
+  border-bottom:1px solid var(--border);
+}
+.header::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 25% -20%,var(--accent-glow),transparent 60%);pointer-events:none}
+.hdr-inner{max-width:1440px;margin:0 auto;position:relative;display:flex;justify-content:space-between;align-items:center}
+.brand{display:flex;align-items:center;gap:12px}
+.brand-icon{
+  width:36px;height:36px;border-radius:8px;
+  background:linear-gradient(135deg,var(--accent),#801810);
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:800;color:#fff;letter-spacing:-0.5px;
+  box-shadow:0 3px 14px rgba(160,48,32,0.30);
+}
+.brand h1{font-family:'DM Serif Display',serif;font-size:21px;letter-spacing:-0.3px}
+.brand-sub{font-size:11.5px;color:var(--text3);margin-top:2px;margin-left:48px}
+
+.share-btn{
+  background:var(--surface);border:1px solid var(--border);border-radius:8px;
+  padding:8px 16px;cursor:pointer;display:flex;align-items:center;gap:8px;
+  font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;
+  color:var(--text2);transition:all 0.2s;z-index:10;position:relative;
+}
+.share-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-dim)}
+.share-btn svg{width:16px;height:16px;stroke:currentColor;fill:none}
+
+.hdr-nav{display:flex;align-items:center;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;flex-shrink:1;min-width:0}
+.hdr-nav::-webkit-scrollbar{display:none}
+.nav-link{
+  background:var(--surface);border:1px solid var(--border);border-radius:8px;
+  padding:8px 16px;cursor:pointer;display:flex;align-items:center;gap:7px;
+  font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;
+  color:var(--text2);transition:all 0.2s;text-decoration:none;
+}
+.nav-link:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-dim)}
+.nav-link.active{border-color:var(--accent);color:var(--accent);background:var(--accent-dim)}
+.nav-link svg{width:15px;height:15px;stroke:currentColor;fill:none;flex-shrink:0}
+
+.main{max-width:1440px;margin:0 auto;padding:20px 32px 60px}
+
+/* Player Selection */
+.sel-area{display:flex;flex-wrap:wrap;gap:12px;align-items:start;margin-bottom:18px}
+.sel-area.hidden{display:none !important}
+.sel-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:11px;
+  padding:14px 16px;position:relative;transition:border-color 0.25s;
+  flex:1 1 200px;min-width:200px;max-width:340px;
+}
+.sel-card:focus-within{border-color:rgba(192,128,24,0.45)}
+.sel-card.active-1{border-color:var(--p1)}
+.sel-card.active-2{border-color:var(--p2)}
+.sel-card.active-3{border-color:var(--p3)}
+.sel-card.active-4{border-color:var(--p4)}
+.sel-card.active-5{border-color:var(--p5)}
+.sel-card.active-6{border-color:var(--p6)}
+.sel-card.active-7{border-color:var(--p7)}
+.sel-card.active-8{border-color:var(--p8)}
+.sel-card.active-9{border-color:var(--p9)}
+.sel-card.active-10{border-color:var(--p10)}
+.sel-label{font-size:10px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;color:var(--text3);margin-bottom:8px}
+.sel-input{
+  width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;
+  padding:8px 11px;color:var(--text);font-family:'Outfit',sans-serif;font-size:13px;
+  outline:none;transition:all 0.2s;
+}
+.sel-input:focus{border-color:var(--accent);background:var(--surface3)}
+.sel-input::placeholder{color:var(--text3)}
+.sel-clear{
+  position:absolute;top:14px;right:16px;background:none;border:none;
+  color:var(--text3);cursor:pointer;font-size:16px;display:none;line-height:1;
+}
+.sel-clear:hover{color:var(--red)}
+.sel-clear.show{display:block}
+.dd{
+  position:absolute;left:16px;right:16px;top:72px;z-index:100;
+  background:var(--surface2);border:1px solid var(--border2);border-radius:8px;
+  max-height:250px;overflow-y:auto;box-shadow:0 14px 44px rgba(0,0,0,0.12);display:none;
+}
+.dd.open{display:block}
+.dd-item{
+  padding:8px 12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;
+  font-size:12.5px;border-bottom:1px solid rgba(200,205,214,0.6);transition:background 0.12s;
+}
+.dd-item:last-child{border:none}
+.dd-item:hover{background:var(--surface3)}
+.dd-item .nm{font-weight:500}
+.dd-item .ct{font-size:10px;color:var(--text3);background:var(--surface);padding:2px 7px;border-radius:4px}
+.dd-item .yr{font-size:10.5px;color:var(--text3);margin-left:6px}
+
+.sel-info{margin-top:10px;display:none}
+.sel-info.show{display:block}
+.si-name{font-family:'DM Serif Display',serif;font-size:18px;margin-bottom:2px}
+.si-meta{font-size:11.5px;color:var(--text2)}
+.ctry-badge{
+  display:inline-block;padding:1px 8px;border-radius:3px;
+  font-size:10px;font-weight:700;letter-spacing:0.3px;margin-right:6px;
+}
+
+.vs{display:none}
+
+.add-player-btn{
+  flex:0 0 auto;align-self:stretch;min-width:120px;max-width:200px;
+  background:var(--surface);border:1.5px dashed var(--border2);border-radius:11px;
+  padding:14px 16px;cursor:pointer;transition:all 0.25s;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  font-family:'Outfit',sans-serif;font-size:12px;font-weight:600;color:var(--text3);
+}
+.add-player-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-dim)}
+.add-player-btn .plus{font-size:20px;line-height:1}
+.sel-card .sel-pcolor{
+  position:absolute;top:14px;left:16px;width:8px;height:8px;border-radius:50%;
+  box-shadow:0 0 6px currentColor;
+}
+
+/* Filters */
+.fp-select{
+  width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:5px;
+  padding:6px 10px;color:var(--text);font-family:'Outfit',sans-serif;font-size:12px;
+  outline:none;cursor:pointer;appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%235a6578'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 10px center;
+}
+.fp-select:focus{border-color:var(--accent)}
+
+/* Larger top-level dropdowns (Record Type / Stats Type) */
+.top-select{
+  padding:9px 32px 9px 12px !important;
+  font-size:13.5px !important;
+  font-weight:500;
+  border-radius:7px;
+  border-width:1.5px;
+}
+
+/* Filters panel — more breathing room */
+.filters-panel{
+  background:var(--surface);border:1px solid var(--border);border-radius:11px;
+  padding:18px 20px 16px;margin-bottom:20px;display:none;
+}
+.filters-panel.show{display:block}
+.fp-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.fp-title{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3)}
+.fp-reset{
+  font-size:11px;color:var(--accent);background:none;border:none;cursor:pointer;
+  font-family:'Outfit',sans-serif;font-weight:600;
+}
+.fp-reset:hover{text-decoration:underline}
+.phase-custom{display:none;margin-top:10px;gap:8px;align-items:center;flex-wrap:wrap}
+.phase-custom.show{display:flex}
+.phase-custom input{width:64px;background:var(--surface2);border:1.5px solid var(--border);border-radius:7px;padding:7px 10px;color:var(--text);font-family:'Outfit',sans-serif;font-size:13px;font-weight:500;outline:none;text-align:center}
+.phase-custom input:focus{border-color:var(--accent);background:var(--surface3)}
+.phase-custom .phase-sep{font-size:12px;color:var(--text3)}
+.phase-custom .phase-apply{background:var(--accent);color:#fff;border:none;border-radius:6px;padding:7px 14px;font-family:'Outfit',sans-serif;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap}
+.phase-custom .phase-apply:hover{background:var(--accent-hover)}
+/* Phase multi-select picker */
+.phase-ms-wrap{position:relative}
+.phase-ms-toggle{
+  width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:7px;
+  padding:9px 32px 9px 12px;color:var(--text);font-family:'Outfit',sans-serif;font-size:13px;font-weight:500;
+  outline:none;cursor:pointer;text-align:left;min-height:38px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%235a6578'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.phase-ms-toggle:focus,.phase-ms-toggle.open{border-color:var(--accent)}
+.phase-ms-toggle .ms-placeholder{color:var(--text3)}
+.phase-ms-dd{
+  position:absolute;left:0;right:0;top:100%;z-index:60;margin-top:3px;
+  background:var(--surface);border:1px solid var(--border2);border-radius:6px;
+  box-shadow:0 8px 28px rgba(0,0,0,0.10);display:none;overflow:hidden;
+}
+.phase-ms-dd.open{display:block}
+.phase-ms-item{
+  padding:8px 12px;cursor:pointer;display:flex;align-items:center;gap:9px;
+  font-size:12.5px;border-bottom:1px solid rgba(200,205,214,0.5);transition:background 0.1s;
+}
+.phase-ms-item:last-child{border:none}
+.phase-ms-item:hover{background:var(--surface2)}
+.phase-ms-item.checked{background:var(--accent-dim)}
+.phase-ms-item .ms-cb{
+  width:14px;height:14px;border:1.5px solid var(--border2);border-radius:3px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;transition:all 0.15s;
+}
+.phase-ms-item.checked .ms-cb{background:var(--accent);border-color:var(--accent);color:#fff;font-size:10px;}
+.phase-ms-item.checked .ms-cb::after{content:'✓'}
+.phase-ms-divider{padding:5px 12px 3px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3);background:var(--surface2);border-bottom:1px solid var(--border)}
+/* Custom range row inside the dropdown */
+.phase-ms-custom{padding:8px 12px;border-top:1px solid var(--border);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.phase-ms-custom input{width:58px;background:var(--surface2);border:1.5px solid var(--border);border-radius:6px;padding:5px 8px;font-family:'Outfit',sans-serif;font-size:12px;font-weight:500;color:var(--text);outline:none;text-align:center}
+.phase-ms-custom input:focus{border-color:var(--accent)}
+.phase-ms-custom .phase-sep{font-size:11px;color:var(--text3)}
+.phase-ms-custom .phase-add-btn{background:var(--accent);color:#fff;border:none;border-radius:5px;padding:5px 10px;font-family:'Outfit',sans-serif;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap}
+.phase-ms-custom .phase-add-btn:hover{background:var(--accent-hover)}
+.fp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px 18px}
+.fp-group label{font-size:11px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:var(--text3);display:block;margin-bottom:6px}
+.fp-select-lg{
+  width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:7px;
+  padding:9px 32px 9px 12px;color:var(--text);font-family:'Outfit',sans-serif;font-size:13px;font-weight:500;
+  outline:none;cursor:pointer;appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%235a6578'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center;
+  transition:border-color 0.2s,background 0.15s;
+}
+.fp-select-lg:focus{border-color:var(--accent);background-color:var(--surface3)}
+
+/* Multi-select opponent dropdown */
+.ms-wrap{position:relative}
+.ms-toggle{
+  width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:7px;
+  padding:9px 32px 9px 12px;color:var(--text);font-family:'Outfit',sans-serif;font-size:13px;font-weight:500;
+  outline:none;cursor:pointer;text-align:left;min-height:38px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%235a6578'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.ms-toggle:focus,.ms-toggle.open{border-color:var(--accent)}
+.ms-toggle .ms-placeholder{color:var(--text3)}
+.ms-dd{
+  position:absolute;left:0;right:0;top:100%;z-index:50;margin-top:3px;
+  background:var(--surface);border:1px solid var(--border2);border-radius:6px;
+  max-height:220px;overflow-y:auto;box-shadow:0 10px 36px rgba(0,0,0,0.13);display:none;
+}
+.ms-dd.open{display:block}
+.ms-dd-item{
+  padding:6px 10px;cursor:pointer;display:flex;align-items:center;gap:8px;
+  font-size:12px;border-bottom:1px solid rgba(200,205,214,0.4);transition:background 0.12s;
+}
+.ms-dd-item:last-child{border:none}
+.ms-dd-item:hover{background:var(--surface2)}
+.ms-dd-item .ms-cb{
+  width:14px;height:14px;border-radius:3px;border:1.5px solid var(--border2);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  transition:all 0.15s;
+}
+.ms-dd-item.checked .ms-cb{background:var(--accent);border-color:var(--accent)}
+.ms-dd-item.checked .ms-cb::after{content:'✓';color:#fff;font-size:10px;font-weight:700}
+.ms-dd-item .ms-lbl{flex:1;font-weight:500}
+.active-filters{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
+.af-tag{
+  display:inline-flex;align-items:center;gap:4px;padding:2px 9px;
+  background:var(--accent-dim);border:1px solid rgba(192,128,24,0.25);
+  border-radius:5px;font-size:10.5px;color:var(--accent);font-weight:500;
+}
+.af-tag button{background:none;border:none;color:var(--accent);cursor:pointer;font-size:12px;line-height:1}
+
+/* Partnership Layout */
+.partnership-area{display:flex;flex-wrap:wrap;gap:16px 30px;align-items:flex-start;margin-bottom:18px}
+.partnership-area.hidden{display:none !important}
+
+/* Cohort comparison area */
+.cohort-area{display:flex;flex-direction:column;gap:14px;margin-bottom:18px}
+.cohort-area.hidden{display:none !important}
+.cohort-groups-wrap{display:flex;flex-wrap:wrap;gap:20px 32px;align-items:flex-start}
+.cohort-group{flex:1;min-width:260px;max-width:420px}
+.cohort-label{
+  font-family:'DM Serif Display',serif;font-size:13px;font-weight:600;
+  padding:5px 12px;margin-bottom:10px;border-radius:6px;
+  background:var(--surface2);border:1px solid var(--border);color:var(--text2);
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+}
+.cohort-remove{background:none;border:none;cursor:pointer;color:var(--text3);font-size:16px;line-height:1;padding:0 2px;}
+.cohort-remove:hover{color:var(--red)}
+.cohort-slots{display:flex;flex-direction:column;gap:8px}
+.cohort-vs{
+  align-self:center;font-family:'DM Serif Display',serif;font-size:18px;
+  color:var(--text3);font-weight:700;padding:0 4px;flex-shrink:0;
+  display:none; /* shown dynamically between groups */
+}
+/* Cohort colour accents by index */
+.cohort-group[data-ci="0"] .cohort-label{border-left:3px solid var(--accent);color:var(--accent)}
+.cohort-group[data-ci="1"] .cohort-label{border-left:3px solid var(--blue);color:var(--blue)}
+.cohort-group[data-ci="2"] .cohort-label{border-left:3px solid var(--green);color:var(--green)}
+.cohort-group[data-ci="3"] .cohort-label{border-left:3px solid var(--gold);color:var(--gold)}
+@media(max-width:700px){
+  .cohort-groups-wrap{flex-direction:column}
+}
+.empty.hidden{display:none !important}
+.partnership-group{flex:0 0 auto;min-width:340px}
+.partnership-label{
+  font-family:'DM Serif Display',serif;font-size:15px;font-weight:600;
+  color:var(--text);margin-bottom:12px;text-align:center;
+  padding:6px 16px;background:var(--surface);border:1px solid var(--border);
+  border-radius:8px;display:inline-block;width:100%;box-sizing:border-box;
+}
+.partnership-group:nth-child(4n+1) .partnership-label{border-left:3px solid var(--p1);color:var(--p1)}
+.partnership-group:nth-child(4n+3) .partnership-label{border-left:3px solid var(--p2);color:var(--p2)}
+.partnership-group:nth-child(4n+5) .partnership-label{border-left:3px solid var(--p3);color:var(--p3)}
+.partnership-group:nth-child(4n+7) .partnership-label{border-left:3px solid var(--p4);color:var(--p4)}
+.partnership-cards{display:flex;gap:8px;align-items:flex-start}
+.partnership-card{flex:1;min-width:150px;max-width:180px}
+.partnership-card .sel-input{font-size:12px;padding:7px 10px}
+.partnership-plus{
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;font-weight:700;color:var(--text3);padding:0 2px;
+  margin-top:35px;
+}
+.partnership-vs{
+  font-family:'DM Serif Display',serif;font-size:20px;color:var(--accent);
+  font-weight:600;padding:0 10px;display:flex;align-items:center;
+  margin-top:30px;
+}
+@media(max-width:900px){
+  .partnership-area{flex-direction:column;align-items:stretch}
+  .partnership-group{min-width:100%}
+  .partnership-vs{justify-content:center;margin-top:0;padding:8px 0}
+}
+@media(max-width:600px){
+  .record-type-filter{flex-direction:column;gap:12px}
+  .record-type-filter .fp-group{min-width:0 !important;width:100%}
+}
+
+/* Comparison */
+.comp{display:none}
+.comp.show{display:block}
+.empty{text-align:center;padding:70px 20px}
+.empty-ico{font-size:42px;margin-bottom:14px;opacity:0.25}
+.empty h2{font-family:'DM Serif Display',serif;font-size:21px;color:var(--text2);margin-bottom:6px}
+.empty p{font-size:13px;color:var(--text3);max-width:380px;margin:0 auto}
+
+/* Tabs */
+.tabs-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px;flex-wrap:wrap}
+.tabs{display:flex;gap:3px;background:var(--surface);border-radius:8px;padding:3px;border:1px solid var(--border);flex:1;min-width:0}
+.tab{
+  flex:1;padding:8px;border-radius:6px;border:none;background:none;
+  color:var(--text2);font-family:'Outfit',sans-serif;font-size:12px;
+  font-weight:500;cursor:pointer;transition:all 0.2s;
+}
+.tab:hover{color:var(--text)}
+.tab.on{background:var(--surface3);color:var(--accent);font-weight:600}
+.tab.hidden-tab{display:none !important}
+.tc{display:none}
+.tc.on{display:block}
+.export-inline-btn{
+  display:flex;align-items:center;gap:7px;flex-shrink:0;
+  background:var(--surface);border:1px solid var(--border);border-radius:8px;
+  padding:8px 14px;cursor:pointer;
+  font-family:'Outfit',sans-serif;font-size:12px;font-weight:600;color:var(--text2);
+  transition:all 0.2s;white-space:nowrap;
+}
+.export-inline-btn:hover{border-color:var(--green);color:var(--green);background:var(--green-dim)}
+
+/* Career / Together toggle */
+.dual-toggle{
+  display:none;align-items:center;gap:10px;flex-shrink:0;
+  background:var(--surface);border:1px solid var(--border);border-radius:8px;
+  padding:6px 12px;
+}
+.dual-toggle.show{display:flex}
+.dual-toggle-label{font-family:'Outfit',sans-serif;font-size:11px;font-weight:600;color:var(--text3);white-space:nowrap;transition:color 0.2s}
+.dual-toggle-label.active{color:var(--text)}
+.toggle-track{
+  position:relative;width:38px;height:20px;border-radius:10px;
+  background:var(--border2);cursor:pointer;transition:background 0.25s;flex-shrink:0;
+  border:none;padding:0;
+}
+.toggle-track.on{background:var(--accent)}
+.toggle-thumb{
+  position:absolute;top:2px;left:2px;width:16px;height:16px;
+  border-radius:50%;background:#fff;
+  box-shadow:0 1px 4px rgba(0,0,0,0.2);
+  transition:transform 0.25s;pointer-events:none;
+}
+.toggle-track.on .toggle-thumb{transform:translateX(18px)}
+
+/* Dual table layout */
+.dual-view-wrap{display:flex;gap:24px;align-items:flex-start}
+.dual-view-wrap .dual-col{flex:1;min-width:0}
+.dual-col-header{
+  font-family:'DM Serif Display',serif;font-size:13px;font-weight:600;
+  padding:6px 12px;margin-bottom:10px;border-radius:6px;text-align:center;
+  background:var(--surface2);border:1px solid var(--border);color:var(--text2);
+}
+.dual-col-header.career{border-left:3px solid var(--text3);color:var(--text2)}
+.dual-col-header.together{border-left:3px solid var(--accent);color:var(--accent)}
+.dual-col-header.phase-a{border-left:3px solid var(--blue);color:var(--blue)}
+.dual-col-header.phase-b{border-left:3px solid var(--gold);color:var(--gold)}
+@media(max-width:900px){
+  .dual-view-wrap{flex-direction:column}
+  .dual-toggle{flex-wrap:wrap}
+}
+
+/* ---- TRANSPOSED TABLE: players = rows, stats = columns ---- */
+.tbl-wrap{overflow-x:auto;margin-bottom:24px;border-radius:11px;border:1px solid var(--border)}
+.cmp-table{
+  width:100%;border-collapse:separate;border-spacing:0;
+  background:var(--surface);min-width:600px;
+}
+
+/* Column headers = stat names */
+.cmp-table thead th{
+  padding:10px 12px;font-size:10px;font-weight:700;letter-spacing:0.8px;
+  text-transform:uppercase;color:var(--text3);text-align:center;
+  border-bottom:2px solid var(--border2);background:var(--surface2);
+  position:sticky;top:0;z-index:2;white-space:nowrap;
+}
+.cmp-table thead th:first-child{
+  text-align:left;position:sticky;left:0;z-index:3;
+  background:var(--surface2);min-width:160px;
+  font-size:10px;letter-spacing:1.2px;
+}
+
+/* Section header columns */
+.cmp-table thead th.sec-head{
+  color:var(--accent);font-family:'DM Serif Display',serif;
+  font-size:11px;letter-spacing:0.3px;text-transform:none;
+  border-left:2px solid var(--border2);
+}
+
+/* Player rows */
+.cmp-table tbody td{
+  padding:10px 12px;font-size:13.5px;font-weight:600;
+  text-align:center;font-variant-numeric:tabular-nums;
+  border-bottom:1px solid var(--border);
+  transition:background 0.1s;
+}
+.cmp-table tbody tr:last-child td{border-bottom:none}
+.cmp-table tbody tr:hover td{background:rgba(0,0,0,0.025)}
+
+/* Player name cell (first column, sticky) */
+.cmp-table tbody td.player-cell{
+  text-align:left;position:sticky;left:0;z-index:1;
+  background:var(--surface);font-weight:700;white-space:nowrap;
+  border-right:1px solid var(--border);
+}
+.cmp-table tbody tr:hover td.player-cell{background:var(--surface2)}
+.pc-name{font-family:'DM Serif Display',serif;font-size:15px;display:block;margin-bottom:1px}
+.pc-meta{font-size:10px;font-weight:400;color:var(--text3);display:block}
+
+/* Colored player row accents */
+.cmp-table tbody tr.p1-row td.player-cell{border-left:3px solid var(--p1)}
+.cmp-table tbody tr.p2-row td.player-cell{border-left:3px solid var(--p2)}
+.cmp-table tbody tr.p3-row td.player-cell{border-left:3px solid var(--p3)}
+.cmp-table tbody tr.p4-row td.player-cell{border-left:3px solid var(--p4)}
+.cmp-table tbody tr.p5-row td.player-cell{border-left:3px solid var(--p5)}
+.cmp-table tbody tr.p6-row td.player-cell{border-left:3px solid var(--p6)}
+.cmp-table tbody tr.p7-row td.player-cell{border-left:3px solid var(--p7)}
+.cmp-table tbody tr.p8-row td.player-cell{border-left:3px solid var(--p8)}
+.cmp-table tbody tr.p9-row td.player-cell{border-left:3px solid var(--p9)}
+.cmp-table tbody tr.p10-row td.player-cell{border-left:3px solid var(--p10)}
+
+/* Cell value highlighting */
+.cmp-table tbody td.best{color:var(--green)}
+.cmp-table tbody td.worse{color:var(--text3)}
+/* Phase-row mode: rows are phases, first column is phase label */
+.cmp-table tbody tr.phase-career-row td.player-cell{border-left:3px solid var(--text3)}
+.cmp-table tbody tr.phase-a-row td.player-cell{border-left:3px solid var(--blue)}
+.cmp-table tbody tr.phase-b-row td.player-cell{border-left:3px solid var(--gold)}
+.cmp-table tbody tr.phase-c-row td.player-cell{border-left:3px solid var(--green)}
+.cmp-table tbody tr.phase-sep-row td{background:var(--surface2);font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text3);padding:6px 12px;}
+.cmp-table tbody td.best::after{
+  content:'';display:inline-block;width:4px;height:4px;border-radius:50%;
+  background:var(--green);margin-left:6px;vertical-align:middle;
+  box-shadow:0 0 5px rgba(26,154,96,0.4);
+}
+
+/* Section dividers in columns */
+.cmp-table tbody td.sec-div{border-left:2px solid var(--border2)}
+
+/* Verdict */
+.verd{
+  background:linear-gradient(135deg,var(--surface),var(--surface2));
+  border:1px solid var(--border);border-radius:11px;padding:18px;
+  margin-bottom:20px;text-align:center;
+}
+.verd-lb{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px}
+.verd-tx{font-size:15px;line-height:1.6;color:var(--text)}
+
+/* Filter summary */
+.filt-sum{
+  display:inline-flex;align-items:center;gap:6px;padding:4px 12px;
+  background:var(--accent-dim);border-radius:6px;font-size:11px;
+  color:var(--accent);margin-bottom:14px;font-weight:500;
+}
+
+.foot-note{font-size:10.5px;color:var(--text3);margin-top:-18px;margin-bottom:24px;padding-left:4px}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+/* iPad/Tablet optimizations (768px - 1024px) */
+@media(min-width:768px) and (max-width:1024px){
+  .main{padding:20px 24px 60px}
+  .header{padding:18px 24px 14px}
+  .sel-area{gap:10px}
+  .sel-card{flex:1 1 calc(50% - 5px);min-width:280px;max-width:calc(50% - 5px)}
+  .add-player-btn{flex:1 1 calc(50% - 5px);min-width:280px;max-width:calc(50% - 5px)}
+  .fp-grid{grid-template-columns:repeat(3,1fr);gap:10px 16px}
+  .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .cmp-table{min-width:800px}
+  .cmp-table thead th{padding:9px 10px;font-size:10px}
+  .cmp-table tbody td{padding:9px 10px;font-size:12px}
+  .cmp-table tbody td.player-cell{min-width:140px}
+  .sel-input{font-size:14px;padding:10px 12px}
+  .dd-item{padding:10px 14px;font-size:13px}
+  .fp-select-lg,.top-select{padding:10px 32px 10px 13px !important;font-size:13.5px !important}
+  .ms-toggle{padding:10px 32px 10px 13px;font-size:13.5px;min-height:40px}
+  .tab{padding:10px 18px;font-size:12.5px}
+  .dd{max-height:300px}
+  .ms-dd{max-height:280px}
+}
+
+/* Mobile phones (max-width: 767px) */
+@media(max-width:767px){
+  .header{padding:14px 16px;padding-top:60px}
+  .hdr-inner{flex-direction:column;align-items:flex-start;gap:10px}
+  .hdr-nav{position:absolute;top:14px;right:16px;left:auto;z-index:10}
+  .brand{max-width:100%}
+  .brand h1{font-size:18px;line-height:1.2}
+  .nav-link span{display:none}
+  .nav-link{padding:8px 10px}
+  .share-btn{padding:8px 10px;font-size:0}
+  .share-btn svg{margin:0}
+  .share-btn span{display:none}
+  .main{padding:12px 14px}
+  .sel-area{flex-direction:column}
+  .sel-card{max-width:100%}
+  .add-player-btn{max-width:100%;min-height:50px}
+  .fp-grid{grid-template-columns:1fr 1fr}
+  .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .cmp-table{min-width:600px}
+  .cmp-table thead th{padding:7px 8px;font-size:8.5px}
+  .cmp-table tbody td{padding:7px 8px;font-size:11.5px}
+  .cmp-table tbody td.player-cell{min-width:120px}
+  .pc-name{font-size:13px}
+  .record-type-filter{flex-direction:column !important;gap:8px !important}
+}
+@media(max-width:480px){
+  .header{padding-top:56px}
+  .hdr-nav{top:12px;right:12px;gap:4px}
+  .nav-link{padding:7px 8px}
+  .nav-link svg{width:14px;height:14px}
+  .brand h1{font-size:16px}
+  .brand-icon{width:32px;height:32px;font-size:12px}
+  .brand-sub{margin-left:44px;font-size:10.5px}
+}
+
+.header{display:none !important}
+header.header{display:none !important}
+
+/* ═══ Cricket Times Masthead & Nav ═══ */
+.ct-masthead{text-align:center;padding:20px 24px 16px;border-bottom:2px solid var(--text);position:relative;background:var(--bg)}
+.ct-masthead-date{font-family:'Inter',sans-serif;font-size:11px;font-weight:500;letter-spacing:1.2px;text-transform:uppercase;color:var(--text3);margin-bottom:8px}
+.ct-masthead-logo{font-family:'Playfair Display',serif;font-size:clamp(36px,8vw,58px);font-weight:700;letter-spacing:-1px;line-height:1.1}
+.ct-masthead-logo a{text-decoration:none;color:inherit}
+.ct-masthead-logo span{color:var(--accent)}
+.ct-masthead-tagline{font-family:'Inter',sans-serif;font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-top:6px}
+.ct-nav-bar{border-bottom:1px solid var(--border);background:var(--surface);position:sticky;top:0;z-index:100}
+.ct-nav-inner{max-width:1400px;margin:0 auto;padding:0 24px;display:flex;justify-content:center;gap:0}
+.ct-nav-link{font-family:'Inter',sans-serif;font-size:12px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;color:var(--text2);text-decoration:none;padding:14px 20px;position:relative;transition:color 0.2s}
+.ct-nav-link:hover{color:var(--accent)}
+.ct-nav-link.active{color:var(--accent)}
+.ct-nav-link.active::after{content:'';position:absolute;bottom:0;left:20px;right:20px;height:2px;background:var(--accent)}
+@media(max-width:900px){
+  .ct-nav-inner{overflow-x:auto;justify-content:flex-start;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .ct-nav-inner::-webkit-scrollbar{display:none}
+  .ct-nav-link{white-space:nowrap;padding:12px 14px;font-size:11px}
+}
+.ct-footer{background:var(--text);color:rgba(255,255,255,0.7);padding:48px 24px 32px;margin-top:60px}
+.ct-footer-inner{max-width:1400px;margin:0 auto}
+.ct-footer-top{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:32px;border-bottom:1px solid rgba(255,255,255,0.1);margin-bottom:24px}
+.ct-footer-brand{font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:#fff}
+.ct-footer-nav{display:flex;gap:32px}
+.ct-footer-nav a{font-family:'Inter',sans-serif;font-size:12px;font-weight:500;color:rgba(255,255,255,0.6);text-decoration:none}
+.ct-footer-nav a:hover{color:#fff}
+.ct-footer-bottom{font-family:'Inter',sans-serif;font-size:11px;color:rgba(255,255,255,0.4);display:flex;justify-content:space-between}
+@media(max-width:900px){.ct-footer-top{flex-direction:column;gap:24px}.ct-footer-nav{flex-wrap:wrap;gap:16px}.ct-footer-bottom{flex-direction:column;gap:8px}}
+
+
+/* ══ Cricket Times Support Banner ══ */
+.ct-support-banner{max-width:1400px;margin:0 auto;padding:0 24px}
+.ct-support-inner{border-top:3px double var(--border2,#c8c4bc);border-bottom:3px double var(--border2,#c8c4bc);padding:36px 0;display:flex;align-items:center;gap:40px}
+.ct-support-icon{flex-shrink:0;width:72px;height:72px;border:2px solid var(--accent,#a03020);border-radius:50%;display:flex;align-items:center;justify-content:center}
+.ct-support-icon svg{width:32px;height:32px;stroke:var(--accent,#a03020);fill:none;stroke-width:1.5}
+.ct-support-content{flex:1}
+.ct-support-headline{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;line-height:1.3;margin-bottom:8px;color:var(--text,#1a1a18)}
+.ct-support-headline em{font-style:italic;color:var(--accent,#a03020)}
+.ct-support-body{font-family:'Source Serif 4',Georgia,serif;font-size:15px;color:var(--text2,#4a4a46);line-height:1.6;max-width:560px}
+.ct-support-actions{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:8px}
+.ct-support-btn{display:inline-flex;align-items:center;gap:8px;padding:12px 28px;background:var(--accent,#a03020);color:#fff;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;letter-spacing:0.5px;text-decoration:none;border:none;cursor:pointer;transition:all 0.2s ease}
+.ct-support-btn:hover{background:var(--accent-hover,#801810);transform:translateY(-1px)}
+.ct-support-btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2}
+.ct-support-aside{font-family:'Inter',sans-serif;font-size:10px;color:var(--text3,#7a7a74);letter-spacing:0.3px;text-align:center;max-width:220px}
+@media(max-width:768px){.ct-support-inner{flex-direction:column;text-align:center;gap:24px;padding:28px 0}.ct-support-body{margin:0 auto}.ct-support-headline{font-size:20px}}
+
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,300;8..60,400;8..60,500;8..60,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<header data-ct-nav="masthead"></header>
+<nav data-ct-nav="primary"></nav>
+
+<div class="header">
+  <div class="hdr-inner">
+    <div class="brand">
+      <div class="brand-icon">CT</div>
+      <h1>Test Cricket Comparisons</h1>
+    </div>
+    <div class="hdr-nav">
+      <a href="countries.html" class="nav-link">
+        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="2" y1="12" x2="22" y2="12"></line>
+          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+        </svg>
+        <span>Countries</span>
+      </a>
+      <a href="batting.html" class="nav-link">
+        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="3" y1="9" x2="21" y2="9"></line>
+          <line x1="3" y1="15" x2="21" y2="15"></line>
+          <line x1="9" y1="3" x2="9" y2="21"></line>
+        </svg>
+        <span>Batting</span>
+      </a>
+      <a href="bowling.html" class="nav-link">
+        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <path d="M8 12a4 4 0 0 1 8 0"></path>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+        </svg>
+        <span>Bowling</span>
+      </a>
+      <a href="compare.html" class="nav-link active">
+        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+          <circle cx="9" cy="7" r="4"></circle>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+        </svg>
+        <span>Compare</span>
+      </a>
+      <a href="simulation.html" class="nav-link">
+        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="2" width="20" height="20" rx="3"></rect>
+          <circle cx="8" cy="8" r="1.5" fill="currentColor" stroke="none"></circle>
+          <circle cx="16" cy="8" r="1.5" fill="currentColor" stroke="none"></circle>
+          <circle cx="8" cy="16" r="1.5" fill="currentColor" stroke="none"></circle>
+          <circle cx="16" cy="16" r="1.5" fill="currentColor" stroke="none"></circle>
+          <circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"></circle>
+        </svg>
+        <span>Simulation</span>
+      </a>
+      <button class="nav-link share-btn" onclick="shareComparison()">
+        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="18" cy="5" r="3"></circle>
+          <circle cx="6" cy="12" r="3"></circle>
+          <circle cx="18" cy="19" r="3"></circle>
+          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+          <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+        </svg>
+        <span>Share</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  <!-- ═══ Record Type + Stats Type dropdowns ═══ -->
+  <div class="record-type-filter" style="margin-bottom:20px;display:flex;gap:20px;flex-wrap:wrap;align-items:flex-end;">
+    <div class="fp-group" style="min-width:200px;">
+      <label style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3);display:block;margin-bottom:6px;">Record Type</label>
+      <select class="fp-select top-select" id="fRecordType" onchange="handleRecordTypeChange()">
+        <option value="player" selected>Player (free select)</option>
+        <optgroup label="── Together ──">
+          <option value="duo">Duo vs Duo (2 vs 2)</option>
+          <option value="triple">Triple vs Triple (3 vs 3)</option>
+          <option value="quartet">Quartet vs Quartet (4 vs 4)</option>
+          <option value="quintet">Quintet vs Quintet (5 vs 5)</option>
+          <option value="eleven">Eleven vs Eleven (11 vs 11)</option>
+        </optgroup>
+        <optgroup label="── Batting Partnerships ──">
+          <option value="partnerships">Partnerships</option>
+        </optgroup>
+        <optgroup label="── Head to Head ──">
+          <option value="against">1 Against X</option>
+        </optgroup>
+        <optgroup label="── Career Phase ──">
+          <option value="phase-single">1 Player — Phase Comparison</option>
+          <option value="phase-multi">2+ Players — Phase Comparison</option>
+        </optgroup>
+      </select>
+    </div>
+    <div class="fp-group" id="statsTypeGroup" style="min-width:180px;">
+      <label style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3);display:block;margin-bottom:6px;">Stats Type</label>
+      <select class="fp-select top-select" id="fStatsType" onchange="handleStatsTypeChange()">
+        <option value="both" selected>Both</option>
+        <option value="batting">Batting</option>
+        <option value="bowling">Bowling</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="sel-area" id="selArea">
+    <div class="sel-card" id="c1">
+      <div class="sel-pcolor" style="color:var(--p1);background:var(--p1)"></div>
+      <div class="sel-label" style="margin-left:18px">Player 1</div>
+      <input class="sel-input" id="s1" placeholder="Search by name or country..." autocomplete="off">
+      <button class="sel-clear" id="x1" onclick="clearP(1)">&times;</button>
+      <div class="dd" id="d1"></div>
+      <div class="sel-info" id="i1"><div class="si-name" id="n1"></div><div class="si-meta" id="m1"></div></div>
+    </div>
+    <div class="sel-card" id="c2">
+      <div class="sel-pcolor" style="color:var(--p2);background:var(--p2)"></div>
+      <div class="sel-label" style="margin-left:18px">Player 2</div>
+      <input class="sel-input" id="s2" placeholder="Search by name or country..." autocomplete="off">
+      <button class="sel-clear" id="x2" onclick="clearP(2)">&times;</button>
+      <div class="dd" id="d2"></div>
+      <div class="sel-info" id="i2"><div class="si-name" id="n2"></div><div class="si-meta" id="m2"></div></div>
+    </div>
+    <button class="add-player-btn" id="addPlayerBtn" onclick="addPlayerSlot()"><span class="plus">+</span> Add Player</button>
+  </div>
+
+  <!-- Cohort Comparison Area (Together modes) -->
+  <div class="cohort-area hidden" id="cohortArea">
+    <div class="cohort-groups-wrap" id="cohortGroupsWrap"></div>
+    <button class="add-player-btn" id="addCohortBtn" onclick="addCohort()" style="display:none"><span class="plus">+</span> Add Cohort</button>
+  </div>
+
+  <!-- Partnership Selection Area (hidden by default) -->
+  <div class="partnership-area hidden" id="partnershipArea">
+    <div class="partnership-group" id="pg1">
+      <div class="partnership-label" style="border-left:3px solid var(--p1);color:var(--p1)">Partnership 1</div>
+      <div class="partnership-cards">
+        <div class="sel-card partnership-card" id="pc1a">
+          <div class="sel-pcolor" style="color:var(--p1);background:var(--p1)"></div>
+          <div class="sel-label" style="margin-left:18px">Player A</div>
+          <input class="sel-input" id="ps1a" placeholder="Search player..." autocomplete="off">
+          <button class="sel-clear" id="px1a" onclick="clearPartnershipPlayer('1a')">&times;</button>
+          <div class="dd" id="pd1a"></div>
+          <div class="sel-info" id="pi1a"><div class="si-name" id="pn1a"></div><div class="si-meta" id="pm1a"></div></div>
+        </div>
+        <div class="partnership-plus">&</div>
+        <div class="sel-card partnership-card" id="pc1b">
+          <div class="sel-pcolor" style="color:var(--p1);background:var(--p1)"></div>
+          <div class="sel-label" style="margin-left:18px">Player B</div>
+          <input class="sel-input" id="ps1b" placeholder="Search player..." autocomplete="off">
+          <button class="sel-clear" id="px1b" onclick="clearPartnershipPlayer('1b')">&times;</button>
+          <div class="dd" id="pd1b"></div>
+          <div class="sel-info" id="pi1b"><div class="si-name" id="pn1b"></div><div class="si-meta" id="pm1b"></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="partnership-vs">VS</div>
+    <div class="partnership-group" id="pg2">
+      <div class="partnership-label" style="border-left:3px solid var(--p2);color:var(--p2)">Partnership 2</div>
+      <div class="partnership-cards">
+        <div class="sel-card partnership-card" id="pc2a">
+          <div class="sel-pcolor" style="color:var(--p2);background:var(--p2)"></div>
+          <div class="sel-label" style="margin-left:18px">Player A</div>
+          <input class="sel-input" id="ps2a" placeholder="Search player..." autocomplete="off">
+          <button class="sel-clear" id="px2a" onclick="clearPartnershipPlayer('2a')">&times;</button>
+          <div class="dd" id="pd2a"></div>
+          <div class="sel-info" id="pi2a"><div class="si-name" id="pn2a"></div><div class="si-meta" id="pm2a"></div></div>
+        </div>
+        <div class="partnership-plus">&</div>
+        <div class="sel-card partnership-card" id="pc2b">
+          <div class="sel-pcolor" style="color:var(--p2);background:var(--p2)"></div>
+          <div class="sel-label" style="margin-left:18px">Player B</div>
+          <input class="sel-input" id="ps2b" placeholder="Search player..." autocomplete="off">
+          <button class="sel-clear" id="px2b" onclick="clearPartnershipPlayer('2b')">&times;</button>
+          <div class="dd" id="pd2b"></div>
+          <div class="sel-info" id="pi2b"><div class="si-name" id="pn2b"></div><div class="si-meta" id="pm2b"></div></div>
+        </div>
+      </div>
+    </div>
+    <button class="add-player-btn" id="addPartnershipBtn" onclick="addPartnershipSlot()"><span class="plus">+</span> Add Partnership</button>
+  </div>
+
+  <!-- Against Selection Area -->
+  <div class="against-area hidden" id="againstArea" style="display:none;">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;">
+      <div class="fp-group" style="margin:0;">
+        <label style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);display:block;margin-bottom:4px;">View as</label>
+        <div style="display:flex;gap:0;border:1px solid var(--border);border-radius:6px;overflow:hidden;background:var(--surface);">
+          <button id="agBatterBtn" onclick="setAgainstMode('batter')" style="padding:7px 16px;font-family:'Outfit',sans-serif;font-size:12px;font-weight:600;border:none;cursor:pointer;transition:all 0.2s;background:var(--accent);color:#fff;">Batter</button>
+          <button id="agBowlerBtn" onclick="setAgainstMode('bowler')" style="padding:7px 16px;font-family:'Outfit',sans-serif;font-size:12px;font-weight:600;border:none;cursor:pointer;transition:all 0.2s;background:var(--surface);color:var(--text2);">Bowler</button>
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--text3);padding-top:18px;" id="againstHint">Select a batter and up to 10 bowlers they faced</div>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-start;">
+      <div style="display:flex;flex-direction:column;align-items:flex-start;gap:6px;">
+        <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);" id="agFocusLabel">BATTER</div>
+        <div class="sel-card" id="agc0" style="min-width:220px;max-width:260px;">
+          <div class="sel-pcolor" style="color:var(--p1);background:var(--p1)"></div>
+          <div class="sel-label" style="margin-left:18px" id="agFocusCardLabel">Focus Player</div>
+          <input class="sel-input" id="ags0" placeholder="Search player..." autocomplete="off">
+          <button class="sel-clear" id="agx0" onclick="clearAgainstPlayer(0)">&times;</button>
+          <div class="dd" id="agd0"></div>
+          <div class="sel-info" id="agi0"><div class="si-name" id="agn0"></div><div class="si-meta" id="agm0"></div></div>
+        </div>
+      </div>
+      <div style="font-family:'DM Serif Display',serif;font-size:22px;color:var(--accent);font-weight:600;display:flex;align-items:center;margin-top:28px;padding:0 4px;">vs</div>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:flex-start;" id="agOpponentsWrap">
+        <div class="sel-card" id="agc1" style="min-width:180px;max-width:220px;">
+          <div class="sel-pcolor" style="color:var(--p2);background:var(--p2)"></div>
+          <div class="sel-label" style="margin-left:18px" id="agOppLabel0">Bowler 1</div>
+          <input class="sel-input" id="ags1" placeholder="Search opponent..." autocomplete="off">
+          <button class="sel-clear" id="agx1" onclick="clearAgainstPlayer(1)">&times;</button>
+          <div class="dd" id="agd1"></div>
+          <div class="sel-info" id="agi1"><div class="si-name" id="agn1"></div><div class="si-meta" id="agm1"></div></div>
+        </div>
+        <div class="sel-card" id="agc2" style="min-width:180px;max-width:220px;">
+          <div class="sel-pcolor" style="color:var(--p3);background:var(--p3)"></div>
+          <div class="sel-label" style="margin-left:18px" id="agOppLabel1">Bowler 2</div>
+          <input class="sel-input" id="ags2" placeholder="Search opponent..." autocomplete="off">
+          <button class="sel-clear" id="agx2" onclick="clearAgainstPlayer(2)">&times;</button>
+          <div class="dd" id="agd2"></div>
+          <div class="sel-info" id="agi2"><div class="si-name" id="agn2"></div><div class="si-meta" id="agm2"></div></div>
+        </div>
+        <button class="add-player-btn" id="addAgainstBtn" onclick="addAgainstSlot()" style="min-width:100px;max-width:140px;align-self:flex-start;"><span class="plus">+</span> Add</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Against Empty State -->
+  <div class="empty hidden" id="againstEmptyState" style="display:none;">
+    <div class="empty-ico">&#9878;</div>
+    <h2>Select players to compare</h2>
+    <p>Choose a batter (or bowler) and up to 10 opponents to see their record in shared matches.</p>
+  </div>
+
+  <!-- Against Results -->
+  <div class="comp" id="againstComp" style="display:none;">
+    <div id="againstResults"></div>
+    <div class="foot-note" style="margin-top:4px;">* Stats are for matches where both players appeared on opposing sides. "Times Dismissed" = innings where the specific bowler is credited with the dismissal (b, lbw, c, cw, st, etc.).</div>
+  </div>
+
+  <div class="filters-panel" id="filtersPanel">
+    <div class="fp-header">
+      <span class="fp-title">Filters</span>
+      <div style="display:flex;align-items:center;gap:14px">
+        <button class="fp-reset" onclick="resetFilters()">Reset all</button>
+        <button class="export-inline-btn" id="exportBtn" onclick="exportToExcel()" style="display:none">
+          <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          Export to Excel
+        </button>
+      </div>
+    </div>
+    <div class="fp-grid">
+      <div class="fp-group"><label>Opponent</label>
+        <div class="ms-wrap" id="fOppWrap">
+          <button class="ms-toggle" id="fOppToggle" type="button" onclick="toggleOppDD()"><span class="ms-placeholder">All opponents</span></button>
+          <div class="ms-dd" id="fOppDD"></div>
+        </div>
+      </div>
+      <div class="fp-group"><label>Home / Away</label><select class="fp-select-lg" id="fHA" onchange="applyFilters()"><option value="">All</option><option value="home">Home</option><option value="away">Away</option><option value="neutral">Neutral</option></select></div>
+      <div class="fp-group"><label>City</label><select class="fp-select-lg" id="fCity" onchange="applyFilters()"><option value="">All cities</option></select></div>
+      <div class="fp-group"><label>Ground</label><select class="fp-select-lg" id="fGnd" onchange="applyFilters()"><option value="">All grounds</option></select></div>
+      <div class="fp-group"><label>Match Innings</label><select class="fp-select-lg" id="fInn" onchange="applyFilters()"><option value="">All innings</option><option value="1">1st innings</option><option value="2">2nd innings</option><option value="3">3rd innings</option><option value="4">4th innings</option></select></div>
+      <div class="fp-group"><label>Result</label><select class="fp-select-lg" id="fRes" onchange="applyFilters()"><option value="">All results</option><option value="won">Won</option><option value="lost">Lost</option><option value="drawn">Drawn</option><option value="tied">Tied</option></select></div>
+      <div class="fp-group"><label>Toss</label><select class="fp-select-lg" id="fToss" onchange="applyFilters()"><option value="">All</option><option value="won">Won toss</option><option value="lost">Lost toss</option></select></div>
+      <div class="fp-group"><label>Team Captain</label>
+        <div class="ms-wrap" id="fTeamCaptWrap">
+          <button class="ms-toggle" id="fTeamCaptToggle" type="button" onclick="toggleTeamCaptDD()"><span class="ms-placeholder">All captains</span></button>
+          <div class="ms-dd" id="fTeamCaptDD"></div>
+        </div>
+      </div>
+      <div class="fp-group"><label>Opposing Captain</label>
+        <div class="ms-wrap" id="fOppCaptWrap">
+          <button class="ms-toggle" id="fOppCaptToggle" type="button" onclick="toggleOppCaptDD()"><span class="ms-placeholder">All captains</span></button>
+          <div class="ms-dd" id="fOppCaptDD"></div>
+        </div>
+      </div>
+      <div class="fp-group"><label>Played Together</label><select class="fp-select-lg" id="fTogether" onchange="applyFilters()"><option value="">No (all stats)</option><option value="yes">Yes (same matches)</option></select></div>
+      <div class="fp-group" id="phaseGroup"><label>Career Phases</label>
+        <div class="phase-ms-wrap" id="phaseMsWrap">
+          <button class="phase-ms-toggle" id="phaseMsToggle" type="button" onclick="togglePhasePicker()"><span class="ms-placeholder">All (full career)</span></button>
+          <div class="phase-ms-dd" id="phaseMsDD">
+            <div class="phase-ms-divider">Presets</div>
+            <div class="phase-ms-item" data-val="first10" onclick="togglePhaseItem(this)"><span class="ms-cb"></span><span>First 10 Tests</span></div>
+            <div class="phase-ms-item" data-val="first25" onclick="togglePhaseItem(this)"><span class="ms-cb"></span><span>First 25 Tests</span></div>
+            <div class="phase-ms-item" data-val="first50" onclick="togglePhaseItem(this)"><span class="ms-cb"></span><span>First 50 Tests</span></div>
+            <div class="phase-ms-item" data-val="last10" onclick="togglePhaseItem(this)"><span class="ms-cb"></span><span>Last 10 Tests</span></div>
+            <div class="phase-ms-item" data-val="last25" onclick="togglePhaseItem(this)"><span class="ms-cb"></span><span>Last 25 Tests</span></div>
+            <div class="phase-ms-item" data-val="last50" onclick="togglePhaseItem(this)"><span class="ms-cb"></span><span>Last 50 Tests</span></div>
+            <div class="phase-ms-divider">Computed</div>
+            <div class="phase-ms-item" data-val="peak" onclick="togglePhaseItem(this)"><span class="ms-cb"></span><span>Peak</span></div>
+            <div class="phase-ms-item" data-val="bestphase" onclick="togglePhaseItem(this)"><span class="ms-cb"></span><span>Best Phase</span></div>
+            <div class="phase-ms-divider">Custom range</div>
+            <div class="phase-ms-custom">
+              <span class="phase-sep">Test #</span>
+              <input type="number" id="phaseCustomFrom" min="1" placeholder="1">
+              <span class="phase-sep">to</span>
+              <input type="number" id="phaseCustomTo" min="1" placeholder="end">
+              <button class="phase-add-btn" onclick="addCustomPhase()">+ Add</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="active-filters" id="activeFilt"></div>
+  </div>
+
+  <div class="empty" id="emptyState">
+    <div class="empty-ico">&#127951;</div>
+    <h2>Select players to compare</h2>
+    <p>Search from 3,253 Test cricketers. Select one player to view their stats, or compare up to 10 — or pick a Duo, Triple, Quartet, Quintet or Eleven from Record Type above.</p>
+  </div>
+
+  <!-- Partnership Empty State -->
+  <div class="empty hidden" id="partnershipEmptyState">
+    <div class="empty-ico">&#129309;</div>
+    <h2>Select partnerships to compare</h2>
+    <p>Choose two players for each partnership to compare their batting partnership statistics when they played together.</p>
+  </div>
+
+  <!-- Partnership Results -->
+  <div class="comp" id="partnershipComp" style="display:none;">
+    <div id="partnershipFiltSummary"></div>
+    <div id="partnershipResults"></div>
+  </div>
+
+  <div class="comp" id="comp">
+    <div class="tabs-row">
+      <div class="tabs" id="tabsBar">
+        <button class="tab on" id="tab-overview" onclick="switchTab('overview',this)">Overview</button>
+        <button class="tab" id="tab-batting" onclick="switchTab('batting',this)">Batting</button>
+        <button class="tab" id="tab-bowling" onclick="switchTab('bowling',this)">Bowling</button>
+        <button class="tab" id="tab-all" onclick="switchTab('all',this)">All Stats</button>
+      </div>
+      <!-- Career / Together toggle — shown when 2+ players are selected -->
+      <div class="dual-toggle" id="dualToggle">
+        <span class="dual-toggle-label active" id="dtLabelCareer">Career</span>
+        <button class="toggle-track" id="dualToggleTrack" onclick="toggleDualView()" aria-label="Toggle career / played together">
+          <span class="toggle-thumb"></span>
+        </button>
+        <span class="dual-toggle-label" id="dtLabelTogether">Together</span>
+      </div>
+    </div>
+    <div id="filtSummary"></div>
+    <div class="tc on" id="t-overview"><div id="tblOverview"></div></div>
+    <div class="tc" id="t-batting"><div id="tblBatting"></div></div>
+    <div class="tc" id="t-bowling"><div id="tblBowling"></div></div>
+    <div class="tc" id="t-all"><div id="tblAll"></div></div>
+  </div>
+</div>
+
+<div style="text-align:center;padding:40px 20px 30px;font-size:11px;color:var(--text3);">
+  Data Source - Ananth Narayanan
+</div>
+
+<!-- data.js removed (Phase 3 §3): dataset now loaded via CTData from the gated serveDerivedData endpoint -->
+<script>
+
+const KEYS=['id','name','fullName','country','fromYear','toYear','tests','innings','notOuts',
+  'batRuns','batBalls','batAvg','wtdBatAvg','hs','fifties','hundreds','avgBatPos',
+  'overs','maidens','bowlRuns','wickets','bowlAvg','rpo','bpw','fiveWI','tenWM',
+  'bestBowl','catches','stumpings','mom','bowArm','bowType'];
+
+let D = null;          // dataset from the gated loader (replaces the old data.js global)
+let PLAYERS=[], TEAMS=[], CITIES=[], GROUNDS=[], LOCATIONS=[], TESTS=[], PT=[], SCD=[];
+let SCD_IDX={};
+let PID_NAME={};
+let PID_COUNTRY={};
+let MATCH_CAPT={};
+
+// Populate all D-derived structures once the gated dataset has loaded (called from boot()).
+// (These ran at parse before Phase 3 §3; deferred so nothing executes before CTData.load.)
+function buildData(){
+  PLAYERS=D.P.map(r=>{const p={};KEYS.forEach((k,i)=>p[k]=r[i]);return p});
+  TEAMS=D.T; CITIES=D.C; GROUNDS=D.G; LOCATIONS=D.L; TESTS=D.M; PT=D.PT; SCD=D.S;
+
+  SCD.forEach((r,i)=>{const pid=r[1];if(!SCD_IDX[pid])SCD_IDX[pid]=[];SCD_IDX[pid].push(i)});
+
+  // O(1) player name and country lookup by pid
+  D.P.forEach(p=>{PID_NAME[p[0]]=p[1];PID_COUNTRY[p[0]]=p[3];});
+
+  // Captain index built from SCD r[11] (captain of that player's own team).
+  // MATCH_CAPT[mid][pid] = captPid
+  SCD.forEach(r => {
+    const mid = r[0], pid = r[1], captPid = r[11];
+    if (!captPid) return;
+    if (!MATCH_CAPT[mid]) MATCH_CAPT[mid] = {};
+    MATCH_CAPT[mid][pid] = captPid;
+  });
+}
+
+// Return {myCapt, oppCapt} for a player in a match.
+// myCapt  = r[11] stored directly on this player's own SCD row.
+// oppCapt = the captain found on any other player's row in the same match
+//           whose captain pid differs from myCapt.
+function getCaptains(mid, playerPid) {
+  const matchMap = MATCH_CAPT[mid]; if (!matchMap) return { myCapt: 0, oppCapt: 0 };
+  const myCapt = matchMap[playerPid] || 0;
+  let oppCapt = 0;
+  if (myCapt) {
+    for (const pid in matchMap) {
+      if (matchMap[pid] !== myCapt) { oppCapt = matchMap[pid]; break; }
+    }
+  }
+  return { myCapt, oppCapt };
+}
+
+
+const cClr={Australia:'#e8b020',England:'#3080e0',India:'#e87020',Pakistan:'#20b060','South Africa':'#18a870','West Indies':'#a05010','New Zealand':'#1a1a2e','Sri Lanka':'#1840b0',Bangladesh:'#188030',Zimbabwe:'#d03030',Afghanistan:'#2060d0',Ireland:'#18a040','ICC World XI':'#666'};
+function lum(h){return .299*parseInt(h.slice(1,3),16)/255+.587*parseInt(h.slice(3,5),16)/255+.114*parseInt(h.slice(5,7),16)/255}
+function badge(c){const bg=cClr[c]||'#4a5568';return`<span class="ctry-badge" style="background:${bg};color:${lum(bg)>.45?'#1a1e26':'#fff'}">${c}</span>`}
+function fmt(v,d=2){if(v===null||v===undefined||v===''||v===0)return'—';if(typeof v==='number')return Number.isInteger(v)?v.toLocaleString():v.toFixed(d);return v}
+
+function isHome(ptIdx,meta){
+  const li=meta[6];if(li<0)return'neutral';
+  const loc=LOCATIONS[li],ctry=TEAMS[ptIdx];
+  if(ctry===loc)return'home';
+  if(loc==='UAE')return'neutral';
+  return'away';
+}
+
+const PCOLORS=['var(--p1)','var(--p2)','var(--p3)','var(--p4)','var(--p5)','var(--p6)','var(--p7)','var(--p8)','var(--p9)','var(--p10)'];
+const MAX_PLAYERS=10;
+let sel=[null,null,null,null,null,null,null,null,null,null];
+let slotCount=2;
+
+// ---- Stats Type ----
+function getStatsType(){
+  return document.getElementById('fStatsType').value; // 'both' | 'batting' | 'bowling'
+}
+
+// Apply stats type: show/hide tabs and auto-switch to correct tab
+function applyStatsTypeToTabs(){
+  const st = getStatsType();
+  const tabOverview = document.getElementById('tab-overview');
+  const tabBatting  = document.getElementById('tab-batting');
+  const tabBowling  = document.getElementById('tab-bowling');
+  const tabAll      = document.getElementById('tab-all');
+
+  // Reset hidden state
+  [tabOverview, tabBatting, tabBowling, tabAll].forEach(t => t.classList.remove('hidden-tab'));
+
+  if(st === 'batting'){
+    tabOverview.classList.add('hidden-tab');
+    tabBowling.classList.add('hidden-tab');
+    tabAll.classList.add('hidden-tab');
+    // If current active tab is hidden, switch to batting
+    if(!document.querySelector('.tab.on:not(.hidden-tab)')){
+      switchTab('batting', tabBatting);
+    } else {
+      // Force switch to batting tab
+      switchTab('batting', tabBatting);
+    }
+  } else if(st === 'bowling'){
+    tabOverview.classList.add('hidden-tab');
+    tabBatting.classList.add('hidden-tab');
+    tabAll.classList.add('hidden-tab');
+    switchTab('bowling', tabBowling);
+  } else {
+    // 'both' — show all tabs, ensure overview is active
+    switchTab('overview', tabOverview);
+  }
+}
+
+function handleStatsTypeChange(){
+  if(cohortMode && hasEnoughCohorts()){
+    applyStatsTypeToTabs();
+    renderCohorts();
+  } else if(hasEnough()){
+    applyStatsTypeToTabs();
+    render();
+  } else if(partnershipMode && hasEnoughPartnerships()){
+    renderPartnerships();
+  }
+}
+
+function doSearch(n){
+  const inp=document.getElementById('s'+n), dd=document.getElementById('d'+n);
+  const q=inp.value.trim().toLowerCase();
+  if(q.length<2){dd.classList.remove('open');return}
+  const already=sel.filter(Boolean).map(p=>p.id);
+  const m=PLAYERS.filter(p=>!already.includes(p.id)&&((p.name||'').toLowerCase().includes(q)||(p.fullName||'').toLowerCase().includes(q)||(p.country||'').toLowerCase().includes(q))).slice(0,15);
+  dd.innerHTML=m.map(p=>`<div class="dd-item" onpointerdown="event.preventDefault();" onclick="pickP(${n},${p.id})"><span><span class="nm">${p.fullName||p.name}</span><span class="yr">${p.fromYear}–${p.toYear}</span></span><span class="ct">${p.country}</span></div>`).join('');
+  dd.classList.add('open');
+}
+function initSearch(n){
+  const inp=document.getElementById('s'+n), dd=document.getElementById('d'+n);
+  inp.addEventListener('input',()=>doSearch(n));
+  inp.addEventListener('keyup',()=>doSearch(n));
+  inp.addEventListener('compositionend',()=>doSearch(n));
+  inp.addEventListener('focus',()=>{if(inp.value.trim().length>=2)dd.classList.add('open')});
+  inp.addEventListener('blur',()=>{ setTimeout(()=>dd.classList.remove('open'),300); });
+  document.addEventListener('click',e=>{if(!e.target.closest('#c'+n))dd.classList.remove('open')});
+}
+[1,2].forEach(initSearch);
+
+// ---- Load comparison from URL parameters ----
+function loadFromURL(){
+  const params = new URLSearchParams(window.location.search);
+  const playerIds = [];
+  for(let i = 1; i <= MAX_PLAYERS; i++){
+    const pid = params.get(`p${i}`);
+    if(pid) playerIds.push({slot: i, id: parseInt(pid)});
+  }
+  if(playerIds.length > 0){
+    while(slotCount < playerIds.length) addPlayerSlot();
+    playerIds.forEach(({slot, id}) => {
+      const player = PLAYERS.find(p => p.id === id);
+      if(player) pickP(slot, id);
+    });
+    setTimeout(() => {
+      const opp = params.get('opp');
+      if(opp){
+        opp.split(',').forEach(o => {
+          const oppId = parseInt(o);
+          if(!selectedOpps.includes(oppId)) selectedOpps.push(oppId);
+        });
+        updateOppToggleLabel();
+        populateFilters();
+      }
+      if(params.get('city')) document.getElementById('fCity').value = params.get('city');
+      if(params.get('gnd')) document.getElementById('fGnd').value = params.get('gnd');
+      if(params.get('ha')) document.getElementById('fHA').value = params.get('ha');
+      if(params.get('inn')) document.getElementById('fInn').value = params.get('inn');
+      if(params.get('res')) document.getElementById('fRes').value = params.get('res');
+      if(params.get('toss')) document.getElementById('fToss').value = params.get('toss');
+      if(params.get('together')) document.getElementById('fTogether').value = params.get('together');
+      if(hasEnough()) render();
+    }, 100);
+  }
+}
+/* Phase 3 §3: load gated dataset, build structures, then run page init. */
+(async function boot(){
+  try {
+    D = await CTData.load('data');          // gated fetch (Bearer token + browser gzip inflate)
+  } catch (e) {
+    console.error('Failed to load match data:', e);
+    return;                                 // page is paid-gated; non-entitled users are redirected before this runs
+  }
+  buildData();
+  if (document.readyState === 'loading') window.addEventListener('DOMContentLoaded', loadFromURL);
+  else loadFromURL();
+})();
+
+function addPlayerSlot(){
+  if(slotCount>=MAX_PLAYERS)return;
+  slotCount++;
+  const n=slotCount;
+  const area=document.getElementById('selArea');
+  const btn=document.getElementById('addPlayerBtn');
+  const card=document.createElement('div');
+  card.className='sel-card';card.id='c'+n;
+  card.innerHTML=`
+    <div class="sel-pcolor" style="color:var(--p${n});background:var(--p${n})"></div>
+    <div class="sel-label" style="margin-left:18px">Player ${n}</div>
+    <input class="sel-input" id="s${n}" placeholder="Search by name or country..." autocomplete="off">
+    <button class="sel-clear" id="x${n}" onclick="clearP(${n})">&times;</button>
+    <div class="dd" id="d${n}"></div>
+    <div class="sel-info" id="i${n}"><div class="si-name" id="n${n}"></div><div class="si-meta" id="m${n}"></div></div>`;
+  area.insertBefore(card,btn);
+  initSearch(n);
+  if(slotCount>=MAX_PLAYERS)btn.style.display='none';
+}
+
+function activeSel(){return sel.filter(Boolean)}
+function hasEnough(){return activeSel().length>=1}
+
+function pickP(n,id){
+  const p=PLAYERS.find(x=>x.id===id);if(!p)return;
+  sel[n-1]=p;
+  document.getElementById('s'+n).value='';
+  document.getElementById('d'+n).classList.remove('open');
+  document.getElementById('n'+n).textContent=p.fullName||p.name;
+  document.getElementById('m'+n).innerHTML=badge(p.country)+` ${p.fromYear}–${p.toYear} · ${p.tests} Tests`;
+  document.getElementById('i'+n).classList.add('show');
+  document.getElementById('x'+n).classList.add('show');
+  document.getElementById('c'+n).classList.add('active-'+n);
+  if(hasEnough()){populateFilters();document.getElementById('filtersPanel').classList.add('show');render()}
+}
+
+function clearP(n){
+  sel[n-1]=null;
+  document.getElementById('i'+n).classList.remove('show');
+  document.getElementById('x'+n).classList.remove('show');
+  document.getElementById('c'+n).classList.remove('active-'+n);
+  document.getElementById('s'+n).value='';
+  if(!hasEnough()){
+    document.getElementById('comp').classList.remove('show');
+    document.getElementById('emptyState').style.display='block';
+    document.getElementById('filtersPanel').classList.remove('show');
+  } else { populateFilters(); render(); }
+}
+
+// ---- Multi-select Opponent state ----
+let selectedOpps=[];
+let selectedTeamCapts=[];
+let selectedOppCapts=[];
+function toggleOppDD(){
+  const dd=document.getElementById('fOppDD');
+  const btn=document.getElementById('fOppToggle');
+  dd.classList.toggle('open');btn.classList.toggle('open');
+}
+function toggleOppItem(el){
+  const v=+el.dataset.val;
+  el.classList.toggle('checked');
+  if(el.classList.contains('checked')){if(!selectedOpps.includes(v))selectedOpps.push(v)}
+  else{selectedOpps=selectedOpps.filter(x=>x!==v)}
+  updateOppToggleLabel();applyFilters();
+}
+function removeOpp(v){
+  selectedOpps=selectedOpps.filter(x=>x!==v);
+  document.querySelectorAll('#fOppDD .ms-dd-item').forEach(el=>{if(+el.dataset.val===v)el.classList.remove('checked')});
+  updateOppToggleLabel();applyFilters();
+}
+function updateOppToggleLabel(){
+  const btn=document.getElementById('fOppToggle');
+  if(selectedOpps.length===0)btn.innerHTML='<span class="ms-placeholder">All opponents</span>';
+  else if(selectedOpps.length===1)btn.textContent=TEAMS[selectedOpps[0]];
+  else btn.textContent=selectedOpps.map(o=>TEAMS[o]).join(', ');
+}
+document.addEventListener('click',e=>{if(!e.target.closest('#fOppWrap')){document.getElementById('fOppDD').classList.remove('open');document.getElementById('fOppToggle').classList.remove('open')}});
+
+// ── Team Captain multi-select ─────────────────────────────────────────────
+function toggleTeamCaptDD(){const dd=document.getElementById('fTeamCaptDD'),btn=document.getElementById('fTeamCaptToggle');dd.classList.toggle('open');btn.classList.toggle('open');}
+function toggleTeamCaptItem(el){const v=+el.dataset.val;el.classList.toggle('checked');if(el.classList.contains('checked')){if(!selectedTeamCapts.includes(v))selectedTeamCapts.push(v);}else{selectedTeamCapts=selectedTeamCapts.filter(x=>x!==v);}updateTeamCaptToggleLabel();applyFilters();}
+function removeTeamCapt(v){selectedTeamCapts=selectedTeamCapts.filter(x=>x!==v);document.querySelectorAll('#fTeamCaptDD .ms-dd-item').forEach(el=>{if(+el.dataset.val===v)el.classList.remove('checked');});updateTeamCaptToggleLabel();applyFilters();}
+function updateTeamCaptToggleLabel(){const btn=document.getElementById('fTeamCaptToggle');if(selectedTeamCapts.length===0)btn.innerHTML='<span class="ms-placeholder">All captains</span>';else if(selectedTeamCapts.length===1)btn.textContent=PID_NAME[selectedTeamCapts[0]]||'?';else btn.textContent=selectedTeamCapts.map(p=>PID_NAME[p]||'?').join(', ');}
+document.addEventListener('click',e=>{if(!e.target.closest('#fTeamCaptWrap')){document.getElementById('fTeamCaptDD').classList.remove('open');document.getElementById('fTeamCaptToggle').classList.remove('open');}});
+
+// ── Opposing Captain multi-select ─────────────────────────────────────────
+function toggleOppCaptDD(){const dd=document.getElementById('fOppCaptDD'),btn=document.getElementById('fOppCaptToggle');dd.classList.toggle('open');btn.classList.toggle('open');}
+function toggleOppCaptItem(el){const v=+el.dataset.val;el.classList.toggle('checked');if(el.classList.contains('checked')){if(!selectedOppCapts.includes(v))selectedOppCapts.push(v);}else{selectedOppCapts=selectedOppCapts.filter(x=>x!==v);}updateOppCaptToggleLabel();applyFilters();}
+function removeOppCapt(v){selectedOppCapts=selectedOppCapts.filter(x=>x!==v);document.querySelectorAll('#fOppCaptDD .ms-dd-item').forEach(el=>{if(+el.dataset.val===v)el.classList.remove('checked');});updateOppCaptToggleLabel();applyFilters();}
+function updateOppCaptToggleLabel(){const btn=document.getElementById('fOppCaptToggle');if(selectedOppCapts.length===0)btn.innerHTML='<span class="ms-placeholder">All captains</span>';else if(selectedOppCapts.length===1)btn.textContent=PID_NAME[selectedOppCapts[0]]||'?';else btn.textContent=selectedOppCapts.map(p=>PID_NAME[p]||'?').join(', ');}
+document.addEventListener('click',e=>{if(!e.target.closest('#fOppCaptWrap')){document.getElementById('fOppCaptDD').classList.remove('open');document.getElementById('fOppCaptToggle').classList.remove('open');}});
+
+// ---- Filters ----
+function populateFilters(){
+  const isSingle = activeSel().length < 2 || singleMode || !!phaseMode;
+  // Show/hide Played Together when only 1 player
+  const togGroup = document.getElementById('fTogether').closest('.fp-group');
+  if(togGroup) togGroup.style.display = isSingle ? 'none' : '';
+  if(isSingle && document.getElementById('fTogether').value === 'yes'){
+    document.getElementById('fTogether').value = '';
+  }
+  const opponents=new Set();
+  activeSel().forEach(p=>{const ptIdx=PT[String(p.id)];(SCD_IDX[p.id]||[]).forEach(i=>{const meta=TESTS[SCD[i][0]];if(!meta)return;const opp=meta[2]===ptIdx?meta[3]:meta[2];if(opp>=0)opponents.add(opp)})});
+  const oppDD=document.getElementById('fOppDD');
+  oppDD.innerHTML='';
+  [...opponents].sort((a,b)=>TEAMS[a].localeCompare(TEAMS[b])).forEach(ti=>{
+    const checked=selectedOpps.includes(ti)?'checked':'';
+    oppDD.innerHTML+=`<div class="ms-dd-item ${checked}" data-val="${ti}" onclick="toggleOppItem(this)"><span class="ms-cb"></span><span class="ms-lbl">${TEAMS[ti]}</span></div>`;
+  });
+  updateOppToggleLabel();
+  const cU=new Set(),gU=new Set();
+  activeSel().forEach(p=>{(SCD_IDX[p.id]||[]).forEach(i=>{const meta=TESTS[SCD[i][0]];if(!meta)return;if(meta[0]>=0)cU.add(meta[0]);if(meta[1]>=0)gU.add(meta[1])})});
+  const cityS=document.getElementById('fCity');
+  cityS.innerHTML='<option value="">All cities</option>';
+  [...cU].sort((a,b)=>CITIES[a].localeCompare(CITIES[b])).forEach(ci=>{cityS.innerHTML+=`<option value="${ci}">${CITIES[ci]}</option>`});
+  const gndS=document.getElementById('fGnd');
+  gndS.innerHTML='<option value="">All grounds</option>';
+  [...gU].sort((a,b)=>GROUNDS[a].localeCompare(GROUNDS[b])).forEach(gi=>{gndS.innerHTML+=`<option value="${gi}">${GROUNDS[gi]}</option>`});
+
+  // ── Captain dropdowns (multi-select) ──────────────────────────────────
+  // Use MATCH_CAPT[mid] built from D.M[13/14]. Classify own-team vs opponent
+  // using meta[2]/meta[3] (isT1/isT2) — avoids PT lookup on the captain pid
+  // which can silently drop captains who have no PT entry.
+  const teamCaptMap = new Map();  // pid -> {label, matchSet}
+  const oppCaptMap  = new Map();  // pid -> {label, matchSet}
+  const selfIds = new Set(activeSel().map(p => p.id));
+
+  activeSel().forEach(player => {
+    const seenMids = new Set();
+    (SCD_IDX[player.id] || []).forEach(i => {
+      const mid = SCD[i][0];
+      if (seenMids.has(mid)) return;
+      seenMids.add(mid);
+      const { myCapt, oppCapt } = getCaptains(mid, player.id);
+      if (myCapt) {
+        const name = PID_NAME[myCapt]; if (!name) return;
+        if (!teamCaptMap.has(myCapt)) {
+          const label = selfIds.has(myCapt) ? `${name} (Self)` : name;
+          teamCaptMap.set(myCapt, { label, matchSet: new Set() });
+        }
+        teamCaptMap.get(myCapt).matchSet.add(mid);
+      }
+      if (oppCapt) {
+        const name = PID_NAME[oppCapt]; if (!name) return;
+        if (!oppCaptMap.has(oppCapt)) oppCaptMap.set(oppCapt, { label: name, matchSet: new Set() });
+        oppCaptMap.get(oppCapt).matchSet.add(mid);
+      }
+    });
+  });
+
+  const teamCaptDD = document.getElementById('fTeamCaptDD');
+  teamCaptDD.innerHTML = '';
+  [...teamCaptMap.entries()]
+    .sort((a, b) => a[1].label.localeCompare(b[1].label))
+    .forEach(([pid, {label, matchSet}]) => {
+      const checked = selectedTeamCapts.includes(pid) ? 'checked' : '';
+      teamCaptDD.innerHTML += `<div class="ms-dd-item ${checked}" data-val="${pid}" onclick="toggleTeamCaptItem(this)"><span class="ms-cb"></span><span class="ms-lbl">${label} (${matchSet.size})</span></div>`;
+    });
+
+  const oppCaptDD = document.getElementById('fOppCaptDD');
+  oppCaptDD.innerHTML = '';
+  [...oppCaptMap.entries()]
+    .sort((a, b) => a[1].label.localeCompare(b[1].label))
+    .forEach(([pid, {label, matchSet}]) => {
+      const checked = selectedOppCapts.includes(pid) ? 'checked' : '';
+      oppCaptDD.innerHTML += `<div class="ms-dd-item ${checked}" data-val="${pid}" onclick="toggleOppCaptItem(this)"><span class="ms-cb"></span><span class="ms-lbl">${label} (${matchSet.size})</span></div>`;
+    });
+}
+
+function getF(){return{opp:selectedOpps,city:document.getElementById('fCity').value,gnd:document.getElementById('fGnd').value,ha:document.getElementById('fHA').value,inn:document.getElementById('fInn').value,res:document.getElementById('fRes').value,toss:document.getElementById('fToss').value,together:document.getElementById('fTogether').value,teamCapts:selectedTeamCapts,oppCapts:selectedOppCapts}}
+
+// ---- Career Phase multi-select state ----
+// Each entry: {val, label, from, to} where from/to are 1-based career test numbers (null=no limit, negative=from end)
+let selectedPhases = [];
+const PHASE_PRESETS = {
+  first10:{label:'First 10 Tests',from:1,to:10},
+  first25:{label:'First 25 Tests',from:1,to:25},
+  first50:{label:'First 50 Tests',from:1,to:50},
+  last10:{label:'Last 10 Tests',from:-10,to:null},
+  last25:{label:'Last 25 Tests',from:-25,to:null},
+  last50:{label:'Last 50 Tests',from:-50,to:null},
+  peak:{label:'Peak',from:1,to:null,computed:'peak'},
+  bestphase:{label:'Best Phase',from:1,to:null,computed:'bestphase'},
+};
+function togglePhasePicker(){
+  const dd=document.getElementById('phaseMsDD');
+  const btn=document.getElementById('phaseMsToggle');
+  dd.classList.toggle('open');btn.classList.toggle('open');
+}
+function togglePhaseItem(el){
+  const v=el.dataset.val;
+  if(el.classList.contains('checked')){
+    el.classList.remove('checked');
+    selectedPhases=selectedPhases.filter(p=>p.val!==v);
+  } else {
+    el.classList.add('checked');
+    const preset=PHASE_PRESETS[v];
+    selectedPhases.push({val:v,label:preset.label,from:preset.from,to:preset.to,computed:preset.computed||null});
+  }
+  updatePhaseMsToggleLabel();applyFilters();
+}
+function addCustomPhase(){
+  const fromEl=document.getElementById('phaseCustomFrom');
+  const toEl=document.getElementById('phaseCustomTo');
+  const from=parseInt(fromEl.value)||1;
+  const to=toEl.value!==''?parseInt(toEl.value)||null:null;
+  const label=`Tests #${from}–${to||'end'}`;
+  const val=`custom_${from}_${to||'end'}`;
+  if(!selectedPhases.find(p=>p.val===val)){
+    selectedPhases.push({val,label,from,to});
+    // Add a removable item to the dropdown
+    const dd=document.getElementById('phaseMsDD');
+    const div=document.createElement('div');
+    div.className='phase-ms-item checked';div.dataset.val=val;
+    div.innerHTML=`<span class="ms-cb"></span><span>${label}</span>`;
+    div.onclick=function(){togglePhaseItem(this);this.remove();};
+    dd.insertBefore(div,dd.querySelector('.phase-ms-custom').parentNode||dd.lastChild);
+  }
+  fromEl.value='';toEl.value='';
+  updatePhaseMsToggleLabel();applyFilters();
+}
+function updatePhaseMsToggleLabel(){
+  const btn=document.getElementById('phaseMsToggle');
+  if(selectedPhases.length===0) btn.innerHTML='<span class="ms-placeholder">All (full career)</span>';
+  else if(selectedPhases.length===1) btn.textContent=selectedPhases[0].label;
+  else btn.textContent=selectedPhases.map(p=>p.label).join(', ');
+}
+document.addEventListener('click',e=>{if(!e.target.closest('#phaseMsWrap')){document.getElementById('phaseMsDD').classList.remove('open');document.getElementById('phaseMsToggle').classList.remove('open');}});
+
+// Resolve a phase entry {from,to} against a player's total test count
+function resolvePhaseObj(phaseEntry, total){
+  const from = phaseEntry.from < 0 ? total + phaseEntry.from + 1 : phaseEntry.from;
+  const to = phaseEntry.to === null ? total : phaseEntry.to;
+  return {from, to};
+}
+// Get rows for a player with an explicit phase override
+function getRowsForPhase(player, phaseEntry){
+  const f=getF(),ptIdx=PT[String(player.id)];
+  let rows=(SCD_IDX[player.id]||[]).filter(i=>{
+    const r=SCD[i],meta=TESTS[r[0]];if(!meta)return false;
+    const isT1=(meta[2]===ptIdx),isT2=(meta[3]===ptIdx),oppIdx=isT1?meta[3]:meta[2];
+    if(f.opp.length&&!f.opp.includes(oppIdx))return false;
+    if(f.city&&meta[0]!==+f.city)return false;
+    if(f.gnd&&meta[1]!==+f.gnd)return false;
+    if(f.ha){if(isHome(ptIdx,meta)!==f.ha)return false}
+    if(f.inn&&r[2]!==+f.inn)return false;
+    if(f.res){const rc=meta[4];if(f.res==='won'&&rc!==ptIdx)return false;if(f.res==='lost'&&(rc===ptIdx||rc<0))return false;if(f.res==='drawn'&&rc!==-1)return false;if(f.res==='tied'&&rc!==-2)return false}
+    if(f.toss){const tw=meta[5];if(f.toss==='won'&&tw!==ptIdx)return false;if(f.toss==='lost'&&tw===ptIdx)return false}
+    if(f.teamCapts.length||f.oppCapts.length){
+      const {myCapt,oppCapt:oppCap}=getCaptains(r[0],player.id);
+      if(f.teamCapts.length&&!f.teamCapts.includes(myCapt))return false;
+      if(f.oppCapts.length&&!f.oppCapts.includes(oppCap))return false;
+    }
+    return true;
+  });
+  if(phaseEntry){
+    const {order,total}=getPlayerMatchOrder(player.id);
+    const {from,to}=resolvePhaseObj(phaseEntry,total);
+    rows=rows.filter(i=>{const n=order[SCD[i][0]];return n>=from&&n<=to;});
+  }
+  return rows;
+}
+// Build a per-player sorted match list (cached for performance)
+const _playerMatchOrder={};
+function getPlayerMatchOrder(playerId){
+  if(_playerMatchOrder[playerId]) return _playerMatchOrder[playerId];
+  const idxs=SCD_IDX[playerId]||[];
+  const matchIds=[...new Set(idxs.map(i=>SCD[i][0]))].sort((a,b)=>a-b);
+  const order={};
+  matchIds.forEach((mid,idx)=>order[mid]=idx+1);
+  _playerMatchOrder[playerId]={order,total:matchIds.length};
+  return _playerMatchOrder[playerId];
+}
+
+// Compute "Peak" test number for a player: the Test # at which their
+// cumulative batting avg was highest (or bowling avg was lowest).
+// Returns {peakTest, label} where peakTest is the 1-based career Test number.
+// isBowling: if true, find lowest bowling average point instead.
+function computePeakTest(player, isBowling){
+  const {order, total} = getPlayerMatchOrder(player.id);
+  const idxs = SCD_IDX[player.id] || [];
+  // Build per-match aggregated batting/bowling stats, sorted by career Test #
+  const matchMap = {}; // matchId -> {runs, outs, overs, bowlRuns, wkts}
+  idxs.forEach(i => {
+    const r = SCD[i], mid = r[0];
+    if(!matchMap[mid]) matchMap[mid] = {runs:0, outs:0, overs:0, bowlRuns:0, wkts:0};
+    const m = matchMap[mid];
+    const isNO = r[4];
+    if(isNO !== null){
+      const br = typeof r[3]==='number' ? r[3] : 0;
+      m.runs += br;
+      if(!isNO) m.outs++;
+    }
+    const bo = typeof r[6]==='number' ? r[6] : 0;
+    m.overs += bo;
+    m.bowlRuns += typeof r[8]==='number' ? r[8] : 0;
+    m.wkts += typeof r[9]==='number' ? r[9] : 0;
+  });
+  // Sort matches by career Test order
+  const sortedMatches = Object.keys(matchMap)
+    .map(mid => ({mid: +mid, testNum: order[+mid], ...matchMap[mid]}))
+    .filter(m => m.testNum)
+    .sort((a,b) => a.testNum - b.testNum);
+
+  if(sortedMatches.length === 0) return {peakTest: total, label: 'Peak'};
+
+  let cumRuns=0, cumOuts=0, cumOvers=0, cumBowlRuns=0, cumWkts=0;
+  let bestVal = isBowling ? Infinity : -Infinity;
+  let bestTestNum = 1;
+
+  sortedMatches.forEach(m => {
+    cumRuns += m.runs; cumOuts += m.outs;
+    cumOvers += m.overs; cumBowlRuns += m.bowlRuns; cumWkts += m.wkts;
+    if(isBowling){
+      // Bowling: find the Test # where cumulative bowling average is lowest
+      // Require at least 30 wickets to avoid early fluky lows
+      if(cumWkts >= 30){
+        const avg = cumBowlRuns / cumWkts;
+        if(avg < bestVal){ bestVal = avg; bestTestNum = m.testNum; }
+      }
+    } else {
+      // Batting: find the Test # where cumulative batting average is highest
+      // Require at least 700 runs to avoid early fluky highs
+      if(cumRuns >= 700 && cumOuts > 0){
+        const avg = cumRuns / cumOuts;
+        if(avg > bestVal){ bestVal = avg; bestTestNum = m.testNum; }
+      }
+    }
+  });
+  const avgStr = bestVal === Infinity || bestVal === -Infinity ? '' : ' · Avg ' + bestVal.toFixed(2);
+  return {peakTest: bestTestNum, label: `Peak (Test #1–${bestTestNum}${avgStr})`};
+}
+
+// Compute "Best Phase": the contiguous stretch of at least 10 Tests where
+// the batting average was highest (or bowling average lowest).
+// Returns {from, to, label} where from/to are 1-based career Test numbers.
+function computeBestPhase(player, isBowling){
+  const {order, total} = getPlayerMatchOrder(player.id);
+  const idxs = SCD_IDX[player.id] || [];
+  // Build per-match stats sorted by career Test #
+  const matchMap = {};
+  idxs.forEach(i => {
+    const r = SCD[i], mid = r[0];
+    if(!matchMap[mid]) matchMap[mid] = {runs:0, outs:0, bowlRuns:0, wkts:0};
+    const m = matchMap[mid];
+    const isNO = r[4];
+    if(isNO !== null){
+      m.runs += typeof r[3]==='number' ? r[3] : 0;
+      if(!isNO) m.outs++;
+    }
+    m.bowlRuns += typeof r[8]==='number' ? r[8] : 0;
+    m.wkts += typeof r[9]==='number' ? r[9] : 0;
+  });
+  const sorted = Object.keys(matchMap)
+    .map(mid => ({mid: +mid, testNum: order[+mid], ...matchMap[mid]}))
+    .filter(m => m.testNum)
+    .sort((a,b) => a.testNum - b.testNum);
+
+  const n = sorted.length;
+  if(n < 10) return {from:1, to: total, label: 'Best Phase'};
+
+  // Build prefix sums for O(1) range queries
+  const prefRuns = [0], prefOuts = [0], prefBowlRuns = [0], prefWkts = [0];
+  for(let i = 0; i < n; i++){
+    prefRuns.push(prefRuns[i] + sorted[i].runs);
+    prefOuts.push(prefOuts[i] + sorted[i].outs);
+    prefBowlRuns.push(prefBowlRuns[i] + sorted[i].bowlRuns);
+    prefWkts.push(prefWkts[i] + sorted[i].wkts);
+  }
+
+  let bestAvg = isBowling ? Infinity : -Infinity;
+  let bestFrom = 0, bestTo = 9; // indices into sorted[]
+
+  for(let i = 0; i < n; i++){
+    for(let j = i + 9; j < n; j++){ // at least 10 tests (indices i..j inclusive)
+      const runs = prefRuns[j+1] - prefRuns[i];
+      const outs = prefOuts[j+1] - prefOuts[i];
+      const bRuns = prefBowlRuns[j+1] - prefBowlRuns[i];
+      const wkts = prefWkts[j+1] - prefWkts[i];
+      if(isBowling){
+        if(wkts >= 20){
+          const avg = bRuns / wkts;
+          if(avg < bestAvg){ bestAvg = avg; bestFrom = i; bestTo = j; }
+        }
+      } else {
+        if(outs >= 5){
+          const avg = runs / outs;
+          if(avg > bestAvg){ bestAvg = avg; bestFrom = i; bestTo = j; }
+        }
+      }
+    }
+  }
+
+  const fromTest = sorted[bestFrom].testNum;
+  const toTest = sorted[bestTo].testNum;
+  const avgLabel = bestAvg === Infinity || bestAvg === -Infinity ? '' : ' · Avg ' + bestAvg.toFixed(2);
+  return {from: fromTest, to: toTest, label: `Best Phase (Test #${fromTest}–${toTest}${avgLabel})`};
+}
+function applyFilters(){
+  if(cohortMode && hasEnoughCohorts()) renderCohorts();
+  else if(hasEnough()) render();
+  showTags();
+}
+function resetFilters(){
+  selectedOpps=[];selectedPhases=[];selectedTeamCapts=[];selectedOppCapts=[];
+  ['fCity','fGnd','fHA','fInn','fRes','fToss','fTogether'].forEach(id=>{document.getElementById(id).value=''});
+  document.getElementById('activeFilt').innerHTML='';
+  document.getElementById('phaseCustomFrom').value='';
+  document.getElementById('phaseCustomTo').value='';
+  updateOppToggleLabel();updateTeamCaptToggleLabel();updateOppCaptToggleLabel();
+  updatePhaseMsToggleLabel();
+  document.querySelectorAll('#phaseMsDD .phase-ms-item').forEach(el=>el.classList.remove('checked'));
+  document.querySelectorAll('#fOppDD .ms-dd-item').forEach(el=>el.classList.remove('checked'));
+  document.querySelectorAll('#fTeamCaptDD .ms-dd-item').forEach(el=>el.classList.remove('checked'));
+  document.querySelectorAll('#fOppCaptDD .ms-dd-item').forEach(el=>el.classList.remove('checked'));
+  if(hasEnough())render();
+}
+function ordinal(n){return['','1st','2nd','3rd','4th'][n]||n}
+function showTags(){
+  const f=getF(),tags=[];
+  if(f.opp.length)f.opp.forEach(o=>tags.push({k:'opp_'+o,l:'vs '+TEAMS[o]}));
+  if(f.city)tags.push({k:'fCity',l:CITIES[f.city]});
+  if(f.gnd)tags.push({k:'fGnd',l:GROUNDS[f.gnd]});
+  if(f.ha)tags.push({k:'fHA',l:f.ha[0].toUpperCase()+f.ha.slice(1)});
+  if(f.inn)tags.push({k:'fInn',l:ordinal(f.inn)+' innings'});
+  if(f.res)tags.push({k:'fRes',l:f.res[0].toUpperCase()+f.res.slice(1)});
+  if(f.toss)tags.push({k:'fToss',l:(f.toss==='won'?'Won':'Lost')+' toss'});
+  f.teamCapts.forEach(p=>tags.push({k:'teamCapt_'+p,l:'Captain: '+(PID_NAME[p]||'?')}));
+  f.oppCapts.forEach(p=>tags.push({k:'oppCapt_'+p,l:'Opp capt: '+(PID_NAME[p]||'?')}));
+  if(f.together)tags.push({k:'fTogether',l:'Played together'});
+  if(selectedPhases.length)tags.push({k:'phases',l:selectedPhases.map(p=>p.label).join(' · ')});
+  document.getElementById('activeFilt').innerHTML=tags.map(t=>{
+    if(t.k.startsWith('opp_')){const ov=t.k.split('_')[1];return`<span class="af-tag">${t.l}<button onclick="removeOpp(${ov})">&times;</button></span>`;}
+    if(t.k.startsWith('teamCapt_')){const pv=+t.k.split('_')[1];return`<span class="af-tag">${t.l}<button onclick="removeTeamCapt(${pv})">&times;</button></span>`;}
+    if(t.k.startsWith('oppCapt_')){const pv=+t.k.split('_')[1];return`<span class="af-tag">${t.l}<button onclick="removeOppCapt(${pv})">&times;</button></span>`;}
+    if(t.k==='phases'){return`<span class="af-tag">${t.l}<button onclick="selectedPhases=[];updatePhaseMsToggleLabel();document.querySelectorAll('#phaseMsDD .phase-ms-item').forEach(el=>el.classList.remove('checked'));applyFilters()">&times;</button></span>`;}
+    return`<span class="af-tag">${t.l}<button onclick="document.getElementById('${t.k}').value='';applyFilters()">&times;</button></span>`;
+  }).join('');
+}
+
+// ---- Filter + Aggregate ----
+function getRows(player){
+  const f=getF(),ptIdx=PT[String(player.id)];
+  let rows=(SCD_IDX[player.id]||[]).filter(i=>{
+    const r=SCD[i],meta=TESTS[r[0]];if(!meta)return false;
+    const isT1=(meta[2]===ptIdx),isT2=(meta[3]===ptIdx),oppIdx=isT1?meta[3]:meta[2];
+    if(f.opp.length&&!f.opp.includes(oppIdx))return false;
+    if(f.city&&meta[0]!==+f.city)return false;
+    if(f.gnd&&meta[1]!==+f.gnd)return false;
+    if(f.ha){if(isHome(ptIdx,meta)!==f.ha)return false}
+    if(f.inn&&r[2]!==+f.inn)return false;
+    if(f.res){const rc=meta[4];if(f.res==='won'&&rc!==ptIdx)return false;if(f.res==='lost'&&(rc===ptIdx||rc<0))return false;if(f.res==='drawn'&&rc!==-1)return false;if(f.res==='tied'&&rc!==-2)return false}
+    if(f.toss){const tw=meta[5];if(f.toss==='won'&&tw!==ptIdx)return false;if(f.toss==='lost'&&tw===ptIdx)return false}
+    if(f.teamCapts.length||f.oppCapts.length){
+      const {myCapt,oppCapt:oppCap}=getCaptains(r[0],player.id);
+      if(f.teamCapts.length&&!f.teamCapts.includes(myCapt))return false;
+      if(f.oppCapts.length&&!f.oppCapts.includes(oppCap))return false;
+    }
+    return true;
+  });
+  return rows;
+}
+
+function agg(player,idxs,isFiltered){
+  let inns=0,no=0,runs=0,balls=0,hs=0,fifties=0,hundreds=0;
+  let overs=0,mdns=0,bR=0,wkts=0,bestW=0,bestR=9999,bowlInns=0;
+  const tests=new Set();
+  idxs.forEach(i=>{
+    const r=SCD[i];tests.add(r[0]);
+    const isNO=r[4];
+    if(isNO!==null){
+      const br=typeof r[3]==='number'?r[3]:0, bb=typeof r[5]==='number'?r[5]:0;
+      inns++;if(isNO)no++;
+      runs+=br;balls+=bb;
+      if(br>hs)hs=br;if(br>=100)hundreds++;else if(br>=50)fifties++;
+    }
+    const bo=typeof r[6]==='number'?r[6]:0;
+    if(bo>0) bowlInns++;
+    overs+=bo;mdns+=typeof r[7]==='number'?r[7]:0;
+    const brn=typeof r[8]==='number'?r[8]:0, bw=typeof r[9]==='number'?r[9]:0;
+    bR+=brn;wkts+=bw;
+    if(bw>bestW||(bw===bestW&&brn<bestR)){bestW=bw;bestR=brn}
+  });
+  let sr;
+  if(!isFiltered){
+    // No filters: use career totals from player data
+    sr = player.batBalls>0 ? (player.batRuns/player.batBalls)*100 : null;
+  } else {
+    // Filters active: use balls from filtered innings if available
+    // If no balls data exists for these innings, sr will naturally be null
+    sr = balls>0 ? (runs/balls)*100 : null;
+  }
+  return{
+    tests:tests.size, inns, no, runs, balls,
+    batAvg:(inns-no)>0?runs/(inns-no):0,
+    sr:sr,
+    hs, fifties, hundreds,
+    overs:Math.round(overs*10)/10, mdns, bowlRuns:bR, wkts, bowlInns,
+    bowlAvg:wkts>0?bR/wkts:0, econ:overs>0?bR/overs:0,
+    bpw:wkts>0?(overs*6)/wkts:0,
+    bestBowl:bestW>0?bestW+'/'+bestR:'—',
+    name:player.fullName||player.name, country:player.country,
+    catches:player.catches, stumpings:player.stumpings, mom:player.mom,
+  };
+}
+
+// ---- Multi-player Table Builder ----
+function buildTable(stats, cols, options = {}) {
+  const { showBowlInns = false, showTotals = false, sharedStats = null, cohortIndex = null, sharedTests = null } = options;
+  let hdr = '<th>Player</th>';
+  cols.forEach(c => {
+    if(c.sec) hdr += `<th class="sec-head">${c.sec}</th>`;
+    else hdr += `<th>${c.label}</th>`;
+  });
+  const bestVals = {};
+  cols.forEach(c => {
+    if(c.sec || c.higher === null) return;
+    const vals = stats.map(s => { const v = s[c.key]; return typeof v === 'number' ? v : 0; });
+    if(c.higher) bestVals[c.key] = Math.max(...vals);
+    else { const nonZero = vals.filter(v => v > 0); bestVals[c.key] = nonZero.length > 0 ? Math.min(...nonZero) : 0; }
+  });
+  let rows = '';
+  stats.forEach((s, idx) => {
+    let playerMeta = `${s.country} · ${s.tests} Tests`;
+    if(showBowlInns && s.bowlInns !== undefined) playerMeta += ` · ${s.bowlInns} bowl inn`;
+    let row = `<td class="player-cell"><span class="pc-name">${s.name}</span><span class="pc-meta">${playerMeta}</span></td>`;
+    cols.forEach(c => {
+      if(c.sec) { row += '<td class="sec-div"></td>'; return; }
+      const v = s[c.key];
+      const n = typeof v === 'number' ? v : 0;
+      let cls2 = '';
+      if(c.higher !== null && bestVals[c.key] !== undefined) {
+        const bv = bestVals[c.key];
+        const allSame = stats.every(os => { const ov = typeof os[c.key]==='number'?os[c.key]:0; return ov === n; });
+        if(!allSame && (n > 0 || c.higher)) {
+          if(c.higher) cls2 = n === bv && n > 0 ? 'best' : (n < bv ? 'worse' : '');
+          else { if(n === 0) cls2 = ''; else cls2 = n === bv ? 'best' : 'worse'; }
+        }
+      }
+      row += `<td class="${cls2}">${fmt(v, c.dec||2)}</td>`;
+    });
+    rows += `<tr class="p${idx+1}-row">${row}</tr>`;
+  });
+  // In cohort mode: per-cohort totals (by country grouping); no combined total
+  // In non-cohort together mode: per-cohort totals using _cohortBoundaries if set, else country grouping
+  if(showTotals && stats.length >= 2) {
+    // Helper: build aggregate totals object from a sub-array of stats + optional sharedStats scoped to them
+    function makeTotalsObj(subStats, ss){
+      const t = {};
+      if(ss){
+        t.tests = ss.sharedTests; t.bowlInns = ss.sharedBowlInns;
+        t.inns = ss.combinedBatInnsCount; t.no = ss.combinedNO;
+        t.runs = ss.combinedBatRuns; t.balls = ss.combinedBalls;
+        t.bowlRuns = ss.combinedBowlRuns; t.wkts = ss.combinedWkts; t.overs = ss.combinedOvers;
+      } else {
+        ['tests','inns','no','bowlInns','runs','balls','bowlRuns','wkts','overs'].forEach(k=>{
+          t[k] = subStats.reduce((a,s)=>a+(typeof s[k]==='number'?s[k]:0),0);
+        });
+      }
+      ['fifties','hundreds','mdns','catches','stumpings','mom'].forEach(k=>{
+        t[k] = subStats.reduce((a,s)=>a+(typeof s[k]==='number'?s[k]:0),0);
+      });
+      t.hs = Math.max(...subStats.map(s=>typeof s.hs==='number'?s.hs:0));
+      let bW=0,bR=9999; subStats.forEach(s=>{ if(s.bestBowl&&s.bestBowl!=='—'){const[w,r]=s.bestBowl.split('/').map(Number);if(w>bW||(w===bW&&r<bR)){bW=w;bR=r;}} });
+      t.bestBowl = bW>0?bW+'/'+bR:'—';
+      const dism = t.inns - t.no;
+      t.batAvg  = dism>0 ? t.runs/dism : 0;
+      t.bowlAvg = t.wkts>0 ? t.bowlRuns/t.wkts : 0;
+      t.econ    = t.overs>0 ? t.bowlRuns/t.overs : 0;
+      t.bpw     = t.wkts>0 ? (t.overs*6)/t.wkts : 0;
+      t.sr      = t.balls>0 ? (t.runs/t.balls)*100 : null;
+      return t;
+    }
+    function renderTotalsRow(label, meta, t, accentColor){
+      let tr = `<td class="player-cell" style="background:var(--surface2);border-left:3px solid ${accentColor};"><span class="pc-name" style="color:${accentColor};">${label}</span><span class="pc-meta">${meta}</span></td>`;
+      cols.forEach(c => {
+        if(c.sec){ tr += '<td class="sec-div" style="background:var(--surface2);"></td>'; return; }
+        tr += `<td style="background:var(--surface2);font-weight:600;">${fmt(t[c.key], c.dec||2)}</td>`;
+      });
+      return `<tr class="totals-row">${tr}</tr>`;
+    }
+    // Determine cohort groups from boundaries
+    const boundaries = window._cohortBoundaries;
+    const cohortGroups_ = boundaries && boundaries.length >= 2
+      ? (() => { const gs=[]; let o=0; boundaries.forEach(n=>{ gs.push(stats.slice(o,o+n)); o+=n; }); return gs; })()
+      : null;
+    const tColors = ['var(--accent)','var(--blue)','var(--green)','var(--gold)'];
+    const tNames  = ['A','B','C','D'];
+    if(cohortIndex !== null){
+      // Sub-table for a single cohort group — use passed index and sharedTests count
+      const t = makeTotalsObj(stats, null);
+      const country = stats.map(s=>s.country).filter((c,i,a)=>a.indexOf(c)===i).join('/');
+      const lbl = (cohortTypeName||'Cohort')+' '+tNames[cohortIndex]+' — '+country;
+      const testsLabel = sharedTests !== null ? sharedTests : stats[0].tests; // all players same shared count
+      const meta = `${stats.length} players · ${testsLabel} Tests together`;
+      rows += renderTotalsRow(lbl, meta, t, tColors[cohortIndex%tColors.length]);
+    } else if(cohortGroups_ && cohortGroups_.length >= 2){
+      // Full cohort table — one totals row per group
+      cohortGroups_.forEach((grp, gi) => {
+        if(!grp || grp.length === 0) return;
+        const t = makeTotalsObj(grp, null);
+        const country = grp.map(s=>s.country).filter((c,i,a)=>a.indexOf(c)===i).join('/');
+        const lbl = (cohortTypeName||'Cohort')+' '+tNames[gi]+' — '+country;
+        // Tests: all players in group have same count (shared filter applied), use first player's
+        const testsLabel = grp[0].tests;
+        const meta = `${grp.length} players · ${testsLabel} Tests together`;
+        rows += renderTotalsRow(lbl, meta, t, tColors[gi%tColors.length]);
+      });
+    } else if(sharedStats){
+      // Non-cohort together mode: group by country then show combined
+      const countries = [...new Set(stats.map(s=>s.country))];
+      if(countries.length > 1){
+        countries.forEach((ctry, ci) => {
+          const grp = stats.filter(s=>s.country===ctry);
+          if(grp.length === 0) return;
+          const t = makeTotalsObj(grp, null);
+          const lbl = ctry+' Total';
+          const meta = `${grp.length} players · ${t.tests} Tests`;
+          rows += renderTotalsRow(lbl, meta, t, tColors[ci%tColors.length]);
+        });
+      }
+      // Combined total across all
+      const t = makeTotalsObj(stats, sharedStats);
+      let totalsMeta = `${stats.length} players · ${t.tests} Tests together`;
+      if(showBowlInns) totalsMeta += ` · ${t.bowlInns} bowl inn together`;
+      rows += renderTotalsRow('Combined Total', totalsMeta, t, 'var(--accent)');
+    }
+  }
+  return `<div class="tbl-wrap"><table class="cmp-table"><thead><tr>${hdr}</tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
+function switchTab(tab,btn){
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
+  document.querySelectorAll('.tc').forEach(t=>t.classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById('t-'+tab).classList.add('on');
+}
+
+function render(){
+  const players = (cohortMode && window._cohortPlayerOverride) ? window._cohortPlayerOverride : activeSel();
+  if(players.length<1)return;
+  document.getElementById('emptyState').style.display='none';
+  document.getElementById('comp').classList.add('show');
+
+  // Apply stats type tab visibility
+  applyStatsTypeToTabs();
+
+  const f=getF(), any=f.opp.length||f.city||f.gnd||f.ha||f.inn||f.res||f.toss||f.teamCapts.length||f.oppCapts.length||f.together||selectedPhases.length;
+  const st = getStatsType();
+
+  let displayPlayers = players;
+  let rowSets = players.map(p=>getRows(p));
+
+  // Helper: filter rowSets to within-cohort shared matches (each cohort independently)
+  function applyCohortSharedFilter(rSets){
+    if(!window._cohortBoundaries || window._cohortBoundaries.length < 2) return rSets;
+    let offset = 0;
+    const result = [];
+    window._cohortBoundaries.forEach(size => {
+      const grp = rSets.slice(offset, offset + size);
+      const matchSets = grp.map(idxs => new Set(idxs.map(i => SCD[i][0])));
+      let shared = new Set(matchSets[0]);
+      for(let i=1;i<matchSets.length;i++) shared = new Set([...shared].filter(m=>matchSets[i].has(m)));
+      grp.forEach(idxs => result.push(shared.size > 0 ? idxs.filter(i => shared.has(SCD[i][0])) : []));
+      offset += size;
+    });
+    return result;
+  }
+
+  // In cohort mode + Together view: apply within-cohort shared filter for like-for-like stats.
+  // Career view shows full career stats unfiltered.
+  // Dual view: buildDualOrSingle handles both columns independently.
+  if(cohortMode && !dualViewOn && f.together === 'yes'){
+    rowSets = applyCohortSharedFilter(rowSets);
+  }
+
+  // Handle "played together" filter (non-cohort mode)
+  if(f.together === 'yes' && !cohortMode){
+    const matchSets = rowSets.map(idxs => {
+      const matches = new Set();
+      idxs.forEach(i => matches.add(SCD[i][0]));
+      return matches;
+    });
+    let commonMatches = new Set(matchSets[0]);
+    for(let i = 1; i < matchSets.length; i++) commonMatches = new Set([...commonMatches].filter(m => matchSets[i].has(m)));
+    if(commonMatches.size === 0 && players.length > 2){
+      const playersWithSharedMatches = [], sharedMatchesByPlayer = [];
+      for(let i = 0; i < players.length; i++){
+        let hasShared = false; const mySharedMatches = new Set();
+        for(let j = 0; j < players.length; j++){
+          if(i !== j){ const shared = [...matchSets[i]].filter(m => matchSets[j].has(m)); if(shared.length > 0){ hasShared = true; shared.forEach(m => mySharedMatches.add(m)); } }
+        }
+        if(hasShared){ playersWithSharedMatches.push(i); sharedMatchesByPlayer.push(mySharedMatches); }
+      }
+      if(playersWithSharedMatches.length >= 2){
+        displayPlayers = playersWithSharedMatches.map(i => players[i]);
+        rowSets = playersWithSharedMatches.map((pIdx, i) => rowSets[pIdx].filter(idx => sharedMatchesByPlayer[i].has(SCD[idx][0])));
+      } else { displayPlayers = []; rowSets = []; }
+    } else if(commonMatches.size > 0){
+      rowSets = rowSets.map(idxs => idxs.filter(i => commonMatches.has(SCD[i][0])));
+    } else { displayPlayers = []; rowSets = []; }
+  }
+
+
+  if(f.together === 'yes' && !cohortMode && displayPlayers.length < 2){
+    document.getElementById('tblOverview').innerHTML = '<div class="verd"><div class="verd-lb">No shared matches</div><div class="verd-tx">The selected players never played in the same match together.</div></div>';
+    document.getElementById('tblBatting').innerHTML = '';
+    document.getElementById('tblBowling').innerHTML = '';
+    document.getElementById('tblAll').innerHTML = '';
+    document.getElementById('filtSummary').innerHTML = '';
+    showTags();
+    return;
+  }
+
+  const stats=displayPlayers.map((p,i)=>agg(p,rowSets[i],any));
+
+  // Filter summary
+  const sumEl=document.getElementById('filtSummary');
+  if(any){
+    const parts=[];
+    if(f.opp.length)parts.push('vs '+f.opp.map(o=>TEAMS[o]).join(', '));
+    if(f.city)parts.push('in '+CITIES[f.city]);
+    if(f.gnd)parts.push('at '+GROUNDS[f.gnd]);if(f.ha)parts.push(f.ha);
+    if(f.inn)parts.push(ordinal(f.inn)+' inn');if(f.res)parts.push(f.res);
+    if(f.toss)parts.push(f.toss+' toss');
+    if(f.teamCapts.length){parts.push('capt: '+f.teamCapts.map(p=>PID_NAME[p]||'?').join('/'))}
+    if(f.oppCapts.length){parts.push('opp capt: '+f.oppCapts.map(p=>PID_NAME[p]||'?').join('/'))}
+    if(f.together)parts.push('played together');
+    if(selectedPhases.length)parts.push(selectedPhases.map(p=>p.label).join(' · '));
+    const pParts=stats.map((s,i)=>`${s.name}: ${s.inns} inn`);
+    let summaryHTML = `<div class="filt-sum">Filtered: ${parts.join(' · ')} — ${pParts.join(' · ')}</div>`;
+    if(f.together === 'yes' && displayPlayers.length < players.length){
+      const excludedCount = players.length - displayPlayers.length;
+      const excludedNames = players.filter(p => !displayPlayers.includes(p)).map(p => p.fullName || p.name).join(', ');
+      summaryHTML += `<div class="filt-sum" style="background:rgba(208,64,64,0.1);color:var(--red);margin-top:6px;">Note: ${excludedCount} player${excludedCount>1?'s':''} excluded (${excludedNames}) — no shared matches</div>`;
+    }
+    sumEl.innerHTML = summaryHTML;
+  } else sumEl.innerHTML='';
+
+  // Verdict
+  const scores=stats.map(()=>0);
+  const metricWins=stats.map(()=>[]);
+  function scoreMetric(key, higher, label){
+    const vals=stats.map(s=>{const v=s[key];return typeof v==='number'?v:0});
+    if(higher){ const mx=Math.max(...vals); if(vals.filter(v=>v===mx).length===1){const wi=vals.indexOf(mx);scores[wi]++;metricWins[wi].push(label);} }
+    else { const nonZero=vals.map((v,i)=>({v,i})).filter(x=>x.v>0); if(nonZero.length>1){ const mn=Math.min(...nonZero.map(x=>x.v)); const winners=nonZero.filter(x=>x.v===mn); if(winners.length===1){scores[winners[0].i]++;metricWins[winners[0].i].push(label);} } }
+  }
+
+  // Only score relevant metrics based on stats type
+  if(st !== 'bowling'){
+    scoreMetric('batAvg',true,'Batting Average');
+    scoreMetric('runs',true,'Runs');
+    scoreMetric('hundreds',true,'Centuries');
+  }
+  if(st !== 'batting'){
+    scoreMetric('wkts',true,'Wickets');
+    scoreMetric('bowlAvg',false,'Bowling Average');
+  }
+
+  const allDetails = stats.map((s, i) => {
+    const wins = metricWins[i];
+    return wins.length > 0 ? `${s.name} ahead in ${wins.join(', ')}` : null;
+  }).filter(Boolean);
+
+  const verdictHTML = players.length < 2 ? '' : `<div class="verd"><div class="verd-lb">Summary</div><div class="verd-tx">${allDetails.join(' · ') || 'No clear leader'}</div></div>`;
+
+  // Shared stats for "played together" combined total (non-cohort mode only)
+  let sharedStats = null;
+  if(f.together === 'yes' && !cohortMode) {
+    const allMatchIds = rowSets.map(idxs => new Set(idxs.map(i => SCD[i][0])));
+    let sharedMatchIds = new Set(allMatchIds[0]);
+    for(let i = 1; i < allMatchIds.length; i++) sharedMatchIds = new Set([...sharedMatchIds].filter(m => allMatchIds[i].has(m)));
+    const batInningsMap = new Map();
+    rowSets.forEach((idxs, pIdx) => { idxs.forEach(i => { const r=SCD[i],matchId=r[0],innNum=r[2]; if(r[4]!==null && sharedMatchIds.has(matchId)){ const key=`${matchId}-${innNum}`; if(!batInningsMap.has(key))batInningsMap.set(key,new Set()); batInningsMap.get(key).add(pIdx); } }); });
+    let sharedBatInns=0; batInningsMap.forEach((ps,k)=>{ if(ps.size===displayPlayers.length)sharedBatInns++; });
+    const bowlInningsMap=new Map();
+    rowSets.forEach((idxs,pIdx)=>{ idxs.forEach(i=>{ const r=SCD[i],matchId=r[0],innNum=r[2]; if(typeof r[6]==='number'&&r[6]>0&&sharedMatchIds.has(matchId)){ const key=`${matchId}-${innNum}`; if(!bowlInningsMap.has(key))bowlInningsMap.set(key,new Set()); bowlInningsMap.get(key).add(pIdx); } }); });
+    let sharedBowlInns=0; const sharedBowlInningsKeys=new Set();
+    bowlInningsMap.forEach((ps,k)=>{ if(ps.size===displayPlayers.length){ sharedBowlInns++; sharedBowlInningsKeys.add(k); } });
+    let combinedBowlRuns=0,combinedWkts=0,combinedOvers=0;
+    rowSets.forEach((idxs)=>{ idxs.forEach(i=>{ const r=SCD[i],key=`${r[0]}-${r[2]}`; if(sharedBowlInningsKeys.has(key)){ combinedOvers+=typeof r[6]==='number'?r[6]:0; combinedBowlRuns+=typeof r[8]==='number'?r[8]:0; combinedWkts+=typeof r[9]==='number'?r[9]:0; } }); });
+    const sharedBatInningsKeys=new Set();
+    batInningsMap.forEach((ps,k)=>{ if(ps.size===displayPlayers.length)sharedBatInningsKeys.add(k); });
+    let combinedBatRuns=0,combinedBalls=0,combinedBatInnsCount=0,combinedNO=0;
+    rowSets.forEach((idxs)=>{ idxs.forEach(i=>{ const r=SCD[i],key=`${r[0]}-${r[2]}`; if(sharedBatInningsKeys.has(key)&&r[4]!==null){ combinedBatInnsCount++; if(r[4])combinedNO++; combinedBatRuns+=typeof r[3]==='number'?r[3]:0; combinedBalls+=typeof r[5]==='number'?r[5]:0; } }); });
+    sharedStats={ sharedTests:sharedMatchIds.size, sharedBatInns, sharedBowlInns, combinedBatRuns, combinedBalls, combinedBatInnsCount, combinedNO, combinedBowlRuns, combinedWkts, combinedOvers };
+  }
+
+  const showTotals = f.together === 'yes' || cohortMode;
+
+  // ---- Column definitions ----
+  const ovCols = [
+    {sec:'Batting'},
+    {label:'Tests',key:'tests',higher:true,dec:0},
+    {label:'Inns',key:'inns',higher:true,dec:0},
+    {label:'Runs',key:'runs',higher:true,dec:0},
+    {label:'Bat Avg',key:'batAvg',higher:true},
+    {label:'100s',key:'hundreds',higher:true,dec:0},
+    {label:'HS',key:'hs',higher:true,dec:0},
+    {sec:'Bowling'},
+    {label:'Wkts',key:'wkts',higher:true,dec:0},
+    {label:'Bowl Avg',key:'bowlAvg',higher:false},
+    {label:'Econ',key:'econ',higher:false},
+    {label:'Best',key:'bestBowl',higher:null},
+    {sec:'Fielding *'},
+    {label:'Catches',key:'catches',higher:true,dec:0},
+    {label:'St',key:'stumpings',higher:true,dec:0},
+    {label:'MoM',key:'mom',higher:true,dec:0},
+  ];
+  const batCols = [
+    {label:'Tests',key:'tests',higher:true,dec:0},
+    {label:'Innings',key:'inns',higher:true,dec:0},
+    {label:'N.O.',key:'no',higher:true,dec:0},
+    {label:'Runs',key:'runs',higher:true,dec:0},
+    {label:'Balls',key:'balls',higher:true,dec:0},
+    {label:'Average',key:'batAvg',higher:true},
+    {label:'S/R',key:'sr',higher:true},
+    {label:'H.S.',key:'hs',higher:true,dec:0},
+    {label:'50s',key:'fifties',higher:true,dec:0},
+    {label:'100s',key:'hundreds',higher:true,dec:0},
+  ];
+  const bowlCols = [
+    {label:'Overs',key:'overs',higher:true,dec:1},
+    {label:'Maidens',key:'mdns',higher:true,dec:0},
+    {label:'Runs',key:'bowlRuns',higher:false,dec:0},
+    {label:'Wickets',key:'wkts',higher:true,dec:0},
+    {label:'Average',key:'bowlAvg',higher:false},
+    {label:'Economy',key:'econ',higher:false},
+    {label:'B/W',key:'bpw',higher:false,dec:1},
+    {label:'Best',key:'bestBowl',higher:null},
+  ];
+  const allCols = [
+    {sec:'Batting'},
+    {label:'Tests',key:'tests',higher:true,dec:0},
+    {label:'Inns',key:'inns',higher:true,dec:0},
+    {label:'N.O.',key:'no',higher:true,dec:0},
+    {label:'Runs',key:'runs',higher:true,dec:0},
+    {label:'Balls',key:'balls',higher:true,dec:0},
+    {label:'Avg',key:'batAvg',higher:true},
+    {label:'S/R',key:'sr',higher:true},
+    {label:'H.S.',key:'hs',higher:true,dec:0},
+    {label:'50s',key:'fifties',higher:true,dec:0},
+    {label:'100s',key:'hundreds',higher:true,dec:0},
+    {sec:'Bowling'},
+    {label:'Overs',key:'overs',higher:true,dec:1},
+    {label:'Mdns',key:'mdns',higher:true,dec:0},
+    {label:'Runs',key:'bowlRuns',higher:false,dec:0},
+    {label:'Wkts',key:'wkts',higher:true,dec:0},
+    {label:'Avg',key:'bowlAvg',higher:false},
+    {label:'Econ',key:'econ',higher:false},
+    {label:'B/W',key:'bpw',higher:false,dec:1},
+    {label:'Best',key:'bestBowl',higher:null},
+    {sec:'Fielding *'},
+    {label:'Ct',key:'catches',higher:true,dec:0},
+    {label:'St',key:'stumpings',higher:true,dec:0},
+    {label:'MoM',key:'mom',higher:true,dec:0},
+  ];
+
+  // ---- Phase definitions helper ----
+  // Always includes Full Career first, then each selected phase as a row
+  const PH_LBLS = {first10:'First 10 Tests',first25:'First 25 Tests',first50:'First 50 Tests',last10:'Last 10 Tests',last25:'Last 25 Tests',last50:'Last 50 Tests'};
+  function getPhaseDefinitions(){
+    const ROW_CLASSES = ['phase-a-row','phase-b-row','phase-c-row'];
+    const defs = [{label:'Full Career', phaseObj:null, rowClass:'phase-career-row'}];
+    selectedPhases.forEach((ph, i) => {
+      defs.push({label:ph.label, phaseObj:{from:ph.from, to:ph.to}, rowClass: ROW_CLASSES[i] || 'phase-a-row', computed: ph.computed || null});
+    });
+    return defs;
+  }
+
+  // ---- Phase-row table builder (phase-single / phase-multi modes) ----
+  function buildPhaseRowTable(cols, opts = {}){
+    const { isBowling = false } = opts;
+    const phaseDefs = getPhaseDefinitions();
+    const hasPeak = phaseDefs.some(d => d.computed === 'peak');
+
+    // Always inject "Δ Peak" column after Average in phase mode
+    let useCols = [];
+    const avgKey = isBowling ? 'bowlAvg' : 'batAvg';
+    const hasBothAvgs = cols.some(c => c.key === 'batAvg') && cols.some(c => c.key === 'bowlAvg');
+    cols.forEach(c => {
+      useCols.push(c);
+      if(hasBothAvgs){
+        if(c.key === 'batAvg') useCols.push({label:'Δ Peak', key:'_deltaBatPeak', higher: null, dec:2, isDelta:true, deltaKey:'batAvg'});
+        if(c.key === 'bowlAvg') useCols.push({label:'Δ Peak', key:'_deltaBowlPeak', higher: null, dec:2, isDelta:true, deltaKey:'bowlAvg'});
+      } else if(c.key === avgKey){
+        useCols.push({label:'Δ Peak', key:'_deltaFromPeak', higher: null, dec:2, isDelta:true, deltaKey: avgKey});
+      }
+    });
+
+    let hdr = '<th>Phase</th>';
+    useCols.forEach(c => { if(c.sec) hdr += `<th class="sec-head">${c.sec}</th>`; else hdr += `<th>${c.label}</th>`; });
+    let rowsHTML = '';
+
+    function renderPhaseRows(p, pi, phaseDefs){
+      // Resolve computed phases (like Peak, Best Phase) per-player
+      const resolvedDefs = phaseDefs.map(def => {
+        if(def.computed === 'peak'){
+          const peak = computePeakTest(p, isBowling);
+          return {...def, label: peak.label, phaseObj: {from:1, to: peak.peakTest}};
+        }
+        if(def.computed === 'bestphase'){
+          const bp = computeBestPhase(p, isBowling);
+          return {...def, label: bp.label, phaseObj: {from: bp.from, to: bp.to}};
+        }
+        return def;
+      });
+      const allStats = resolvedDefs.map(def => agg(p, getRowsForPhase(p, def.phaseObj), true));
+
+      // Always compute deltaFromPeak — use Peak phase row if present, otherwise compute on the fly
+      {
+        const peakIdx = resolvedDefs.findIndex(d => d.computed === 'peak');
+        let batPeakAvg, bowlPeakAvg;
+        if(peakIdx >= 0){
+          batPeakAvg = allStats[peakIdx]['batAvg'];
+          bowlPeakAvg = allStats[peakIdx]['bowlAvg'];
+        } else {
+          // Compute peak on the fly for this player
+          const batPeak = computePeakTest(p, false);
+          const batPeakStats = agg(p, getRowsForPhase(p, {from:1, to: batPeak.peakTest}), true);
+          batPeakAvg = batPeakStats['batAvg'];
+          const bowlPeak = computePeakTest(p, true);
+          const bowlPeakStats = agg(p, getRowsForPhase(p, {from:1, to: bowlPeak.peakTest}), true);
+          bowlPeakAvg = bowlPeakStats['bowlAvg'];
+        }
+        allStats.forEach(s => {
+          const bv = s['batAvg'];
+          s._deltaBatPeak = (typeof bv === 'number' && bv > 0 && batPeakAvg > 0) ? bv - batPeakAvg : null;
+          s._deltaFromPeak = s._deltaBatPeak;
+          const wv = s['bowlAvg'];
+          s._deltaBowlPeak = (typeof wv === 'number' && wv > 0 && bowlPeakAvg > 0) ? wv - bowlPeakAvg : null;
+          if(isBowling) s._deltaFromPeak = s._deltaBowlPeak;
+        });
+      }
+
+      const bestVals = {};
+      useCols.forEach(c => {
+        if(c.sec || c.higher === null || c.isDelta) return;
+        const vals = allStats.map(s => typeof s[c.key]==='number' ? s[c.key] : 0);
+        if(c.higher) bestVals[c.key] = Math.max(...vals);
+        else { const nz = vals.filter(v=>v>0); bestVals[c.key] = nz.length>0 ? Math.min(...nz) : 0; }
+      });
+      let rows = '';
+      resolvedDefs.forEach((def, di) => {
+        const s = allStats[di];
+        let row = `<td class="player-cell"><span class="pc-name">${def.label}</span><span class="pc-meta">${s.tests} Tests · ${s.inns} inn</span></td>`;
+        useCols.forEach(c => {
+          if(c.sec){ row += '<td class="sec-div"></td>'; return; }
+          if(c.isDelta){
+            const d = s[c.key];
+            const isBowlDelta = c.deltaKey === 'bowlAvg';
+            if(d === null || d === 0 || def.computed === 'peak'){
+              row += `<td style="color:var(--text3)">—</td>`;
+            } else {
+              const sign = d > 0 ? '+' : '';
+              const color = isBowlDelta
+                ? (d < 0 ? 'var(--green)' : 'var(--red,#c0392b)')
+                : (d > 0 ? 'var(--green)' : 'var(--red,#c0392b)');
+              row += `<td style="color:${color};font-weight:600">${sign}${d.toFixed(2)}</td>`;
+            }
+            return;
+          }
+          const v = s[c.key]; const n = typeof v==='number' ? v : 0;
+          let cls2 = '';
+          if(c.higher !== null && bestVals[c.key] !== undefined && resolvedDefs.length > 1){
+            const bv = bestVals[c.key];
+            const allSame = allStats.every(os => (typeof os[c.key]==='number'?os[c.key]:0) === n);
+            if(!allSame && (n>0||c.higher)){
+              if(c.higher) cls2 = n===bv&&n>0?'best':(n<bv?'worse':'');
+              else { if(n===0) cls2=''; else cls2 = n===bv?'best':'worse'; }
+            }
+          }
+          row += `<td class="${cls2}">${fmt(v, c.dec||2)}</td>`;
+        });
+        rows += `<tr class="${def.rowClass}">${row}</tr>`;
+      });
+      return rows;
+    }
+
+    if(phaseMode === 'single'){
+      rowsHTML = renderPhaseRows(players[0], 0, phaseDefs);
+    } else {
+      // phase-multi: separator row per player, then phase rows under each
+      const totalCols = 1 + useCols.filter(c=>!c.sec).length + useCols.filter(c=>c.sec).length;
+      players.forEach((p, pi) => {
+        rowsHTML += `<tr class="phase-sep-row"><td colspan="100" style="border-left:3px solid var(--p${pi+1});">${p.fullName||p.name} · ${p.country}</td></tr>`;
+        rowsHTML += renderPhaseRows(p, pi, phaseDefs);
+      });
+    }
+
+    return `<div class="cmp-wrap"><table class="cmp-table"><thead><tr>${hdr}</tr></thead><tbody>${rowsHTML}</tbody></table></div>`;
+  }
+
+  // ---- Helper: build dual or single view HTML for a given table ----
+  // When dualViewOn: show career table and together table side by side.
+  // "Career" = full career stats (no rowset filtering beyond non-together filters).
+  // "Together" = stats restricted to shared matches, with combined total row.
+  function buildDualOrSingle(cols, opts = {}){
+    const { isBowling = false, showVerdict = false, footNote = '' } = opts;
+    const suffix = showVerdict ? verdictHTML : '';
+    const fn = footNote ? `<div class="foot-note">${footNote}</div>` : '';
+
+    if(!dualViewOn){
+      // Normal single view — respects existing f.together filter
+      return buildTable(stats, cols, { showBowlInns: isBowling, showTotals, sharedStats }) + suffix + fn;
+    }
+
+    // Dual view: always show both career AND together columns simultaneously.
+    // Career stats: use full (unfiltered by together) row sets.
+    const careerRowSets = players.map(p => getRows(p)); // re-apply non-together filters
+    // Remove together filter for career column
+    const careerStats = players.map((p, i) => agg(p, careerRowSets[i], any));
+
+    // Helper: find per-cohort shared matches given a group of players + their rowSets
+    function cohortSharedRowSets(grpPlayers, grpRowSets){
+      const matchSets = grpRowSets.map(idxs => new Set(idxs.map(i => SCD[i][0])));
+      let shared = new Set(matchSets[0]);
+      for(let i=1;i<matchSets.length;i++) shared = new Set([...shared].filter(m=>matchSets[i].has(m)));
+      return { sharedIds: shared, filteredRowSets: grpRowSets.map(idxs=>idxs.filter(i=>shared.has(SCD[i][0]))) };
+    }
+
+    // Determine player groups from _cohortBoundaries (cohort mode) or treat all as one group
+    const boundaries = window._cohortBoundaries;
+    const playerGroups = boundaries && boundaries.length >= 2
+      ? (() => { const gs=[]; let o=0; boundaries.forEach(n=>{ gs.push({players:players.slice(o,o+n), rowSets:careerRowSets.slice(o,o+n)}); o+=n; }); return gs; })()
+      : [{ players, rowSets: careerRowSets }];
+
+    // For each group, compute together row sets (matches where ALL in that group played)
+    const groupTogetherData = playerGroups.map(g => {
+      const { sharedIds, filteredRowSets } = cohortSharedRowSets(g.players, g.rowSets);
+      const togStats = sharedIds.size > 0 ? g.players.map((p,i) => agg(p, filteredRowSets[i], true)) : null;
+      return { players: g.players, sharedIds, filteredRowSets, togStats };
+    });
+
+    // Flatten together stats across all groups
+    const togetherStats = groupTogetherData.every(g=>g.togStats) ? groupTogetherData.flatMap(g=>g.togStats) : null;
+    const togetherRowSetsAll = groupTogetherData.flatMap(g=>g.filteredRowSets);
+
+    const careerHTML = buildTable(careerStats, cols, { showBowlInns: isBowling });
+
+    let togetherHTML;
+    if(!togetherStats){
+      // Check if some groups have shared matches
+      const someHave = groupTogetherData.some(g=>g.sharedIds.size>0);
+      if(someHave){
+        // Per-group together tables stacked
+        const parts = groupTogetherData.map((g,gi) => {
+          if(!g.togStats) return `<div class="filt-sum" style="background:rgba(208,64,64,0.1);color:var(--red);margin-bottom:8px;">${(cohortTypeName||'Cohort')+' '+(COHORT_NAMES_EN||['A','B','C','D'])[gi]}: no shared matches</div>`;
+          const label = (cohortTypeName||'Cohort')+' '+(COHORT_NAMES_EN||['A','B','C','D'])[gi];
+          const nT = g.sharedIds.size;
+          return `<div style="margin-bottom:12px"><div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3);margin-bottom:6px;">${label} — ${nT} shared Test${nT!==1?'s':''}</div>${buildTable(g.togStats, cols, { showBowlInns: isBowling, showTotals: true, cohortIndex: gi, sharedTests: nT })}</div>`;
+        });
+        togetherHTML = parts.join('');
+      } else {
+        togetherHTML = '<div class="verd" style="margin-top:0"><div class="verd-lb">No shared matches</div><div class="verd-tx">No players in any group appeared in the same match.</div></div>';
+      }
+    } else if(playerGroups.length === 1){
+      // Single group (non-cohort mode): show together table normally
+      togetherHTML = buildTable(togetherStats, cols, { showBowlInns: isBowling, showTotals: true });
+    } else {
+      // Multiple cohort groups: show per-cohort together sub-tables with group labels
+      const parts = groupTogetherData.map((g, gi) => {
+        const label = (cohortTypeName||'Cohort')+' '+(COHORT_NAMES_EN||['A','B','C','D'])[gi];
+        if(!g.togStats || g.sharedIds.size === 0)
+          return `<div class="filt-sum" style="background:rgba(208,64,64,0.1);color:var(--red);margin-bottom:8px;">${label}: no shared matches</div>`;
+        const nTests = g.sharedIds.size;
+        return `<div style="margin-bottom:16px"><div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3);margin-bottom:6px;">${label} — ${nTests} shared Test${nTests!==1?'s':''}</div>${buildTable(g.togStats, cols, { showBowlInns: isBowling, showTotals: true, cohortIndex: gi, sharedTests: nTests })}</div>`;
+      });
+      togetherHTML = parts.join('');
+    }
+
+    return `<div class="dual-view-wrap">
+      <div class="dual-col">
+        <div class="dual-col-header career">${cohortMode ? 'Career (all Tests)' : 'Career'}</div>
+        ${careerHTML}
+      </div>
+      <div class="dual-col">
+        <div class="dual-col-header together">${cohortMode ? 'Played Together (within cohort)' : 'Played Together'}</div>
+        ${togetherHTML}
+      </div>
+    </div>${suffix}${fn}`;
+  }
+
+  // ---- Render each tab ----
+  const buildTab = (cols, opts) => phaseMode ? buildPhaseRowTable(cols, opts) : buildDualOrSingle(cols, opts);
+
+  if(st === 'both'){
+    document.getElementById('tblOverview').innerHTML = buildTab(ovCols, { showVerdict: !phaseMode, footNote: '* Career fielding totals — not affected by filters' });
+  } else {
+    document.getElementById('tblOverview').innerHTML = '';
+  }
+
+  if(st === 'both' || st === 'batting'){
+    document.getElementById('tblBatting').innerHTML = buildTab(batCols, { showVerdict: st === 'batting' && !phaseMode });
+  } else {
+    document.getElementById('tblBatting').innerHTML = '';
+  }
+
+  if(st === 'both' || st === 'bowling'){
+    document.getElementById('tblBowling').innerHTML = buildTab(bowlCols, { isBowling: true, showVerdict: st === 'bowling' && !phaseMode });
+  } else {
+    document.getElementById('tblBowling').innerHTML = '';
+  }
+
+  if(st === 'both'){
+    document.getElementById('tblAll').innerHTML = buildTab(allCols, { showVerdict: !phaseMode, footNote: '* Career fielding totals — not affected by filters' });
+  } else {
+    document.getElementById('tblAll').innerHTML = '';
+  }
+
+  showTags();
+}
+
+// ---- Share Function ----
+function shareComparison(){
+  const players = activeSel();
+  if(players.length < 2){ alert('Please select at least 2 players to share a comparison.'); return; }
+  const playerNames = players.map(p => p.fullName || p.name).join(' vs ');
+  const params = new URLSearchParams();
+  players.forEach((p, i) => { params.append(`p${i+1}`, p.id); });
+  const f = getF();
+  if(f.opp.length) params.set('opp', f.opp.join(','));
+  if(f.city) params.set('city', f.city);
+  if(f.gnd) params.set('gnd', f.gnd);
+  if(f.ha) params.set('ha', f.ha);
+  if(f.inn) params.set('inn', f.inn);
+  if(f.res) params.set('res', f.res);
+  if(f.toss) params.set('toss', f.toss);
+  if(f.together) params.set('together', f.together);
+  const shareUrl = window.location.origin + window.location.pathname + '?' + params.toString();
+  const rowSets = players.map(p => getRows(p));
+  const stats = players.map((p, i) => agg(p, rowSets[i], f.opp.length || f.city || f.gnd || f.ha || f.inn || f.res || f.toss || f.teamCapts.length || f.oppCapts.length || f.together));
+  const metricWins = stats.map(() => []);
+  function scoreMetricForShare(key, higher, label){
+    const vals = stats.map(s => {const v = s[key]; return typeof v === 'number' ? v : 0});
+    if(higher){ const mx = Math.max(...vals); if(vals.filter(v => v === mx).length === 1){ metricWins[vals.indexOf(mx)].push(label); } }
+    else { const nonZero = vals.map((v, i) => ({v, i})).filter(x => x.v > 0); if(nonZero.length > 1){ const mn = Math.min(...nonZero.map(x => x.v)); const winners = nonZero.filter(x => x.v === mn); if(winners.length === 1) metricWins[winners[0].i].push(label); } }
+  }
+  scoreMetricForShare('batAvg', true, 'Batting Average');
+  scoreMetricForShare('runs', true, 'Runs');
+  scoreMetricForShare('hundreds', true, 'Centuries');
+  scoreMetricForShare('wkts', true, 'Wickets');
+  scoreMetricForShare('bowlAvg', false, 'Bowling Average');
+  const summaryParts = stats.map((s, i) => { const wins = metricWins[i]; return wins.length > 0 ? `${s.name} ahead in ${wins.join(', ')}` : null; }).filter(Boolean);
+  const summary = summaryParts.length > 0 ? summaryParts.join('. ') + '.' : '';
+  const shareTitle = `Test Cricket: ${playerNames}`;
+  const shareText = summary ? `Compare ${playerNames}. ${summary}` : `Compare ${playerNames} on Test Cricket Side by Side`;
+  if(navigator.share && navigator.canShare && navigator.canShare({url: shareUrl})){
+    navigator.share({ title: shareTitle, text: shareText, url: shareUrl }).catch(err => { if(err.name !== 'AbortError') fallbackShare(shareUrl, playerNames); });
+  } else { fallbackShare(shareUrl, playerNames); }
+}
+function fallbackShare(url, playerNames){
+  const tryClipboard = () => { if(navigator.clipboard && navigator.clipboard.writeText){ return navigator.clipboard.writeText(url).then(()=>{ showCopiedFeedback(); return true; }).catch(()=>false); } return Promise.resolve(false); };
+  tryClipboard().then(success => { if(!success) showShareDialog(url, playerNames); });
+}
+function showCopiedFeedback(){
+  const btn = document.querySelector('.share-btn'); const originalHTML = btn.innerHTML;
+  btn.innerHTML = '<svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;stroke:currentColor;fill:none"><polyline points="20 6 9 17 4 12"></polyline></svg><span>Copied!</span>';
+  btn.style.color = 'var(--green)'; btn.style.borderColor = 'var(--green)';
+  setTimeout(()=>{ btn.innerHTML = originalHTML; btn.style.color = ''; btn.style.borderColor = ''; }, 2000);
+}
+function showShareDialog(url, playerNames){ const copied = prompt('Copy this URL to share your comparison:', url); if(copied !== null) showCopiedFeedback(); }
+
+// Export to Excel — respects active tab, Stats Type, dual-view toggle, and cohort totals
+function exportToExcel(){
+  const players = cohortMode
+    ? cohortGroups.flat().filter(Boolean)
+    : activeSel();
+  if(players.length < 2){ alert('Select at least 2 players to export'); return; }
+
+  const activeTabBtn = document.querySelector('.tab.on:not(.hidden-tab)');
+  const activeTab = activeTabBtn ? activeTabBtn.textContent.trim().toLowerCase().replace(/\s+/g,'') : 'overview';
+  const st = getStatsType(); // 'both' | 'batting' | 'bowling'
+  const f = getF();
+  const any = f.opp.length||f.city||f.gnd||f.ha||f.inn||f.res||f.toss||f.teamCapts.length||f.oppCapts.length||f.together;
+
+  // helpers
+  const n2 = v => typeof v==='number' && v>0 ? parseFloat(v.toFixed(2)) : (v||0);
+  const n1 = v => typeof v==='number' ? parseFloat(v.toFixed(1)) : 0;
+  const sv = v => (v!=null && v!==0 && v!=='\u2014') ? v : '\u2014';
+
+  const filterParts = [];
+  if(f.opp.length) filterParts.push('vs '+f.opp.map(o=>TEAMS[o]).join(', '));
+  if(f.city)  filterParts.push('in '+CITIES[f.city]);
+  if(f.gnd)   filterParts.push('at '+GROUNDS[f.gnd]);
+  if(f.ha)    filterParts.push(f.ha);
+  if(f.inn)   filterParts.push(ordinal(f.inn)+' innings');
+  if(f.res)   filterParts.push(f.res);
+  if(f.toss)  filterParts.push(f.toss+' toss');
+  if(f.teamCapts.length){filterParts.push('capt: '+f.teamCapts.map(p=>PID_NAME[p]||'?').join('/'))}
+  if(f.oppCapts.length){filterParts.push('opp capt: '+f.oppCapts.map(p=>PID_NAME[p]||'?').join('/'))}
+  if(f.together) filterParts.push('played together');
+  const filterSummary = filterParts.length ? 'Filters: '+filterParts.join(' · ') : 'No filters applied';
+
+  // Raw career rowSets (no cohort filter) — used for Career sheet
+  const careerRowSets = players.map(p => getRows(p));
+  const careerStats   = players.map((p,i) => agg(p, careerRowSets[i], any));
+
+  // Per-cohort shared rowSets — mirrors what the screen shows as the default view
+  // Helper: filter rowSets to within-cohort shared matches
+  function exportCohortSharedFilter(rSets){
+    if(!window._cohortBoundaries || window._cohortBoundaries.length < 2) return null;
+    let offset = 0;
+    const result = [];
+    window._cohortBoundaries.forEach(size => {
+      const grp = rSets.slice(offset, offset + size);
+      const matchSets = grp.map(idxs => new Set(idxs.map(i => SCD[i][0])));
+      let shared = new Set(matchSets[0]);
+      for(let k=1;k<matchSets.length;k++) shared = new Set([...shared].filter(m=>matchSets[k].has(m)));
+      grp.forEach(idxs => result.push(shared.size > 0 ? idxs.filter(i => shared.has(SCD[i][0])) : []));
+      offset += size;
+    });
+    return result;
+  }
+
+  // cohortSharedStats = what the screen shows as the DEFAULT view in cohort mode
+  const cohortSharedRowSets = cohortMode ? exportCohortSharedFilter(careerRowSets) : null;
+  const cohortSharedStats   = cohortSharedRowSets
+    ? players.map((p,i) => agg(p, cohortSharedRowSets[i], true))
+    : null;
+
+  // Non-cohort together stats (shared across ALL players) — used in normal mode
+  let togetherPlayers = players;
+  let togetherRowSets = null;
+  let togetherStats   = null;
+  if(!cohortMode){
+    const allMatchSets = careerRowSets.map(idxs => new Set(idxs.map(i=>SCD[i][0])));
+    let sharedMatchIds = new Set(allMatchSets[0]);
+    for(let i=1;i<allMatchSets.length;i++) sharedMatchIds = new Set([...sharedMatchIds].filter(m=>allMatchSets[i].has(m)));
+    togetherRowSets = careerRowSets.map(idxs => idxs.filter(i=>sharedMatchIds.has(SCD[i][0])));
+    if(sharedMatchIds.size===0 && players.length>2){
+      const withShared=[], sharedByP=[];
+      for(let i=0;i<players.length;i++){
+        const myShared=new Set();
+        for(let j=0;j<players.length;j++){
+          if(i!==j) [...allMatchSets[i]].filter(m=>allMatchSets[j].has(m)).forEach(m=>myShared.add(m));
+        }
+        if(myShared.size>0){ withShared.push(i); sharedByP.push(myShared); }
+      }
+      if(withShared.length>=2){
+        togetherPlayers = withShared.map(i=>players[i]);
+        togetherRowSets = withShared.map((pIdx,i)=>careerRowSets[pIdx].filter(idx=>sharedByP[i].has(SCD[idx][0])));
+      } else { togetherPlayers=[]; togetherRowSets=[]; }
+    } else if(sharedMatchIds.size===0){ togetherPlayers=[]; togetherRowSets=[]; }
+    togetherStats = togetherPlayers.length>=2
+      ? togetherPlayers.map((p,i)=>agg(p,togetherRowSets[i],true))
+      : null;
+  }
+
+  // Cohort totals: sum a stats array into one aggregate row
+  function cohortTotal(statArr, label){
+    if(!statArr || statArr.length===0) return null;
+    const t = { name: label, country: statArr.map(s=>s.country).filter((c,i,a)=>a.indexOf(c)===i).join('/') };
+    // tests: all players in group played same shared matches — use first player's count, not sum
+    t.tests = statArr[0].tests;
+    const sumKeys = ['inns','no','runs','balls','fifties','hundreds',
+                     'overs','mdns','bowlRuns','wkts','bowlInns','catches','stumpings','mom'];
+    sumKeys.forEach(k=>{ t[k] = statArr.reduce((a,s)=>a+(typeof s[k]==='number'?s[k]:0),0); });
+    t.hs = Math.max(...statArr.map(s=>typeof s.hs==='number'?s.hs:0));
+    const dism = t.inns - t.no;
+    t.batAvg  = dism>0 ? t.runs/dism : 0;
+    t.bowlAvg = t.wkts>0 ? t.bowlRuns/t.wkts : 0;
+    t.econ    = t.overs>0 ? t.bowlRuns/t.overs : 0;
+    t.bpw     = t.wkts>0 ? (t.overs*6)/t.wkts : 0;
+    t.sr      = t.balls>0 ? (t.runs/t.balls)*100 : null;
+    let bW=0,bR=9999;
+    statArr.forEach(s=>{ if(s.bestBowl&&s.bestBowl!=='\u2014'){ const [w,r]=s.bestBowl.split('/').map(Number); if(w>bW||(w===bW&&r<bR)){bW=w;bR=r;} } });
+    t.bestBowl = bW>0 ? bW+'/'+bR : '\u2014';
+    return t;
+  }
+
+  // Split into cohorts — use _cohortBoundaries for cohort mode (supports 2-4 cohorts)
+  // Returns { groups: [[statsA...],[statsB...],...] } for cohort mode
+  // or legacy { a, b } for normal 2-way split (used in writeSection)
+  function splitCohorts(statsArr){
+    if(statsArr.length < 2) return null;
+    if(cohortMode && window._cohortBoundaries && window._cohortBoundaries.length >= 2){
+      const groups = [];
+      let offset = 0;
+      window._cohortBoundaries.forEach(size => {
+        groups.push(statsArr.slice(offset, offset + size));
+        offset += size;
+      });
+      // Return legacy {a,b} from first two groups for 2-cohort compat, plus full groups array
+      return { a: groups[0]||[], b: groups[1]||[], groups };
+    }
+    const mid = Math.ceil(statsArr.length / 2);
+    return { a: statsArr.slice(0, mid), b: statsArr.slice(mid), groups: [statsArr.slice(0, mid), statsArr.slice(mid)] };
+  }
+
+  // Row builders
+  const batHdr  = ['Player','Country','Tests','Innings','N.O.','Runs','Balls','Average','Strike Rate','H.S.','50s','100s'];
+  const bowlHdr = ['Player','Country','Tests','Bowl Inn','Overs','Maidens','Bowl Runs','Wickets','Average','Economy','B/W','Best'];
+  const fieldHdr= ['Player','Catches','Stumpings','Man of Match'];
+  const batCW   = [{wch:26},{wch:14},{wch:7},{wch:8},{wch:6},{wch:8},{wch:8},{wch:10},{wch:12},{wch:7},{wch:6},{wch:6}];
+  const bowlCW  = [{wch:26},{wch:14},{wch:7},{wch:9},{wch:8},{wch:8},{wch:10},{wch:8},{wch:10},{wch:10},{wch:8},{wch:10}];
+
+  function batRow(s){ return [s.name, s.country, s.tests, s.inns, s.no, s.runs, s.balls, n2(s.batAvg), sv(s.sr?n2(s.sr):null), s.hs||0, s.fifties||0, s.hundreds||0]; }
+  function bowlRow(s){ return [s.name, s.country, s.tests, s.bowlInns||0, n1(s.overs), s.mdns||0, s.bowlRuns||0, s.wkts||0, n2(s.bowlAvg), n2(s.econ), n2(s.bpw), sv(s.bestBowl)]; }
+  function fieldRow(s){ return [s.name, s.catches||0, s.stumpings||0, s.mom||0]; }
+
+  // Write a labelled block to a sheet, return next row
+  function writeBlock(ws, title, hdr, rows, r, cw){
+    if(title){ XLSX.utils.sheet_add_aoa(ws, [[title]], {origin:'A'+r}); r++; }
+    XLSX.utils.sheet_add_aoa(ws, [hdr],  {origin:'A'+r}); r++;
+    XLSX.utils.sheet_add_aoa(ws, rows,   {origin:'A'+r}); r += rows.length;
+    if(cw && !ws['!cols']) ws['!cols'] = cw;
+    return r;
+  }
+
+  // Write individual rows + blank line + cohort totals (supports 2-4 cohorts)
+  function writeSection(ws, title, hdr, statsArr, rowFn, r, cw){
+    const cohorts = splitCohorts(statsArr);
+    const groups = cohorts ? cohorts.groups : null;
+    const dataRows = statsArr.map(rowFn);
+    const totRows = [];
+    if(groups && groups.length >= 2){
+      groups.forEach((g, gi) => {
+        if(!g || g.length === 0) return;
+        const lbl = g.length > 1
+          ? `${cohortTypeName||'Cohort'} ${COHORT_NAMES_EN[gi]} — ${g.map(s=>s.name.split(' ').pop()).join(', ')}`
+          : g[0].name + ' Total';
+        const tot = cohortTotal(g, lbl);
+        if(tot){ totRows.push([]); totRows.push(rowFn(tot)); }
+      });
+    }
+    r = writeBlock(ws, title, hdr, [...dataRows, ...totRows], r, cw);
+    return r + 2;
+  }
+
+  // Main sheet builder
+  function buildSheet(ws, statsArr, sheetTitle, fStr, incBat, incBowl, incField){
+    XLSX.utils.sheet_add_aoa(ws, [['Cricket Times — Test Cricket Comparison'],['View: '+sheetTitle+' | '+fStr],[]], {origin:'A1'});
+    let r = 4;
+    if(incBat)  r = writeSection(ws, incBowl||incField?'BATTING':null, batHdr,  statsArr, batRow,  r, batCW);
+    if(incBowl) r = writeSection(ws, incBat ||incField?'BOWLING':null, bowlHdr, statsArr, bowlRow, r, bowlCW);
+    if(incField) writeBlock(ws, 'FIELDING (career totals)', fieldHdr, statsArr.map(fieldRow), r, null);
+  }
+
+  const incBat   = st==='both'||st==='batting';
+  const incBowl  = st==='both'||st==='bowling';
+  const incField = st==='both';
+  const tabLabel = activeTab==='allstats' ? 'All Stats' : activeTab.charAt(0).toUpperCase()+activeTab.slice(1);
+  const wb = XLSX.utils.book_new();
+
+  if(cohortMode){
+    if(dualViewOn){
+      // Cohort dual view: Career (all Tests) + Played Together (within-cohort shared)
+      const wsC = XLSX.utils.aoa_to_sheet([]);
+      buildSheet(wsC, careerStats, tabLabel+' — Career (all Tests)', filterSummary, incBat, incBowl, incField);
+      XLSX.utils.book_append_sheet(wb, wsC, 'Career');
+      const wsT = XLSX.utils.aoa_to_sheet([]);
+      if(cohortSharedStats){
+        buildSheet(wsT, cohortSharedStats, tabLabel+' — Played Together (within cohort)', filterSummary, incBat, incBowl, false);
+      } else {
+        XLSX.utils.sheet_add_aoa(wsT,[['No shared matches found within cohorts.']],{origin:'A1'});
+      }
+      XLSX.utils.book_append_sheet(wb, wsT, 'Played Together');
+    } else {
+      // Cohort default view: within-cohort shared matches (like-for-like)
+      const ws = XLSX.utils.aoa_to_sheet([]);
+      const statsToUse = cohortSharedStats || careerStats;
+      const label = cohortSharedStats ? tabLabel+' — Shared Tests (within cohort)' : tabLabel+' — Career';
+      buildSheet(ws, statsToUse, label, filterSummary, incBat, incBowl, incField);
+      XLSX.utils.book_append_sheet(wb, ws, cohortSharedStats ? 'Shared Tests' : tabLabel);
+    }
+  } else if(dualViewOn){
+    // Normal dual view: Career + Played Together (all players)
+    const wsC = XLSX.utils.aoa_to_sheet([]);
+    buildSheet(wsC, careerStats, tabLabel+' — Career', filterSummary, incBat, incBowl, incField);
+    XLSX.utils.book_append_sheet(wb, wsC, 'Career');
+    if(togetherStats && togetherStats.length>=2){
+      const wsT = XLSX.utils.aoa_to_sheet([]);
+      const excl = togetherPlayers.length<players.length
+        ? ' | Excludes: '+players.filter(p=>!togetherPlayers.includes(p)).map(p=>p.fullName||p.name).join(', ')
+        : '';
+      buildSheet(wsT, togetherStats, tabLabel+' — Played Together', filterSummary+excl, incBat, incBowl, false);
+      XLSX.utils.book_append_sheet(wb, wsT, 'Played Together');
+    } else {
+      const wsN = XLSX.utils.aoa_to_sheet([]);
+      XLSX.utils.sheet_add_aoa(wsN,[['No shared matches found between selected players.']],{origin:'A1'});
+      XLSX.utils.book_append_sheet(wb, wsN, 'Played Together');
+    }
+  } else if(f.together==='yes'){
+    if(!togetherStats||togetherStats.length<2){ alert('No shared matches found.'); return; }
+    const wsT = XLSX.utils.aoa_to_sheet([]);
+    buildSheet(wsT, togetherStats, tabLabel+' — Played Together', filterSummary, incBat, incBowl, false);
+    XLSX.utils.book_append_sheet(wb, wsT, 'Played Together');
+  } else {
+    const ws = XLSX.utils.aoa_to_sheet([]);
+    buildSheet(ws, careerStats, tabLabel, filterSummary, incBat, incBowl, incField);
+    XLSX.utils.book_append_sheet(wb, ws, tabLabel);
+  }
+
+  // Short filename: CT_<mode><flags>_<initials>_YYMMDD
+  const initials = cohortMode
+    ? cohortGroups.map(g => g.filter(Boolean).map(p=>p.name.split(' ').pop()[0]).join('')).join('v')
+    : careerStats.slice(0,4).map(s=>s.name.split(' ').pop()[0]).join('');
+  const modeShort = cohortMode ? document.getElementById('fRecordType').value.slice(0,3).toUpperCase() : (st!=='both'?st[0].toUpperCase():'');
+  const flags = (dualViewOn?'D':'')+(filterParts.length?'F':'');
+  const dateStr = new Date().toISOString().slice(2,10).replace(/-/g,'');
+  XLSX.writeFile(wb, `CT_${modeShort}${flags}_${initials}_${dateStr}.xlsx`);
+}
+// ---- Dual view (Career vs Together) toggle ----
+let dualViewOn = false; // false = career only, true = show both side by side
+
+function toggleDualView(){
+  dualViewOn = !dualViewOn;
+  const track = document.getElementById('dualToggleTrack');
+  const lCareer = document.getElementById('dtLabelCareer');
+  const lTogether = document.getElementById('dtLabelTogether');
+  track.classList.toggle('on', dualViewOn);
+  lCareer.classList.toggle('active', !dualViewOn);
+  lTogether.classList.toggle('active', dualViewOn);
+  if(cohortMode && hasEnoughCohorts()) renderCohorts();
+  else if(hasEnough()) render();
+}
+
+function updateExportButton(){
+  const players = cohortMode ? cohortGroups.flat().filter(Boolean) : activeSel();
+  const show = players.length >= 2 && !singleMode && !phaseMode;
+  document.getElementById('exportBtn').style.display = show ? 'flex' : 'none';
+  const toggle = document.getElementById('dualToggle');
+  toggle.classList.toggle('show', show);
+  if(!show){
+    dualViewOn = false;
+    document.getElementById('dualToggleTrack').classList.remove('on');
+    document.getElementById('dtLabelCareer').classList.add('active');
+    document.getElementById('dtLabelTogether').classList.remove('active');
+  }
+}
+const originalRender = render;
+render = function(){ originalRender(); updateExportButton(); }
+
+// ---- Against Mode ----
+let againstMode = 'batter'; // 'batter' or 'bowler'
+let againstSel = new Array(11).fill(null); // [0]=focus player, [1..10]=opponents
+let againstSlotCount = 2; // visible opponent slots
+
+function setAgainstMode(mode){
+  againstMode = mode;
+  const isB = mode==='batter';
+  document.getElementById('agBatterBtn').style.cssText = isB
+    ? 'padding:7px 16px;font-family:Outfit,sans-serif;font-size:12px;font-weight:600;border:none;cursor:pointer;transition:all 0.2s;background:var(--accent);color:#fff;'
+    : 'padding:7px 16px;font-family:Outfit,sans-serif;font-size:12px;font-weight:600;border:none;cursor:pointer;transition:all 0.2s;background:var(--surface);color:var(--text2);';
+  document.getElementById('agBowlerBtn').style.cssText = !isB
+    ? 'padding:7px 16px;font-family:Outfit,sans-serif;font-size:12px;font-weight:600;border:none;cursor:pointer;transition:all 0.2s;background:var(--accent);color:#fff;'
+    : 'padding:7px 16px;font-family:Outfit,sans-serif;font-size:12px;font-weight:600;border:none;cursor:pointer;transition:all 0.2s;background:var(--surface);color:var(--text2);';
+  document.getElementById('agFocusLabel').textContent = mode.toUpperCase();
+  document.getElementById('agFocusCardLabel').textContent = 'Focus ' + (isB ? 'Batter' : 'Bowler');
+  document.getElementById('againstHint').textContent = isB
+    ? 'Select a batter and up to 10 bowlers they faced'
+    : 'Select a bowler and up to 10 batters they bowled to';
+  for(let i=0;i<againstSlotCount;i++){
+    const lbl = document.getElementById('agOppLabel'+i);
+    if(lbl) lbl.textContent = (isB ? 'Bowler ' : 'Batter ') + (i+1);
+  }
+  if(hasEnoughAgainst()) renderAgainst();
+}
+
+function initAgainstSearch(slot){
+  const inp = document.getElementById('ags'+slot);
+  const dd  = document.getElementById('agd'+slot);
+  if(!inp || !dd) return;
+  function doAgSearch(){
+    const q = inp.value.trim().toLowerCase();
+    if(q.length<2){ dd.classList.remove('open'); return; }
+    const excludeIds = againstSel.filter(Boolean).map(p=>p.id);
+    const m = PLAYERS.filter(p=>
+      !excludeIds.includes(p.id) &&
+      ((p.name||'').toLowerCase().includes(q)||(p.fullName||'').toLowerCase().includes(q)||(p.country||'').toLowerCase().includes(q))
+    ).slice(0,15);
+    dd.innerHTML = m.map(p=>
+      `<div class="dd-item" onpointerdown="event.preventDefault();" onclick="pickAgainstPlayer(${slot},${p.id})">` +
+      `<span><span class="nm">${p.fullName||p.name}</span><span class="yr">${p.fromYear}&ndash;${p.toYear}</span></span>` +
+      `<span class="ct">${p.country}</span></div>`
+    ).join('');
+    dd.classList.add('open');
+  }
+  inp.addEventListener('input', doAgSearch);
+  inp.addEventListener('keyup', doAgSearch);
+  inp.addEventListener('compositionend', doAgSearch);
+  inp.addEventListener('focus',()=>{ if(inp.value.trim().length>=2) dd.classList.add('open'); });
+  inp.addEventListener('blur',()=>{ setTimeout(()=>dd.classList.remove('open'),300); });
+  document.addEventListener('click',e=>{ if(!e.target.closest('#agc'+slot)) dd.classList.remove('open'); });
+}
+
+function pickAgainstPlayer(slot, id){
+  const p = PLAYERS.find(x=>x.id===id); if(!p) return;
+  againstSel[slot] = p;
+  document.getElementById('ags'+slot).value = '';
+  document.getElementById('agd'+slot).classList.remove('open');
+  document.getElementById('agn'+slot).textContent = p.fullName||p.name;
+  document.getElementById('agm'+slot).innerHTML = badge(p.country)+` ${p.fromYear}&ndash;${p.toYear} &middot; ${p.tests} Tests`;
+  document.getElementById('agi'+slot).classList.add('show');
+  document.getElementById('agx'+slot).classList.add('show');
+  const clrIdx = slot===0 ? 1 : Math.min(slot+1,10);
+  document.getElementById('agc'+slot).style.borderColor = `var(--p${clrIdx})`;
+  if(hasEnoughAgainst()){
+    document.getElementById('againstEmptyState').style.display = 'none';
+    renderAgainst();
+  }
+}
+
+function clearAgainstPlayer(slot){
+  againstSel[slot] = null;
+  document.getElementById('agi'+slot).classList.remove('show');
+  document.getElementById('agx'+slot).classList.remove('show');
+  document.getElementById('ags'+slot).value = '';
+  document.getElementById('agc'+slot).style.borderColor = '';
+  if(!hasEnoughAgainst()){
+    document.getElementById('againstComp').style.display = 'none';
+    document.getElementById('againstEmptyState').style.display = 'block';
+  } else renderAgainst();
+}
+
+function addAgainstSlot(){
+  if(againstSlotCount >= 10) return;
+  againstSlotCount++;
+  const n = againstSlotCount;
+  const wrap = document.getElementById('agOpponentsWrap');
+  const btn  = document.getElementById('addAgainstBtn');
+  const clrIdx = Math.min(n+1,10);
+  const oppLabel = (againstMode==='batter' ? 'Bowler ' : 'Batter ') + n;
+  const card = document.createElement('div');
+  card.className = 'sel-card'; card.id = 'agc'+n;
+  card.style.cssText = 'min-width:180px;max-width:220px;';
+  card.innerHTML =
+    `<div class="sel-pcolor" style="color:var(--p${clrIdx});background:var(--p${clrIdx})"></div>`+
+    `<div class="sel-label" style="margin-left:18px" id="agOppLabel${n-1}">${oppLabel}</div>`+
+    `<input class="sel-input" id="ags${n}" placeholder="Search opponent..." autocomplete="off">`+
+    `<button class="sel-clear" id="agx${n}" onclick="clearAgainstPlayer(${n})">&times;</button>`+
+    `<div class="dd" id="agd${n}"></div>`+
+    `<div class="sel-info" id="agi${n}"><div class="si-name" id="agn${n}"></div><div class="si-meta" id="agm${n}"></div></div>`;
+  wrap.insertBefore(card, btn);
+  initAgainstSearch(n);
+  if(againstSlotCount>=10) btn.style.display='none';
+}
+
+function hasEnoughAgainst(){
+  return againstSel[0] != null && againstSel.slice(1, againstSlotCount+1).filter(Boolean).length >= 1;
+}
+
+function calcAgainstStats(focusPlayer, opponent){
+  const focusPt = PT[String(focusPlayer.id)];
+  const oppPt   = PT[String(opponent.id)];
+
+  // All match IDs the opponent appeared in
+  const oppMatchIds = new Set();
+  (SCD_IDX[opponent.id]||[]).forEach(i => oppMatchIds.add(SCD[i][0]));
+
+  // Focus player's SCD rows where opponent played for the other side
+  const idxs = (SCD_IDX[focusPlayer.id]||[]).filter(i=>{
+    const r = SCD[i];
+    if(!oppMatchIds.has(r[0])) return false;
+    const meta = TESTS[r[0]]; if(!meta) return false;
+    const t1=meta[2], t2=meta[3];
+    return (focusPt===t1&&oppPt===t2) || (focusPt===t2&&oppPt===t1);
+  });
+
+  const sharedTests = new Set(idxs.map(i=>SCD[i][0]));
+
+  if(againstMode === 'batter'){
+    // Show focus batter's stats in these matches
+    let inns=0,no=0,dismissed=0,runs=0,balls=0,hs=0,fifties=0,hundreds=0;
+    idxs.forEach(i=>{
+      const r=SCD[i];
+      if(r[4]===null) return; // didn't bat
+      inns++;
+      if(r[4]) no++;
+      else {
+        // r[10] = dismissing bowler's player ID (BowId - 10000), 0 if no bowler credited
+        // Count as dismissed-by-this-bowler if r[10] matches the opponent's id
+        if(r[10] === opponent.id) dismissed++;
+      }
+      const br = typeof r[3]==='number'?r[3]:0;
+      const bb = typeof r[5]==='number'?r[5]:0;
+      runs+=br; balls+=bb;
+      if(br>hs) hs=br;
+      if(br>=100) hundreds++;
+      else if(br>=50) fifties++;
+    });
+    const avg = (inns-no)>0 ? runs/(inns-no) : null;
+    const sr  = balls>0 ? (runs/balls)*100 : null;
+    // Career average is always the focus batter's career avg (same across all rows in batter mode)
+    const focusCareerAvg = focusPlayer && typeof focusPlayer.batAvg === 'number' && focusPlayer.batAvg > 0 ? focusPlayer.batAvg : null;
+    return { tests:sharedTests.size, inns, no, dismissed, runs, balls, avg, sr, hs, fifties, hundreds,
+             careerAvg: focusCareerAvg,
+             name:opponent.fullName||opponent.name, country:opponent.country };
+
+  } else {
+    // Bowler mode: show each opponent BATTER's record in matches where focus bowler played on opposing side
+    const batIdxs = (SCD_IDX[opponent.id]||[]).filter(i=>{
+      const r=SCD[i];
+      if(!sharedTests.has(r[0])) return false;
+      const meta=TESTS[r[0]]; if(!meta) return false;
+      const t1=meta[2],t2=meta[3];
+      return (oppPt===t1&&focusPt===t2)||(oppPt===t2&&focusPt===t1);
+    });
+    let inns=0,no=0,dismissed=0,runs=0,balls=0,hs=0,fifties=0,hundreds=0;
+    batIdxs.forEach(i=>{
+      const r=SCD[i];
+      if(r[4]===null) return;
+      inns++;
+      if(r[4]) no++;
+      else {
+        // r[10] = dismissing bowler's player ID; check if it's the focus bowler
+        if(r[10] === focusPlayer.id) dismissed++;
+      }
+      const br=typeof r[3]==='number'?r[3]:0;
+      const bb=typeof r[5]==='number'?r[5]:0;
+      runs+=br; balls+=bb;
+      if(br>hs) hs=br;
+      if(br>=100) hundreds++;
+      else if(br>=50) fifties++;
+    });
+    const avg = (inns-no)>0 ? runs/(inns-no) : null;
+    const sr  = balls>0 ? (runs/balls)*100 : null;
+    // Career average is the opponent batter's career avg
+    const oppCareerAvg = opponent && typeof opponent.batAvg === 'number' && opponent.batAvg > 0 ? opponent.batAvg : null;
+    return { tests:sharedTests.size, inns, no, dismissed, runs, balls, avg, sr, hs, fifties, hundreds,
+             careerAvg: oppCareerAvg,
+             name:opponent.fullName||opponent.name, country:opponent.country };
+  }
+}
+
+function renderAgainst(){
+  const focus     = againstSel[0];
+  const opponents = againstSel.slice(1, againstSlotCount+1).filter(Boolean);
+  if(!focus || opponents.length<1) return;
+
+  const focusName = focus.fullName||focus.name;
+  const allStats  = opponents.map(opp => calcAgainstStats(focus, opp));
+  const stats     = allStats; // show all selected players, including those with 0 shared tests
+
+  if(stats.every(s => s.tests === 0)){
+    document.getElementById('againstResults').innerHTML =
+      `<div class="verd"><div class="verd-lb">No shared matches</div>` +
+      `<div class="verd-tx">${focusName} and the selected opponents never played on opposing sides.</div></div>`;
+    document.getElementById('againstComp').style.display = 'block';
+    return;
+  }
+
+  const isBatter = againstMode === 'batter';
+  const oppType  = isBatter ? 'Bowler' : 'Batter';
+  const viewDesc = isBatter
+    ? `<strong>${focusName}</strong>'s batting in matches where each bowler played for the opposition`
+    : `Each batter's record in matches where <strong>${focusName}</strong> played for the opposition`;
+
+  const cols = [
+    {label:'Tests',            key:'tests',     higher:true,  dec:0},
+    {label:'Innings',          key:'inns',      higher:true,  dec:0},
+    {label:'N.O.',             key:'no',        higher:null,  dec:0},
+    {label:'Times Dismissed',  key:'dismissed', higher:true,  dec:0},
+    {label:'Runs',             key:'runs',      higher:true,  dec:0},
+    {label:'H2H Avg',          key:'avg',       higher:true,  dec:2},
+    {label:'Career Avg',       key:'careerAvg', higher:null,  dec:2, special:'career'},
+    {label:'Δ Avg',            key:'delta',     higher:null,  dec:2, special:'delta'},
+    {label:'S/R',              key:'sr',        higher:true,  dec:2},
+    {label:'H.S.',             key:'hs',        higher:true,  dec:0},
+    {label:'50s',              key:'fifties',   higher:true,  dec:0},
+    {label:'100s',             key:'hundreds',  higher:true,  dec:0},
+  ];
+
+  const bestVals = {};
+  const statsWithData = stats.filter(s=>s.tests>0);
+  cols.forEach(c=>{
+    if(c.higher===null || c.special) return;
+    const vals = statsWithData.map(s=>typeof s[c.key]==='number'?s[c.key]:0);
+    if(c.higher) bestVals[c.key] = Math.max(...vals);
+    else { const nz=vals.filter(v=>v>0); bestVals[c.key]=nz.length?Math.min(...nz):0; }
+  });
+
+  let hdr = `<th>${oppType} (opponent)</th>`;
+  cols.forEach(c => hdr += `<th>${c.label}</th>`);
+
+  let rows = '';
+  stats.forEach((s, idx)=>{
+    const clrIdx = Math.min(idx+2, 10);
+    const noData = s.tests === 0;
+    const rowStyle = noData ? ' style="opacity:0.45"' : '';
+    const borderColor = noData ? 'var(--border2)' : `var(--p${clrIdx})`;
+    let row = `<td class="player-cell" style="border-left:3px solid ${borderColor}">` +
+      `<span class="pc-name">${s.name}</span>` +
+      `<span class="pc-meta">${s.country}${noData ? ' · No shared Tests' : ' · ' + s.tests + ' shared Tests'}</span></td>`;
+    cols.forEach(c=>{
+      if(noData){ row+=`<td style="color:var(--text3)">—</td>`; return; }
+
+      // Special: Career Avg column
+      if(c.special === 'career'){
+        const cv = s.careerAvg;
+        row += `<td style="color:var(--text3);font-weight:500">${cv !== null ? cv.toFixed(2) : '—'}</td>`;
+        return;
+      }
+
+      // Special: Delta column
+      if(c.special === 'delta'){
+        const h2h = s.avg, career = s.careerAvg;
+        if(h2h === null || career === null || career === 0){
+          row += `<td style="color:var(--text3)">—</td>`;
+        } else {
+          const delta = h2h - career;
+          const sign  = delta >= 0 ? '+' : '';
+          const color = delta > 0.5 ? 'var(--green)' : delta < -0.5 ? 'var(--red)' : 'var(--text3)';
+          row += `<td style="color:${color};font-weight:600">${sign}${delta.toFixed(2)}</td>`;
+        }
+        return;
+      }
+
+      if(c.higher===null){ row+=`<td>${fmt(s[c.key],c.dec||0)}</td>`; return; }
+      const v = s[c.key];
+      const n = typeof v==='number'?v:0;
+      let cls = '';
+      if(bestVals[c.key]!==undefined && n>0){
+        const allSame = stats.filter(os=>os.tests>0).every(os=>(typeof os[c.key]==='number'?os[c.key]:0)===n);
+        if(!allSame) cls = n===bestVals[c.key] ? 'best' : 'worse';
+      }
+      row += `<td class="${cls}">${fmt(v, c.dec||2)}</td>`;
+    });
+    rows += `<tr${rowStyle}>${row}</tr>`;
+  });
+
+  const html =
+    `<div class="verd" style="margin-bottom:16px;text-align:left;padding:14px 18px;">` +
+    `<div class="verd-lb">${isBatter?'Batter':'Bowler'} vs ${isBatter?'Bowlers':'Batters'}</div>` +
+    `<div class="verd-tx" style="font-size:13.5px;">${viewDesc}</div></div>` +
+    `<div class="tbl-wrap"><table class="cmp-table">` +
+    `<thead><tr>${hdr}</tr></thead><tbody>${rows}</tbody></table></div>`;
+
+  document.getElementById('againstResults').innerHTML = html;
+  document.getElementById('againstComp').style.display = 'block';
+}
+
+// ---- Partnership Mode ----
+let partnershipMode = false;
+let singleMode = false;
+let phaseMode = false; // 'single' | 'multi' | false
+let partnershipSlotCount = 2;
+const MAX_PARTNERSHIPS = 4;
+let partnershipSel = { '1a':null,'1b':null,'2a':null,'2b':null,'3a':null,'3b':null,'4a':null,'4b':null };
+const PARTNERSHIP_COLORS = ['p1','p2','p3','p4'];
+
+// Map Record Type value → target number of player slots (null = free/unlimited up to MAX)
+const COHORT_SIZES = { duo:2, triple:3, quartet:4, quintet:5, eleven:11 };
+const TOGETHER_TYPES = new Set(Object.keys(COHORT_SIZES));
+const MAX_COHORTS = 4; // max cohorts for duo/triple/quartet/quintet
+const COHORT_COLORS = ['var(--accent)','var(--blue)','var(--green)','var(--gold)'];
+const COHORT_NAMES_EN = ['A','B','C','D'];
+
+// cohortGroups: array of arrays, each inner array has `cohortSize` slots (null or player)
+let cohortGroups = []; // e.g. [[p1,p2,p3],[p4,p5,p6]] for triple
+let cohortMode = false;
+let cohortSize = 0;
+let cohortTypeName = '';
+let cohortMaxGroups = 2;
+
+function handleRecordTypeChange_cohortReset(recordType){
+  cohortMode = TOGETHER_TYPES.has(recordType);
+  cohortSize = cohortMode ? COHORT_SIZES[recordType] : 0;
+  cohortMaxGroups = recordType === 'eleven' ? 2 : MAX_COHORTS;
+  cohortTypeName = { duo:'Duo', triple:'Triple', quartet:'Quartet', quintet:'Quintet', eleven:'Eleven' }[recordType] || '';
+  cohortGroups = [];
+}
+
+function handleRecordTypeChange(){
+  const recordType = document.getElementById('fRecordType').value;
+  handleRecordTypeChange_cohortReset(recordType);
+  partnershipMode = (recordType === 'partnerships');
+  singleMode = (recordType === 'phase-single');
+  phaseMode = (recordType === 'phase-single') ? 'single' : (recordType === 'phase-multi') ? 'multi' : false;
+  const againstActive = (recordType === 'against');
+
+  const selArea         = document.getElementById('selArea');
+  const cohortArea      = document.getElementById('cohortArea');
+  const partnershipArea = document.getElementById('partnershipArea');
+  const againstArea     = document.getElementById('againstArea');
+  const emptyState      = document.getElementById('emptyState');
+  const partnershipEmpty = document.getElementById('partnershipEmptyState');
+  const againstEmpty    = document.getElementById('againstEmptyState');
+
+  // Hide all areas first
+  selArea.classList.add('hidden');
+  cohortArea.classList.add('hidden');
+  partnershipArea.classList.add('hidden');
+  againstArea.classList.add('hidden'); againstArea.style.display = 'none';
+  emptyState.classList.add('hidden');
+  partnershipEmpty.classList.add('hidden');
+  againstEmpty.classList.add('hidden'); againstEmpty.style.display = 'none';
+
+  document.getElementById('comp').classList.remove('show');
+  document.getElementById('partnershipComp').style.display = 'none';
+  document.getElementById('againstComp').style.display = 'none';
+  document.getElementById('filtersPanel').classList.remove('show');
+  // Restore Stats Type (re-enabled unless we're entering Against mode below)
+  const _stg = document.getElementById('statsTypeGroup');
+  if(_stg){ _stg.style.opacity=''; _stg.style.pointerEvents=''; _stg.title=''; }
+
+  if(partnershipMode){
+    partnershipArea.classList.remove('hidden');
+    partnershipArea.style.display = 'flex';
+    partnershipEmpty.classList.remove('hidden');
+    partnershipEmpty.style.display = 'block';
+    if(!window.partnershipSearchInit){
+      initPartnershipSearch(['1a','1b','2a','2b']);
+      window.partnershipSearchInit = true;
+    }
+    if(hasEnoughPartnerships()) renderPartnerships();
+
+  } else if(againstActive){
+    againstArea.classList.remove('hidden'); againstArea.style.display = 'block';
+    againstEmpty.classList.remove('hidden'); againstEmpty.style.display = 'block';
+    // Grey out Stats Type — not applicable for 1-against-many view
+    const stg = document.getElementById('statsTypeGroup');
+    if(stg){ stg.style.opacity='0.35'; stg.style.pointerEvents='none'; stg.title='Not applicable for 1 Against X'; }
+    if(!window.againstSearchInit){
+      initAgainstSearch(0); initAgainstSearch(1); initAgainstSearch(2);
+      window.againstSearchInit = true;
+    }
+    if(hasEnoughAgainst()) renderAgainst();
+
+  } else if(cohortMode){
+    // Initialise with 2 empty cohort groups
+    cohortGroups = [Array(cohortSize).fill(null), Array(cohortSize).fill(null)];
+    buildCohortArea();
+    cohortArea.classList.remove('hidden');
+    cohortArea.style.display = 'flex';
+    emptyState.classList.remove('hidden');
+    emptyState.style.display = 'block';
+
+  } else {
+    // Free player mode (includes single, phase-single, phase-multi)
+    selArea.classList.remove('hidden');
+    const addBtn = document.getElementById('addPlayerBtn');
+    if(singleMode){
+      // Show only slot 1, hide all others, clear slots 2+
+      for(let i = 2; i <= slotCount; i++){
+        const card = document.getElementById('c'+i);
+        if(card) card.style.display = 'none';
+        if(sel[i-1]){ clearP(i); }
+      }
+      addBtn.style.display = 'none';
+      const c1 = document.getElementById('c1');
+      if(c1) c1.style.display = '';
+    } else {
+      // Restore all slots (player free select or phase-multi)
+      for(let i = 1; i <= slotCount; i++){
+        const card = document.getElementById('c'+i);
+        if(card) card.style.display = '';
+      }
+      addBtn.style.display = slotCount >= MAX_PLAYERS ? 'none' : '';
+    }
+    emptyState.classList.remove('hidden');
+    emptyState.style.display = hasEnough() ? 'none' : 'block';
+    if(hasEnough()) { populateFilters(); document.getElementById('filtersPanel').classList.add('show'); render(); }
+  }
+}
+
+function buildCohortArea(){
+  const wrap = document.getElementById('cohortGroupsWrap');
+  const addBtn = document.getElementById('addCohortBtn');
+  wrap.innerHTML = '';
+
+  cohortGroups.forEach((group, ci) => {
+    if(ci > 0){
+      const vs = document.createElement('div');
+      vs.className = 'cohort-vs';
+      vs.style.display = 'flex';
+      vs.textContent = 'VS';
+      vs.style.cssText = 'align-self:center;font-family:"DM Serif Display",serif;font-size:18px;color:var(--text3);font-weight:700;padding:0 4px;flex-shrink:0;';
+      wrap.appendChild(vs);
+    }
+    const groupDiv = document.createElement('div');
+    groupDiv.className = 'cohort-group';
+    groupDiv.dataset.ci = ci;
+
+    const canRemove = cohortGroups.length > 2;
+    groupDiv.innerHTML = `
+      <div class="cohort-label">
+        <span>${cohortTypeName} ${COHORT_NAMES_EN[ci]}</span>
+        ${canRemove ? `<button class="cohort-remove" onclick="removeCohort(${ci})" title="Remove cohort">&times;</button>` : ''}
+      </div>
+      <div class="cohort-slots" id="cslots-${ci}"></div>`;
+    wrap.appendChild(groupDiv);
+
+    // Build player slots inside this cohort
+    const slotsDiv = groupDiv.querySelector('.cohort-slots');
+    group.forEach((player, si) => {
+      const slotId = `${ci}-${si}`;
+      const color = COHORT_COLORS[ci % COHORT_COLORS.length];
+      const card = document.createElement('div');
+      card.className = 'sel-card'; card.id = 'cslot-'+slotId; card.style.margin = '0';
+      card.innerHTML = `
+        <div class="sel-pcolor" style="background:${color};color:${color}"></div>
+        <div class="sel-label" style="margin-left:18px">Player ${si+1}</div>
+        <input class="sel-input" id="ci-${slotId}" placeholder="Search player..." autocomplete="off">
+        <button class="sel-clear" id="cx-${slotId}" onclick="clearCohortSlot(${ci},${si})" style="display:${player?'flex':'none'}">&times;</button>
+        <div class="dd" id="cd-${slotId}"></div>
+        <div class="sel-info ${player?'show':''}" id="cinfo-${slotId}">
+          <div class="si-name" id="cname-${slotId}">${player ? (player.fullName||player.name) : ''}</div>
+          <div class="si-meta" id="cmeta-${slotId}">${player ? badge(player.country)+` ${player.fromYear}–${player.toYear} · ${player.tests} Tests` : ''}</div>
+        </div>`;
+      slotsDiv.appendChild(card);
+      initCohortSearch(ci, si);
+    });
+  });
+
+  // Show/hide Add Cohort button
+  addBtn.style.display = (cohortGroups.length < cohortMaxGroups) ? '' : 'none';
+}
+
+function addCohort(){
+  if(cohortGroups.length >= cohortMaxGroups) return;
+  cohortGroups.push(Array(cohortSize).fill(null));
+  buildCohortArea();
+}
+
+function removeCohort(ci){
+  if(cohortGroups.length <= 2) return;
+  cohortGroups.splice(ci, 1);
+  buildCohortArea();
+  if(hasEnoughCohorts()) renderCohorts();
+  else { document.getElementById('comp').classList.remove('show'); document.getElementById('emptyState').style.display='block'; }
+}
+
+function initCohortSearch(ci, si){
+  const slotId = `${ci}-${si}`;
+  const inp = document.getElementById('ci-'+slotId);
+  const dd  = document.getElementById('cd-'+slotId);
+  if(!inp) return;
+  function doCohSearch(){
+    const q = inp.value.trim().toLowerCase();
+    if(q.length < 2){ dd.classList.remove('open'); return; }
+    const taken = cohortGroups.flat().filter(Boolean).map(p=>p.id);
+    const m = PLAYERS.filter(p => !taken.includes(p.id) &&
+      ((p.name||'').toLowerCase().includes(q) || (p.fullName||'').toLowerCase().includes(q) || (p.country||'').toLowerCase().includes(q))
+    ).slice(0, 15);
+    dd.innerHTML = m.map(p =>
+      `<div class="dd-item" onpointerdown="event.preventDefault();" onclick="pickCohort(${ci},${si},${p.id})">` +
+      `<span><span class="nm">${p.fullName||p.name}</span><span class="yr">${p.fromYear}–${p.toYear}</span></span>` +
+      `<span class="ct">${p.country}</span></div>`
+    ).join('');
+    dd.classList.add('open');
+  }
+  inp.addEventListener('input', doCohSearch);
+  inp.addEventListener('keyup', doCohSearch);
+  inp.addEventListener('compositionend', doCohSearch);
+  inp.addEventListener('focus', () => { if(inp.value.trim().length >= 2) dd.classList.add('open'); });
+  inp.addEventListener('blur',  () => { setTimeout(() => dd.classList.remove('open'), 300); });
+  document.addEventListener('click', e => { if(!e.target.closest('#cslot-'+slotId)) dd.classList.remove('open'); });
+}
+
+function pickCohort(ci, si, id){
+  const p = PLAYERS.find(x => x.id === id); if(!p) return;
+  cohortGroups[ci][si] = p;
+  const slotId = `${ci}-${si}`;
+  document.getElementById('ci-'+slotId).value = '';
+  document.getElementById('cd-'+slotId).classList.remove('open');
+  document.getElementById('cname-'+slotId).textContent = p.fullName || p.name;
+  document.getElementById('cmeta-'+slotId).innerHTML = badge(p.country) + ` ${p.fromYear}–${p.toYear} · ${p.tests} Tests`;
+  document.getElementById('cinfo-'+slotId).classList.add('show');
+  document.getElementById('cx-'+slotId).style.display = 'flex';
+  if(hasEnoughCohorts()){ document.getElementById('emptyState').style.display = 'none'; renderCohorts(); }
+}
+
+function clearCohortSlot(ci, si){
+  cohortGroups[ci][si] = null;
+  const slotId = `${ci}-${si}`;
+  document.getElementById('ci-'+slotId).value = '';
+  document.getElementById('cinfo-'+slotId).classList.remove('show');
+  document.getElementById('cx-'+slotId).style.display = 'none';
+  if(!hasEnoughCohorts()){ document.getElementById('comp').classList.remove('show'); document.getElementById('emptyState').style.display='block'; }
+  else renderCohorts();
+}
+
+function hasEnoughCohorts(){
+  // At least 2 cohorts each with at least 1 player
+  return cohortGroups.filter(g => g.filter(Boolean).length >= 1).length >= 2;
+}
+
+function renderCohorts(){
+  const allPlayers = cohortGroups.map(g => g.filter(Boolean)).flat();
+  if(allPlayers.length < 2) return;
+
+  // Store boundaries and full player list — bypasses sel[] MAX_PLAYERS limit
+  window._cohortBoundaries = cohortGroups.map(g => g.filter(Boolean).length);
+  window._cohortPlayerOverride = allPlayers;
+
+  originalRender();
+
+  window._cohortPlayerOverride = null;
+  updateExportButton();
+}
+
+function addPartnershipSlot(){
+  if(partnershipSlotCount >= MAX_PARTNERSHIPS) return;
+  partnershipSlotCount++;
+  const n = partnershipSlotCount;
+  const pColor = PARTNERSHIP_COLORS[n-1];
+  const area = document.getElementById('partnershipArea');
+  const btn = document.getElementById('addPartnershipBtn');
+  const vs = document.createElement('div');
+  vs.className = 'partnership-vs'; vs.id = 'pvs' + (n-1); vs.textContent = 'VS';
+  area.insertBefore(vs, btn);
+  const group = document.createElement('div');
+  group.className = 'partnership-group'; group.id = 'pg' + n;
+  group.innerHTML = `
+    <div class="partnership-label" style="border-left:3px solid var(--${pColor});color:var(--${pColor})">Partnership ${n}</div>
+    <div class="partnership-cards">
+      <div class="sel-card partnership-card" id="pc${n}a">
+        <div class="sel-pcolor" style="color:var(--${pColor});background:var(--${pColor})"></div>
+        <div class="sel-label" style="margin-left:18px">Player A</div>
+        <input class="sel-input" id="ps${n}a" placeholder="Search player..." autocomplete="off">
+        <button class="sel-clear" id="px${n}a" onclick="clearPartnershipPlayer('${n}a')">&times;</button>
+        <div class="dd" id="pd${n}a"></div>
+        <div class="sel-info" id="pi${n}a"><div class="si-name" id="pn${n}a"></div><div class="si-meta" id="pm${n}a"></div></div>
+      </div>
+      <div class="partnership-plus">&</div>
+      <div class="sel-card partnership-card" id="pc${n}b">
+        <div class="sel-pcolor" style="color:var(--${pColor});background:var(--${pColor})"></div>
+        <div class="sel-label" style="margin-left:18px">Player B</div>
+        <input class="sel-input" id="ps${n}b" placeholder="Search player..." autocomplete="off">
+        <button class="sel-clear" id="px${n}b" onclick="clearPartnershipPlayer('${n}b')">&times;</button>
+        <div class="dd" id="pd${n}b"></div>
+        <div class="sel-info" id="pi${n}b"><div class="si-name" id="pn${n}b"></div><div class="si-meta" id="pm${n}b"></div></div>
+      </div>
+    </div>`;
+  area.insertBefore(group, btn);
+  initPartnershipSearch([n+'a', n+'b']);
+  if(partnershipSlotCount >= MAX_PARTNERSHIPS) btn.style.display = 'none';
+}
+
+function initPartnershipSearch(slots){
+  slots.forEach(slot => {
+    const inp = document.getElementById('ps'+slot), dd = document.getElementById('pd'+slot);
+    function doPartSearch(){
+      const q = inp.value.trim().toLowerCase();
+      if(q.length < 2){ dd.classList.remove('open'); return; }
+      const partnershipNum = slot.charAt(0);
+      const otherSlot = slot.charAt(1) === 'a' ? partnershipNum + 'b' : partnershipNum + 'a';
+      const excludeIds = partnershipSel[otherSlot] ? [partnershipSel[otherSlot].id] : [];
+      const m = PLAYERS.filter(p => !excludeIds.includes(p.id) && ((p.name||'').toLowerCase().includes(q) || (p.fullName||'').toLowerCase().includes(q) || (p.country||'').toLowerCase().includes(q))).slice(0, 15);
+      dd.innerHTML = m.map(p => `<div class="dd-item" onpointerdown="event.preventDefault();" onclick="pickPartnershipPlayer('${slot}',${p.id})"><span><span class="nm">${p.fullName||p.name}</span><span class="yr">${p.fromYear}–${p.toYear}</span></span><span class="ct">${p.country}</span></div>`).join('');
+      dd.classList.add('open');
+    }
+    inp.addEventListener('input', doPartSearch);
+    inp.addEventListener('keyup', doPartSearch);
+    inp.addEventListener('compositionend', doPartSearch);
+    inp.addEventListener('focus', () => { if(inp.value.trim().length >= 2) dd.classList.add('open'); });
+    inp.addEventListener('blur', () => { setTimeout(() => dd.classList.remove('open'), 300); });
+    document.addEventListener('click', e => { if(!e.target.closest('#pc'+slot)) dd.classList.remove('open'); });
+  });
+}
+
+function pickPartnershipPlayer(slot, id){
+  const p = PLAYERS.find(x => x.id === id); if(!p) return;
+  partnershipSel[slot] = p;
+  document.getElementById('ps'+slot).value = '';
+  document.getElementById('pd'+slot).classList.remove('open');
+  document.getElementById('pn'+slot).textContent = p.fullName || p.name;
+  document.getElementById('pm'+slot).innerHTML = badge(p.country) + ` ${p.fromYear}–${p.toYear}`;
+  document.getElementById('pi'+slot).classList.add('show');
+  document.getElementById('px'+slot).classList.add('show');
+  document.getElementById('pc'+slot).classList.add('active-'+slot.charAt(0));
+  if(hasEnoughPartnerships()){ document.getElementById('partnershipEmptyState').style.display = 'none'; renderPartnerships(); }
+}
+
+function clearPartnershipPlayer(slot){
+  partnershipSel[slot] = null;
+  document.getElementById('pi'+slot).classList.remove('show');
+  document.getElementById('px'+slot).classList.remove('show');
+  document.getElementById('ps'+slot).value = '';
+  document.getElementById('pc'+slot).classList.remove('active-'+slot.charAt(0));
+  if(!hasEnoughPartnerships()){ document.getElementById('partnershipComp').style.display = 'none'; document.getElementById('partnershipEmptyState').style.display = 'block'; }
+  else renderPartnerships();
+}
+
+function hasEnoughPartnerships(){
+  let completeCount = 0;
+  for(let i = 1; i <= partnershipSlotCount; i++){ if(partnershipSel[i+'a'] && partnershipSel[i+'b']) completeCount++; }
+  return completeCount >= 2;
+}
+
+function getCompletePartnerships(){
+  const partnerships = [];
+  for(let i = 1; i <= partnershipSlotCount; i++){ if(partnershipSel[i+'a'] && partnershipSel[i+'b']) partnerships.push({num: i, playerA: partnershipSel[i+'a'], playerB: partnershipSel[i+'b']}); }
+  return partnerships;
+}
+
+function calcPartnershipStats(playerA, playerB){
+  const idxA = SCD_IDX[playerA.id] || [], idxB = SCD_IDX[playerB.id] || [];
+  const aInnings = {};
+  idxA.forEach(i => {
+    const r = SCD[i], matchId = r[0], innNum = r[2], key = matchId + '_' + innNum;
+    if(r[3] !== null && r[4] !== null) aInnings[key] = { matchId, innings: innNum, runs: typeof r[3]==='number'?r[3]:0, balls: typeof r[5]==='number'?r[5]:0 };
+  });
+  const commonInnings = []; const testsPlayed = new Set();
+  idxB.forEach(i => {
+    const r = SCD[i], matchId = r[0], innNum = r[2], key = matchId + '_' + innNum;
+    if(r[3] !== null && r[4] !== null && aInnings[key]){
+      testsPlayed.add(matchId);
+      commonInnings.push({ matchId, innings: innNum, runsA: aInnings[key].runs, ballsA: aInnings[key].balls, runsB: typeof r[3]==='number'?r[3]:0, ballsB: typeof r[5]==='number'?r[5]:0 });
+    }
+  });
+  let totalRuns = 0, totalBalls = 0;
+  commonInnings.forEach(inn => { totalRuns += inn.runsA + inn.runsB; totalBalls += inn.ballsA + inn.ballsB; });
+  return {
+    tests: testsPlayed.size, innings: commonInnings.length, runs: totalRuns,
+    average: commonInnings.length > 0 ? totalRuns / commonInnings.length : 0,
+    strikeRate: totalBalls > 0 ? (totalRuns / totalBalls) * 100 : null,
+    playerA, playerB
+  };
+}
+
+function renderPartnerships(){
+  const completePartnerships = getCompletePartnerships();
+  if(completePartnerships.length < 2) return;
+  const st = getStatsType();
+
+  const partnerships = completePartnerships.map(p => {
+    const stats = calcPartnershipStats(p.playerA, p.playerB);
+    stats.num = p.num;
+    return stats;
+  });
+
+  // Build columns based on stats type
+  // For partnerships, batting = batting stats; bowling = show bowling-relevant stats per player
+  // Since partnerships mode focuses on batting together, we show batting stats.
+  // "Bowling" in partnership context: show individual career bowling stats for the pair.
+
+  let html = '';
+
+  if(st === 'batting' || st === 'both'){
+    // Partnership batting stats (when they batted together)
+    const cols = [
+      {key:'tests', label:'Tests Together', higher:true},
+      {key:'innings', label:'Innings Together', higher:true},
+      {key:'runs', label:'Partnership Runs', higher:true},
+      {key:'average', label:'Partnership Avg', higher:true},
+      {key:'strikeRate', label:'Partnership SR', higher:true}
+    ];
+    const bestVals = {};
+    cols.forEach(c => { const vals = partnerships.map(s => typeof s[c.key]==='number'?s[c.key]:0); bestVals[c.key] = Math.max(...vals); });
+    let hdr = '<th>Partnership</th>';
+    cols.forEach(c => { hdr += `<th>${c.label}</th>`; });
+    let rows = '';
+    partnerships.forEach((s, idx) => {
+      const pColor = PARTNERSHIP_COLORS[s.num - 1];
+      const pNames = `${s.playerA.name} & ${s.playerB.name}`;
+      const pCountry = s.playerA.country === s.playerB.country ? s.playerA.country : `${s.playerA.country} / ${s.playerB.country}`;
+      let row = `<td class="player-cell" style="border-left:3px solid var(--${pColor})"><span class="pc-name">${pNames}</span><span class="pc-meta">${pCountry}</span></td>`;
+      cols.forEach(c => {
+        const v = s[c.key], n = typeof v==='number'?v:0;
+        let cls = '';
+        const allSame = partnerships.every(os => { const ov=typeof os[c.key]==='number'?os[c.key]:0; return ov===n; });
+        if(!allSame && n > 0) cls = n === bestVals[c.key] ? 'best' : 'worse';
+        let display = c.key==='average'?(n>0?n.toFixed(2):'—'):c.key==='strikeRate'?(v!==null&&v>0?v.toFixed(2):'—'):(n>0?n.toLocaleString():'—');
+        row += `<td class="${cls}">${display}</td>`;
+      });
+      rows += `<tr><td class="player-cell" style="border-left:3px solid var(--${pColor})"><span class="pc-name">${pNames}</span><span class="pc-meta">${pCountry}</span></td>${row.replace(/^<td[^>]*>.*?<\/td>/, '')}</tr>`;
+    });
+    // rebuild rows properly
+    rows = '';
+    partnerships.forEach((s) => {
+      const pColor = PARTNERSHIP_COLORS[s.num - 1];
+      const pNames = `${s.playerA.name} & ${s.playerB.name}`;
+      const pCountry = s.playerA.country === s.playerB.country ? s.playerA.country : `${s.playerA.country} / ${s.playerB.country}`;
+      let row = `<td class="player-cell" style="border-left:3px solid var(--${pColor})"><span class="pc-name">${pNames}</span><span class="pc-meta">${pCountry}</span></td>`;
+      cols.forEach(c => {
+        const v = s[c.key], n = typeof v==='number'?v:0;
+        let cls = '';
+        const allSame = partnerships.every(os => { const ov=typeof os[c.key]==='number'?os[c.key]:0; return ov===n; });
+        if(!allSame && n > 0) cls = n === bestVals[c.key] ? 'best' : 'worse';
+        let display = c.key==='average'?(n>0?n.toFixed(2):'—'):c.key==='strikeRate'?(v!==null&&v>0?v.toFixed(2):'—'):(n>0?n.toLocaleString():'—');
+        row += `<td class="${cls}">${display}</td>`;
+      });
+      rows += `<tr>${row}</tr>`;
+    });
+    if(st === 'both') html += '<h3 style="font-family:\'DM Serif Display\',serif;font-size:16px;color:var(--text2);margin-bottom:10px;">Batting Together</h3>';
+    html += `<div class="tbl-wrap"><table class="cmp-table"><thead><tr>${hdr}</tr></thead><tbody>${rows}</tbody></table></div>`;
+  }
+
+  if(st === 'bowling' || st === 'both'){
+    // Show individual career bowling stats for each player in the partnerships
+    const seen = new Set();
+    const bowlStats = [];
+    partnerships.forEach((p, idx) => {
+      [p.playerA, p.playerB].forEach((player, pi) => {
+        if(!seen.has(player.id)){
+          seen.add(player.id);
+          bowlStats.push({
+            name: player.fullName || player.name,
+            country: player.country,
+            pColor: PARTNERSHIP_COLORS[idx],
+            tests: player.tests,
+            wkts: player.wickets,
+            bowlAvg: player.bowlAvg,
+            econ: player.rpo,
+            bestBowl: player.bestBowl,
+            overs: player.overs,
+          });
+        }
+      });
+    });
+
+    const bowlCols = [
+      {key:'tests', label:'Tests', higher:true},
+      {key:'overs', label:'Overs', higher:true},
+      {key:'wkts', label:'Wickets', higher:true},
+      {key:'bowlAvg', label:'Bowl Avg', higher:false},
+      {key:'econ', label:'Economy', higher:false},
+      {key:'bestBowl', label:'Best', higher:null},
+    ];
+    const bestVals2 = {};
+    bowlCols.forEach(c => {
+      if(c.higher === null) return;
+      const vals = bowlStats.map(s => typeof s[c.key]==='number'?s[c.key]:0);
+      bestVals2[c.key] = c.higher ? Math.max(...vals) : Math.min(...vals.filter(v=>v>0));
+    });
+    let hdr2 = '<th>Player</th>';
+    bowlCols.forEach(c => { hdr2 += `<th>${c.label}</th>`; });
+    let rows2 = '';
+    bowlStats.forEach((s, idx) => {
+      let row = `<td class="player-cell" style="border-left:3px solid var(--${s.pColor})"><span class="pc-name">${s.name}</span><span class="pc-meta">${s.country} · ${s.tests} Tests</span></td>`;
+      bowlCols.forEach(c => {
+        const v = s[c.key], n = typeof v==='number'?v:0;
+        let cls = '';
+        if(c.higher !== null && bestVals2[c.key] !== undefined){
+          const allSame = bowlStats.every(os => { const ov=typeof os[c.key]==='number'?os[c.key]:0; return ov===n; });
+          if(!allSame && n > 0){ if(c.higher) cls = n===bestVals2[c.key]?'best':'worse'; else cls = n===bestVals2[c.key]?'best':'worse'; }
+        }
+        row += `<td class="${cls}">${fmt(v, 2)}</td>`;
+      });
+      rows2 += `<tr>${row}</tr>`;
+    });
+    if(st === 'both') html += '<h3 style="font-family:\'DM Serif Display\',serif;font-size:16px;color:var(--text2);margin:20px 0 10px;">Individual Bowling (Career)</h3>';
+    html += `<div class="tbl-wrap"><table class="cmp-table"><thead><tr>${hdr2}</tr></thead><tbody>${rows2}</tbody></table></div>`;
+    html += '<p class="foot-note">* Bowling stats shown are career totals for each player.</p>';
+  }
+
+  if(st === 'batting' || st === 'both'){
+    html += '<p class="foot-note">* Partnership batting stats show combined runs when both players batted in the same innings.</p>';
+  }
+
+  document.getElementById('partnershipResults').innerHTML = html;
+  document.getElementById('partnershipComp').style.display = 'block';
+}
+</script>
+
+<!-- SheetJS for Excel Export -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<!-- ══ Support Banner ══ -->
+<div class="ct-support-banner">
+  <div class="ct-support-inner">
+    <div class="ct-support-icon">
+      <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M12 2a2.5 2.5 0 0 0-2.5 2.5h5A2.5 2.5 0 0 0 12 2z"/><circle cx="12" cy="19" r="2" fill="var(--accent,#a03020)" stroke="none"/></svg>
+    </div>
+    <div class="ct-support-content">
+      <div class="ct-support-headline">Support <em>Independent</em> Cricket Stories</div>
+      <div class="ct-support-body">Cricket Times is free and independent. If you find value in our stories, analyses and tools, consider buying me a coffee to keep the scoreboard ticking.</div>
+    </div>
+    <div class="ct-support-actions">
+      <a href="https://buymeacoffee.com/YOUR_USERNAME" target="_blank" rel="noopener" class="ct-support-btn">
+        <svg viewBox="0 0 24 24"><path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><line x1="6" y1="2" x2="6" y2="4"/><line x1="10" y1="2" x2="10" y2="4"/><line x1="14" y1="2" x2="14" y2="4"/></svg>
+        Buy Me a Coffee
+      </a>
+      <span class="ct-support-aside">This is a personal contribution, not a donation — contributions are not tax-deductible.</span>
+    </div>
+  </div>
+</div>
+
+<footer data-ct-nav="footer"></footer>
+
+<!-- Firebase init is handled by prelaunch-guard.js (modular SDK). The
+     previous compat-SDK initializeApp/firestore block here was dead code
+     (nothing in this page used the resulting `db` variable) and is
+     removed as part of sub-task 7.4 SDK standardization. -->
+<script src="ct-nav.js"></script>
+</body>
+</html>

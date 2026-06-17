@@ -1,0 +1,1605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!-- CT_7G_INJECT:START (auto-injected by deploy tool — do not edit by hand) -->
+<style id="ct-7g-hide">body{visibility:hidden}</style>
+<script>window.CT_PAGE_ID="simulations";</script>
+<script>setTimeout(function(){if(!window.__ctFlagsLoaded){location.replace("/comingsoon.html");}},2500);</script>
+<script src="/auth-status.js"></script>
+<!-- CT_7G_INJECT:END -->
+<script src="/feature-flags.js"></script>
+<script src="/prelaunch-guard.js"></script>
+<script src="/ct-data-loader.js"></script><!-- Phase 3 §3: gated derived-data loader -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>Tests — Match Simulation</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ═══ Shared tokens (mirrors simulation.html) ═══ */
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+:root{
+  --bg:#FDF6E3;--surface:#FFFDF7;--surface2:#F5EDDA;--surface3:#E8DCC8;
+  --border:#D4C5A9;--border2:#c8b898;
+  --text:#1A1A1A;--text1:#1A1A1A;--text2:#444;--text3:#888;--text4:#aaa;
+  --accent:#8B0000;--accent-hover:#6B0000;--accent-light:#A52A2A;
+  --accent-dim:rgba(139,0,0,0.06);--accent-glow:rgba(139,0,0,0.04);
+  --gold:#B8860B;--gold-dim:rgba(184,134,11,0.10);
+  --green:#1E6B3A;--green-dim:rgba(30,107,58,0.10);
+  --blue:#1A5276;--blue-dim:rgba(26,82,118,0.10);--blue-light:#2471A3;
+  --red:#d04040;--red-dim:rgba(208,64,64,0.10);
+  --card-bg:#FFFDF7;--shadow:rgba(0,0,0,0.08);--radius:6px;
+}
+body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia,serif;min-height:100vh;overflow-x:hidden}
+
+/* ═══ Header ═══ */
+.header{padding:22px 32px 16px;position:relative;background:linear-gradient(180deg,var(--surface2) 0%,var(--bg) 100%);border-bottom:1px solid var(--border)}
+.header::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 25% -20%,var(--accent-glow),transparent 60%);pointer-events:none}
+.hdr-inner{max-width:1440px;margin:0 auto;position:relative;display:flex;justify-content:space-between;align-items:center}
+.brand{display:flex;align-items:center;gap:12px}
+.brand-icon{width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,var(--accent),#6B0000);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff;letter-spacing:-0.5px;box-shadow:0 3px 14px rgba(139,0,0,0.30)}
+.brand h1{font-family:'Playfair Display',serif;font-size:21px;letter-spacing:-0.3px}
+.brand-sub{font-size:11.5px;color:var(--text3);margin-top:2px;margin-left:48px}
+.hdr-nav{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.nav-link{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 16px;cursor:pointer;display:flex;align-items:center;gap:7px;font-family:'Source Serif 4',serif;font-size:13px;font-weight:600;color:var(--text2);transition:all 0.2s;text-decoration:none}
+.nav-link:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-dim)}
+.nav-link.active{border-color:var(--accent);color:var(--accent);background:var(--accent-dim)}
+.nav-link svg{width:15px;height:15px;stroke:currentColor;fill:none;flex-shrink:0}
+
+/* ═══ Page head ═══ */
+.main{max-width:1400px;margin:0 auto;padding:32px 24px 80px}
+.page-head{margin-bottom:28px;padding-bottom:20px;border-bottom:2px solid var(--text1)}
+.page-title{font-family:'Playfair Display',serif;font-size:clamp(26px,4vw,38px);font-weight:700;letter-spacing:-0.5px;line-height:1.1;margin-bottom:6px}
+.page-desc{font-family:'Inter',sans-serif;font-size:12px;font-weight:500;letter-spacing:0.8px;text-transform:uppercase;color:var(--text3)}
+
+/* ═══ Info panel (shared with simulation.html) ═══ */
+.info-panel{background:rgba(26,82,118,0.05);border:1px solid rgba(26,82,118,0.15);border-radius:8px;padding:12px 16px;margin-bottom:20px;display:flex;align-items:flex-start;gap:10px}
+.info-panel svg{width:16px;height:16px;stroke:var(--blue);fill:none;flex-shrink:0;margin-top:1px}
+.info-text{font-family:'Inter',sans-serif;font-size:12px;color:var(--text2);line-height:1.5}
+.info-text strong{color:var(--text1);font-weight:600}
+
+/* ═══ Flow tabs ═══ */
+.flow-tabs{display:flex;gap:4px;margin-bottom:20px;border-bottom:1px solid var(--border);padding-bottom:0}
+.flow-tab{font-family:'Inter',sans-serif;font-size:12px;font-weight:600;letter-spacing:0.6px;text-transform:uppercase;color:var(--text3);background:none;border:none;border-bottom:3px solid transparent;padding:10px 18px;cursor:pointer;margin-bottom:-1px;transition:all 0.15s}
+.flow-tab:hover{color:var(--text1)}
+.flow-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.flow{display:none}
+.flow.active{display:block}
+
+/* ═══ Teams grid ═══ */
+.teams-grid{display:grid;grid-template-columns:1fr 64px 1fr;gap:18px;align-items:start}
+.vs-badge{font-family:'Playfair Display',serif;font-style:italic;font-weight:900;font-size:34px;color:var(--accent);text-align:center;padding-top:60px}
+
+/* ═══ Team panel ═══ */
+.team-panel{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.tp-head{padding:14px 18px;border-bottom:1px solid var(--border);background:var(--surface2);display:flex;justify-content:space-between;align-items:center}
+.tp-head .label{font-family:'Inter',sans-serif;font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text3)}
+.tp-selects{display:flex;flex-direction:column;gap:6px;align-items:flex-end}
+.tp-head select{font-family:'Inter',sans-serif;font-size:12px;font-weight:500;padding:6px 24px 6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--surface2) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237a7a74' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 8px center;-webkit-appearance:none;appearance:none;color:var(--text1);cursor:pointer;min-width:170px}
+.tp-head .era-select{font-size:11px;color:var(--text2);padding:5px 24px 5px 10px;min-width:170px}
+.tp-head select:focus{outline:none;border-color:var(--accent);background-color:var(--surface)}
+
+.tp-body{padding:10px 14px 14px}
+
+.xi-list{display:flex;flex-direction:column}
+.xi-slot{display:grid;grid-template-columns:22px 1fr 62px 62px 22px;gap:6px;padding:7px 4px;border-bottom:1px dotted var(--border);align-items:center;font-size:13px}
+.xi-slot:last-child{border-bottom:none}
+.xi-slot .pos{font-family:'Inter',sans-serif;font-size:10px;font-weight:700;color:var(--text4);text-align:center}
+.xi-slot .name{font-weight:600;color:var(--text1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}
+.xi-slot .name.empty{color:var(--text4);font-style:italic;font-weight:400}
+.xi-slot .name:hover{color:var(--accent)}
+.xi-slot .era{font-family:'Inter',sans-serif;font-size:10px;color:var(--text3);margin-top:1px}
+.xi-slot .rat{font-family:'Inter',sans-serif;font-size:11px;font-weight:600;text-align:right;color:var(--text3);font-variant-numeric:tabular-nums}
+.xi-slot .rat.bat.good{color:var(--accent)}
+.xi-slot .rat.bow.good{color:var(--blue)}
+.xi-slot .rat.dim{color:var(--text4);font-weight:400}
+.xi-slot button.slot-btn{background:none;border:1px solid var(--border);color:var(--text3);border-radius:50%;width:22px;height:22px;padding:0;font-size:13px;line-height:1;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;justify-content:center}
+.xi-slot button.slot-btn:hover{color:var(--accent);border-color:var(--accent)}
+.xi-slot.empty-slot{background:rgba(139,0,0,0.02)}
+
+/* Rating-column header inside xi */
+.xi-head{display:grid;grid-template-columns:22px 1fr 62px 62px 22px;gap:6px;padding:6px 4px;border-bottom:1px solid var(--border);font-family:'Inter',sans-serif;font-size:9px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:var(--text3);text-align:right}
+.xi-head .name-head{text-align:left}
+.xi-head .pos-head{text-align:center}
+
+/* Aggregates strip */
+.team-aggs{margin-top:10px;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;display:grid;grid-template-columns:1fr 1fr;gap:4px 14px}
+.team-aggs .k{font-family:'Inter',sans-serif;font-size:10px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:var(--text3)}
+.team-aggs .k[title]{cursor:help;text-decoration:underline dotted var(--border2);text-underline-offset:3px}
+.team-aggs .v{font-family:'Playfair Display',serif;font-weight:700;font-size:17px;color:var(--accent);text-align:right;font-variant-numeric:tabular-nums}
+.team-aggs .v.bow{color:var(--blue)}
+
+/* ═══ Player picker modal ═══ */
+.picker-backdrop{position:fixed;inset:0;background:rgba(26,20,16,0.55);z-index:1000;display:none;align-items:center;justify-content:center;padding:20px}
+.picker-backdrop.open{display:flex}
+.picker-modal{background:var(--surface);border:1px solid var(--border);border-top:4px solid var(--accent);border-radius:10px;width:100%;max-width:560px;max-height:80vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.3)}
+.picker-head{padding:18px 22px 12px;border-bottom:1px solid var(--border);background:var(--surface2)}
+.picker-title{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;margin-bottom:2px}
+.picker-sub{font-family:'Inter',sans-serif;font-size:11px;color:var(--text3);letter-spacing:0.4px}
+.picker-filters{display:flex;gap:10px;padding:12px 22px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.picker-filters input,.picker-filters select{font-family:'Source Serif 4',serif;font-size:13px;padding:7px 10px;border:1px solid var(--border);border-radius:6px;background:var(--surface)}
+.picker-filters input{flex:1;min-width:180px}
+.picker-filters input:focus,.picker-filters select:focus{outline:none;border-color:var(--accent)}
+.picker-results{overflow-y:auto;flex:1}
+.picker-result{display:grid;grid-template-columns:1fr 70px 50px 50px;gap:10px;padding:10px 22px;border-bottom:1px dotted var(--border);cursor:pointer;align-items:center;transition:background 0.12s}
+.picker-result:hover{background:var(--accent-glow)}
+.pr-name{font-family:'Source Serif 4',serif;font-weight:600;font-size:14px;color:var(--text1)}
+.pr-full{font-size:11px;color:var(--text3);font-style:italic;margin-top:1px}
+.pr-era{font-family:'Inter',sans-serif;font-size:10px;color:var(--text3);letter-spacing:0.3px;text-align:right}
+.pr-bat,.pr-bow{font-family:'Inter',sans-serif;font-size:12px;font-weight:600;text-align:right;font-variant-numeric:tabular-nums}
+.pr-bat{color:var(--accent)}
+.pr-bow{color:var(--blue)}
+.pr-bat.dim,.pr-bow.dim{color:var(--text4);font-weight:400}
+.picker-foot{padding:10px 22px;border-top:1px solid var(--border);font-family:'Inter',sans-serif;font-size:10px;color:var(--text3);letter-spacing:0.4px;display:flex;justify-content:space-between;align-items:center}
+.picker-close{background:none;border:1px solid var(--border);color:var(--text2);border-radius:6px;padding:5px 12px;font-family:'Inter',sans-serif;font-size:11px;font-weight:600;letter-spacing:0.4px;text-transform:uppercase;cursor:pointer}
+.picker-close:hover{color:var(--accent);border-color:var(--accent)}
+
+/* ═══ Match settings (below teams) ═══ */
+.settings-panel{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin-top:20px}
+.settings-row{display:flex;gap:24px 28px;flex-wrap:wrap;align-items:center}
+.setting{display:flex;align-items:center;gap:10px}
+.setting label{font-family:'Inter',sans-serif;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3);white-space:nowrap}
+.setting select,.setting input[type=number]{font-family:'Inter',sans-serif;font-size:12px;font-weight:500;padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--surface2);color:var(--text1);cursor:pointer}
+.setting select{padding-right:28px;background:var(--surface2) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237a7a74' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 8px center;-webkit-appearance:none;appearance:none}
+.setting input[type=number]{width:72px;background:var(--surface2)}
+.setting select:focus,.setting input:focus{outline:none;border-color:var(--accent)}
+
+/* ═══ Run button ═══ */
+.run-bar{display:flex;justify-content:flex-end;align-items:center;gap:12px;margin-top:18px;flex-wrap:wrap}
+.run-aside{font-family:'Inter',sans-serif;font-size:10px;color:var(--text3);letter-spacing:0.5px;text-transform:uppercase}
+.run-btn{font-family:'Playfair Display',serif;font-weight:700;font-size:15px;letter-spacing:0.3px;background:var(--accent);color:#fff;border:none;border-radius:8px;padding:12px 28px;cursor:pointer;transition:background 0.15s;box-shadow:0 3px 14px rgba(139,0,0,0.22)}
+.run-btn:hover{background:var(--accent-hover)}
+.run-btn:disabled{background:#b8a38a;cursor:not-allowed;box-shadow:none}
+
+/* ═══ Results section ═══ */
+.results-section{margin-top:36px;display:none}
+.results-section.visible{display:block}
+.results-head{padding-bottom:12px;border-bottom:2px solid var(--text1);margin-bottom:18px;display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:12px}
+.results-head h2{font-family:'Playfair Display',serif;font-size:26px;font-weight:700;letter-spacing:-0.3px}
+.results-meta{font-family:'Inter',sans-serif;font-size:10px;color:var(--text3);letter-spacing:0.6px;text-transform:uppercase}
+
+/* Probability bars */
+.prob-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:22px 26px;margin-bottom:20px}
+.prob-card-head{margin:-4px 0 18px 0;padding-bottom:12px;border-bottom:1px dashed var(--border2)}
+.pch-title{font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:var(--text1);letter-spacing:-0.2px}
+.pch-sub{font-family:'Source Serif 4',serif;font-size:12px;color:var(--text3);margin-top:2px;line-height:1.4}
+.prob-row{display:grid;grid-template-columns:160px 1fr 62px;gap:14px;align-items:center;margin-bottom:10px}
+.prob-row:last-child{margin-bottom:0}
+.prob-label{font-family:'Playfair Display',serif;font-weight:700;font-size:15px;color:var(--text1)}
+.prob-label small{display:block;font-family:'Inter',sans-serif;font-size:10px;color:var(--text3);font-weight:500;letter-spacing:0.5px;text-transform:uppercase;margin-top:2px}
+.prob-track{background:var(--surface3);height:26px;border-radius:4px;overflow:hidden;position:relative}
+.prob-fill{height:100%;transition:width 0.6s cubic-bezier(0.2,0.7,0.3,1);display:flex;align-items:center;padding-left:10px;color:#fff;font-family:'Inter',sans-serif;font-size:11px;font-weight:600;letter-spacing:0.4px}
+.prob-fill.A{background:var(--accent)}
+.prob-fill.D{background:#8a7a6a}
+.prob-fill.B{background:var(--blue)}
+.prob-pct{font-family:'Playfair Display',serif;font-weight:700;font-size:17px;color:var(--text1);text-align:right;font-variant-numeric:tabular-nums}
+
+/* D explanation */
+.diff-row{display:flex;gap:16px;flex-wrap:wrap;padding:12px 16px;background:var(--surface2);border-left:3px solid var(--accent);border-radius:0 6px 6px 0;margin-top:14px;font-family:'Inter',sans-serif;font-size:11px;color:var(--text2)}
+.diff-row .d-k{color:var(--text3);letter-spacing:0.5px;text-transform:uppercase;font-weight:700;font-size:10px}
+.diff-row .d-v{font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:var(--text1);font-variant-numeric:tabular-nums}
+.diff-row .d-v.pos{color:var(--accent)}
+.diff-row .d-v.neg{color:var(--blue)}
+
+/* Series section */
+.series-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:20px}
+.sc-head{padding:14px 20px;border-bottom:1px solid var(--border);background:var(--surface2);display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px}
+.sc-title{font-family:'Inter',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3)}
+.sc-sub{font-family:'Inter',sans-serif;font-size:11px;color:var(--text3)}
+.sc-sub strong{color:var(--text1);font-weight:700}
+
+.series-headline{padding:20px 24px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;text-align:center;border-bottom:1px solid var(--border)}
+.sh-col{padding:4px}
+.sh-big{font-family:'Playfair Display',serif;font-size:32px;font-weight:900;color:var(--text1);line-height:1}
+.sh-big.A{color:var(--accent)}
+.sh-big.B{color:var(--blue)}
+.sh-lbl{font-family:'Inter',sans-serif;font-size:10px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:var(--text3);margin-top:4px}
+.sh-sub{font-family:'Inter',sans-serif;font-size:11px;color:var(--text3);margin-top:2px}
+
+.outcome-table{width:100%;border-collapse:collapse}
+.outcome-table thead th{font-family:'Inter',sans-serif;font-size:10px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:var(--text3);padding:10px 14px;text-align:left;background:var(--surface2);border-bottom:2px solid var(--border);white-space:nowrap}
+.outcome-table thead th.num{text-align:right}
+.outcome-table tbody tr:not(:last-child){border-bottom:1px solid var(--surface3)}
+.outcome-table td{padding:10px 14px;font-family:'Source Serif 4',serif;font-size:13px;color:var(--text1)}
+.outcome-table td.scoreline{font-family:'Playfair Display',serif;font-weight:700;font-size:14px}
+.outcome-table td.num{text-align:right;font-variant-numeric:tabular-nums;font-family:'Inter',sans-serif;font-size:12px;font-weight:600}
+.outcome-table td.prob-cell{position:relative}
+.outcome-table .mini-bar{display:inline-block;height:6px;background:var(--accent);border-radius:2px;vertical-align:middle;margin-right:8px}
+
+/* What-if replay specific */
+.historical-picker{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin-bottom:18px}
+.hp-row{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+.hp-info{padding:14px 18px;background:rgba(184,134,11,0.06);border-left:3px solid var(--gold);border-radius:0 6px 6px 0;margin-top:12px;font-family:'Source Serif 4',serif;font-size:13px;color:var(--text2);line-height:1.5}
+.hp-info strong{color:var(--text1);font-weight:600}
+
+/* Bottom footer-note */
+.method-note{margin-top:40px;padding:20px 24px;background:var(--surface);border:1px dashed var(--border2);border-radius:8px;font-family:'Source Serif 4',serif;font-size:13px;color:var(--text2);line-height:1.6}
+.method-note h4{font-family:'Inter',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3);margin-bottom:10px}
+.method-note code{font-family:'JetBrains Mono',monospace;font-size:12px;background:var(--surface2);padding:1px 5px;border-radius:3px}
+
+/* Error/status toast */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--accent);color:#fff;padding:12px 20px;border-radius:8px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,0.2);z-index:2000;display:none;max-width:320px}
+.toast.show{display:block}
+.toast.err{background:#8a2020}
+
+/* Responsive */
+@media(max-width:900px){
+  .teams-grid{grid-template-columns:1fr;gap:12px}
+  .vs-badge{padding-top:0;padding:4px 0;font-size:24px}
+  .prob-row{grid-template-columns:110px 1fr 54px;gap:10px}
+  .series-headline{grid-template-columns:1fr;gap:12px}
+  .sh-big{font-size:26px}
+}
+@media(max-width:600px){
+  .main{padding:20px 14px 60px}
+  .page-title{font-size:26px}
+  .hdr-nav{gap:4px}
+  .nav-link span{display:none}
+  .nav-link{padding:8px 10px}
+  .xi-slot{grid-template-columns:20px 1fr 48px 48px 20px;font-size:12px}
+  .xi-head{grid-template-columns:20px 1fr 48px 48px 20px}
+  .tp-head{padding:10px 12px}
+  .tp-body{padding:8px 10px}
+}
+
+.site-content{display:block}
+
+/* Data loading overlay */
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<!-- Data loading overlay -->
+<div id="dataLoadingOverlay" style="position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px">
+  <div style="width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite"></div>
+  <div style="font-family:'Inter',sans-serif;font-size:13px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;color:var(--text3)">Loading simulation engine…</div>
+</div>
+
+<div class="site-content" id="siteContent">
+<header data-ct-nav="masthead"></header>
+<nav data-ct-nav="primary"></nav>
+
+<main class="main">
+  <div class="page-head">
+    <h2 class="page-title">Match Simulation</h2>
+    <p class="page-desc">Team vs Team · Cross-Era XI · What-If Replay</p>
+  </div>
+
+  <div class="info-panel">
+    <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+    <div class="info-text">
+      <strong>How it works:</strong> Pick two XIs, choose venue and who bats first, and get three-way match probabilities or a full bilateral series distribution. Ratings are era-normalised career averages — Bradman's 2.99 means he scored roughly three times his era's global batting average. This is the <strong>v1 baseline</strong>; a hierarchical Bayesian upgrade (v1.5) will replace these crude ratings once it beats v1 on held-out calibration.
+    </div>
+  </div>
+
+  <!-- Flow selector -->
+  <div class="flow-tabs" role="tablist">
+    <button class="flow-tab active" data-flow="team-vs-team">Team vs Team</button>
+    <button class="flow-tab" data-flow="cross-era">Cross-Era XI</button>
+    <button class="flow-tab" data-flow="what-if">What-If Replay</button>
+  </div>
+
+  <!-- ═══ Flow 1 · Team vs Team ═══ -->
+  <section class="flow active" id="flow-team-vs-team">
+    <div class="teams-grid">
+      <!-- Team A -->
+      <div class="team-panel" data-side="A">
+        <div class="tp-head">
+          <div>
+            <div class="label">Team A (home by default)</div>
+          </div>
+          <div class="tp-selects">
+            <select class="team-select" data-side="A">
+              <option value="">— Pick a country —</option>
+            </select>
+            <select class="era-select" data-side="A" title="Picks the best XI of players whose careers overlapped this window (6 top batters + 4 top bowlers + 1 all-rounder by era-normalised rating). Changing Team A syncs Team B until you change B independently &mdash; then the two can mix.">
+              <!-- populated from ERA_BUCKETS at boot -->
+            </select>
+          </div>
+        </div>
+        <div class="tp-body">
+          <div class="xi-head">
+            <span class="pos-head">#</span>
+            <span class="name-head">Player</span>
+            <span>Bat</span>
+            <span>Bow</span>
+            <span></span>
+          </div>
+          <div class="xi-list" data-xi="A"></div>
+          <div class="team-aggs" data-aggs="A">
+            <span class="k" title="Position-weighted sum of the XI's batting ratings. Top-order batters (positions 1–7) count ~3× more than the tail (8–11).">Batting Strength</span><span class="v">—</span>
+            <span class="k" title="Sum of the top-5 bowling ratings in the XI. Only the main attack contributes; part-timers outside the top 5 do not.">Bowling Strength</span><span class="v bow">—</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="vs-badge">vs</div>
+
+      <!-- Team B -->
+      <div class="team-panel" data-side="B">
+        <div class="tp-head">
+          <div>
+            <div class="label">Team B</div>
+          </div>
+          <div class="tp-selects">
+            <select class="team-select" data-side="B">
+              <option value="">— Pick a country —</option>
+            </select>
+            <select class="era-select" data-side="B" title="Picks the best XI of players whose careers overlapped this window (6 top batters + 4 top bowlers + 1 all-rounder by era-normalised rating). Changing Team A syncs Team B until you change B independently &mdash; then the two can mix.">
+              <!-- populated from ERA_BUCKETS at boot -->
+            </select>
+          </div>
+        </div>
+        <div class="tp-body">
+          <div class="xi-head">
+            <span class="pos-head">#</span>
+            <span class="name-head">Player</span>
+            <span>Bat</span>
+            <span>Bow</span>
+            <span></span>
+          </div>
+          <div class="xi-list" data-xi="B"></div>
+          <div class="team-aggs" data-aggs="B">
+            <span class="k" title="Position-weighted sum of the XI's batting ratings. Top-order batters (positions 1–7) count ~3× more than the tail (8–11).">Batting Strength</span><span class="v">—</span>
+            <span class="k" title="Sum of the top-5 bowling ratings in the XI. Only the main attack contributes; part-timers outside the top 5 do not.">Bowling Strength</span><span class="v bow">—</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-panel">
+      <div class="settings-row">
+        <div class="setting">
+          <label>Venue</label>
+          <select id="venueSelect">
+            <option value="1">Team A home</option>
+            <option value="0" selected>Neutral</option>
+            <option value="-1">Team B home</option>
+          </select>
+        </div>
+        <div class="setting">
+          <label>Bats first</label>
+          <select id="batFirstSelect">
+            <option value="0" selected>Model chooses</option>
+            <option value="1">Team A</option>
+            <option value="-1">Team B</option>
+          </select>
+        </div>
+        <div class="setting">
+          <label>Series length</label>
+          <select id="seriesLen">
+            <option value="1">1 Test</option>
+            <option value="2">2 Tests</option>
+            <option value="3">3 Tests</option>
+            <option value="4">4 Tests</option>
+            <option value="5" selected>5 Tests</option>
+          </select>
+        </div>
+        <div class="setting">
+          <label>Iterations</label>
+          <select id="mcIters">
+            <option value="5000">5,000</option>
+            <option value="10000" selected>10,000</option>
+            <option value="50000">50,000</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="run-bar">
+      <span class="run-aside" id="runStatus">Pick both teams to begin</span>
+      <button class="run-btn" id="runBtn" disabled>Run Simulation</button>
+    </div>
+  </section>
+
+  <!-- ═══ Flow 2 · Cross-Era XI ═══ -->
+  <section class="flow" id="flow-cross-era">
+    <div class="info-panel" style="background:rgba(184,134,11,0.06);border-color:rgba(184,134,11,0.25)">
+      <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="stroke:var(--gold)"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      <div class="info-text">
+        <strong>Cross-Era XI:</strong> Build a side from any players across history — Bradman and Bumrah in the same XI if you like. Click any slot to open the player picker, then search by name or filter by country. Ratings are era-normalised, so the crude v1 comparison is already accounting for the 1930s vs 2020s bowling-average difference.
+      </div>
+    </div>
+    <div class="teams-grid">
+      <div class="team-panel" data-side="X">
+        <div class="tp-head">
+          <div>
+            <div class="label">Custom XI · Side 1</div>
+          </div>
+          <select class="preset-select" data-side="X" title="Preset XI. Switch to rebuild this side; edit any slot below to customize.">
+            <!-- populated at boot from PRESET_OPTIONS -->
+          </select>
+        </div>
+        <div class="tp-body">
+          <div class="xi-head">
+            <span class="pos-head">#</span>
+            <span class="name-head">Player</span>
+            <span>Bat</span>
+            <span>Bow</span>
+            <span></span>
+          </div>
+          <div class="xi-list" data-xi="X"></div>
+          <div class="team-aggs" data-aggs="X">
+            <span class="k" title="Position-weighted sum of the XI's batting ratings. Top-order batters (positions 1–7) count ~3× more than the tail (8–11).">Batting Strength</span><span class="v">—</span>
+            <span class="k" title="Sum of the top-5 bowling ratings in the XI. Only the main attack contributes; part-timers outside the top 5 do not.">Bowling Strength</span><span class="v bow">—</span>
+          </div>
+        </div>
+      </div>
+      <div class="vs-badge">vs</div>
+      <div class="team-panel" data-side="Y">
+        <div class="tp-head">
+          <div>
+            <div class="label">Custom XI · Side 2</div>
+          </div>
+          <select class="preset-select" data-side="Y" title="Preset XI. Switch to rebuild this side; edit any slot below to customize.">
+            <!-- populated at boot from PRESET_OPTIONS -->
+          </select>
+        </div>
+        <div class="tp-body">
+          <div class="xi-head">
+            <span class="pos-head">#</span>
+            <span class="name-head">Player</span>
+            <span>Bat</span>
+            <span>Bow</span>
+            <span></span>
+          </div>
+          <div class="xi-list" data-xi="Y"></div>
+          <div class="team-aggs" data-aggs="Y">
+            <span class="k" title="Position-weighted sum of the XI's batting ratings. Top-order batters (positions 1–7) count ~3× more than the tail (8–11).">Batting Strength</span><span class="v">—</span>
+            <span class="k" title="Sum of the top-5 bowling ratings in the XI. Only the main attack contributes; part-timers outside the top 5 do not.">Bowling Strength</span><span class="v bow">—</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-panel">
+      <div class="settings-row">
+        <div class="setting">
+          <label>Venue</label>
+          <select id="venueSelect2">
+            <option value="1">Side 1 home</option>
+            <option value="0" selected>Neutral</option>
+            <option value="-1">Side 2 home</option>
+          </select>
+        </div>
+        <div class="setting">
+          <label>Bats first</label>
+          <select id="batFirstSelect2">
+            <option value="0" selected>Model chooses</option>
+            <option value="1">Side 1</option>
+            <option value="-1">Side 2</option>
+          </select>
+        </div>
+        <div class="setting">
+          <label>Series length</label>
+          <select id="seriesLen2">
+            <option value="1">1 Test</option>
+            <option value="3">3 Tests</option>
+            <option value="5" selected>5 Tests</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="run-bar">
+      <span class="run-aside" id="runStatus2">Build both XIs to begin</span>
+      <button class="run-btn" id="runBtn2" disabled>Run Simulation</button>
+    </div>
+  </section>
+
+  <!-- ═══ Flow 3 · What-If Replay ═══ -->
+  <section class="flow" id="flow-what-if">
+    <div class="historical-picker">
+      <div class="hp-row">
+        <div class="setting">
+          <label>Team</label>
+          <select id="whatIfTeamA">
+            <option value="">— Team 1 —</option>
+          </select>
+        </div>
+        <div class="setting">
+          <label>vs</label>
+          <select id="whatIfTeamB">
+            <option value="">— Team 2 —</option>
+          </select>
+        </div>
+        <div class="setting">
+          <label>Year</label>
+          <input type="number" id="whatIfYear" min="1877" max="2026" placeholder="e.g. 2005">
+        </div>
+        <button class="picker-close" id="whatIfFindBtn">Find Matches</button>
+      </div>
+      <div class="hp-info" id="whatIfStatus">
+        <strong>How it works:</strong> Find a historical Test, start from the actual XIs and venue, then swap any player(s) to see how the match outcome probability shifts. v1 gives the match-level P(win/draw/loss) — individual innings simulation is a v1.5 feature.
+      </div>
+    </div>
+
+    <div id="whatIfMatchList" style="display:none;margin-bottom:18px">
+      <!-- populated dynamically -->
+    </div>
+
+    <div id="whatIfSimArea" style="display:none">
+      <div class="teams-grid">
+        <div class="team-panel" data-side="H">
+          <div class="tp-head">
+            <div>
+              <div class="label" id="whatIfTeamHLabel">Home Side (historical)</div>
+            </div>
+          </div>
+          <div class="tp-body">
+            <div class="xi-head">
+              <span class="pos-head">#</span>
+              <span class="name-head">Player</span>
+              <span>Bat</span>
+              <span>Bow</span>
+              <span></span>
+            </div>
+            <div class="xi-list" data-xi="H"></div>
+            <div class="team-aggs" data-aggs="H">
+              <span class="k" title="Position-weighted sum of the XI's batting ratings. Top-order batters (positions 1–7) count ~3× more than the tail (8–11).">Batting Strength</span><span class="v">—</span>
+              <span class="k" title="Sum of the top-5 bowling ratings in the XI. Only the main attack contributes; part-timers outside the top 5 do not.">Bowling Strength</span><span class="v bow">—</span>
+            </div>
+          </div>
+        </div>
+        <div class="vs-badge">vs</div>
+        <div class="team-panel" data-side="V">
+          <div class="tp-head">
+            <div>
+              <div class="label" id="whatIfTeamVLabel">Visiting Side (historical)</div>
+            </div>
+          </div>
+          <div class="tp-body">
+            <div class="xi-head">
+              <span class="pos-head">#</span>
+              <span class="name-head">Player</span>
+              <span>Bat</span>
+              <span>Bow</span>
+              <span></span>
+            </div>
+            <div class="xi-list" data-xi="V"></div>
+            <div class="team-aggs" data-aggs="V">
+              <span class="k" title="Position-weighted sum of the XI's batting ratings. Top-order batters (positions 1–7) count ~3× more than the tail (8–11).">Batting Strength</span><span class="v">—</span>
+              <span class="k" title="Sum of the top-5 bowling ratings in the XI. Only the main attack contributes; part-timers outside the top 5 do not.">Bowling Strength</span><span class="v bow">—</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hp-info" id="whatIfActualBox" style="margin-top:18px">
+        <!-- populated: "Actual result: ..." -->
+      </div>
+
+      <div class="settings-panel" style="margin-top:14px">
+        <div class="settings-row">
+          <div class="setting">
+            <label>Bats first</label>
+            <select id="batFirstSelect3">
+              <!-- populated on match load; default = whichever team actually batted first -->
+              <option value="0" selected>Actual</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="run-bar">
+        <span class="run-aside">Single-match probabilities · swap players or flip bat-first to see counterfactuals</span>
+        <button class="run-btn" id="runBtn3">Run Replay</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ Results section (shared by all flows) ═══ -->
+  <section class="results-section" id="resultsSection">
+    <div class="results-head">
+      <h2 id="resultsTitle">Results</h2>
+      <div class="results-meta" id="resultsMeta"></div>
+    </div>
+
+    <!-- Single match probability -->
+    <div class="prob-card" id="matchProbCard">
+      <div class="prob-card-head">
+        <div class="pch-title">Single Test match</div>
+        <div class="pch-sub">Probability of each outcome in one match between these XIs at this venue</div>
+      </div>
+      <div class="prob-row">
+        <div class="prob-label" id="probLabelA">Team A wins<small></small></div>
+        <div class="prob-track"><div class="prob-fill A" id="barA" style="width:0%"></div></div>
+        <div class="prob-pct" id="pctA">—</div>
+      </div>
+      <div class="prob-row">
+        <div class="prob-label">Draw<small>Match ends undecided</small></div>
+        <div class="prob-track"><div class="prob-fill D" id="barD" style="width:0%"></div></div>
+        <div class="prob-pct" id="pctD">—</div>
+      </div>
+      <div class="prob-row">
+        <div class="prob-label" id="probLabelB">Team B wins<small></small></div>
+        <div class="prob-track"><div class="prob-fill B" id="barB" style="width:0%"></div></div>
+        <div class="prob-pct" id="pctB">—</div>
+      </div>
+      <div class="diff-row">
+        <div><span class="d-k">Diff (D)</span> <span class="d-v" id="diffVal">—</span></div>
+        <div><span class="d-k">Bat A − Bow B</span> <span class="d-v" id="diffBat">—</span></div>
+        <div><span class="d-k">Bow A − Bat B</span> <span class="d-v" id="diffBow">—</span></div>
+        <div><span class="d-k">Home effect</span> <span class="d-v" id="diffHome">—</span></div>
+        <div><span class="d-k">Bats first</span> <span class="d-v" id="diffBatFirst">—</span></div>
+      </div>
+    </div>
+
+    <!-- Series (hidden for N=1) -->
+    <div class="series-card" id="seriesCard">
+      <div class="sc-head">
+        <div class="sc-title">Series Distribution</div>
+        <div class="sc-sub" id="seriesSub"></div>
+      </div>
+      <div class="series-headline">
+        <div class="sh-col">
+          <div class="sh-big A" id="pSeriesA">—</div>
+          <div class="sh-lbl" id="sSeriesALbl">Team A wins series</div>
+          <div class="sh-sub" id="sExpA">—</div>
+        </div>
+        <div class="sh-col">
+          <div class="sh-big" id="pSeriesTied">—</div>
+          <div class="sh-lbl">Tied</div>
+          <div class="sh-sub" id="sExpTied">—</div>
+        </div>
+        <div class="sh-col">
+          <div class="sh-big B" id="pSeriesB">—</div>
+          <div class="sh-lbl" id="sSeriesBLbl">Team B wins series</div>
+          <div class="sh-sub" id="sExpB">—</div>
+        </div>
+      </div>
+      <table class="outcome-table">
+        <thead>
+          <tr>
+            <th>Scoreline (A–drawn–B)</th>
+            <th class="num">Probability</th>
+            <th class="num">1-in-N</th>
+          </tr>
+        </thead>
+        <tbody id="outcomeTbody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Method note -->
+  <div class="method-note">
+    <h4>Method · v1</h4>
+    <p><strong>Ratings.</strong> A hybrid of career averages and strike rate, both era-normalised. Base: player's average divided by the weighted-mean decade-global average across their active decades (baseline 1.0 = era-average). Augmented: multiplied by (player's strike rate / era strike rate)<sup>0.3</sup>, so aggressive scorers get credit over pure compilers without overwhelming the underlying average. Higher is better for both batting and bowling; era-normalised so Bradman's 3.27 and Bumrah's 1.68 are comparable across decades.</p>
+    <p style="margin-top:8px"><strong>XI selection.</strong> In Team vs Team, each side auto-picks the <em>best eleven</em> from its country in the chosen time slice — 6 top batters by batting rating + 4 top bowlers by bowling rating + 1 all-rounder, with filler if fewer than 11 qualify. Eligibility: "Current" = any player whose last Test was within the last 2–5 years; decade buckets = any player whose career overlapped the decade. Changing Team A's era syncs Team B until you change B independently.</p>
+    <p style="margin-top:8px"><strong>Team aggregates.</strong> <em>Batting Strength</em> = position-weighted sum of the XI's batting ratings (top-order batters count ~3× more than the tail). <em>Bowling Strength</em> = sum of the top-5 bowling ratings in the XI.</p>
+    <p style="margin-top:8px"><strong>Match outcome.</strong> Three-way logistic on <code>D = (A_bat − B_bow) + (A_bow − B_bat)</code>, plus home effect and a bat-first effect (the decision made at the toss — which team chose to bat first). Fit on <span id="calibN">~2,500</span> historical Tests. Out-of-the-box calibration: log-loss <span id="calibLogLoss">0.97</span> (vs <span id="calibLogLossBase">1.10</span> uniform baseline), Brier <span id="calibBrier">0.58</span> (vs <span id="calibBrierBase">0.67</span>).</p>
+    <p style="margin-top:8px"><strong>Known v1 quirks.</strong> XI reconstruction drops ~3% of historical Tests where country-matching fails (e.g. ICC World XI). Empty slots default to a below-average filler (0.5 bat, 0 bow). All documented in <code>sim_model.json</code>.</p>
+    <p style="margin-top:12px;padding-top:10px;border-top:1px dotted var(--border);font-size:12px;color:var(--text3)"><strong style="color:var(--text2)">Data files:</strong> <code>simulations.html</code> loads <code>sim_ratings.json</code> and <code>sim_model.json</code> from the same directory, plus <code>calibration.json</code> for the accuracy numbers above. <span id="dataFilesGen"></span></p>
+  </div>
+</main>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Player picker modal -->
+<div class="picker-backdrop" id="pickerBackdrop">
+  <div class="picker-modal">
+    <div class="picker-head">
+      <div class="picker-title" id="pickerTitle">Pick a player</div>
+      <div class="picker-sub" id="pickerSub">Slot #1 · Side A</div>
+    </div>
+    <div class="picker-filters">
+      <input type="text" id="pickerQuery" placeholder="Search by name…" autocomplete="off">
+      <select id="pickerCountry">
+        <option value="">All countries</option>
+      </select>
+      <select id="pickerSort">
+        <option value="bat">Sort: Bat rating</option>
+        <option value="bow">Sort: Bow rating</option>
+        <option value="inns">Sort: Career innings</option>
+        <option value="recent">Sort: Most recent</option>
+      </select>
+    </div>
+    <div class="picker-results" id="pickerResults"></div>
+    <div class="picker-foot">
+      <span id="pickerFootMeta">—</span>
+      <button class="picker-close" id="pickerCloseBtn">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ sim-engine.js (inlined for single-file page) ═══ -->
+<script>
+/* Cricket Times Simulation Engine v1 — browser runtime
+   Pure functions. Loads sim_ratings.json + sim_model.json. */
+(function(global){
+  "use strict";
+  const ENGINE_VERSION="v1";
+  let RATINGS=null, MODEL=null, PLY_BY_ID=null, PLY_BY_NAME=null;
+
+  async function load(ratings, model){
+    // Phase 3 §3: ratings/model now arrive already-parsed (from CTData via the gated
+    // endpoint), not fetched here. String fallback retained for safety/back-compat.
+    const r=(typeof ratings==='string')?await fetch(ratings).then(x=>x.json()):ratings;
+    const m=(typeof model==='string')  ?await fetch(model).then(x=>x.json())  :model;
+    RATINGS=r; MODEL=m;
+    // If the model was fit against SR-augmented ratings, patch each player's bat_rating/bow_rating
+    // to point at the SR-augmented values. This is a single-point swap so all downstream code
+    // (picker sorts, team aggregates, UI rendering) transparently uses the correct field.
+    // Falls back to the base rating if _sr is absent (backward compat with older sim_ratings.json).
+    const variant=(m.rating_variant)||"base";
+    if(variant==="sr"){
+      for(const p of r.players){
+        if(p.bat_rating_sr!=null) p.bat_rating=p.bat_rating_sr;
+        if(p.bow_rating_sr!=null) p.bow_rating=p.bow_rating_sr;
+      }
+    }
+    PLY_BY_ID=Object.create(null); PLY_BY_NAME=Object.create(null);
+    for(const p of r.players){
+      PLY_BY_ID[p.id]=p;
+      if(!PLY_BY_NAME[p.name]) PLY_BY_NAME[p.name]=p;
+    }
+    return {ratings:RATINGS,model:MODEL};
+  }
+  function isLoaded(){return RATINGS!==null&&MODEL!==null;}
+  function requireLoaded(){if(!isLoaded()) throw new Error("SimEngine: call load() first");}
+
+  function getPlayer(idOrName){
+    requireLoaded();
+    if(typeof idOrName==="number") return PLY_BY_ID[idOrName]||null;
+    return PLY_BY_NAME[idOrName]||null;
+  }
+
+  function searchPlayers(query,opts){
+    requireLoaded();
+    opts=opts||{}; const limit=opts.limit||50; const country=opts.country||null;
+    const minInns=opts.minInns||0; const sort=opts.sort||"bat";
+    const q=(query||"").toLowerCase();
+    const out=[];
+    for(const p of RATINGS.players){
+      if(country && p.country!==country) continue;
+      if(p.career_inns<minInns && p.career_wkts<minInns) continue;
+      if(q){
+        if(!p.name.toLowerCase().includes(q) && !(p.full_name||"").toLowerCase().includes(q)) continue;
+      }
+      out.push(p);
+    }
+    // sort
+    const key={
+      bat:p=>p.bat_rating||-1,
+      bow:p=>p.bow_rating||-1,
+      inns:p=>p.career_inns,
+      recent:p=>p.last_year||0
+    }[sort];
+    out.sort((a,b)=>{
+      // prefix match wins tie-break when searching
+      if(q){
+        const ap=a.name.toLowerCase().startsWith(q)?0:1;
+        const bp=b.name.toLowerCase().startsWith(q)?0:1;
+        if(ap!==bp) return ap-bp;
+      }
+      return key(b)-key(a);
+    });
+    return out.slice(0,limit);
+  }
+
+  function positionWeights(){return MODEL.aggregation.position_weights;}
+  function bowlingAttackSize(){return MODEL.aggregation.bowling_attack_size;}
+  function defaultBat(){return MODEL.aggregation.default_bat_rating_missing;}
+  function defaultBow(){return MODEL.aggregation.default_bow_rating_missing;}
+
+  function aggregate(xi){
+    requireLoaded();
+    if(!Array.isArray(xi)||xi.length!==11) throw new Error("aggregate: xi must be length 11");
+    const W=positionWeights(); const bMiss=defaultBat(); const wMiss=defaultBow();
+    let team_bat=0; const bow_ratings=[]; const perPlayer=[];
+    for(let i=0;i<11;i++){
+      const p=xi[i];
+      const br=p&&p.bat_rating!=null?p.bat_rating:bMiss;
+      const wr=p&&p.bow_rating!=null?p.bow_rating:wMiss;
+      team_bat+=br*W[i];
+      bow_ratings.push(wr);
+      perPlayer.push({position:i+1,name:p?p.name:"(empty)",bat_rating:br,bow_rating:wr,bat_weight:W[i],bat_contribution:br*W[i]});
+    }
+    const sorted=bow_ratings.slice().sort((a,b)=>b-a);
+    const team_bow=sorted.slice(0,bowlingAttackSize()).reduce((s,x)=>s+x,0);
+    return {team_bat,team_bow,perPlayer};
+  }
+
+  function sigmoid(x){return 1/(1+Math.exp(-x));}
+  function dot(coef,feats){let s=0;for(let i=0;i<coef.length;i++)s+=coef[i]*feats[i];return s;}
+
+  function matchProbs(A,B,opts){
+    requireLoaded();
+    opts=opts||{};
+    const home=opts.home!=null?opts.home:0;
+    // Accept bat_first; fall back to legacy 'toss' alias for backwards compat.
+    const bat_first=opts.bat_first!=null?opts.bat_first:(opts.toss!=null?opts.toss:0);
+    const batDiff=A.team_bat-B.team_bow; const bowDiff=A.team_bow-B.team_bat;
+    const D=batDiff+bowDiff;
+    const dm=MODEL.models.decisive_vs_draw; const wm=MODEL.models.home_win_given_decisive;
+    const pDecisive=sigmoid(dm.intercept+dot(dm.coef,[Math.abs(D)]));
+    const pAWinGivenDec=sigmoid(wm.intercept+dot(wm.coef,[D,home,bat_first]));
+    const pDraw=1-pDecisive;
+    const pA=pDecisive*pAWinGivenDec; const pB=pDecisive*(1-pAWinGivenDec);
+    return {pA,pDraw,pB,D,batDiff,bowDiff,home,bat_first};
+  }
+
+  function rngFromSeed(seed){
+    let s=seed>>>0;
+    return function(){s=(s+0x6D2B79F5)>>>0;let t=s;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return((t^(t>>>14))>>>0)/4294967296;};
+  }
+
+  function sampleOutcome(probs,rnd){const u=rnd();if(u<probs.pA) return "A";if(u<probs.pA+probs.pDraw) return "D";return "B";}
+
+  function seriesDist(A,B,N,opts){
+    requireLoaded();
+    opts=opts||{}; const iters=opts.iters||10000; const seed=opts.seed||42;
+    const rnd=rngFromSeed(seed);
+    const perMatch=[];
+    const bfOpt=opts.bat_first!=null?opts.bat_first:opts.toss;
+    for(let i=0;i<N;i++){
+      const h=Array.isArray(opts.home)?opts.home[i]:(opts.home||0);
+      const bf=Array.isArray(bfOpt)?bfOpt[i]:(bfOpt||0);
+      perMatch.push(matchProbs(A,B,{home:h,bat_first:bf}));
+    }
+    const counts=new Map(); let sA=0,sB=0,sD=0;
+    for(let it=0;it<iters;it++){
+      let wA=0,wB=0,dr=0;
+      for(let i=0;i<N;i++){const r=sampleOutcome(perMatch[i],rnd);if(r==="A")wA++;else if(r==="B")wB++;else dr++;}
+      sA+=wA; sB+=wB; sD+=dr;
+      const k=wA+"-"+dr+"-"+wB;
+      counts.set(k,(counts.get(k)||0)+1);
+    }
+    const dist=[];
+    counts.forEach((cnt,k)=>{const [a,d,b]=k.split("-").map(Number);dist.push({winsA:a,winsB:b,draws:d,prob:cnt/iters});});
+    dist.sort((x,y)=>y.prob-x.prob);
+    let pSA=0,pSB=0,pST=0;
+    for(const r of dist){if(r.winsA>r.winsB) pSA+=r.prob; else if(r.winsB>r.winsA) pSB+=r.prob; else pST+=r.prob;}
+    return {N,iters,perMatchProbs:perMatch,expectedWinsA:sA/iters,expectedWinsB:sB/iters,expectedDraws:sD/iters,pSeriesA:pSA,pSeriesTied:pST,pSeriesB:pSB,seriesOutcomeDist:dist};
+  }
+
+  global.SimEngine={version:ENGINE_VERSION,load,isLoaded,getPlayer,searchPlayers,aggregate,matchProbs,seriesDist,_state:()=>({ratings:RATINGS,model:MODEL})};
+})(window);
+</script>
+
+<!-- ═══ Page controller ═══ -->
+<script>
+/* match-sim.html controller — wires SimEngine into the UI.
+   Global state lives on window.MS to avoid polluting global namespace unnecessarily. */
+(function(){
+  "use strict";
+  const RATINGS_URL="sim_ratings.json";   // pipeline artifact
+  const MODEL_URL="sim_model.json";       // pipeline artifact
+  const CALIB_URL="https://firebasestorage.googleapis.com/v0/b/hitwicket-cba02.firebasestorage.app/o/public%2Fcalibration.json?alt=media";     // public Storage artifact — non-blocking (accuracy numbers in method-note)
+
+  const MS={
+    xi:{A:Array(11).fill(null),B:Array(11).fill(null),X:Array(11).fill(null),Y:Array(11).fill(null),H:Array(11).fill(null),V:Array(11).fill(null)},
+    currentFlow:"team-vs-team",
+    pickerTarget:null,  // {side, slotIdx}
+    data:null,          // raw data.json (for what-if)
+    dataLoading:null,
+    countries:[]
+  };
+  window.MS=MS;
+
+  // ── Toast helper
+  function toast(msg,err){
+    const t=document.getElementById("toast");
+    t.textContent=msg; t.classList.toggle("err",!!err); t.classList.add("show");
+    setTimeout(()=>t.classList.remove("show"),2600);
+  }
+
+  // ── Country list / team presets
+  const COUNTRY_ORDER=["Australia","England","India","Pakistan","South Africa","West Indies","New Zealand","Sri Lanka","Bangladesh","Zimbabwe","Afghanistan","Ireland"];
+
+  // Era definitions for the Team-vs-Team flow dropdown. "current" is special-cased to use the
+  // existing progressive activity window (last 2→3→5 years). All others are fixed decade windows
+  // where a player qualifies if their career overlaps the bucket. Within the chosen window the XI
+  // is picked as the "best eleven": 6 top batters by bat_rating + 4 top bowlers by bow_rating +
+  // 1 all-rounder + filler.
+  //
+  // The year range in each label is displayed to the user so the time slice is unambiguous. For
+  // "Current" the range is computed at boot from the system date.
+  const ERA_BUCKETS=[
+    {id:"current",label:"Current",start:null,end:null},  // label updated at boot with year range
+    {id:"2020s",  label:"2020s (2020–2029)",  start:2020,end:2029},
+    {id:"2010s",  label:"2010s (2010–2019)",  start:2010,end:2019},
+    {id:"2000s",  label:"2000s (2000–2009)",  start:2000,end:2009},
+    {id:"1990s",  label:"1990s (1990–1999)",  start:1990,end:1999},
+    {id:"1980s",  label:"1980s (1980–1989)",  start:1980,end:1989},
+    {id:"1970s",  label:"1970s (1970–1979)",  start:1970,end:1979},
+    {id:"1960s",  label:"1960s (1960–1969)",  start:1960,end:1969},
+    {id:"1950s",  label:"1950s (1950–1959)",  start:1950,end:1959},
+    {id:"1940s",  label:"1940s (1940–1949)",  start:1940,end:1949},
+    {id:"1930s",  label:"1930s (1930–1939)",  start:1930,end:1939},
+    {id:"1920s",  label:"1920s (1920–1929)",  start:1920,end:1929},
+    {id:"early",  label:"Early Tests (1877–1919)",start:1877,end:1919}
+  ];
+  // Populate the Current label with the actual active-since year (widest fallback window: 5 years)
+  (function(){
+    const y=new Date().getFullYear();
+    const cur=ERA_BUCKETS[0];
+    cur.label="Current (active since "+(y-5)+")";
+  })();
+
+  function pickEraXI(country, eraId){
+    // Era-aware XI picker. "current" uses the same progressive activity window as before; any other
+    // era picks the best 11 from players whose careers OVERLAP the era window (first_year <= end AND
+    // last_year >= start). Position-balanced: 6 top batters, 4 top bowlers, 1 all-rounder, filler.
+    const all=SimEngine.searchPlayers("",{country,limit:500});
+    function selectXI(pool){
+      if(pool.length<11) return null;
+      const byBat=pool.slice().sort((a,b)=>(b.bat_rating||0)-(a.bat_rating||0));
+      const byBow=pool.slice().sort((a,b)=>(b.bow_rating||0)-(a.bow_rating||0));
+      const selected=new Set(); const xi=[];
+      // 6 top batters
+      for(const p of byBat){ if(xi.length>=6) break; if(!selected.has(p.id)){selected.add(p.id);xi.push(p);} }
+      // 4 top bowlers
+      for(const p of byBow){ if(xi.length>=10) break; if(!selected.has(p.id)){selected.add(p.id);xi.push(p);} }
+      // 1 all-rounder / next-best
+      const next=pool.filter(p=>!selected.has(p.id)).sort((a,b)=>((b.bat_rating||0)+(b.bow_rating||0))-((a.bat_rating||0)+(a.bow_rating||0)));
+      if(next.length) xi.push(next[0]);
+      // Fill remaining
+      for(const p of pool){ if(xi.length>=11) break; if(!selected.has(p.id)){selected.add(p.id);xi.push(p);} }
+      return _sortXIByBattingOrder(xi.slice(0,11));
+    }
+    if(!eraId || eraId==="current"){
+      const currentYear=new Date().getFullYear();
+      for(const gap of [2,3,5]){
+        const pool=all.filter(p=>(p.last_year||0)>=currentYear-gap);
+        const xi=selectXI(pool);
+        if(xi) return xi;
+      }
+      return all.slice(0,11);
+    }
+    const bucket=ERA_BUCKETS.find(b=>b.id===eraId);
+    if(!bucket || bucket.start==null) return all.slice(0,11);
+    // Overlap test: player's career (first_year..last_year) intersects [bucket.start, bucket.end]
+    const pool=all.filter(p=>(p.first_year||9999)<=bucket.end && (p.last_year||0)>=bucket.start);
+    const xi=selectXI(pool);
+    return xi || pool.slice(0,11);
+  }
+
+  // Back-compat alias — keeps any external references working
+  function pickCurrentXI(country){ return pickEraXI(country, "current"); }
+
+  function pickAllTimeXI(){
+    // Cherry-pick the all-time top 11 across all players: 6 highest bat_rating + 4 highest bow_rating + 1 all-rounder
+    return _pickTopXIFromPool(SimEngine._state().ratings.players, null);
+  }
+
+  // Helper: pick the best XI from a given player pool, optionally excluding a set of IDs.
+  // Used by pickAllTimeXI, pickAllTimeSecondXI, and pickCountryAllTimeXI.
+  //
+  // Eligibility: the All-Time picker uses a "career contribution" filter — a player qualifies if
+  // they scored ≥2,000 Test runs OR took ≥75 Test wickets. This excludes tiny-sample players whose
+  // ratings are inflated by ~20–30 innings (e.g. KR Mayers with a 210* on debut, or FS Jackson's
+  // early-1900s 20-Test career) while keeping short-but-substantial greats like GA Headley (2,190
+  // runs) and FR Spofforth (94 wkts). Different from the pipeline's per-player rating threshold
+  // (20 inns / 600 balls) which is about having stable enough stats to produce a rating at all.
+  function _qualifiesForAllTimeXI(p, isExcluded){
+    if(isExcluded(p)) return false;
+    return (p.career_runs||0) >= 2000 || (p.career_wkts||0) >= 75;
+  }
+
+  function _pickTopXIFromPool(all, excludeSet){
+    const isExcluded=p=>excludeSet && excludeSet.has(p.id);
+    const eligible=all.filter(p=>_qualifiesForAllTimeXI(p, isExcluded));
+    const batters=eligible.filter(p=>p.bat_rating!=null).sort((a,b)=>b.bat_rating-a.bat_rating);
+    const bowlers=eligible.filter(p=>p.bow_rating!=null && (p.career_wkts||0)>=75).sort((a,b)=>b.bow_rating-a.bow_rating);
+    const selected=new Set(); const xi=[];
+    for(const p of batters){ if(xi.length>=6) break; if(!selected.has(p.id)){selected.add(p.id);xi.push(p);} }
+    for(const p of bowlers){ if(xi.length>=10) break; if(!selected.has(p.id)){selected.add(p.id);xi.push(p);} }
+    const allRounders=eligible.filter(p=>p.bat_rating!=null && p.bow_rating!=null && !selected.has(p.id)).sort((a,b)=>((b.bat_rating+b.bow_rating)-(a.bat_rating+a.bow_rating)));
+    if(allRounders.length) { xi.push(allRounders[0]); selected.add(allRounders[0].id); }
+    // Fill any remaining slots from the eligible pool if 6+4+1 didn't fill 11
+    for(const p of eligible){ if(xi.length>=11) break; if(!selected.has(p.id)){selected.add(p.id);xi.push(p);} }
+    return _sortXIByBattingOrder(xi.slice(0,11));
+  }
+
+  // Sort an XI by each player's canonical batting position (bat_pos, modal slot across their career).
+  // Tiebreaker: higher bat_rating → earlier (so when two players share position #3, the better batter
+  // bats first). Players without bat_pos go to slot 11.
+  function _sortXIByBattingOrder(xi){
+    return xi.slice().sort((a,b)=>{
+      const pa=a && a.bat_pos!=null ? a.bat_pos : 11;
+      const pb=b && b.bat_pos!=null ? b.bat_pos : 11;
+      if(pa!==pb) return pa-pb;
+      return (b.bat_rating||0)-(a.bat_rating||0);
+    });
+  }
+
+  // "2nd Best All-Time" = best XI drawn from the pool EXCLUDING the top XI. Gives a cricket-sensible
+  // second team (6th-12th best batters, 5th-8th best bowlers) rather than a literal 12-22 list which
+  // would be biased toward whatever position the 6+4+1 rule over-picked.
+  function pickAllTimeSecondXI(){
+    const all=SimEngine._state().ratings.players;
+    const topXI=pickAllTimeXI();
+    const excludeSet=new Set(topXI.filter(p=>p).map(p=>p.id));
+    return _pickTopXIFromPool(all, excludeSet);
+  }
+
+  // Country-specific all-time XI: same 6+4+1 rule, filtered to one country, across ALL eras
+  function pickCountryAllTimeXI(country){
+    const all=SimEngine._state().ratings.players.filter(p=>p.country===country);
+    return _pickTopXIFromPool(all, null);
+  }
+
+  // Preset options shown in the Cross-Era dropdown. Built at boot (depends on COUNTRY_ORDER).
+  // Groups: World (All-Time, 2nd XI) then Countries alphabetically.
+  function buildPresetOptions(){
+    const world=[
+      {id:"all-time",       group:"World", label:"World All-Time XI"},
+      {id:"all-time-second",group:"World", label:"World All-Time 2nd XI"}
+    ];
+    const countries=COUNTRY_ORDER.slice().sort().map(c=>(
+      {id:"country:"+c, group:"Country All-Time", label:c+" All-Time"}
+    ));
+    return world.concat(countries);
+  }
+
+  // Dispatch from preset id → XI array
+  function pickPresetXI(presetId){
+    if(presetId==="all-time") return pickAllTimeXI();
+    if(presetId==="all-time-second") return pickAllTimeSecondXI();
+    if(presetId && presetId.startsWith("country:")) return pickCountryAllTimeXI(presetId.slice(8));
+    return Array(11).fill(null);
+  }
+
+  // ── XI rendering
+  function fmtRating(r){return r!=null?r.toFixed(2):"—";}
+  function fmtEra(p){
+    if(!p||!p.first_year) return "";
+    if(p.first_year===p.last_year) return String(p.first_year);
+    return p.first_year+"–"+String(p.last_year).slice(-2);
+  }
+
+  function renderXI(side){
+    const container=document.querySelector(`.xi-list[data-xi="${side}"]`);
+    if(!container) return;
+    const xi=MS.xi[side];
+    container.innerHTML="";
+    for(let i=0;i<11;i++){
+      const p=xi[i];
+      const row=document.createElement("div");
+      row.className="xi-slot"+(p?"":" empty-slot");
+      row.innerHTML=`
+        <span class="pos">${i+1}</span>
+        <span class="name ${p?"":"empty"}" title="${p?(p.full_name||p.name):"Click to pick"}">${p?p.name:"empty — click to pick"}<div class="era">${fmtEra(p)}</div></span>
+        <span class="rat bat ${p&&p.bat_rating>=1.3?"good":(p?"":"dim")}">${fmtRating(p?p.bat_rating:null)}</span>
+        <span class="rat bow ${p&&p.bow_rating>=1.2?"good":(p?"":"dim")}">${fmtRating(p?p.bow_rating:null)}</span>
+        <button class="slot-btn" data-act="${p?"remove":"pick"}" title="${p?"Remove":"Pick"}">${p?"×":"+"}</button>
+      `;
+      // click name -> picker
+      row.querySelector(".name").addEventListener("click",()=>openPicker(side,i));
+      row.querySelector(".slot-btn").addEventListener("click",e=>{
+        e.stopPropagation();
+        if(p){ MS.xi[side][i]=null; renderXI(side); recomputeAggs(side); updateRunButtons(); }
+        else{ openPicker(side,i); }
+      });
+      container.appendChild(row);
+    }
+    recomputeAggs(side);
+  }
+
+  function recomputeAggs(side){
+    const xi=MS.xi[side];
+    const aggsEl=document.querySelector(`.team-aggs[data-aggs="${side}"]`);
+    if(!aggsEl) return;
+    const full=xi.every(p=>p!=null);
+    if(!xi.some(p=>p!=null)){
+      aggsEl.innerHTML=`<span class="k" title="Position-weighted sum of the XI's batting ratings. Top-order batters (positions 1–7) count ~3× more than the tail (8–11).">Batting Strength</span><span class="v">—</span><span class="k" title="Sum of the top-5 bowling ratings in the XI. Only the main attack contributes; part-timers outside the top 5 do not.">Bowling Strength</span><span class="v bow">—</span>`;
+      return;
+    }
+    const agg=SimEngine.aggregate(xi);
+    const filledN=xi.filter(p=>p!=null).length;
+    aggsEl.innerHTML=`
+      <span class="k" title="Position-weighted sum of the XI's batting ratings. Top-order batters (positions 1–7) count ~3× more than the tail (8–11).">Batting Strength ${full?"":`<span style="color:var(--text4);font-weight:400">(${filledN}/11)</span>`}</span><span class="v">${agg.team_bat.toFixed(2)}</span>
+      <span class="k" title="Sum of the top-5 bowling ratings in the XI. Only the main attack contributes; part-timers outside the top 5 do not.">Bowling Strength</span><span class="v bow">${agg.team_bow.toFixed(2)}</span>
+    `;
+  }
+
+  // ── Player picker modal
+  const pickerBackdrop=document.getElementById("pickerBackdrop");
+  const pickerQuery=document.getElementById("pickerQuery");
+  const pickerCountry=document.getElementById("pickerCountry");
+  const pickerSort=document.getElementById("pickerSort");
+  const pickerResults=document.getElementById("pickerResults");
+  const pickerTitle=document.getElementById("pickerTitle");
+  const pickerSub=document.getElementById("pickerSub");
+  const pickerFootMeta=document.getElementById("pickerFootMeta");
+
+  function openPicker(side,slotIdx){
+    MS.pickerTarget={side,slotIdx};
+    const sideLabel={A:"Team A",B:"Team B",X:"Side 1",Y:"Side 2",H:"Home (historical)",V:"Visiting (historical)"}[side]||side;
+    pickerTitle.textContent="Pick a player";
+    pickerSub.textContent=`Slot #${slotIdx+1} · ${sideLabel}`;
+    pickerQuery.value=""; pickerQuery.focus();
+    pickerCountry.value=""; pickerSort.value="bat";
+    runPickerSearch();
+    pickerBackdrop.classList.add("open");
+  }
+  function closePicker(){pickerBackdrop.classList.remove("open");MS.pickerTarget=null;}
+  document.getElementById("pickerCloseBtn").addEventListener("click",closePicker);
+  pickerBackdrop.addEventListener("click",e=>{if(e.target===pickerBackdrop) closePicker();});
+  document.addEventListener("keydown",e=>{if(e.key==="Escape" && pickerBackdrop.classList.contains("open")) closePicker();});
+
+  function runPickerSearch(){
+    const q=pickerQuery.value.trim();
+    const country=pickerCountry.value||null;
+    const sort=pickerSort.value;
+    const results=SimEngine.searchPlayers(q,{country,sort,limit:100,minInns:q?0:20});
+    pickerResults.innerHTML="";
+    if(!results.length){
+      pickerResults.innerHTML=`<div style="padding:24px;text-align:center;color:var(--text3);font-style:italic;font-size:13px">No players match.</div>`;
+      pickerFootMeta.textContent="0 results";
+      return;
+    }
+    for(const p of results){
+      const row=document.createElement("div");
+      row.className="picker-result";
+      row.innerHTML=`
+        <div>
+          <div class="pr-name">${p.name}<span style="color:var(--text3);font-weight:400;margin-left:6px">${p.country}</span></div>
+          <div class="pr-full">${p.full_name||""}</div>
+        </div>
+        <div class="pr-era">${fmtEra(p)}<br><span style="color:var(--text4)">${p.career_inns}i · ${p.career_wkts}w</span></div>
+        <div class="pr-bat ${p.bat_rating!=null?"":"dim"}">${p.bat_rating!=null?p.bat_rating.toFixed(2):"—"}</div>
+        <div class="pr-bow ${p.bow_rating!=null?"":"dim"}">${p.bow_rating!=null?p.bow_rating.toFixed(2):"—"}</div>
+      `;
+      row.addEventListener("click",()=>{
+        const t=MS.pickerTarget; if(!t) return;
+        // Prevent same player twice on same side
+        const already=MS.xi[t.side].findIndex((x,i)=>x&&x.id===p.id&&i!==t.slotIdx);
+        if(already>=0){ toast(`${p.name} already at #${already+1}`,true); return; }
+        MS.xi[t.side][t.slotIdx]=p;
+        renderXI(t.side);
+        closePicker();
+        updateRunButtons();
+      });
+      pickerResults.appendChild(row);
+    }
+    pickerFootMeta.textContent=results.length+" results"+(results.length===100?" (showing top 100)":"");
+  }
+  pickerQuery.addEventListener("input",runPickerSearch);
+  pickerCountry.addEventListener("change",runPickerSearch);
+  pickerSort.addEventListener("change",runPickerSearch);
+
+  // ── Team select dropdowns (Flow 1)
+  function populateTeamSelects(){
+    const sels=document.querySelectorAll(".team-select, #whatIfTeamA, #whatIfTeamB, #pickerCountry");
+    for(const sel of sels){
+      // preserve first empty option
+      const first=sel.querySelector("option");
+      sel.innerHTML="";
+      if(first) sel.appendChild(first);
+      for(const c of COUNTRY_ORDER){
+        const o=document.createElement("option");
+        o.value=c; o.textContent=c;
+        sel.appendChild(o);
+      }
+    }
+    // Also populate era dropdowns (ERA_BUCKETS is defined above)
+    for(const sel of document.querySelectorAll(".era-select")){
+      sel.innerHTML="";
+      for(const b of ERA_BUCKETS){
+        const o=document.createElement("option");
+        o.value=b.id; o.textContent=b.label;
+        sel.appendChild(o);
+      }
+      sel.value="current";
+    }
+  }
+
+  function bindTeamSelects(){
+    // MS.eraUserTouched[side] tracks whether the user has directly changed that side's era dropdown.
+    // Default both to false, so changing Team A's era auto-syncs Team B — until the user touches B
+    // independently, at which point A and B become fully decoupled.
+    MS.eraUserTouched={A:false, B:false};
+
+    function rebuild(side){
+      const countrySel=document.querySelector('.team-select[data-side="'+side+'"]');
+      const eraSel=document.querySelector('.era-select[data-side="'+side+'"]');
+      const country=countrySel.value;
+      if(!country){ MS.xi[side]=Array(11).fill(null); renderXI(side); updateRunButtons(); return; }
+      MS.xi[side]=pickEraXI(country, eraSel.value);
+      while(MS.xi[side].length<11) MS.xi[side].push(null);
+      renderXI(side); updateRunButtons();
+    }
+
+    document.querySelectorAll(".team-select").forEach(sel=>{
+      sel.addEventListener("change",e=>{
+        const side=e.target.getAttribute("data-side");
+        rebuild(side);
+      });
+    });
+
+    document.querySelectorAll(".era-select").forEach(sel=>{
+      sel.addEventListener("change",e=>{
+        const side=e.target.getAttribute("data-side");
+        MS.eraUserTouched[side]=true;
+        rebuild(side);
+        // Sync: when A changes and B has not been independently touched, mirror A's era onto B.
+        if(side==="A" && !MS.eraUserTouched.B){
+          const eraB=document.querySelector('.era-select[data-side="B"]');
+          if(eraB){ eraB.value=sel.value; rebuild("B"); }
+        }
+      });
+    });
+  }
+
+  // Cross-Era preset dropdowns (Flow 2). Replaces the old "All-Time XI" button with a richer
+  // dropdown offering World All-Time, World All-Time 2nd XI, and each country's all-time XI.
+  function populatePresetDropdowns(){
+    const opts=buildPresetOptions();
+    for(const sel of document.querySelectorAll(".preset-select")){
+      sel.innerHTML="";
+      // Group by 'group' field, with section-label optgroups
+      let currentGroup=null;
+      let optgroup=null;
+      for(const o of opts){
+        if(o.group!==currentGroup){
+          optgroup=document.createElement("optgroup");
+          optgroup.label=o.group;
+          sel.appendChild(optgroup);
+          currentGroup=o.group;
+        }
+        const el=document.createElement("option");
+        el.value=o.id; el.textContent=o.label;
+        optgroup.appendChild(el);
+      }
+    }
+  }
+
+  function bindPresetDropdowns(){
+    document.querySelectorAll(".preset-select").forEach(sel=>{
+      sel.addEventListener("change",e=>{
+        const side=e.target.getAttribute("data-side");
+        MS.xi[side]=pickPresetXI(e.target.value);
+        while(MS.xi[side].length<11) MS.xi[side].push(null);
+        renderXI(side); updateRunButtons();
+      });
+    });
+  }
+
+  // Apply the default Cross-Era matchup on boot: Side 1 = World All-Time, Side 2 = World All-Time 2nd XI
+  function applyCrossEraDefaults(){
+    const selX=document.querySelector('.preset-select[data-side="X"]');
+    const selY=document.querySelector('.preset-select[data-side="Y"]');
+    if(selX){ selX.value="all-time"; MS.xi.X=pickAllTimeXI(); while(MS.xi.X.length<11) MS.xi.X.push(null); renderXI("X"); }
+    if(selY){ selY.value="all-time-second"; MS.xi.Y=pickAllTimeSecondXI(); while(MS.xi.Y.length<11) MS.xi.Y.push(null); renderXI("Y"); }
+    updateRunButtons();
+  }
+
+  // ── Run buttons
+  function updateRunButtons(){
+    // Flow 1 enabled when both A and B have 11
+    const fullA=MS.xi.A.every(p=>p); const fullB=MS.xi.B.every(p=>p);
+    const btn1=document.getElementById("runBtn");
+    btn1.disabled=!(fullA&&fullB);
+    const st1=document.getElementById("runStatus");
+    st1.textContent=(fullA&&fullB)?"Ready to simulate":`Pick ${!fullA?"Team A":"Team B"} XI`;
+
+    const fullX=MS.xi.X.every(p=>p); const fullY=MS.xi.Y.every(p=>p);
+    const btn2=document.getElementById("runBtn2");
+    btn2.disabled=!(fullX&&fullY);
+    const st2=document.getElementById("runStatus2");
+    st2.textContent=(fullX&&fullY)?"Ready to simulate":`Complete Side ${!fullX?"1":"2"} XI`;
+  }
+
+  // ── Flow tabs
+  document.querySelectorAll(".flow-tab").forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      const flow=btn.getAttribute("data-flow");
+      MS.currentFlow=flow;
+      document.querySelectorAll(".flow-tab").forEach(b=>b.classList.toggle("active",b===btn));
+      document.querySelectorAll(".flow").forEach(s=>s.classList.toggle("active",s.id==="flow-"+flow));
+      // hide results when switching
+      document.getElementById("resultsSection").classList.remove("visible");
+    });
+  });
+
+  // ── Simulation run — shared function
+  function runSim(sideA,sideB,opts,labels){
+    const A=SimEngine.aggregate(MS.xi[sideA]);
+    const B=SimEngine.aggregate(MS.xi[sideB]);
+    const probs=SimEngine.matchProbs(A,B,{home:opts.home,bat_first:opts.bat_first});
+
+    // Update labels and bars
+    document.getElementById("probLabelA").innerHTML=`${labels.A}<small>P(wins)</small>`;
+    document.getElementById("probLabelB").innerHTML=`${labels.B}<small>P(wins)</small>`;
+    const pctA=(probs.pA*100).toFixed(1), pctD=(probs.pDraw*100).toFixed(1), pctB=(probs.pB*100).toFixed(1);
+    document.getElementById("barA").style.width=pctA+"%";
+    document.getElementById("barD").style.width=pctD+"%";
+    document.getElementById("barB").style.width=pctB+"%";
+    document.getElementById("pctA").textContent=pctA+"%";
+    document.getElementById("pctD").textContent=pctD+"%";
+    document.getElementById("pctB").textContent=pctB+"%";
+
+    // Labels inside bars (if wide enough)
+    document.getElementById("barA").textContent=probs.pA>=0.18?pctA+"%":"";
+    document.getElementById("barD").textContent=probs.pDraw>=0.18?pctD+"%":"";
+    document.getElementById("barB").textContent=probs.pB>=0.18?pctB+"%":"";
+
+    // Diff row
+    const signed=v=>(v>=0?"+":"")+v.toFixed(2);
+    document.getElementById("diffVal").textContent=signed(probs.D);
+    document.getElementById("diffVal").className="d-v "+(probs.D>0?"pos":probs.D<0?"neg":"");
+    document.getElementById("diffBat").textContent=signed(probs.batDiff);
+    document.getElementById("diffBow").textContent=signed(probs.bowDiff);
+    document.getElementById("diffHome").textContent=probs.home===0?"neutral":(probs.home>0?labels.A+" home":labels.B+" home");
+    document.getElementById("diffBatFirst").textContent=probs.bat_first===0?"model chooses":(probs.bat_first>0?labels.A:labels.B);
+
+    // Series card
+    const seriesCard=document.getElementById("seriesCard");
+    if(opts.N>1){
+      seriesCard.style.display="block";
+      const series=SimEngine.seriesDist(A,B,opts.N,{home:opts.home,bat_first:opts.bat_first,iters:opts.iters||10000,seed:42});
+      document.getElementById("seriesSub").innerHTML=`<strong>${opts.N}-Test series</strong> · ${(opts.iters||10000).toLocaleString()} iterations · seed 42`;
+      const fmt=p=>(p*100).toFixed(1)+"%";
+      document.getElementById("pSeriesA").textContent=fmt(series.pSeriesA);
+      document.getElementById("pSeriesTied").textContent=fmt(series.pSeriesTied);
+      document.getElementById("pSeriesB").textContent=fmt(series.pSeriesB);
+      document.getElementById("sSeriesALbl").textContent=labels.A+" wins series";
+      document.getElementById("sSeriesBLbl").textContent=labels.B+" wins series";
+      document.getElementById("sExpA").textContent="E["+labels.A+" wins] = "+series.expectedWinsA.toFixed(2);
+      document.getElementById("sExpTied").textContent="E[draws] = "+series.expectedDraws.toFixed(2);
+      document.getElementById("sExpB").textContent="E["+labels.B+" wins] = "+series.expectedWinsB.toFixed(2);
+
+      const tbody=document.getElementById("outcomeTbody");
+      tbody.innerHTML="";
+      const top=series.seriesOutcomeDist.slice(0,12);
+      const maxP=top[0].prob;
+      for(const r of top){
+        const tr=document.createElement("tr");
+        const barW=(r.prob/maxP)*80; // max 80px
+        tr.innerHTML=`
+          <td class="scoreline">${labels.A} ${r.winsA} · ${r.draws} drawn · ${r.winsB} ${labels.B}</td>
+          <td class="num prob-cell"><span class="mini-bar" style="width:${barW}px"></span>${(r.prob*100).toFixed(2)}%</td>
+          <td class="num">${r.prob>0?(1/r.prob).toFixed(1):"—"}</td>
+        `;
+        tbody.appendChild(tr);
+      }
+    }else{
+      seriesCard.style.display="none";
+    }
+
+    // Results title/meta
+    document.getElementById("resultsTitle").textContent=labels.A+" vs "+labels.B;
+    document.getElementById("resultsMeta").textContent="Engine "+SimEngine.version+" · ratings "+SimEngine._state().model.version+" · "+SimEngine._state().ratings.n_matches+" historical matches in fit";
+    document.getElementById("resultsSection").classList.add("visible");
+    document.getElementById("resultsSection").scrollIntoView({behavior:"smooth",block:"start"});
+  }
+
+  // ── Flow 1 run
+  document.getElementById("runBtn").addEventListener("click",()=>{
+    const home=parseInt(document.getElementById("venueSelect").value,10);
+    const bat_first=parseInt(document.getElementById("batFirstSelect").value,10);
+    const N=parseInt(document.getElementById("seriesLen").value,10);
+    const iters=parseInt(document.getElementById("mcIters").value,10);
+    const selA=document.querySelector('.team-select[data-side="A"]').value||"Team A";
+    const selB=document.querySelector('.team-select[data-side="B"]').value||"Team B";
+    runSim("A","B",{home,bat_first,N,iters},{A:selA,B:selB});
+  });
+
+  // ── Flow 2 run
+  document.getElementById("runBtn2").addEventListener("click",()=>{
+    const home=parseInt(document.getElementById("venueSelect2").value,10);
+    const bat_first=parseInt(document.getElementById("batFirstSelect2").value,10);
+    const N=parseInt(document.getElementById("seriesLen2").value,10);
+    runSim("X","Y",{home,bat_first,N,iters:10000},{A:"Side 1",B:"Side 2"});
+  });
+
+  // ── Flow 3: What-If Replay
+  document.getElementById("whatIfFindBtn").addEventListener("click",async()=>{
+    const a=document.getElementById("whatIfTeamA").value;
+    const b=document.getElementById("whatIfTeamB").value;
+    const yr=document.getElementById("whatIfYear").value;
+    const st=document.getElementById("whatIfStatus");
+    if(!a||!b){ st.innerHTML=`<strong>Pick two teams</strong> to search historical matches.`; return; }
+    if(a===b){ st.innerHTML=`<strong>Teams must differ.</strong>`; return; }
+    st.innerHTML=`<em>Loading historical data…</em>`;
+    try{
+      await ensureData();
+      const matches=findHistoricalMatches(a,b,yr?parseInt(yr,10):null);
+      if(!matches.length){ st.innerHTML=`<strong>No matches found</strong> for ${a} vs ${b}${yr?" in "+yr:""}.`; return; }
+      st.innerHTML=`<strong>${matches.length} matches found.</strong> Pick one to replay:`;
+      renderMatchList(matches);
+    }catch(e){ st.innerHTML=`<strong>Error loading data:</strong> ${e.message}`; }
+  });
+
+  async function ensureData(){
+    if(MS.data) return MS.data;
+    if(MS.dataLoading) return MS.dataLoading;
+    MS.dataLoading=(async()=>{
+      // Phase 3 §3: dataset comes from the gated serveDerivedData endpoint via CTData
+      // (Bearer token + browser-native gzip inflation). CTData has its own cache too.
+      MS.data = await CTData.load('data');
+      return MS.data;
+    })();
+    return MS.dataLoading;
+  }
+
+  function findHistoricalMatches(t1Name,t2Name,year){
+    const D=MS.data;
+    const T=D.T;
+    const t1Idx=T.indexOf(t1Name), t2Idx=T.indexOf(t2Name);
+    if(t1Idx<0||t2Idx<0) return [];
+    const M=D.M;
+    const out=[];
+    for(const [tidStr,m] of Object.entries(M)){
+      const mT1=m[2], mT2=m[3], mYr=m[7];
+      const match=((mT1===t1Idx&&mT2===t2Idx)||(mT1===t2Idx&&mT2===t1Idx));
+      if(!match) continue;
+      if(year && mYr!==year) continue;
+      out.push({tid:parseInt(tidStr,10),t1:mT1,t2:mT2,year:mYr,winner:m[4],toss:m[5],ground:m[1]});
+    }
+    out.sort((a,b)=>b.year-a.year);
+    return out.slice(0,40);  // cap at 40 matches to keep UI manageable
+  }
+
+  function renderMatchList(matches){
+    const list=document.getElementById("whatIfMatchList");
+    list.style.display="block";
+    const D=MS.data;
+    const T=D.T, G=D.G, R=D.R;
+    const rows=matches.map(m=>{
+      const resultStr=(m.winner===-1)?"Drawn":T[m.winner]+" won";
+      const venue=G[m.ground]||"";
+      return `<div class="picker-result" style="grid-template-columns:1fr 1fr auto" data-tid="${m.tid}" role="button">
+        <div><div class="pr-name">${T[m.t1]} vs ${T[m.t2]}</div><div class="pr-full">${m.year} · ${venue}</div></div>
+        <div class="pr-era" style="text-align:left">${resultStr}</div>
+        <button class="picker-close" style="margin-left:8px">Replay</button>
+      </div>`;
+    }).join("");
+    list.innerHTML=`<div class="series-card"><div class="sc-head"><div class="sc-title">Historical Matches</div><div class="sc-sub">${matches.length} found · newest first</div></div><div style="max-height:360px;overflow-y:auto">${rows}</div></div>`;
+    list.querySelectorAll("[data-tid]").forEach(row=>{
+      row.addEventListener("click",()=>loadHistoricalMatch(parseInt(row.getAttribute("data-tid"),10)));
+    });
+  }
+
+  // Derive which team batted first in a historical match by finding the team whose players
+  // appear in innings-1 scorecard rows. Mirrors the Python pipeline's logic.
+  function deriveBatFirstTeam(tid){
+    const D=MS.data;
+    if(!D) return null;
+    const plyById={}; for(const p of D.P) plyById[p[0]]=p;
+    const counts={};
+    for(const s of D.S){
+      if(s[0]!==tid) continue;
+      if(s[2]!==1) continue; // innings 1 only
+      // Batted? (runs>0 or not-out flag or balls-faced>0). Excludes bowling-only rows.
+      const batted=(s[3]>0)||(s[4]===1)||(s[5]>0);
+      if(!batted) continue;
+      const p=plyById[s[1]]; if(!p) continue;
+      counts[p[3]]=(counts[p[3]]||0)+1;
+    }
+    let best=null, bestN=0;
+    for(const k in counts){ if(counts[k]>bestN){ best=k; bestN=counts[k]; } }
+    return best;
+  }
+
+  function loadHistoricalMatch(tid){
+    const D=MS.data;
+    const m=D.M[String(tid)];
+    if(!m){ toast("Match not found",true); return; }
+    const T=D.T, G=D.G, R=D.R, P=D.P, S=D.S;
+    const t1Idx=m[2], t2Idx=m[3];
+    const t1Name=T[t1Idx], t2Name=T[t2Idx];
+    // Reconstruct XI: same logic as python side — distinct player IDs for the match whose country matches the team
+    const plyById={}; for(const p of P) plyById[p[0]]=p;
+    const seen={[t1Name]:[],[t2Name]:[]}; const seenSet=new Set();
+    for(const s of S){
+      if(s[0]!==tid) continue;
+      const pid=s[1]; if(seenSet.has(pid)) continue;
+      const pl=plyById[pid]; if(!pl) continue;
+      if(pl[3]===t1Name||pl[3]===t2Name){ seen[pl[3]].push(pid); seenSet.add(pid); }
+    }
+    const mapToRating=pid=>SimEngine.getPlayer(pid);
+    MS.xi.H=seen[t1Name].slice(0,11).map(mapToRating);
+    MS.xi.V=seen[t2Name].slice(0,11).map(mapToRating);
+    while(MS.xi.H.length<11) MS.xi.H.push(null);
+    while(MS.xi.V.length<11) MS.xi.V.push(null);
+    document.getElementById("whatIfTeamHLabel").textContent=t1Name+" (listed first in data)";
+    document.getElementById("whatIfTeamVLabel").textContent=t2Name;
+    renderXI("H"); renderXI("V");
+    document.getElementById("whatIfSimArea").style.display="block";
+    // Store the match. Also derive actual bat-first team from innings-1 scorecards (ground truth,
+    // not toss winner — a captain who won the toss and chose to bowl is not the bat-first team).
+    const batFirstTeam=deriveBatFirstTeam(tid);
+    MS.currentHistMatch={tid,t1Name,t2Name,t1Idx,t2Idx,winner:m[4],toss:m[5],groundIdx:m[1],locationIdx:m[6],batFirstTeam};
+    // Populate the bat-first selector: "Actual" + both teams. Default = Actual.
+    const bfSel=document.getElementById("batFirstSelect3");
+    const actualLabel=batFirstTeam?("Actual ("+batFirstTeam+")"):"Actual (unknown)";
+    bfSel.innerHTML=
+      '<option value="actual" selected>'+actualLabel+'</option>'+
+      '<option value="T1">'+t1Name+' bats first</option>'+
+      '<option value="T2">'+t2Name+' bats first</option>';
+    const actualBox=document.getElementById("whatIfActualBox");
+    const winnerStr=(m[4]===-1)?"<strong>Match drawn</strong>":"<strong>"+T[m[4]]+" won</strong>";
+    const batFirstStr=batFirstTeam?"<strong>"+batFirstTeam+"</strong> batted first":"bat-first unknown";
+    actualBox.innerHTML=`Actual outcome: ${winnerStr} at ${G[m[1]]||"(unknown venue)"} · ${batFirstStr}. Swap any player above to see how the match probability shifts.`;
+    document.getElementById("whatIfSimArea").scrollIntoView({behavior:"smooth",block:"start"});
+  }
+
+  document.getElementById("runBtn3").addEventListener("click",()=>{
+    if(!MS.currentHistMatch){ toast("Load a match first",true); return; }
+    const h=MS.currentHistMatch;
+    // Venue: use authoritative location L-index from D.M[m[6]] with UAE-as-Pakistan-home override.
+    // Previous ground-substring heuristic failed on ~98 tests (Mirpur/Abu Dhabi/Dubai/Sharjah/
+    // Darren Sammy/Darwin/various Indian regional venues) and had no way to encode Pakistan's
+    // UAE home tests, defaulting them to neutral. D.L[m[6]] is the xlsx Location field and is
+    // authoritative; we only override for UAE-with-Pakistan.
+    const D=MS.data;
+    let homeCountry=D.L[h.locationIdx]||"";
+    if(homeCountry==="U.A.E." && (h.t1Name==="Pakistan"||h.t2Name==="Pakistan")){
+      homeCountry="Pakistan";
+    }
+    let home=0;
+    if(homeCountry===h.t1Name) home=1;
+    else if(homeCountry===h.t2Name) home=-1;
+    // Bat-first: "actual" = derived from innings-1 scorecards; "T1"/"T2" = user-overridden counterfactual
+    let bat_first=0;
+    const bfChoice=document.getElementById("batFirstSelect3").value;
+    if(bfChoice==="T1") bat_first=1;
+    else if(bfChoice==="T2") bat_first=-1;
+    else { // "actual" (or fallback)
+      if(h.batFirstTeam===h.t1Name) bat_first=1;
+      else if(h.batFirstTeam===h.t2Name) bat_first=-1;
+    }
+    runSim("H","V",{home,bat_first,N:1,iters:10000},{A:h.t1Name,B:h.t2Name});
+  });
+
+  // ── Boot
+  async function boot(){
+    try{
+      await SimEngine.load(await CTData.load('ratings'), await CTData.load('model'));
+      populateTeamSelects();
+      bindTeamSelects();
+      populatePresetDropdowns();
+      bindPresetDropdowns();
+      ["A","B","X","Y","H","V"].forEach(renderXI);
+      applyCrossEraDefaults();
+      updateRunButtons();
+      // Surface pipeline generation date in the Data Files footer
+      try{
+        const state=SimEngine._state();
+        const g=(state.ratings.generated_at||"").slice(0,10);
+        const el=document.getElementById("dataFilesGen");
+        if(el && g) el.innerHTML='<span style="color:var(--text3)">· ratings generated '+g+'</span>';
+      }catch(e){/* non-fatal */}
+      document.getElementById("dataLoadingOverlay").style.display="none";
+      // Non-blocking: fetch calibration.json and populate the method-note accuracy numbers.
+      // If this fails (missing file, parse error, network hiccup) the hardcoded fallback values
+      // rendered in the HTML stay put. Never blocks the engine or the UI.
+      fetch(CALIB_URL).then(r=>r.ok?r.json():null).then(calib=>{
+        if(!calib) return;
+        const at=calib.all_time||{}, base=calib.baseline||{};
+        const setText=(id,v)=>{const el=document.getElementById(id); if(el && v!=null) el.textContent=v;};
+        if(calib.n_matches_scored) setText("calibN", Number(calib.n_matches_scored).toLocaleString());
+        if(at.log_loss!=null) setText("calibLogLoss", at.log_loss.toFixed(2));
+        if(at.brier_multiclass!=null) setText("calibBrier", at.brier_multiclass.toFixed(2));
+        if(base.uniform_three_class_log_loss!=null) setText("calibLogLossBase", base.uniform_three_class_log_loss.toFixed(2));
+        if(base.uniform_three_class_brier!=null) setText("calibBrierBase", base.uniform_three_class_brier.toFixed(2));
+      }).catch(()=>{/* non-fatal, fallback numbers stay */});
+    }catch(e){
+      console.error(e);
+      document.getElementById("dataLoadingOverlay").innerHTML=`
+        <div style="text-align:center;max-width:440px;padding:20px">
+          <div style="font-family:'Playfair Display',serif;font-size:20px;color:var(--accent);margin-bottom:8px">Engine failed to load</div>
+          <div style="font-family:'Source Serif 4',serif;font-size:14px;color:var(--text2);line-height:1.6">
+            Could not fetch <code>${RATINGS_URL}</code> or <code>${MODEL_URL}</code>.<br><br>
+            These are pipeline artifacts produced by <code>build_ratings.py</code> and <code>fit_match_model.py</code>. A third artifact, <code>calibration.json</code>, supplies the accuracy numbers in the method note and is fetched separately (a missing <code>calibration.json</code> does not block the page).<br><br>
+            All files must sit in the same directory as <code>simulations.html</code>.<br><br>
+            <span style="color:var(--text3);font-size:12px">${e.message}</span>
+          </div>
+        </div>`;
+    }
+  }
+  boot();
+})();
+</script>
+
+<script src="ct-nav.js"></script>
+</body>
+</html>

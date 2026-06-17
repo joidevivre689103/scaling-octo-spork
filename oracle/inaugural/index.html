@@ -1,0 +1,2801 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!-- CT_7G_INJECT:START (auto-injected by deploy tool — do not edit by hand) -->
+<style id="ct-7g-hide">body{visibility:hidden}</style>
+<script>window.CT_PAGE_ID="oracleEdition";</script>
+<script src="/feature-flags.js"></script>
+<script src="/auth-status.js"></script>
+<script>setTimeout(function(){if(!window.__ctFlagsLoaded){location.replace("/comingsoon.html");}},2500);</script>
+<!-- CT_7G_INJECT:END -->
+<script src="/prelaunch-guard.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>The Test Cricket Oracle — Inaugural Edition, June 2026 | Cricket Times</title>
+<meta name="description" content="The Test Cricket Oracle · Inaugural Edition, June 2026. 20 questions on 149 years of Test cricket. Most self-described obsessives score 13/20. Can you do better?">
+<!-- ORACLE EDITION RESOLUTION:
+     This file lives at /oracle/inaugural/ and serves the Inaugural Edition
+     permanently, regardless of which edition is currently set to default
+     at /oracle.html. When a second edition (e.g. Bowlers) ships, share
+     cards from this URL continue to say "Inaugural Edition" because this
+     file's meta tag pins to that edition's Firestore doc.
+     ═══════════════════════════════════════════════════════════════════════
+     ⚠️ IMPORTANT: This file is a NEAR-DUPLICATE of /oracle.html with one
+     meaningful difference — the content="inaugural" below (vs "current" in
+     oracle.html). If you edit the main oracle.html (e.g. new CSS, new JS,
+     updated copy), you MUST also copy the same changes into THIS file to
+     keep them in sync. A proper fix is to extract the quiz engine into a
+     shared oracle-engine.js; that refactor is deferred to a later session.
+     ═══════════════════════════════════════════════════════════════════════ -->
+<meta name="oracle-edition" content="inaugural">
+
+<!-- Open Graph / Facebook / WhatsApp / iMessage -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://cricketimes.com/oracle/inaugural/">
+<meta property="og:title" content="The Test Cricket Oracle — Inaugural Edition">
+<meta property="og:description" content="Inaugural Edition · June 2026. 20 questions. 149 years. Most self-described obsessives score 13/20. Can you do better?">
+<meta property="og:image" content="https://cricketimes.com/quiz-og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:site_name" content="Cricket Times">
+
+<!-- Twitter / X -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:url" content="https://cricketimes.com/oracle/inaugural/">
+<meta name="twitter:title" content="The Test Cricket Oracle — Inaugural Edition">
+<meta name="twitter:description" content="Inaugural Edition · June 2026. 20 questions. 149 years. Most self-described obsessives score 13/20. Can you do better?">
+<meta name="twitter:image" content="https://cricketimes.com/quiz-og-image.png">
+
+<!-- Canonical -->
+<link rel="canonical" href="https://cricketimes.com/oracle/inaugural/">
+
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,300;8..60,400;8..60,500;8..60,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- Firebase: [migrated 2026-06-03, item (g)] compat 9.23.0 removed; this page
+     now uses the modular 10.12.5 SDK, imported inside the quiz module script
+     below — same migration as /oracle.html, keeping the near-duplicates in
+     sync. Clears the compat/modular clash behind the injector's /oracle/
+     subpath hold-out. -->
+
+<!-- MailerLite Universal (for email wall) -->
+<script>
+    (function(w,d,e,u,f,l,n){w[f]=w[f]||function(){(w[f].q=w[f].q||[])
+    .push(arguments);},l=d.createElement(e),l.async=1,l.src=u,
+    n=d.getElementsByTagName(e)[0],n.parentNode.insertBefore(l,n);})
+    (window,document,'script','https://assets.mailerlite.com/js/universal.js','ml');
+    ml('account', '2259944');
+</script>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+
+:root{
+  --bg:#FDF6E3;--surface:#FFFDF7;--surface2:#F5EDDA;--surface3:#E8DCC8;
+  --border:#D4C5A9;--border2:#c8b898;
+  --text:#1A1A1A;--text2:#444;--text3:#888;
+  --accent:#8B0000;--accent-hover:#6B0000;--accent-light:#A52A2A;--accent-dim:rgba(139,0,0,0.06);
+  --gold:#B8860B;--green:#1E6B3A;--green-dim:rgba(30,107,58,0.10);
+  --red:#b03030;
+  --card-bg:#FFFDF7;--shadow:rgba(0,0,0,0.08);--radius:6px;
+}
+
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Source Serif 4',Georgia,serif;
+  min-height:100vh;
+  line-height:1.6;
+}
+
+/* ═══ MASTHEAD (simplified for quiz page) ═══ */
+.masthead{
+  text-align:center;
+  padding:20px 24px 16px;
+  border-bottom:2px solid var(--text);
+}
+.masthead-date{
+  font-family:'Inter',sans-serif;
+  font-size:10.5px;
+  font-weight:500;
+  letter-spacing:1.2px;
+  text-transform:uppercase;
+  color:var(--text3);
+  margin-bottom:6px;
+}
+.masthead-logo{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(30px,6vw,44px);
+  font-weight:700;
+  letter-spacing:-1px;
+  line-height:1.1;
+  color:var(--text);
+  text-decoration:none;
+  display:inline-block;
+}
+.masthead-logo span{ color:var(--accent); }
+.masthead-tagline{
+  font-family:'Inter',sans-serif;
+  font-size:10px;
+  font-weight:500;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  color:var(--text3);
+  margin-top:4px;
+}
+
+/* ═══ MAIN CONTAINER ═══ */
+.main{
+  max-width:720px;
+  margin:0 auto;
+  padding:0 24px;
+}
+
+/* ═══ SCREEN CONTAINERS — only one visible at a time ═══ */
+.screen{ display:none; }
+.screen.active{ display:block; }
+
+/* ═══ INTRO SCREEN ═══ */
+.intro-screen{
+  padding:56px 0 40px;
+  text-align:center;
+}
+.intro-kicker{
+  font-family:'Inter',sans-serif;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  color:var(--accent);
+  margin-bottom:16px;
+}
+.intro-headline{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(36px,6vw,56px);
+  font-weight:700;
+  line-height:1.1;
+  letter-spacing:-1px;
+  margin-bottom:20px;
+}
+.intro-headline em{
+  font-style:italic;
+  color:var(--accent);
+}
+.intro-dek{
+  font-family:'Source Serif 4',Georgia,serif;
+  font-size:clamp(16px,1.9vw,19px);
+  line-height:1.55;
+  color:var(--text2);
+  max-width:560px;
+  margin:0 auto 20px;
+}
+.intro-stats{
+  display:flex;
+  justify-content:center;
+  gap:28px;
+  flex-wrap:wrap;
+  margin:28px 0 36px;
+  padding:18px 0;
+  border-top:1px solid var(--border);
+  border-bottom:1px solid var(--border);
+}
+.intro-stat{ text-align:center; }
+.intro-stat-num{
+  font-family:'Playfair Display',serif;
+  font-size:28px;
+  font-weight:700;
+  color:var(--accent);
+  line-height:1;
+  letter-spacing:-0.5px;
+}
+.intro-stat-label{
+  font-family:'Inter',sans-serif;
+  font-size:10px;
+  font-weight:600;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  color:var(--text3);
+  margin-top:4px;
+}
+
+/* ═══ BUTTONS ═══ */
+.btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  font-family:'Inter',sans-serif;
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  padding:14px 28px;
+  border-radius:var(--radius);
+  cursor:pointer;
+  text-decoration:none;
+  transition:background 0.15s, border-color 0.15s, transform 0.1s, color 0.15s;
+  border:1.5px solid transparent;
+  background:none;
+}
+.btn-primary{
+  background:var(--accent);
+  color:#fff;
+  border-color:var(--accent);
+}
+.btn-primary:hover{
+  background:var(--accent-hover);
+  border-color:var(--accent-hover);
+}
+.btn-primary:active{ transform:translateY(1px); }
+.btn-primary:disabled{
+  background:var(--surface3);
+  border-color:var(--surface3);
+  color:var(--text3);
+  cursor:not-allowed;
+}
+.btn-ghost{
+  background:transparent;
+  color:var(--text2);
+  border-color:var(--border2);
+}
+.btn-ghost:hover{
+  color:var(--accent);
+  border-color:var(--accent);
+}
+.btn-big{
+  font-size:13px;
+  padding:16px 34px;
+  letter-spacing:1.6px;
+}
+
+/* ═══ LOADING / ERROR STATES ═══ */
+.loading-screen{
+  padding:80px 24px;
+  text-align:center;
+}
+.loading-spinner{
+  display:inline-block;
+  width:36px;
+  height:36px;
+  border:3px solid var(--border2);
+  border-top-color:var(--accent);
+  border-radius:50%;
+  animation:spin 0.9s linear infinite;
+  margin-bottom:18px;
+}
+@keyframes spin { to { transform:rotate(360deg); } }
+.loading-msg{
+  font-family:'Inter',sans-serif;
+  font-size:12px;
+  font-weight:600;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  color:var(--text3);
+}
+.error-box{
+  max-width:520px;
+  margin:60px auto;
+  padding:28px 32px;
+  background:var(--surface);
+  border:1.5px solid var(--red);
+  border-radius:10px;
+  text-align:center;
+}
+.error-box h2{
+  font-family:'Playfair Display',serif;
+  font-size:22px;
+  color:var(--red);
+  margin-bottom:10px;
+}
+.error-box p{
+  font-size:14.5px;
+  color:var(--text2);
+  margin-bottom:16px;
+}
+
+/* ═══ QUIZ SCREEN ═══ */
+.quiz-screen{ padding:28px 0 48px; }
+
+.progress-bar-wrap{
+  margin-bottom:30px;
+}
+.progress-meta{
+  display:flex;
+  justify-content:space-between;
+  align-items:baseline;
+  margin-bottom:8px;
+}
+.progress-label{
+  font-family:'Inter',sans-serif;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  color:var(--accent);
+}
+.progress-count{
+  font-family:'Playfair Display',serif;
+  font-size:15px;
+  font-weight:600;
+  color:var(--text2);
+  letter-spacing:-0.3px;
+}
+.progress-count strong{
+  font-size:22px;
+  color:var(--accent);
+  font-weight:700;
+}
+.progress-bar{
+  height:5px;
+  background:var(--surface3);
+  border-radius:3px;
+  overflow:hidden;
+}
+.progress-bar-fill{
+  height:100%;
+  background:var(--accent);
+  border-radius:3px;
+  width:0%;
+  transition:width 0.3s ease;
+}
+
+.question-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:32px 30px 28px;
+  box-shadow:0 2px 12px rgba(0,0,0,0.04);
+}
+.question-num{
+  font-family:'Inter',sans-serif;
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:2.5px;
+  text-transform:uppercase;
+  color:var(--text3);
+  margin-bottom:12px;
+}
+.question-text{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(22px,3vw,28px);
+  font-weight:600;
+  line-height:1.25;
+  letter-spacing:-0.3px;
+  color:var(--text);
+  margin-bottom:26px;
+}
+
+/* ═══ ANSWER OPTIONS ═══ */
+.options-list{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  margin-bottom:28px;
+}
+.option{
+  display:flex;
+  align-items:flex-start;
+  gap:14px;
+  padding:14px 16px;
+  background:var(--surface);
+  border:1.5px solid var(--border);
+  border-radius:8px;
+  cursor:pointer;
+  text-align:left;
+  font-family:'Source Serif 4',Georgia,serif;
+  font-size:15.5px;
+  line-height:1.5;
+  color:var(--text);
+  transition:background 0.15s, border-color 0.15s;
+  width:100%;
+}
+.option:hover{
+  background:var(--surface2);
+  border-color:var(--border2);
+}
+.option.selected{
+  background:var(--accent-dim);
+  border-color:var(--accent);
+}
+.option-letter{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  flex-shrink:0;
+  width:28px;
+  height:28px;
+  border-radius:50%;
+  background:var(--surface2);
+  border:1.5px solid var(--border2);
+  font-family:'Playfair Display',serif;
+  font-size:14px;
+  font-weight:700;
+  color:var(--text2);
+  line-height:1;
+  margin-top:-1px;
+  transition:background 0.15s, border-color 0.15s, color 0.15s;
+}
+.option.selected .option-letter{
+  background:var(--accent);
+  border-color:var(--accent);
+  color:#fff;
+}
+.option-text{ flex:1; min-width:0; }
+
+/* ═══ NAVIGATION ROW ═══ */
+.nav-row{
+  display:flex;
+  gap:12px;
+  justify-content:space-between;
+  align-items:center;
+  flex-wrap:wrap;
+}
+.nav-row .nav-spacer{ flex:1; }
+
+/* ═══ EMAIL WALL ═══ */
+.email-wall{
+  max-width:520px;
+  margin:56px auto 48px;
+  padding:40px 36px;
+  background:var(--surface);
+  border:2px solid var(--accent);
+  border-radius:12px;
+  text-align:center;
+  box-shadow:0 6px 24px rgba(0,0,0,0.08);
+}
+.email-wall-kicker{
+  font-family:'Inter',sans-serif;
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:2.5px;
+  text-transform:uppercase;
+  color:var(--accent);
+  margin-bottom:14px;
+}
+.email-wall h2{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(26px,3.5vw,32px);
+  font-weight:700;
+  line-height:1.2;
+  letter-spacing:-0.3px;
+  margin-bottom:12px;
+}
+.email-wall p{
+  font-family:'Source Serif 4',Georgia,serif;
+  font-size:15px;
+  color:var(--text2);
+  max-width:420px;
+  margin:0 auto 20px;
+  line-height:1.55;
+}
+.email-wall-inline-form{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  max-width:400px;
+  margin:20px auto 8px;
+}
+.email-wall-input{
+  font-family:'Source Serif 4',Georgia,serif;
+  font-size:15px;
+  padding:13px 16px;
+  border:1.5px solid var(--border2);
+  border-radius:var(--radius);
+  background:var(--surface);
+  color:var(--text);
+}
+.email-wall-input:focus{
+  outline:none;
+  border-color:var(--accent);
+  box-shadow:0 0 0 3px var(--accent-dim);
+}
+.email-wall-input.error{
+  border-color:var(--red);
+  box-shadow:0 0 0 3px rgba(176,48,48,0.12);
+}
+.email-wall-error{
+  display:none;
+  color:var(--red);
+  font-family:'Inter',sans-serif;
+  font-size:12px;
+  margin-top:-4px;
+}
+.email-wall-error.visible{ display:block; }
+.email-wall-fineprint{
+  font-family:'Inter',sans-serif;
+  font-size:10.5px;
+  color:var(--text3);
+  margin-top:16px;
+  line-height:1.5;
+  letter-spacing:0.3px;
+}
+
+/* ═══ SKIP EMAIL LINK ═══
+   Faint secondary option under the primary "See My Score" button.
+   Framed as a give-up option, not a prominent alternative — the design
+   goal is to capture most emails without bait-and-switching the few
+   who refuse. Visual weight is deliberately low. */
+.email-wall-skip{
+  margin-top:18px;
+  font-family:'Inter',sans-serif;
+  font-size:11px;
+  color:var(--text3);
+  letter-spacing:0.2px;
+}
+.email-wall-skip-link{
+  color:var(--text3);
+  text-decoration:underline;
+  text-decoration-color:var(--border);
+  text-underline-offset:3px;
+  background:none;
+  border:none;
+  padding:0;
+  font:inherit;
+  cursor:pointer;
+  transition:color 0.15s;
+}
+.email-wall-skip-link:hover{ color:var(--text2); text-decoration-color:var(--text3); }
+.email-wall-skip-note{
+  font-family:'Inter',sans-serif;
+  font-size:10.5px;
+  color:var(--text3);
+  font-style:italic;
+  margin-top:3px;
+  opacity:0.85;
+}
+
+/* ═══ PSEUDONYM FIELD (sits inside the email wall, above MailerLite form) ═══ */
+.pseudonym-block{
+  max-width:380px;
+  margin:0 auto 18px;
+  text-align:left;
+}
+.pseudonym-label{
+  display:block;
+  font-family:'Inter',sans-serif;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:1.2px;
+  text-transform:uppercase;
+  color:var(--text2);
+  margin-bottom:6px;
+}
+.pseudonym-label-note{
+  font-weight:400;
+  text-transform:none;
+  letter-spacing:0;
+  color:var(--text3);
+  font-size:11px;
+}
+.pseudonym-input-wrap{
+  position:relative;
+}
+.pseudonym-input{
+  width:100%;
+  padding:12px 44px 12px 14px;
+  font-family:'Source Serif 4',Georgia,serif;
+  font-size:15px;
+  color:var(--text);
+  background:var(--surface);
+  border:1.5px solid var(--border2);
+  border-radius:6px;
+  transition:border-color 0.15s, box-shadow 0.15s;
+}
+.pseudonym-input:focus{
+  outline:none;
+  border-color:var(--accent);
+  box-shadow:0 0 0 3px rgba(139,0,0,0.08);
+}
+.pseudonym-input.valid{ border-color:var(--green); }
+.pseudonym-input.invalid{ border-color:var(--red); }
+.pseudonym-input.checking{ border-color:var(--gold); }
+.pseudonym-status{
+  position:absolute;
+  right:12px;
+  top:50%;
+  transform:translateY(-50%);
+  font-family:'Inter',sans-serif;
+  font-size:14px;
+  font-weight:700;
+  pointer-events:none;
+}
+.pseudonym-status.valid{ color:var(--green); }
+.pseudonym-status.invalid{ color:var(--red); }
+.pseudonym-status.checking{ color:var(--gold); }
+.pseudonym-help{
+  font-family:'Inter',sans-serif;
+  font-size:11px;
+  color:var(--text3);
+  margin-top:5px;
+  line-height:1.4;
+}
+.pseudonym-help.error{ color:var(--red); font-weight:500; }
+.pseudonym-help.ok{ color:var(--green); font-weight:500; }
+
+/* ═══ MAILERLITE FORM STYLING OVERRIDES (inside email-wall) ═══
+   Quiz uses the real MailerLite embed (form Ty4y4O) because programmatic
+   subscribe from client-side JS isn't possible without an API key. These
+   overrides push MailerLite's injected markup toward Cricket Times aesthetic
+   so it feels like part of the page, not a bolt-on widget.
+   Mirrors comingsoon.html's overrides — if MailerLite changes markup, both
+   pages will degrade together rather than mysteriously only one of them.
+   After submission, MailerLite redirects to oracle.html?subscribed=quiz which
+   our code handles on page load to restore state and show the score. */
+.email-wall .ml-embedded{
+  margin:0 auto;
+  max-width:520px;
+}
+.email-wall .ml-embedded .ml-form-embedWrapper,
+.email-wall .ml-embedded .ml-form-embedContent,
+.email-wall .ml-embedded .ml-form-embedBody,
+.email-wall .ml-embedded .ml-form-embedContainer{
+  background:transparent !important;
+  border:none !important;
+  padding:0 !important;
+  box-shadow:none !important;
+  max-width:none !important;
+}
+/* Hide MailerLite's own heading/description — our copy above the embed is better */
+.email-wall .ml-embedded .ml-form-embedContent,
+.email-wall .ml-embedded h4.ml-form-embedContent,
+.email-wall .ml-embedded .ml-form-embedContent > *{
+  display:none !important;
+}
+.email-wall .ml-embedded input[type="email"],
+.email-wall .ml-embedded .ml-field-email input,
+.email-wall .ml-embedded input.form-control{
+  font-family:'Source Serif 4',Georgia,serif !important;
+  font-size:16px !important;
+  padding:14px 18px !important;
+  border:1.5px solid var(--border2) !important;
+  border-radius:var(--radius) !important;
+  background:var(--surface) !important;
+  color:var(--text) !important;
+  height:auto !important;
+  line-height:1.4 !important;
+  width:100% !important;
+  max-width:none !important;
+  box-shadow:none !important;
+}
+.email-wall .ml-embedded input[type="email"]:focus,
+.email-wall .ml-embedded .ml-field-email input:focus,
+.email-wall .ml-embedded input.form-control:focus{
+  border-color:var(--accent) !important;
+  box-shadow:0 0 0 3px var(--accent-dim) !important;
+  outline:none !important;
+}
+.email-wall .ml-embedded input[type="email"]::placeholder,
+.email-wall .ml-embedded input.form-control::placeholder{
+  color:var(--text3) !important;
+  font-style:italic !important;
+}
+.email-wall .ml-embedded button,
+.email-wall .ml-embedded button[type="submit"],
+.email-wall .ml-embedded .primary,
+.email-wall .ml-embedded .ml-form-embedSubmit button{
+  font-family:'Inter',sans-serif !important;
+  font-size:12px !important;
+  font-weight:700 !important;
+  letter-spacing:1.5px !important;
+  text-transform:uppercase !important;
+  padding:14px 26px !important;
+  background:var(--accent) !important;
+  color:#fff !important;
+  border:1.5px solid var(--accent) !important;
+  border-radius:var(--radius) !important;
+  height:auto !important;
+  line-height:1.2 !important;
+  cursor:pointer !important;
+  transition:background 0.2s !important;
+  box-shadow:none !important;
+  width:100% !important;
+  margin-top:4px !important;
+}
+.email-wall .ml-embedded button:hover,
+.email-wall .ml-embedded button[type="submit"]:hover,
+.email-wall .ml-embedded .primary:hover,
+.email-wall .ml-embedded .ml-form-embedSubmit button:hover{
+  background:var(--accent-hover) !important;
+  border-color:var(--accent-hover) !important;
+}
+/* Success message styling — shown briefly before MailerLite's redirect fires.
+   Most users won't see it (redirect happens in ~1s), but style it anyway in
+   case the redirect fails or is delayed. */
+.email-wall .ml-embedded .ml-form-successBody,
+.email-wall .ml-embedded .ml-form-successContent{
+  background:rgba(30,107,58,0.10) !important;
+  border:1px solid rgba(30,107,58,0.25) !important;
+  border-radius:var(--radius) !important;
+  padding:16px 20px !important;
+  font-family:'Source Serif 4',Georgia,serif !important;
+  color:var(--green) !important;
+}
+.email-wall .ml-embedded .ml-form-successContent h4,
+.email-wall .ml-embedded .ml-form-successBody h4{
+  font-family:'Playfair Display',serif !important;
+  color:var(--green) !important;
+  font-size:18px !important;
+  margin-bottom:6px !important;
+}
+/* MailerLite footer branding / permissions text — dim it */
+.email-wall .ml-embedded .ml-form-embedPermissions,
+.email-wall .ml-embedded .ml-form-formContent,
+.email-wall .ml-embedded .ml-form-embedPermissions p{
+  font-family:'Inter',sans-serif !important;
+  font-size:11px !important;
+  color:var(--text3) !important;
+}
+/* Error message styling */
+.email-wall .ml-embedded .ml-error-message,
+.email-wall .ml-embedded .ml-block-form .ml-field-group.ml-error .label-description{
+  color:#b03030 !important;
+  font-family:'Inter',sans-serif !important;
+  font-size:12px !important;
+}
+/* Loading placeholder shown until MailerLite injects the form */
+.email-wall-ml-placeholder{
+  font-family:'Inter',sans-serif;
+  font-size:12px;
+  font-weight:500;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  color:var(--text3);
+  padding:24px 0;
+  text-align:center;
+}
+.email-wall-ml-placeholder.hidden{ display:none; }
+
+/* ═══ SCORE SUBSCRIBED BANNER ═══
+   Shown at top of the score screen ONLY when the user submitted their email
+   (not when they skipped). Mirrors the confirmation banner on comingsoon.html
+   for consistency. Green = "you're in the system, check your inbox". */
+.score-subscribed-banner{
+  display:none;
+  max-width:640px;
+  margin:0 auto 20px;
+  padding:12px 18px;
+  background:rgba(30,107,58,0.08);
+  border:1px solid rgba(30,107,58,0.30);
+  border-left:4px solid var(--green);
+  border-radius:4px;
+  font-family:'Source Serif 4',Georgia,serif;
+  color:var(--green);
+  text-align:center;
+  font-size:14px;
+  line-height:1.5;
+}
+.score-subscribed-banner.visible{ display:block; }
+.score-subscribed-banner strong{
+  font-family:'Inter',sans-serif;
+  font-weight:700;
+  letter-spacing:0.3px;
+  color:#0e4a28;
+}
+.score-subscribed-banner .check{
+  display:inline-block;
+  width:18px;
+  height:18px;
+  border-radius:50%;
+  background:var(--green);
+  color:#fff;
+  font-size:11px;
+  font-weight:700;
+  line-height:18px;
+  text-align:center;
+  margin-right:6px;
+  vertical-align:middle;
+}
+
+/* ═══ SCORE REVEAL SCREEN ═══ */
+.score-screen{ padding:40px 0 56px; }
+
+.score-hero{
+  text-align:center;
+  padding:32px 24px 36px;
+  margin-bottom:32px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:12px;
+  position:relative;
+}
+.score-hero-kicker{
+  font-family:'Inter',sans-serif;
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:2.5px;
+  text-transform:uppercase;
+  color:var(--accent);
+  margin-bottom:16px;
+}
+.score-big{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(66px,14vw,96px);
+  font-weight:700;
+  line-height:1;
+  letter-spacing:-3px;
+  color:var(--accent);
+  margin-bottom:4px;
+}
+.score-big-sub{
+  font-family:'Inter',sans-serif;
+  font-size:13px;
+  font-weight:600;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  color:var(--text3);
+  margin-bottom:18px;
+}
+.score-band{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(22px,3.5vw,30px);
+  font-weight:700;
+  font-style:italic;
+  line-height:1.25;
+  letter-spacing:-0.3px;
+  color:var(--text);
+  margin-bottom:8px;
+}
+.score-band-desc{
+  font-family:'Source Serif 4',Georgia,serif;
+  font-size:15px;
+  color:var(--text2);
+  max-width:440px;
+  margin:0 auto;
+  line-height:1.5;
+}
+
+/* ═══ SHARE BUTTONS ═══ */
+.share-row-label{
+  font-family:'Inter',sans-serif;
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:2.5px;
+  text-transform:uppercase;
+  color:var(--accent);
+  text-align:center;
+  margin:28px 0 10px;
+}
+.share-row{
+  display:flex;
+  justify-content:center;
+  gap:10px;
+  flex-wrap:wrap;
+  margin:0 0 8px;
+}
+.share-btn{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:10px 18px;
+  font-family:'Inter',sans-serif;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:1.3px;
+  text-transform:uppercase;
+  border:1.5px solid var(--border2);
+  border-radius:var(--radius);
+  background:var(--surface);
+  color:var(--text2);
+  cursor:pointer;
+  text-decoration:none;
+  transition:background 0.15s, border-color 0.15s, color 0.15s;
+}
+.share-btn:hover{
+  background:var(--surface2);
+  border-color:var(--accent);
+  color:var(--accent);
+}
+.share-btn svg{ width:14px; height:14px; flex-shrink:0; }
+
+/* ═══ BREAKDOWN (per-question) ═══ */
+.breakdown-title{
+  font-family:'Inter',sans-serif;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:2.5px;
+  text-transform:uppercase;
+  color:var(--text3);
+  text-align:center;
+  padding-bottom:14px;
+  border-bottom:1px solid var(--border);
+  margin-bottom:24px;
+  margin-top:40px;
+}
+
+.breakdown-q{
+  padding:20px 22px;
+  border:1px solid var(--border);
+  border-radius:10px;
+  margin-bottom:14px;
+  background:var(--surface);
+}
+.breakdown-q.correct{
+  border-left:4px solid var(--green);
+}
+.breakdown-q.incorrect{
+  border-left:4px solid var(--red);
+}
+.breakdown-q.skipped{
+  border-left:4px solid var(--text3);
+  opacity:0.85;
+}
+.breakdown-q-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:baseline;
+  gap:12px;
+  margin-bottom:10px;
+  flex-wrap:wrap;
+}
+.breakdown-q-num{
+  font-family:'Inter',sans-serif;
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  color:var(--text3);
+}
+.breakdown-q-badge{
+  font-family:'Inter',sans-serif;
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:1.2px;
+  text-transform:uppercase;
+  padding:3px 10px;
+  border-radius:10px;
+}
+.breakdown-q-badge.correct{ background:var(--green-dim); color:var(--green); }
+.breakdown-q-badge.incorrect{ background:rgba(176,48,48,0.10); color:var(--red); }
+.breakdown-q-badge.skipped{ background:var(--surface3); color:var(--text3); }
+
+.breakdown-q-text{
+  font-family:'Playfair Display',serif;
+  font-size:17px;
+  font-weight:600;
+  line-height:1.3;
+  color:var(--text);
+  margin-bottom:14px;
+  letter-spacing:-0.2px;
+}
+
+.breakdown-answers{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  margin-bottom:14px;
+}
+.breakdown-answer-row{
+  padding:9px 12px;
+  border-radius:6px;
+  font-family:'Source Serif 4',Georgia,serif;
+  font-size:14px;
+  line-height:1.45;
+  color:var(--text2);
+  background:var(--surface2);
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+}
+.breakdown-answer-row.is-correct{
+  background:var(--green-dim);
+  color:var(--green);
+  font-weight:600;
+}
+.breakdown-answer-row.is-picked-wrong{
+  background:rgba(176,48,48,0.10);
+  color:var(--red);
+  font-weight:500;
+  text-decoration:line-through;
+  text-decoration-color:rgba(176,48,48,0.4);
+}
+.breakdown-answer-letter{
+  font-family:'Playfair Display',serif;
+  font-weight:700;
+  flex-shrink:0;
+  min-width:18px;
+}
+.breakdown-answer-tag{
+  font-family:'Inter',sans-serif;
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  padding:2px 7px;
+  border-radius:8px;
+  margin-left:auto;
+  flex-shrink:0;
+  align-self:center;
+}
+.breakdown-answer-tag.yours{ background:var(--accent-dim); color:var(--accent); }
+.breakdown-answer-tag.correct{ background:var(--green); color:#fff; }
+
+.breakdown-short-explainer{
+  padding:12px 14px;
+  background:var(--surface2);
+  border-left:3px solid var(--accent);
+  border-radius:4px;
+  font-family:'Source Serif 4',Georgia,serif;
+  font-size:14.5px;
+  line-height:1.55;
+  color:var(--text);
+}
+
+/* ═══ EXPANDABLE FULL EXPLANATION ═══ */
+.breakdown-expand{
+  margin-top:10px;
+}
+.breakdown-expand-toggle{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  font-family:'Inter',sans-serif;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:1.3px;
+  text-transform:uppercase;
+  color:var(--accent);
+  background:none;
+  border:none;
+  cursor:pointer;
+  padding:6px 0;
+  text-decoration:none;
+}
+.breakdown-expand-toggle:hover{ color:var(--accent-hover); }
+.breakdown-expand-toggle svg{
+  width:12px; height:12px;
+  stroke:currentColor; fill:none; stroke-width:2.5;
+  transition:transform 0.2s ease;
+}
+.breakdown-expand.open .breakdown-expand-toggle svg{
+  transform:rotate(180deg);
+}
+.breakdown-long-explanation{
+  display:none;
+  margin-top:10px;
+  padding:16px 18px;
+  background:var(--bg);
+  border:1px solid var(--border);
+  border-radius:8px;
+  font-family:'Source Serif 4',Georgia,serif;
+  font-size:14.5px;
+  line-height:1.65;
+  color:var(--text);
+}
+.breakdown-expand.open .breakdown-long-explanation{ display:block; }
+.breakdown-long-explanation p{
+  margin:0 0 12px;
+}
+.breakdown-long-explanation p:last-child{ margin-bottom:0; }
+.breakdown-article-link{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  margin-top:10px;
+  font-family:'Inter',sans-serif;
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:0.5px;
+  color:var(--accent);
+  text-decoration:none;
+  border-bottom:1px solid var(--accent);
+  padding-bottom:1px;
+}
+.breakdown-article-link:hover{
+  color:var(--accent-hover);
+  border-bottom-color:var(--accent-hover);
+}
+
+/* ═══ POST-SCORE CTA BLOCK (pre-launch vs post-launch) ═══ */
+.post-score-cta{
+  margin-top:40px;
+  padding:36px 28px;
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:12px;
+  text-align:center;
+}
+.post-score-cta-kicker{
+  font-family:'Inter',sans-serif;
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:2.5px;
+  text-transform:uppercase;
+  color:var(--accent);
+  margin-bottom:10px;
+}
+.post-score-cta h3{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(20px,2.8vw,26px);
+  font-weight:700;
+  line-height:1.25;
+  letter-spacing:-0.3px;
+  margin-bottom:10px;
+}
+.post-score-cta p{
+  font-family:'Source Serif 4',Georgia,serif;
+  font-size:15px;
+  color:var(--text2);
+  max-width:480px;
+  margin:0 auto 20px;
+  line-height:1.55;
+}
+.post-score-cta-row{
+  display:flex;
+  gap:10px;
+  justify-content:center;
+  flex-wrap:wrap;
+}
+
+/* ═══ RETURN-VISITOR BANNER ═══ */
+.return-banner{
+  display:none;
+  background:var(--green-dim);
+  border:1px solid var(--green);
+  border-radius:8px;
+  padding:14px 18px;
+  margin-bottom:24px;
+  font-family:'Source Serif 4',Georgia,serif;
+  font-size:14px;
+  color:var(--text2);
+  text-align:center;
+  line-height:1.5;
+}
+.return-banner.visible{ display:block; }
+.return-banner strong{ color:var(--green); }
+.return-banner-actions{
+  margin-top:10px;
+  display:flex;
+  gap:8px;
+  justify-content:center;
+  flex-wrap:wrap;
+}
+.return-banner-link{
+  font-family:'Inter',sans-serif;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  color:var(--green);
+  text-decoration:underline;
+  background:none;
+  border:none;
+  cursor:pointer;
+  padding:4px 8px;
+}
+.return-banner-link:hover{ color:var(--accent); }
+
+/* ═══ COPY-TO-CLIPBOARD TOAST ═══ */
+.copy-toast{
+  position:fixed;
+  bottom:30px;
+  left:50%;
+  transform:translateX(-50%) translateY(20px);
+  background:var(--text);
+  color:#fff;
+  padding:12px 22px;
+  border-radius:999px;
+  font-family:'Inter',sans-serif;
+  font-size:12px;
+  font-weight:600;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  opacity:0;
+  transition:opacity 0.25s, transform 0.25s;
+  pointer-events:none;
+  z-index:100;
+  box-shadow:0 4px 14px rgba(0,0,0,0.18);
+}
+.copy-toast.visible{
+  opacity:1;
+  transform:translateX(-50%) translateY(0);
+}
+
+/* ═══ FOOTER ═══ */
+.footer{
+  padding:28px 24px 36px;
+  text-align:center;
+  border-top:2px solid var(--text);
+  margin-top:40px;
+}
+.footer-logo{
+  font-family:'Playfair Display',serif;
+  font-size:20px;
+  font-weight:700;
+  color:var(--text);
+  margin-bottom:4px;
+}
+.footer-logo span{ color:var(--accent); }
+.footer-tagline{
+  font-family:'Inter',sans-serif;
+  font-size:10px;
+  font-weight:500;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  color:var(--text3);
+  margin-bottom:10px;
+}
+.footer-copy{
+  font-family:'Inter',sans-serif;
+  font-size:11px;
+  color:var(--text3);
+  letter-spacing:0.3px;
+}
+.footer-copy a{
+  color:var(--text3);
+  text-decoration:underline;
+}
+.footer-copy a:hover{ color:var(--accent); }
+
+/* ═══ RESPONSIVE ═══ */
+@media(max-width:600px){
+  .main{ padding:0 16px; }
+  .intro-screen{ padding:36px 0 24px; }
+  .intro-stats{ gap:20px; }
+  .question-card{ padding:24px 20px; }
+  .email-wall{ padding:32px 22px; margin:36px auto 32px; }
+  .score-hero{ padding:28px 18px 30px; }
+  .breakdown-q{ padding:16px 18px; }
+  .post-score-cta{ padding:28px 20px; }
+}
+</style>
+</head>
+<body>
+
+<!-- MASTHEAD -->
+<!-- Shared chrome [migrated 2026-06-05]: simplified quiz masthead replaced by
+     the site-wide masthead + primary nav (ct-nav.js, loaded at end of body).
+     The .masthead CSS block above is now unused and setMastheadDate() no-ops
+     (it guards on the element existing); cleanup of both is deferred to the
+     oracle-engine.js refactor. NEAR-DUPLICATE: same change mirrored in
+     /oracle.html. -->
+<header data-ct-nav="masthead"></header>
+<nav data-ct-nav="primary"></nav>
+
+<main class="main">
+
+  <!-- ═══ LOADING SCREEN (while Firestore responds) ═══ -->
+  <section class="screen active loading-screen" id="screen-loading">
+    <div class="loading-spinner"></div>
+    <div class="loading-msg">Loading the quiz…</div>
+  </section>
+
+  <!-- ═══ ERROR SCREEN (Firestore failure or empty quiz) ═══ -->
+  <section class="screen error-box" id="screen-error" style="display:none">
+    <h2>The quiz isn't ready</h2>
+    <p id="error-message">Something went wrong loading the quiz. Please try again.</p>
+    <button class="btn btn-primary" onclick="location.reload()">Retry</button>
+  </section>
+
+  <!-- ═══ INTRO SCREEN ═══ -->
+  <section class="screen intro-screen" id="screen-intro">
+    <!-- Return-visitor banner (shown if they've completed this edition before).
+         Under the single-attempt policy there's no retake option — only
+         "See your score". This is what lets the leaderboard mean something:
+         one score per user per edition. -->
+    <div class="return-banner" id="returnBanner">
+      <strong>The Oracle remembers.</strong> You scored <strong id="returnScore">—</strong>.
+      <div class="return-banner-actions">
+        <button class="return-banner-link" onclick="showPreviousScore()">See your score</button>
+      </div>
+    </div>
+
+    <!-- Kicker is filled in at load time by applyEditionBranding() using the
+         edition's metadata from Firestore. The placeholder here is just for
+         pre-JS rendering / first paint — don't rely on it staying accurate.
+         (If JS fails entirely, the "Inaugural Edition · June 2026" fallback
+         is at worst a stale edition name — not a functional bug.) -->
+    <div class="intro-kicker">◆ The Test Cricket Oracle · Inaugural Edition · June 2026</div>
+    <h1 class="intro-headline">
+      20 questions.<br>149 years.
+    </h1>
+    <p class="intro-dek">
+      The Oracle sees all 149 years of Test cricket. Let's see how much you do. One attempt &mdash; no second innings. Can you do <em style="font-style:italic;color:var(--accent)">better</em>?
+    </p>
+
+    <div class="intro-stats">
+      <div class="intro-stat">
+        <div class="intro-stat-num">20</div>
+        <div class="intro-stat-label">Questions</div>
+      </div>
+      <div class="intro-stat">
+        <div class="intro-stat-num">~7</div>
+        <div class="intro-stat-label">Minutes</div>
+      </div>
+      <div class="intro-stat">
+        <div class="intro-stat-num">1</div>
+        <div class="intro-stat-label">Attempt</div>
+      </div>
+    </div>
+
+    <button class="btn btn-primary btn-big" onclick="startQuiz()">
+      Start the Quiz <span>→</span>
+    </button>
+  </section>
+
+  <!-- ═══ QUIZ SCREEN (one question at a time) ═══ -->
+  <section class="screen quiz-screen" id="screen-quiz">
+    <div class="progress-bar-wrap">
+      <div class="progress-meta">
+        <span class="progress-label">Progress</span>
+        <span class="progress-count"><strong id="progress-current">1</strong> of <span id="progress-total">20</span></span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-bar-fill" id="progress-fill"></div>
+      </div>
+    </div>
+
+    <div class="question-card">
+      <div class="question-num" id="question-num">Question 1</div>
+      <h2 class="question-text" id="question-text">Loading…</h2>
+      <div class="options-list" id="options-list"></div>
+
+      <div class="nav-row">
+        <button class="btn btn-ghost" id="prev-btn" onclick="prevQuestion()">
+          <span>←</span> Previous
+        </button>
+        <span class="nav-spacer"></span>
+        <button class="btn btn-primary" id="next-btn" onclick="nextQuestion()" disabled>
+          Next <span>→</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ EMAIL WALL SCREEN ═══
+       Optional-with-friction email capture. Primary flow: user enters a
+       unique pseudonym + email (via MailerLite's embedded form) and gets
+       placed on the leaderboard. Faint secondary link lets users skip
+       straight to the score — still shown, but not leaderboard-eligible.
+       Pseudonym is validated client-side (format + reserved names) AND
+       server-side (uniqueness — checked against usedPseudonyms collection)
+       before the MailerLite submit is allowed through.  -->
+  <section class="screen" id="screen-email">
+    <div class="email-wall">
+      <div class="email-wall-kicker">◆ You're Done</div>
+      <h2>See your score</h2>
+      <p>Enter your email and pick a display name. We'll show your result, walk you through every answer, and place you on the leaderboard. Nothing else.</p>
+
+      <!-- Pseudonym field — our own input, not part of MailerLite's form.
+           Feeds into localStorage right before MailerLite submit so the
+           post-redirect handler can attach it to the score doc.
+           Live availability check debounced on blur + on input. -->
+      <div class="pseudonym-block">
+        <label class="pseudonym-label" for="pseudonymInput">Display name <span class="pseudonym-label-note">(for the leaderboard)</span></label>
+        <div class="pseudonym-input-wrap">
+          <input
+            type="text"
+            id="pseudonymInput"
+            class="pseudonym-input"
+            placeholder="e.g. CricketFan23"
+            maxlength="20"
+            autocomplete="off"
+            spellcheck="false">
+          <span class="pseudonym-status" id="pseudonymStatus" aria-live="polite"></span>
+        </div>
+        <div class="pseudonym-help" id="pseudonymHelp">2–20 characters · letters, numbers, underscore, hyphen</div>
+      </div>
+
+      <!-- MailerLite embedded form — rendered by universal.js on its own timing.
+           Submit-intercept is wired up by watchMailerLiteEmbed(): it waits for
+           the form to render, then attaches a capture hook that runs before
+           submission. The hook reads the email from MailerLite's input, reads
+           the pseudonym from our field, validates both against pseudonym-
+           uniqueness in Firestore, and either allows submission (saving
+           email+pseudonym to localStorage first) or blocks it with an error.
+           MailerLite's redirect to oracle.html?subscribed=quiz is configured
+           in the dashboard — MUST stay in sync with the file URL if that
+           ever changes again. -->
+      <div class="email-wall-ml-placeholder" id="quizMlPlaceholder">Loading signup form…</div>
+      <div class="ml-embedded" data-form="Ty4y4O" data-source="quiz-taker"></div>
+
+      <div class="email-wall-fineprint">
+        No password needed — just your email. Unsubscribe anytime.
+      </div>
+
+      <!-- Faint secondary option — lets users skip email and still see score.
+           Preserves the share loop; deliberately low visual weight. This path
+           writes an anonymous score doc (analytics) but does NOT place the
+           user on the leaderboard. The "won't be counted on the leaderboard"
+           copy makes that trade-off explicit per v2 §7. -->
+      <div class="email-wall-skip">
+        <button class="email-wall-skip-link" onclick="skipEmailAndShowScore()">
+          Skip &amp; see my score anyway
+        </button>
+        <div class="email-wall-skip-note">won't be counted on the leaderboard</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ SCORE REVEAL SCREEN ═══ -->
+  <section class="screen score-screen" id="screen-score">
+
+    <!-- Subscribed banner — shown only when user submitted email (not when they skipped).
+         Mirrors comingsoon.html's confirmation banner for consistency across the site. -->
+    <div class="score-subscribed-banner" id="scoreSubscribedBanner">
+      <span class="check">✓</span>
+      <strong>You're subscribed</strong> — check your email to confirm. (Can't find it? Check your spam folder.)
+    </div>
+
+    <div class="score-hero">
+      <div class="score-hero-kicker">◆ The Oracle Has Ruled</div>
+      <div class="score-big"><span id="score-num">0</span><span style="font-size:0.55em;color:var(--text3);letter-spacing:-1px">/<span id="score-total">20</span></span></div>
+      <div class="score-big-sub" id="score-percentile">—</div>
+      <div class="score-band" id="score-band">—</div>
+      <div class="score-band-desc" id="score-band-desc">—</div>
+
+      <div class="share-row-label">◆ Summon a Challenger</div>
+      <div class="share-row">
+        <a href="#" class="share-btn" id="share-whatsapp" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+          WhatsApp
+        </a>
+        <a href="#" class="share-btn" id="share-twitter" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+          Share
+        </a>
+        <button class="share-btn" onclick="copyShareLink()">
+          <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+          Copy
+        </button>
+      </div>
+    </div>
+
+    <div class="breakdown-title">The Oracle Explains</div>
+    <div id="breakdown-list"><!-- populated by JS --></div>
+
+    <!-- Post-score CTA — content swaps based on launch date. See renderPostScoreCta(). -->
+    <div id="post-score-cta-wrap"></div>
+
+    <!-- The Retake button has been removed — single-attempt policy means
+         each user's score is final. The welcome-back banner also has no
+         Retake; only "See your score". This is foundational for the
+         leaderboard: without it, anyone could retake until they hit 20/20. -->
+  </section>
+
+</main>
+
+<footer data-ct-nav="footer"></footer>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-logo">Cricket <span>Times</span></div>
+  <div class="footer-tagline">Read the game</div>
+  <div class="footer-copy">© 2026 Cricket Times · <a href="/comingsoon.html">About</a></div>
+</footer>
+
+<!-- Copy-to-clipboard toast -->
+<div class="copy-toast" id="copyToast">Copied ✓</div>
+
+<script type="module">
+// ═══════════════════════════════════════════════════════════════════════════
+// FIREBASE INIT — same project as CMS (hitwicket-cba02)
+// [Migrated 2026-06-03, item (g)] compat 9.23.0 → modular 10.12.5, identical
+// to the /oracle.html migration (near-duplicate sync). feature-flags.js owns
+// initializeApp via firebaseReady; both inits are getApps()-guarded on the
+// same project, so whichever resolves first creates the default app and the
+// other reuses it. NOTE: this is now a module script: it executes deferred
+// and in strict mode, and the inline onclick handlers in the markup are wired
+// up via the explicit window exports at the bottom of this script.
+// ═══════════════════════════════════════════════════════════════════════════
+import { initializeApp, getApps, getApp }
+  from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
+import { getFirestore, collection, doc, getDoc, addDoc, setDoc }
+  from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
+
+const _fbConfig = {
+  apiKey: "AIzaSyBnfn9hK0y-p6nvIZ_AwoJnWD7DfDuIQd4",
+  authDomain: "hitwicket-cba02.firebaseapp.com",
+  projectId: "hitwicket-cba02",
+  storageBucket: "hitwicket-cba02.firebasestorage.app",
+  messagingSenderId: "196915483829",
+  appId: "1:196915483829:web:071c47af79914aec88dafc"
+};
+const _app = getApps().length ? getApp() : initializeApp(_fbConfig);
+const db = getFirestore(_app);
+
+// ═══════════════════════════════════════════════════════════════════════════
+// LAUNCH DATE TOGGLE
+// The score reveal CTA block changes on June 1, 2026.
+// Before that: "We'll email you when the site opens" + optional flagship link.
+// After that: "Explore the archive" / "Read this week's deep-dive".
+// ═══════════════════════════════════════════════════════════════════════════
+const LAUNCH_DATE = new Date('2026-06-01T00:00:00');
+const IS_POST_LAUNCH = new Date() >= LAUNCH_DATE;
+
+// ═══════════════════════════════════════════════════════════════════════════
+// EDITION RESOLUTION
+// ═══════════════════════════════════════════════════════════════════════════
+// Each HTML file that serves the Oracle declares which edition it's meant to
+// show. The canonical source is a <meta> tag in <head>:
+//
+//   <meta name="oracle-edition" content="inaugural">      → permanent URL for one edition
+//   <meta name="oracle-edition" content="current">        → /oracle.html (reads config/currentOracle)
+//   (no tag)                                              → same as 'current' (back-compat)
+//
+// /oracle.html uses 'current' (or no tag); it fetches the current-pointer
+// doc to find out which edition to load.
+// /oracle/{id}/index.html pins to a specific edition permanently. Even after
+// the Bowlers edition becomes current, /oracle/inaugural/ continues to serve
+// the Inaugural questions, correctly-tagged in share text, etc.
+// ═══════════════════════════════════════════════════════════════════════════
+function resolveEditionRequest() {
+  const meta = document.querySelector('meta[name="oracle-edition"]');
+  const content = meta ? (meta.getAttribute('content') || '').trim() : '';
+  if (!content || content === 'current') return { mode: 'current' };
+  return { mode: 'fixed', editionId: content };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// LOCALSTORAGE KEYS
+// Per-edition scope: ..._{editionId}. A user who completed Inaugural can
+// still take Bowlers — the single-attempt lock applies to one edition at a
+// time, not to the Oracle overall. Generated lazily via lsKey() once we
+// know which edition we're dealing with (post-load).
+// ═══════════════════════════════════════════════════════════════════════════
+function lsKey(base) {
+  const id = currentEdition?.id || 'unknown';
+  return `ct_oracle_${id}_${base}`;
+}
+// Legacy keys preserved (read-only for migration). If we ever see these on
+// load, we don't act on them — they were from the pre-franchise schema where
+// there was only one quiz. A user with stale localStorage will just see the
+// fresh quiz without a welcome-back banner. Acceptable.
+const LS_LEGACY_ANSWERS   = 'cricketTimes_quizAnswers';
+const LS_LEGACY_COMPLETED = 'cricketTimes_quizCompleted';
+const LS_LEGACY_SCORE     = 'cricketTimes_quizScore';
+const LS_LEGACY_EMAIL     = 'cricketTimes_quizEmail';
+
+function safeLS(fn, fallback) {
+  // Some browsers (private mode, strict cookies) throw on localStorage access
+  try { return fn(); } catch(e) { return fallback; }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════════════════
+let currentEdition = null;    // { id, name, month, theme, questions, ... }
+let questions = [];           // currentEdition.questions, after validation filter
+let answers = [];             // one entry per question; null = unanswered
+let currentQIndex = 0;        // which question is on screen
+let capturedEmail = '';       // set when user submits email wall
+let capturedPseudonym = '';   // set when user submits email wall
+let capturedIsStaff = false;  // flag if email is @cricketimes.com
+let savedScoreDocId = null;   // Firestore doc ID of the score, once written
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MASTHEAD DATE
+// ═══════════════════════════════════════════════════════════════════════════
+(function setMastheadDate() {
+  const d = new Date();
+  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const el = document.getElementById('mastheadDate');
+  if (el) el.textContent = `${days[d.getDay()]}, ${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()} · Vol. I, No. 1`;
+})();
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SCREEN MANAGEMENT
+// Only one screen visible at a time. showScreen('quiz') hides all others
+// and reveals #screen-quiz. Scrolls to top on each change.
+// ═══════════════════════════════════════════════════════════════════════════
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const target = document.getElementById('screen-' + name);
+  if (target) {
+    target.classList.add('active');
+    // On mobile, a fresh screen should start at the top
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// UTILITY: escape HTML to prevent accidental injection from Firestore content
+// ═══════════════════════════════════════════════════════════════════════════
+function escHtml(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({
+    '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
+  }[c]));
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// LOAD QUIZ FROM FIRESTORE
+// Two-step load:
+//   1. Resolve which edition to show (via <meta name="oracle-edition">
+//      content, falling back to config/currentOracle if content === 'current')
+//   2. Fetch oracleEditions/{id} and render
+// The legacy config/launchQuiz path is gone — the CMS migration converts
+// that data into oracleEditions/inaugural. If a deployed Oracle page somehow
+// hits a Firestore where the migration hasn't been run, it will show the
+// "no quiz published" error rather than silently serving stale data.
+// ═══════════════════════════════════════════════════════════════════════════
+async function loadQuizFromFirestore() {
+  try {
+    // Step 1: Resolve which edition this page serves
+    const req = resolveEditionRequest();
+    let editionId = req.editionId;
+
+    if (req.mode === 'current') {
+      // Fetch the current-edition pointer
+      const pointerDoc = await getDoc(doc(db, 'config', 'currentOracle'));
+      if (!pointerDoc.exists() || !pointerDoc.data().editionId) {
+        showError('No current edition of The Oracle has been set yet. Check back soon.');
+        return;
+      }
+      editionId = pointerDoc.data().editionId;
+    }
+
+    // Step 2: Fetch the edition document
+    const editionDoc = await getDoc(doc(db, 'oracleEditions', editionId));
+    if (!editionDoc.exists()) {
+      showError(`The "${editionId}" edition of The Oracle does not exist.`);
+      return;
+    }
+    const editionData = editionDoc.data();
+
+    // A draft (unpublished) edition must never be served to the public via
+    // the current-edition pointer. But a permanent URL explicitly pinned to
+    // a draft is borderline OK — in theory it's still findable via the admin
+    // sharing a preview link. For safety, block both for now: if it's a
+    // draft, refuse to render. Admins previewing drafts should use a
+    // separate mechanism (e.g. the CMS preview).
+    if (editionData.published !== true) {
+      showError('This edition of The Oracle is still being prepared. Check back soon.');
+      return;
+    }
+
+    currentEdition = {
+      id: editionData.id || editionId,
+      name: editionData.name || 'The Test Cricket Oracle',
+      month: editionData.month || '',
+      theme: editionData.theme || '',
+      questions: Array.isArray(editionData.questions) ? editionData.questions : []
+    };
+
+    if (currentEdition.questions.length === 0) {
+      showError('The quiz is being prepared. Check back soon.');
+      return;
+    }
+
+    // Normalise and validate each question. Options can be 2–6 (True/False,
+    // classic multiple choice, etc.) — the CMS enforces the same range.
+    // Anything outside that is rejected as malformed and logged to console.
+    questions = currentEdition.questions.filter(q => {
+      const ok =
+        q && typeof q.question === 'string' &&
+        Array.isArray(q.options) && q.options.length >= 2 && q.options.length <= 6 &&
+        q.options.every(o => typeof o === 'string') &&
+        typeof q.correctIndex === 'number' &&
+        q.correctIndex >= 0 && q.correctIndex < q.options.length;
+      if (!ok) console.warn('Dropped malformed quiz question:', q);
+      return ok;
+    });
+    if (questions.length === 0) {
+      showError('The quiz questions are being finalised. Check back soon.');
+      return;
+    }
+
+    // Initialise answer array
+    answers = new Array(questions.length).fill(null);
+
+    // Apply edition-specific branding to the page (kicker, title, etc.)
+    applyEditionBranding();
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // Post-MailerLite-redirect path: if the URL has ?subscribed=quiz, the user
+    // just came back from MailerLite's form submission. Restore their quiz
+    // state from localStorage and jump to the score screen with the banner.
+    // If this fires, we stop here — don't want to also show the intro or the
+    // completed-visitor banner.
+    // ═══════════════════════════════════════════════════════════════════════
+    if (handlePostSubscribeReturn()) return;
+
+    // Check for saved state: completed or in-progress.
+    // Per-edition keys, so completing Inaugural doesn't block Bowlers etc.
+    const completed = safeLS(() => localStorage.getItem(lsKey('completed')), null) === 'true';
+    if (completed) {
+      // Returning visitor — show intro with "The Oracle remembers" banner.
+      // No retake is offered (single-attempt policy). They can only review.
+      showReturnBanner();
+      showScreen('intro');
+      return;
+    }
+
+    // Otherwise, try to restore partial progress
+    const savedRaw = safeLS(() => localStorage.getItem(lsKey('answers')), null);
+    if (savedRaw) {
+      try {
+        const saved = JSON.parse(savedRaw);
+        if (Array.isArray(saved) && saved.length === questions.length) {
+          answers = saved;
+        }
+      } catch(e) { /* ignore */ }
+    }
+
+    // Update question total on intro & progress meter
+    document.getElementById('progress-total').textContent = questions.length;
+    document.getElementById('score-total').textContent    = questions.length;
+    showScreen('intro');
+  } catch(e) {
+    console.error('Quiz load error:', e);
+    showError('Could not connect to the quiz database. Check your connection and try again.');
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// APPLY EDITION BRANDING
+// Updates page elements that reflect edition-specific info. Called once per
+// load, after the edition has been fetched from Firestore. Keeps the Oracle
+// identity consistent across editions without any HTML edits per-edition.
+// ═══════════════════════════════════════════════════════════════════════════
+function applyEditionBranding() {
+  if (!currentEdition) return;
+  const editionLine = currentEdition.month
+    ? `${currentEdition.name} · ${currentEdition.month}`
+    : currentEdition.name;
+
+  // Intro kicker (the small red line above "20 questions. 149 years.")
+  const introKicker = document.querySelector('.intro-kicker');
+  if (introKicker) introKicker.textContent = `◆ The Test Cricket Oracle · ${editionLine}`;
+
+  // Browser tab title + meta tags. These matter for share-card previews —
+  // a WhatsApp forward of this page shows the title and description baked in
+  // at load time (OG meta tags don't update from JS for social crawlers, but
+  // they do reflect correctly when a real human clicks through).
+  document.title = `The Test Cricket Oracle — ${editionLine} | Cricket Times`;
+  const metaDesc = document.querySelector('meta[name="description"]');
+  if (metaDesc) metaDesc.setAttribute('content',
+    `The Test Cricket Oracle · ${editionLine}. ${questions.length} questions on 149 years of Test cricket.`);
+
+  // [2026-06-04] Edition-driven intro copy. The headline and stats strip are
+  // populated from the LOADED edition's validated question count, so monthly
+  // rotation can never leave stale numbers on screen (the "20 questions" /
+  // "13/20 obsessives" copy was inaugural-specific and survived into June).
+  // The static markup is only a pre-JS placeholder.
+  const _qn = questions.length;
+  const _mins = Math.max(2, Math.round(_qn * 0.35));
+  const _headline = document.querySelector('.intro-headline');
+  if (_headline) _headline.innerHTML = _qn + ' questions.<br>149 years.';
+  const _statNums = document.querySelectorAll('.intro-stat .intro-stat-num');
+  if (_statNums.length >= 2) {
+    _statNums[0].textContent = String(_qn);
+    _statNums[1].textContent = '~' + _mins;
+  }
+}
+
+function showError(msg) {
+  document.getElementById('error-message').textContent = msg;
+  showScreen('error');
+}
+
+function showReturnBanner() {
+  const savedScore = safeLS(() => localStorage.getItem(lsKey('score')), null);
+  if (savedScore == null) return;
+  document.getElementById('returnScore').textContent = savedScore + '/' + questions.length;
+  document.getElementById('returnBanner').classList.add('visible');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// START
+// Single-attempt enforcement: once a user has completed this edition, there
+// is no retake. The welcome-back banner only shows "See your score". If
+// something unexpectedly calls restartQuiz() we'd rather no-op than silently
+// wipe localStorage.
+// ═══════════════════════════════════════════════════════════════════════════
+function startQuiz() {
+  // Block start if the user has already completed this edition
+  const completed = safeLS(() => localStorage.getItem(lsKey('completed')), null) === 'true';
+  if (completed) {
+    // They clicked Start on an edition they already completed (e.g. tapped a
+    // link while the welcome-back banner was showing). Route them to their
+    // score instead of letting them re-attempt.
+    showPreviousScore();
+    return;
+  }
+  // Jump to the first unanswered question (so partial-progress users continue
+  // where they left off; fresh starts go to 0)
+  const firstUnanswered = answers.findIndex(a => a == null);
+  currentQIndex = firstUnanswered === -1 ? 0 : firstUnanswered;
+  renderQuestion();
+  showScreen('quiz');
+}
+
+// Retained as a no-op shim so any lingering onclick handlers don't throw.
+// Under the single-attempt policy, retaking isn't allowed.
+function restartQuiz() {
+  console.warn('restartQuiz() called — single-attempt policy prevents retakes.');
+  showPreviousScore();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// QUESTION RENDERING
+// ═══════════════════════════════════════════════════════════════════════════
+function renderQuestion() {
+  const q = questions[currentQIndex];
+  if (!q) return;
+
+  const letters = ['A','B','C','D','E','F'];
+  const selected = answers[currentQIndex];
+
+  document.getElementById('question-num').textContent = `Question ${currentQIndex + 1}`;
+  document.getElementById('question-text').textContent = q.question;
+  document.getElementById('progress-current').textContent = currentQIndex + 1;
+  document.getElementById('progress-fill').style.width = `${((currentQIndex + 1) / questions.length) * 100}%`;
+
+  const listEl = document.getElementById('options-list');
+  listEl.innerHTML = q.options.map((opt, i) => `
+    <button class="option ${selected === i ? 'selected' : ''}" onclick="selectAnswer(${i})" aria-pressed="${selected === i}">
+      <span class="option-letter">${letters[i]}</span>
+      <span class="option-text">${escHtml(opt)}</span>
+    </button>
+  `).join('');
+
+  // Prev button disabled on Q1
+  document.getElementById('prev-btn').disabled = currentQIndex === 0;
+
+  // Next button enabled only when an option is selected; label changes on last Q
+  const nextBtn = document.getElementById('next-btn');
+  nextBtn.disabled = selected == null;
+  const isLast = currentQIndex === questions.length - 1;
+  nextBtn.innerHTML = isLast ? 'Finish <span>→</span>' : 'Next <span>→</span>';
+}
+
+function selectAnswer(i) {
+  answers[currentQIndex] = i;
+  // Persist partial progress so refreshes don't lose the user's work
+  safeLS(() => localStorage.setItem(lsKey('answers'), JSON.stringify(answers)), null);
+  renderQuestion();
+}
+
+function prevQuestion() {
+  if (currentQIndex > 0) {
+    currentQIndex--;
+    renderQuestion();
+  }
+}
+
+function nextQuestion() {
+  if (answers[currentQIndex] == null) return; // guard: shouldn't happen (button disabled)
+  if (currentQIndex < questions.length - 1) {
+    currentQIndex++;
+    renderQuestion();
+  } else {
+    // Last question finished. Under single-attempt, a completed user can't
+    // re-reach this point (startQuiz blocks them). So this is always a
+    // first-time completion — show the email + pseudonym wall.
+    showScreen('email');
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// EMAIL WALL
+// The email wall screen (id=screen-email) hosts MailerLite's embedded form
+// directly. All submission handling — email validation, CSRF, endpoint POST,
+// double opt-in, group assignment — is done by MailerLite's universal.js.
+// After submission, MailerLite redirects to oracle.html?subscribed=quiz, which
+// triggers handlePostSubscribeReturn() on the next page load.
+// Our code handles only the skip path (skipEmailAndShowScore) and the return
+// from that redirect (handlePostSubscribeReturn + watchMailerLiteEmbed below).
+// ═══════════════════════════════════════════════════════════════════════════
+
+// ═══════════════════════════════════════════════════════════════════════════
+// POST-SUBSCRIBE RETURN HANDLER
+// When the user submits email via the MailerLite embed, MailerLite POSTs to
+// ═══════════════════════════════════════════════════════════════════════════
+// POST-SUBSCRIBE RETURN HANDLER
+// When the user submits the MailerLite form, MailerLite redirects back to
+// this page with ?subscribed=quiz. On that return visit:
+//   1. Restore answers from localStorage (saved as user progressed)
+//   2. Read the pseudonym and email the user chose BEFORE submitting (these
+//      were captured into localStorage by the email-wall form handler)
+//   3. Write the full score document to oracleScores
+//   4. Jump to the score screen with the green "subscribed" banner
+// If the user arrives on oracle.html fresh (no ?subscribed param), this is
+// a no-op and the quiz starts normally.
+// ═══════════════════════════════════════════════════════════════════════════
+function handlePostSubscribeReturn() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('subscribed') !== 'quiz') return false;
+
+  // ─── ORIGIN-EDITION BOUNCE ────────────────────────────────────────────
+  // MailerLite always redirects to a single hardcoded URL (oracle.html),
+  // regardless of which Oracle URL the user actually took the quiz on.
+  // If the user came from a permanent /oracle/{id}/ URL, we want them to
+  // land back on THAT permanent URL so:
+  //   (a) the score page reads the correct edition's data
+  //   (b) share text + share URL pin to the permanent URL
+  //   (c) the user's address bar reflects which edition they took
+  //
+  // Read the origin keys (shared scope, set by the submit intercept). If
+  // origin was a permanent URL AND it differs from this page's resolved
+  // edition, bounce to the permanent URL once. The bounce target carries
+  // the same ?subscribed=quiz param, so handlePostSubscribeReturn will
+  // run again on arrival — but this time the origin matches and we fall
+  // through to the score-render path.
+  const originEditionId = safeLS(() => localStorage.getItem('ct_oracle_origin_edition_id'), null);
+  const originMode      = safeLS(() => localStorage.getItem('ct_oracle_origin_mode'),       null);
+  const thisReq         = resolveEditionRequest();
+  const thisEditionId   = currentEdition?.id || null;
+
+  if (originMode === 'fixed' && originEditionId && originEditionId !== thisEditionId) {
+    // We're not on the permanent URL the user came from. Bounce.
+    // Encode the editionId for safety (slugs are alnum+hyphen so this is
+    // belt-and-braces — a malformed value would be filtered server-side
+    // by Firestore not finding the doc on the next page).
+    const target = `/oracle/${encodeURIComponent(originEditionId)}/?subscribed=quiz`;
+    // replace() rather than assign() so the back button doesn't loop
+    // through this transient URL.
+    window.location.replace(target);
+    return true;  // halt rendering on this page; the next page takes over
+  }
+
+  // ─── NORMAL POST-SUBSCRIBE PATH ───────────────────────────────────────
+  // Restore answers from localStorage (saved as user progressed through quiz)
+  const savedAnswers = safeLS(() => localStorage.getItem(lsKey('answers')), null);
+  if (savedAnswers) {
+    try {
+      const parsed = JSON.parse(savedAnswers);
+      if (Array.isArray(parsed) && parsed.length === questions.length) {
+        answers = parsed;
+      }
+    } catch(e) { /* ignore */ }
+  }
+
+  // The email and pseudonym were captured into localStorage BEFORE submission
+  // (see submitEmailCapture() — the pre-submit hook). MailerLite handles the
+  // double-opt-in and subscriber list; we handle the leaderboard bookkeeping.
+  const knownEmail      = safeLS(() => localStorage.getItem(lsKey('email')),      null);
+  const knownPseudonym  = safeLS(() => localStorage.getItem(lsKey('pseudonym')),  null);
+  const knownStaffFlag  = safeLS(() => localStorage.getItem(lsKey('isStaff')),    null) === 'true';
+
+  capturedEmail     = knownEmail || '(subscribed-via-mailerlite)';
+  capturedPseudonym = knownPseudonym || '';
+  capturedIsStaff   = knownStaffFlag;
+
+  // Write the score document to oracleScores (the leaderboard data source).
+  // Non-blocking — score shows regardless of write success. Failures are
+  // logged to console for debugging but don't block the user's score view.
+  writeScoreDocument({ anonymous: false })
+    .catch(e => console.warn('Could not write score document:', e));
+
+  // Show score with the "subscribed" banner
+  finalizeAndShowScore(/* didSubmitEmail */ true);
+
+  // Clean the URL so a refresh doesn't re-trigger this path. Also clear
+  // the origin keys now that we've consumed them — prevents a stale bounce
+  // on a future submission.
+  safeLS(() => {
+    localStorage.removeItem('ct_oracle_origin_edition_id');
+    localStorage.removeItem('ct_oracle_origin_mode');
+  }, null);
+  if (window.history && window.history.replaceState) {
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
+  return true;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// WRITE SCORE DOCUMENT
+// Writes one doc to oracleScores. Shape per v2 §9:
+//   { sessionId, email, pseudonym, editionId, correctCount, score,
+//     isStaff, anonymous, timestamp }
+// Called on both paths — Path A (email+pseudonym submitted via MailerLite
+// redirect) and Path B (user skipped). Path B writes with anonymous=true and
+// null email/pseudonym, so anonymous takers still count for analytics but
+// don't appear on the leaderboard (future leaderboard render filters
+// anonymous:false, isStaff:false).
+// ═══════════════════════════════════════════════════════════════════════════
+async function writeScoreDocument({ anonymous }) {
+  if (!currentEdition) return;  // safety — shouldn't happen
+  if (savedScoreDocId) return;  // already written this session
+
+  const correctCount = computeScore();
+  const score = correctCount * 5;  // per v2 §6: 5 points per correct answer
+
+  // Simple session ID — random + timestamp. Not a real user session, just
+  // a handle for this one submission. Good enough for the leaderboard use
+  // case; when accounts ship, we'll move to real session management.
+  const sessionId = 'sess_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 8);
+
+  const scoreDoc = {
+    sessionId,
+    email: anonymous ? null : (capturedEmail || null),
+    pseudonym: anonymous ? null : (capturedPseudonym || null),
+    editionId: currentEdition.id,
+    editionName: currentEdition.name,  // denormalised for leaderboard display without a join
+    correctCount,
+    score,
+    total: questions.length,
+    isStaff: anonymous ? false : !!capturedIsStaff,
+    anonymous: !!anonymous,
+    timestamp: new Date().toISOString()
+  };
+
+  try {
+    const docRef = await addDoc(collection(db, 'oracleScores'), scoreDoc);
+    savedScoreDocId = docRef.id;
+    console.log('Score written:', docRef.id);
+  } catch (e) {
+    console.warn('Score write failed:', e);
+    // Re-throw so callers can choose whether to surface the failure
+    throw e;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SKIP EMAIL & SEE SCORE
+// Secondary/escape path for users who refuse the email gate. Preserves the
+// viral share loop — they still get the full score and breakdown.
+// Under the leaderboard-aware design, skipping means:
+//   - Score is shown normally
+//   - Score IS written to oracleScores but flagged anonymous:true
+//   - Anonymous scores do NOT appear on the (future) leaderboard
+//   - The "✓ You're subscribed" banner stays hidden (honest — they didn't)
+// The anonymous score gives you analytics on skip-path completion rates
+// without polluting the leaderboard.
+// ═══════════════════════════════════════════════════════════════════════════
+function skipEmailAndShowScore() {
+  // Clear any pre-capture pseudonym/email attempts from this session.
+  // If the user typed in the pseudonym field but then hit skip, we don't
+  // want that half-captured data attached to the anonymous score.
+  capturedEmail = '';
+  capturedPseudonym = '';
+  capturedIsStaff = false;
+
+  // Write an anonymous score doc — non-blocking. Score shows regardless.
+  writeScoreDocument({ anonymous: true })
+    .catch(e => console.warn('Anonymous score write failed (non-blocking):', e));
+
+  finalizeAndShowScore(/* didSubmitEmail */ false);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PSEUDONYM VALIDATION — rules, reserved names, debounced availability check
+// ═══════════════════════════════════════════════════════════════════════════
+// Pseudonym requirements (per v2 §6 + design decisions finalised this session):
+//   - Required (no leaderboard slot without one — can skip via the other path)
+//   - 2–20 characters
+//   - Alphanumeric + underscore + hyphen, nothing else
+//   - Case-insensitive uniqueness (via usedPseudonyms/{lowercase-key} doc)
+//   - Reserved names blocked (impersonation prevention)
+// Staff email rule (final decision): @cricketimes.com emails ARE allowed to
+// submit but get flagged isStaff:true in the score doc. The future leaderboard
+// render will filter staff scores out. Rejections (bad pseudonym, etc) do
+// NOT trigger the single-attempt lock — user can retry.
+// ═══════════════════════════════════════════════════════════════════════════
+const PSEUDONYM_RESERVED = [
+  'anonymous', 'admin', 'theoracle', 'cricketimes', 'cricket-times',
+  'moderator', 'oracle', 'staff', 'official', 'support'
+];
+const PSEUDONYM_FORMAT = /^[a-zA-Z0-9_-]{2,20}$/;
+const STAFF_EMAIL_DOMAIN = '@cricketimes.com';
+
+let _pseudonymCheckTimer = null;
+let _lastCheckedPseudonym = null;
+let _lastCheckResult = null;  // { valid: bool, message: string }
+
+// Called from oninput/onblur on the pseudonym input. Runs local validation
+// immediately; debounces the Firestore uniqueness check so we don't fire a
+// read on every keystroke.
+function onPseudonymInput() {
+  const input = document.getElementById('pseudonymInput');
+  const value = input.value.trim();
+  const status = document.getElementById('pseudonymStatus');
+  const help = document.getElementById('pseudonymHelp');
+
+  // Clear any pending debounced check
+  if (_pseudonymCheckTimer) {
+    clearTimeout(_pseudonymCheckTimer);
+    _pseudonymCheckTimer = null;
+  }
+
+  // Empty input: reset to neutral state, no indicator
+  if (value.length === 0) {
+    input.classList.remove('valid', 'invalid', 'checking');
+    status.className = 'pseudonym-status';
+    status.textContent = '';
+    help.className = 'pseudonym-help';
+    help.textContent = '2–20 characters · letters, numbers, underscore, hyphen';
+    _lastCheckResult = null;
+    return;
+  }
+
+  // Format check (synchronous)
+  if (!PSEUDONYM_FORMAT.test(value)) {
+    setPseudonymState('invalid', '✗', 'Use 2–20 characters: letters, numbers, underscore, hyphen.');
+    _lastCheckResult = { valid: false, message: 'Invalid format' };
+    return;
+  }
+
+  // Reserved name check (synchronous)
+  if (PSEUDONYM_RESERVED.includes(value.toLowerCase())) {
+    setPseudonymState('invalid', '✗', `"${value}" is reserved. Pick a different name.`);
+    _lastCheckResult = { valid: false, message: 'Reserved name' };
+    return;
+  }
+
+  // All local checks passed. Show "checking..." and debounce the Firestore hit.
+  setPseudonymState('checking', '…', 'Checking availability…');
+  _pseudonymCheckTimer = setTimeout(() => {
+    _pseudonymCheckTimer = null;
+    checkPseudonymAvailability(value);
+  }, 400);  // 400ms after last keystroke
+}
+
+function setPseudonymState(state, statusChar, helpText) {
+  const input = document.getElementById('pseudonymInput');
+  const status = document.getElementById('pseudonymStatus');
+  const help = document.getElementById('pseudonymHelp');
+  input.classList.remove('valid', 'invalid', 'checking');
+  if (state) input.classList.add(state);
+  status.className = 'pseudonym-status' + (state ? ' ' + state : '');
+  status.textContent = statusChar || '';
+  help.className = 'pseudonym-help' + (state === 'invalid' ? ' error' : (state === 'valid' ? ' ok' : ''));
+  help.textContent = helpText;
+}
+
+// Server-side uniqueness check. Reads from the denormalised usedPseudonyms
+// collection — one doc per taken pseudonym (doc ID = lowercase pseudonym).
+// Cheap: one doc read. No writes here; the actual claim happens at submit.
+async function checkPseudonymAvailability(value) {
+  const lowerKey = value.toLowerCase();
+
+  // Skip re-checking the same value (user tabbed back in, same input)
+  if (_lastCheckedPseudonym === lowerKey && _lastCheckResult) {
+    const r = _lastCheckResult;
+    setPseudonymState(
+      r.valid ? 'valid' : 'invalid',
+      r.valid ? '✓' : '✗',
+      r.message
+    );
+    return;
+  }
+
+  try {
+    // (g): local renamed doc → snap; `doc` would shadow the imported doc() fn
+    const snap = await getDoc(doc(db, 'usedPseudonyms', lowerKey));
+    _lastCheckedPseudonym = lowerKey;
+    if (snap.exists()) {
+      _lastCheckResult = { valid: false, message: `"${value}" is already taken. Pick a different name.` };
+      setPseudonymState('invalid', '✗', _lastCheckResult.message);
+    } else {
+      _lastCheckResult = { valid: true, message: `"${value}" is available.` };
+      setPseudonymState('valid', '✓', _lastCheckResult.message);
+    }
+  } catch (e) {
+    // Network error — don't block the user; they'll get a final check at
+    // submit time. Show neutral state.
+    console.warn('Pseudonym availability check failed:', e);
+    setPseudonymState(null, '', 'Could not verify availability right now — try again.');
+  }
+}
+
+// Final pre-submit validation — runs synchronously in the MailerLite submit
+// intercept. Returns { ok: bool, email: string, pseudonym: string, isStaff: bool }
+// if all checks pass, or { ok: false, errorMessage: string } otherwise.
+// Includes one last Firestore check so race conditions (two users picking
+// the same pseudonym at the same time) are caught.
+async function validateCapturePreSubmit() {
+  const pseudonymInput = document.getElementById('pseudonymInput');
+  const pseudonym = pseudonymInput.value.trim();
+
+  // Read email from MailerLite's input
+  const mlInput = document.querySelector('.email-wall .ml-embedded input[type="email"]')
+               || document.querySelector('.email-wall .ml-embedded input.form-control');
+  const email = (mlInput && mlInput.value.trim()) || '';
+
+  // Empty email → MailerLite's own validation will fire; we don't need to block
+  if (!email) return { ok: false, errorMessage: 'Please enter your email.' };
+
+  // Empty pseudonym
+  if (!pseudonym) {
+    pseudonymInput.focus();
+    setPseudonymState('invalid', '✗', 'Please pick a display name for the leaderboard.');
+    return { ok: false, errorMessage: 'Display name required.' };
+  }
+
+  // Format
+  if (!PSEUDONYM_FORMAT.test(pseudonym)) {
+    pseudonymInput.focus();
+    setPseudonymState('invalid', '✗', 'Use 2–20 characters: letters, numbers, underscore, hyphen.');
+    return { ok: false, errorMessage: 'Invalid display name format.' };
+  }
+
+  // Reserved
+  if (PSEUDONYM_RESERVED.includes(pseudonym.toLowerCase())) {
+    pseudonymInput.focus();
+    setPseudonymState('invalid', '✗', `"${pseudonym}" is reserved. Pick a different name.`);
+    return { ok: false, errorMessage: 'Reserved display name.' };
+  }
+
+  // Uniqueness — final, authoritative check. Catches race conditions missed
+  // by the debounced pre-check (two users picking the same name at same time).
+  try {
+    // (g): local renamed doc → snap; `doc` would shadow the imported doc() fn
+    const snap = await getDoc(doc(db, 'usedPseudonyms', pseudonym.toLowerCase()));
+    if (snap.exists()) {
+      pseudonymInput.focus();
+      setPseudonymState('invalid', '✗', `"${pseudonym}" was just taken. Pick a different name.`);
+      return { ok: false, errorMessage: 'Display name taken.' };
+    }
+  } catch (e) {
+    // Firestore unavailable — fail open (allow submission). The post-redirect
+    // handler will write the score doc; if the pseudonym ends up colliding
+    // we'll have two score docs with the same pseudonym for now. Acceptable
+    // for launch; the edge case is extremely rare.
+    console.warn('Final uniqueness check failed (failing open):', e);
+  }
+
+  // Staff email detection. @cricketimes.com is allowed but flagged.
+  const isStaff = email.toLowerCase().endsWith(STAFF_EMAIL_DOMAIN);
+
+  return { ok: true, email, pseudonym, isStaff };
+}
+
+// Claim the pseudonym — writes to usedPseudonyms/{lowercase}. Best-effort;
+// non-blocking. Called from the submit intercept AFTER validateCapturePreSubmit
+// passes, BEFORE we let MailerLite submit go through. If this fails, we
+// still let the user submit (fail open) — the score doc will still have
+// their pseudonym on it, just with no uniqueness lock for future users.
+async function claimPseudonym(pseudonym, email) {
+  try {
+    await setDoc(doc(db, 'usedPseudonyms', pseudonym.toLowerCase()), {
+      displayName: pseudonym,     // preserves original casing for display
+      email,                      // for admin lookup (never shown publicly)
+      claimedAt: new Date().toISOString()
+    });
+  } catch (e) {
+    console.warn('Pseudonym claim failed (fail-open):', e);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MAILERLITE EMBED — placeholder hider + submit-intercept for pseudonym capture
+// Two things happen once MailerLite injects its form:
+//   1. Hide our "Loading signup form…" placeholder
+//   2. Attach a submit listener on the injected <form> that:
+//      - Runs validateCapturePreSubmit()
+//      - If invalid, preventDefault() and surfaces the error
+//      - If valid, saves email+pseudonym+isStaff to localStorage and
+//        claims the pseudonym in Firestore, THEN lets submit proceed
+// Fallback timeout of 8s hides the placeholder regardless (if MailerLite is
+// blocked by an ad blocker or offline, the user can still use the skip link).
+// ═══════════════════════════════════════════════════════════════════════════
+function watchMailerLiteEmbed() {
+  const placeholder = document.getElementById('quizMlPlaceholder');
+  const target = document.querySelector('.email-wall .ml-embedded[data-form="Ty4y4O"]');
+  if (!placeholder || !target) return;
+
+  // Wire up the pseudonym input listeners. We do this here (rather than on
+  // DOM ready) because the email-wall screen isn't necessarily visible at
+  // page load — but the field exists in the DOM regardless of screen.
+  const pseudonymInput = document.getElementById('pseudonymInput');
+  if (pseudonymInput && !pseudonymInput._wired) {
+    pseudonymInput.addEventListener('input', onPseudonymInput);
+    pseudonymInput.addEventListener('blur', onPseudonymInput);
+    pseudonymInput._wired = true;
+  }
+
+  const hidePlaceholder = () => {
+    if (target.children.length > 0 || target.querySelector('form, input')) {
+      placeholder.classList.add('hidden');
+      return true;
+    }
+    return false;
+  };
+
+  // Attach the submit intercept. MailerLite's form submits via its own
+  // event handler; we intercept at capture phase so we run first. Runs
+  // validateCapturePreSubmit() asynchronously, then either allows the
+  // submission through (by re-dispatching) or blocks it.
+  const attachSubmitIntercept = () => {
+    const form = target.querySelector('form');
+    if (!form || form._captureWired) return false;
+    form._captureWired = true;
+
+    form.addEventListener('submit', async (evt) => {
+      // If we've already validated and saved this click's data, let the
+      // native submit fire through. Second pass through = valid pre-check.
+      if (form._captureValidated) {
+        form._captureValidated = false;
+        return;  // don't prevent
+      }
+
+      // First pass: block, validate, then re-dispatch submit if OK.
+      evt.preventDefault();
+      evt.stopImmediatePropagation();
+
+      const submitBtn = form.querySelector('button[type="submit"], input[type="submit"]');
+      const origBtnText = submitBtn ? submitBtn.textContent : '';
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Checking…';
+      }
+
+      const result = await validateCapturePreSubmit();
+
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = origBtnText;
+      }
+
+      if (!result.ok) {
+        // Do NOT set the single-attempt localStorage flag on rejection —
+        // user should be able to correct and retry.
+        return;
+      }
+
+      // Save to localStorage so the post-redirect handler can read these
+      // back when MailerLite bounces the browser back with ?subscribed=quiz.
+      // Pseudonym/email/isStaff use lsKey() — per-edition scope.
+      // The origin-edition keys use a SHARED top-level scope because the
+      // MailerLite redirect always lands at /oracle.html, and that page's
+      // lsKey() resolves to the CURRENT edition (which may differ from the
+      // edition the user actually took, e.g. if they were on /oracle/{old}/).
+      // The shared keys let the landing page detect that mismatch and
+      // bounce to the correct permanent URL before showing the score.
+      safeLS(() => {
+        localStorage.setItem(lsKey('email'), result.email);
+        localStorage.setItem(lsKey('pseudonym'), result.pseudonym);
+        localStorage.setItem(lsKey('isStaff'), result.isStaff ? 'true' : 'false');
+        // Origin-edition stash — shared scope, not per-edition.
+        if (currentEdition && currentEdition.id) {
+          localStorage.setItem('ct_oracle_origin_edition_id', currentEdition.id);
+          // Whether the page the user took the quiz on was the
+          // "current"-mode page or a permanent /oracle/{id}/ page. The
+          // landing page uses this to decide whether to bounce.
+          var req = resolveEditionRequest();
+          localStorage.setItem('ct_oracle_origin_mode', req.mode || 'current');
+        }
+      }, null);
+
+      // Claim the pseudonym (best-effort). Doesn't block submission.
+      claimPseudonym(result.pseudonym, result.email).finally(() => {
+        // Re-submit the form, this time without intercepting.
+        form._captureValidated = true;
+        // Submit via requestSubmit if available (fires listeners); fall back
+        // to submit() which skips some validations but still posts.
+        if (typeof form.requestSubmit === 'function') {
+          form.requestSubmit(submitBtn || undefined);
+        } else {
+          form.submit();
+        }
+      });
+    }, /* capture */ true);
+    return true;
+  };
+
+  if (hidePlaceholder()) attachSubmitIntercept();
+
+  const observer = new MutationObserver(() => {
+    const hidden = hidePlaceholder();
+    const wired = attachSubmitIntercept();
+    if (hidden && wired) observer.disconnect();
+  });
+  observer.observe(target, { childList: true, subtree: true });
+
+  setTimeout(() => {
+    placeholder.classList.add('hidden');
+    observer.disconnect();
+  }, 8000);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SCORING
+// ═══════════════════════════════════════════════════════════════════════════
+function computeScore() {
+  return answers.reduce((sum, a, i) => {
+    if (a == null) return sum;
+    return sum + (a === questions[i].correctIndex ? 1 : 0);
+  }, 0);
+}
+
+function finalizeAndShowScore(didSubmitEmail) {
+  const score = computeScore();
+
+  // Persist completion — per-edition keys, so completing Inaugural doesn't
+  // block the user from taking Bowlers when it ships.
+  safeLS(() => {
+    localStorage.setItem(lsKey('completed'), 'true');
+    localStorage.setItem(lsKey('score'), String(score));
+  }, null);
+
+  // Show the "✓ You're subscribed" banner ONLY if the user actually submitted
+  // email. Skippers see their score without a confirmation banner (honest —
+  // they didn't subscribe). Matches comingsoon.html's ?subscribed=true banner
+  // pattern for cross-page consistency.
+  const banner = document.getElementById('scoreSubscribedBanner');
+  if (banner) {
+    if (didSubmitEmail) banner.classList.add('visible');
+    else banner.classList.remove('visible');
+  }
+
+  renderScore(score);
+  showScreen('score');
+}
+
+function showPreviousScore() {
+  // Returning visitor wants to see their old score — no retake.
+  const saved = safeLS(() => localStorage.getItem(lsKey('score')), null);
+  if (saved == null) return;
+  // Restore answers if available — otherwise the breakdown won't render correctly.
+  const savedAnswers = safeLS(() => localStorage.getItem(lsKey('answers')), null);
+  if (savedAnswers) {
+    try {
+      const parsed = JSON.parse(savedAnswers);
+      if (Array.isArray(parsed) && parsed.length === questions.length) answers = parsed;
+    } catch(e) { /* ignore */ }
+  }
+  // Returning visitor — no fresh signup happened, so hide the subscribed banner.
+  const banner = document.getElementById('scoreSubscribedBanner');
+  if (banner) banner.classList.remove('visible');
+
+  renderScore(parseInt(saved, 10));
+  showScreen('score');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SCORE BANDS — The Oracle's verdicts.
+// Mapped to spec bands (0–6, 7–11, 12–15, 16–18, 19–20 out of 20 → percentages).
+// Percentage-based so they scale if question count changes in later editions.
+// ═══════════════════════════════════════════════════════════════════════════
+function getScoreBand(score, total) {
+  const pct = (score / total) * 100;
+  if (pct >= 95) return { title: 'The Oracle bows',          desc: 'The Oracle has rarely met its match. Please confirm your answer to question 14 was not a fluke.' };
+  if (pct >= 80) return { title: 'The Oracle is impressed',  desc: 'You know your five-fors from your five wickets. Rare company.' };
+  if (pct >= 60) return { title: 'The Oracle nods',          desc: 'A respectable showing. The Oracle has time for you.' };
+  if (pct >= 35) return { title: 'The Oracle expected more', desc: 'You watch the game. The Oracle expects you to read about it too.' };
+  return              { title: 'The Oracle has questions',   desc: 'Did you mean to take a T20 quiz?' };
+}
+
+function getPercentileText(score, total) {
+  const pct = (score / total) * 100;
+  if (pct >= 95) return 'Top 1% of all takers';
+  if (pct >= 80) return 'Top 10% · Rare air';
+  if (pct >= 65) return 'Above average';
+  // [2026-06-04] Edition-agnostic: the old "(13/20)" suffix was inaugural
+  // data and rendered nonsense on other editions (e.g. an 8/15 in June).
+  if (pct >= 50) return 'Right around average';
+  if (pct >= 30) return 'Below average';
+  return 'Below average — plenty to learn';
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SCORE PAGE RENDER
+// ═══════════════════════════════════════════════════════════════════════════
+function renderScore(score) {
+  const total = questions.length;
+  const band = getScoreBand(score, total);
+
+  document.getElementById('score-num').textContent = score;
+  document.getElementById('score-total').textContent = total;
+  document.getElementById('score-percentile').textContent = getPercentileText(score, total);
+  document.getElementById('score-band').textContent = band.title;
+  document.getElementById('score-band-desc').textContent = band.desc;
+
+  // Build share links — carry the Oracle brand so every share educates another
+  // person about the franchise, AND embed the edition tag so a share forwarded
+  // in 2027 still reads unambiguously as "a score on the Inaugural Edition"
+  // rather than claiming to be a score on whatever Oracle is currently live.
+  // Edition name is pulled from currentEdition metadata (set by the CMS),
+  // which means when Bowlers is current, /oracle.html shares auto-say
+  // "Bowlers Edition". Permanent-URL pages like /oracle/inaugural/ keep
+  // saying "Inaugural Edition" because they pin to that edition's metadata.
+  //
+  // The CTA ("The Oracle doubts you can do better.") is deliberately band-
+  // agnostic: it works whether the user scored 4/20 (mildly self-deprecating)
+  // or 20/20 (wry humble-brag) because the doubt comes from the Oracle, not
+  // the user. That's why there's just one CTA line instead of five
+  // score-specific ones.
+  const editionTag = currentEdition?.name || 'The Test Cricket Oracle';
+  const launchSuffix = currentEdition?.month ? ` Launching ${currentEdition.month}.` : ' Launching June 2026.';
+  const CTA = 'The Oracle doubts you can do better.';
+  const shareLine = IS_POST_LAUNCH
+    ? `I scored ${score}/${total} on The Test Cricket Oracle — ${editionTag}. "${band.title}". ${CTA}`
+    : `I scored ${score}/${total} on The Test Cricket Oracle — ${editionTag}. "${band.title}". ${CTA}${launchSuffix}`;
+  // Share URL depends on the mode: /oracle.html for the current-mode page,
+  // /oracle/{id}/ for a pinned-edition page. This keeps shares from a
+  // permanent URL pointing at that permanent URL, not the rotating current.
+  const editionReq = resolveEditionRequest();
+  // [(g) 2026-06-03] Shares ALWAYS point at the edition's permanent URL with
+  // the ?s=1 share marker — in BOTH modes. The marker is what the bootstrap's
+  // oracleEdition carve-out honours: it grants the recipient durable access to
+  // THIS edition (and only this edition) even after it rotates into the paid
+  // archive. Pointing current-mode shares at the permalink (instead of
+  // /oracle.html) also makes them edition-stable: the link still opens the
+  // quiz the sharer actually played, not whatever is current when clicked.
+  // PUBLISH-WORKFLOW CONTRACT: the pinned page /oracle/{id}/index.html must be
+  // deployed BEFORE config/currentOracle points at the edition, or shares
+  // generated in the gap 404. Fallback to /oracle.html only when no edition id
+  // is resolvable (should not happen in practice).
+  const _shareEditionId = (currentEdition && currentEdition.id) || editionReq.editionId || null;
+  const shareUrl = _shareEditionId
+    ? `https://cricketimes.com/oracle/${encodeURIComponent(_shareEditionId)}/?s=1`
+    : 'https://cricketimes.com/oracle.html';
+  // Store the full share text on window so copyShareLink() can read it.
+  // We hoist it here rather than inlining because the Copy button was
+  // relabelled "Copy" (used to be "Copy Link") — it now copies the full
+  // score+verdict+CTA+URL rather than just the URL, to match user intent:
+  // clicking Copy usually means "grab what I'd tweet", not "grab the URL".
+  window._oracleShareText = `${shareLine} ${shareUrl}`;
+
+  document.getElementById('share-whatsapp').href = 'https://wa.me/?text=' + encodeURIComponent(window._oracleShareText);
+  document.getElementById('share-twitter').href  = 'https://twitter.com/intent/tweet?text=' + encodeURIComponent(window._oracleShareText);
+
+  renderBreakdown();
+  renderPostScoreCta(score, total);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PER-QUESTION BREAKDOWN
+// Each question shows:
+//   - Question text
+//   - All options (2–6 of them) with "your pick" and "correct" tagged
+//   - Short explainer (always visible, inline)
+//   - "Read full explanation" toggle → long explanation (expandable)
+//   - Optional article link (post-launch only, from Firestore)
+// ═══════════════════════════════════════════════════════════════════════════
+function renderBreakdown() {
+  const letters = ['A','B','C','D','E','F'];
+  const breakdownHtml = questions.map((q, i) => {
+    const picked  = answers[i];
+    const correct = q.correctIndex;
+    const isCorrect = picked === correct;
+    const isSkipped = picked == null;
+
+    const cssState = isSkipped ? 'skipped' : (isCorrect ? 'correct' : 'incorrect');
+    const badgeText = isSkipped ? 'Skipped' : (isCorrect ? 'Correct' : 'Wrong');
+
+    // Options list with tags
+    const optsHtml = q.options.map((opt, j) => {
+      const isPicked    = picked === j;
+      const isCorrectOpt = correct === j;
+      let rowClass = '';
+      let tagHtml = '';
+      if (isCorrectOpt) {
+        rowClass = 'is-correct';
+        tagHtml = '<span class="breakdown-answer-tag correct">Correct</span>';
+      }
+      if (isPicked && !isCorrectOpt) {
+        rowClass = 'is-picked-wrong';
+        tagHtml = '<span class="breakdown-answer-tag yours">Your answer</span>';
+      } else if (isPicked && isCorrectOpt) {
+        tagHtml = '<span class="breakdown-answer-tag yours">Your answer ✓</span>';
+      }
+      return `<div class="breakdown-answer-row ${rowClass}">
+        <span class="breakdown-answer-letter">${letters[j]}.</span>
+        <span>${escHtml(opt)}</span>
+        ${tagHtml}
+      </div>`;
+    }).join('');
+
+    // Long explanation — split on blank lines into paragraphs, preserve single newlines as <br>
+    const longHtml = q.longExplanation && q.longExplanation.trim()
+      ? q.longExplanation.trim()
+          .split(/\n\s*\n/)
+          .map(p => `<p>${escHtml(p).replace(/\n/g, '<br>')}</p>`)
+          .join('')
+      : '';
+
+    // Article link — only show post-launch, only if present
+    const articleLinkHtml = (IS_POST_LAUNCH && q.articleLink && q.articleLink.trim())
+      ? `<a href="${escHtml(q.articleLink)}" class="breakdown-article-link">
+          ${escHtml(q.articleLinkText || 'Read more')} <span>→</span>
+        </a>`
+      : '';
+
+    // Short explainer is always shown (if present); long + link expandable below
+    const shortExplainerHtml = q.shortExplainer && q.shortExplainer.trim()
+      ? `<div class="breakdown-short-explainer">${escHtml(q.shortExplainer)}</div>`
+      : '';
+
+    // Only render expand toggle if there's a long explanation OR an article link to show
+    const hasExpandable = longHtml || articleLinkHtml;
+    const expandId = `expand-${i}`;
+    const expandHtml = hasExpandable
+      ? `<div class="breakdown-expand" id="${expandId}">
+          <button class="breakdown-expand-toggle" onclick="toggleExpand('${expandId}')">
+            <span>Read full explanation</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="breakdown-long-explanation">
+            ${longHtml}
+            ${articleLinkHtml}
+          </div>
+        </div>`
+      : '';
+
+    return `
+      <div class="breakdown-q ${cssState}">
+        <div class="breakdown-q-header">
+          <span class="breakdown-q-num">Question ${i + 1}</span>
+          <span class="breakdown-q-badge ${cssState}">${badgeText}</span>
+        </div>
+        <div class="breakdown-q-text">${escHtml(q.question)}</div>
+        <div class="breakdown-answers">${optsHtml}</div>
+        ${shortExplainerHtml}
+        ${expandHtml}
+      </div>
+    `;
+  }).join('');
+
+  document.getElementById('breakdown-list').innerHTML = breakdownHtml;
+}
+
+function toggleExpand(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.toggle('open');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// POST-SCORE CTA BLOCK
+// Spec-driven: pre-launch = "we'll email you when the site opens" + optional
+// flagship-article link; post-launch = "explore the archive / deep-dive".
+// ═══════════════════════════════════════════════════════════════════════════
+function renderPostScoreCta(score, total) {
+  const wrap = document.getElementById('post-score-cta-wrap');
+  let html;
+
+  if (!IS_POST_LAUNCH) {
+    // PRE-LAUNCH: remind them the site launches June 2026.
+    // If the user's email was captured via the email wall, they're already
+    // on the mailing list — just confirm it. If they somehow got here without
+    // email capture (edge case), we prompt them back to comingsoon.html.
+    const hasEmail = !!capturedEmail;
+    html = `
+      <div class="post-score-cta">
+        <div class="post-score-cta-kicker">◆ What Happens Next</div>
+        <h3>We'll email you the day the site opens.</h3>
+        <p>
+          ${hasEmail
+            ? `You're on the list — we'll send one short note in June 2026 when the full archive, tools, and long-form writing go live.`
+            : `Add your email on the landing page so we can let you know when the full archive, tools, and long-form writing go live in June 2026.`}
+        </p>
+        <div class="post-score-cta-row">
+          <a href="/comingsoon.html" class="btn btn-primary">
+            ${hasEmail ? 'Back to Home' : 'Add My Email'} <span>→</span>
+          </a>
+          ${'<'+'!--'} Optional flagship article link. If the article URL 404s before launch,
+               remove this block in CMS or change the href here. -->
+          <a href="/article.html?id=five-for-evidence" class="btn btn-ghost">
+            Read Our First Piece
+          </a>
+        </div>
+      </div>
+    `;
+  } else {
+    // POST-LAUNCH: drive into the site.
+    html = `
+      <div class="post-score-cta">
+        <div class="post-score-cta-kicker">◆ Keep Exploring</div>
+        <h3>The archive has 149 years of this.</h3>
+        <p>
+          Settle the next argument the same way. Browse every Test, every player, every era — or dive into this week's long-form piece.
+        </p>
+        <div class="post-score-cta-row">
+          <a href="/stories.html" class="btn btn-primary">
+            Read This Week's Deep-Dive <span>→</span>
+          </a>
+          <a href="/index.html" class="btn btn-ghost">
+            Explore the Archive
+          </a>
+        </div>
+      </div>
+    `;
+  }
+  wrap.innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// COPY-TO-CLIPBOARD
+// The "Copy" button (formerly "Copy Link") copies the full share text —
+// score, verdict, CTA, and URL — matching what WhatsApp and X would post.
+// This is a deliberate UX change: clicking Copy usually means "grab what
+// I'd tweet", not "grab the URL". Users who want just the URL can still
+// grab it from the browser's address bar.
+//
+// Falls back to a URL-only copy if renderScore hasn't run yet (shouldn't
+// happen in practice — the button only exists on the score screen — but
+// guards against edge cases like someone calling copyShareLink() from
+// the console before completing the quiz).
+// ═══════════════════════════════════════════════════════════════════════════
+function copyShareLink() {
+  const textToCopy = window._oracleShareText || 'https://cricketimes.com/oracle.html';
+  const fallback = () => {
+    // Older browsers: create a temp textarea and execCommand copy
+    const ta = document.createElement('textarea');
+    ta.value = textToCopy;
+    ta.style.position = 'fixed';
+    ta.style.top = '-999px';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); } catch(e) { /* give up silently */ }
+    document.body.removeChild(ta);
+    flashCopyToast();
+  };
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(textToCopy).then(flashCopyToast, fallback);
+  } else {
+    fallback();
+  }
+}
+
+function flashCopyToast() {
+  const toast = document.getElementById('copyToast');
+  toast.classList.add('visible');
+  setTimeout(() => toast.classList.remove('visible'), 1800);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// KEYBOARD SHORTCUTS
+// Press A/B/C/D to select, → to advance, ← to go back.
+// Only active on the quiz screen.
+// ═══════════════════════════════════════════════════════════════════════════
+document.addEventListener('keydown', (e) => {
+  const quizActive = document.getElementById('screen-quiz').classList.contains('active');
+  if (!quizActive) return;
+  // Don't hijack typing in inputs (there aren't any on quiz screen, but future-proof)
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+  const key = e.key.toLowerCase();
+  if (['a','b','c','d'].includes(key)) {
+    const idx = ['a','b','c','d'].indexOf(key);
+    const q = questions[currentQIndex];
+    if (q && idx < q.options.length) {
+      selectAnswer(idx);
+      e.preventDefault();
+    }
+  } else if (e.key === 'ArrowRight' || e.key === 'Enter') {
+    if (!document.getElementById('next-btn').disabled) {
+      nextQuestion();
+      e.preventDefault();
+    }
+  } else if (e.key === 'ArrowLeft') {
+    if (!document.getElementById('prev-btn').disabled) {
+      prevQuestion();
+      e.preventDefault();
+    }
+  }
+});
+
+// (The Enter-key-submits-on-email-wall listener was removed when we switched
+// to the MailerLite embedded form — MailerLite's own form handles Enter
+// natively, so no custom keydown wiring is needed here any more.)
+
+// ═══════════════════════════════════════════════════════════════════════════
+// BOOT
+// ═══════════════════════════════════════════════════════════════════════════
+// Start observing the MailerLite embed slot immediately so we catch the form
+// as soon as universal.js injects it, regardless of whether the user reaches
+// the email wall before or after the injection completes.
+watchMailerLiteEmbed();
+
+// Load the quiz. loadQuizFromFirestore() populates `questions`, initialises
+// `answers`, then routes the user to the right screen (intro / return /
+// score via subscribed-return).
+loadQuizFromFirestore();
+
+// ═══════════════════════════════════════════════════════════════════════════
+// WINDOW EXPORTS — required by the module conversion [(g) 2026-06-03]
+// ═══════════════════════════════════════════════════════════════════════════
+// This script is now type="module", so top-level functions live in module
+// scope, NOT on window. The markup's inline onclick= handlers (including the
+// runtime-templated selectAnswer(${i}) and toggleExpand('${id}')) resolve
+// against window, so every function referenced from an inline handler must be
+// exported explicitly. If you add a new inline handler, add its function here.
+window.startQuiz = startQuiz;
+window.prevQuestion = prevQuestion;
+window.nextQuestion = nextQuestion;
+window.selectAnswer = selectAnswer;
+window.skipEmailAndShowScore = skipEmailAndShowScore;
+window.showPreviousScore = showPreviousScore;
+window.copyShareLink = copyShareLink;
+window.toggleExpand = toggleExpand;
+</script>
+
+<script src="/ct-nav.js"></script>
+
+</body>
+</html>

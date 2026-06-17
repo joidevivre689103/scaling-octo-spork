@@ -1,0 +1,1480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!-- CT_7G_INJECT:START (auto-injected by deploy tool — do not edit by hand) -->
+<style id="ct-7g-hide">body{visibility:hidden}</style>
+<script>window.CT_PAGE_ID="subscribe";</script>
+<script src="/feature-flags.js"></script>
+<script>setTimeout(function(){if(!window.__ctFlagsLoaded){location.replace("/comingsoon.html");}},2500);</script>
+<script src="/auth-status.js"></script>
+<!-- CT_7G_INJECT:END -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Subscribe — Cricket Times</title>
+<meta name="description" content="Why Cricket Times exists, what's free, what subscribing gets you, and the newsletter — sign up for any of them.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400;1,600;1,700&family=Source+Serif+4:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500&family=Special+Elite&display=swap" rel="stylesheet">
+
+<!-- Shared nav/footer include -->
+<script src="ct-nav.js" defer></script>
+
+<style>
+:root {
+  --cream:        #f4ede0;
+  --cream-deep:   #ece2cf;
+  --paper:        #faf5e9;
+  --ink:          #1a1612;
+  --ink-soft:     #3a322a;
+  --ink-mute:     #6b6157;
+  --rule:         #c9bda5;
+  --rule-soft:    #ddd2bb;
+  --crimson:      #8b1a1a;
+  --crimson-deep: #6b1010;
+  --gold:         #b08a3e;
+  --tape:         rgba(214, 196, 140, 0.55);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body { background: var(--cream); }
+body {
+  font-family: 'Source Serif 4', Georgia, serif;
+  color: var(--ink);
+  font-size: 18px;
+  line-height: 1.6;
+  background-image:
+    radial-gradient(circle at 20% 30%, rgba(176,138,62,0.04) 0%, transparent 40%),
+    radial-gradient(circle at 80% 70%, rgba(139,26,26,0.03) 0%, transparent 40%);
+  min-height: 100vh;
+}
+
+a { color: var(--crimson); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ───── Page wrapper ───── */
+.page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 56px 28px 96px;
+}
+
+@media (max-width: 600px) {
+  .page { padding: 36px 20px 72px; }
+  body { font-size: 17px; }
+}
+
+/* ───── Masthead band ───── */
+.kicker {
+  font-family: 'Special Elite', monospace;
+  font-size: 11px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  text-align: center;
+  margin-bottom: 14px;
+}
+
+h1.title {
+  font-family: 'Playfair Display', serif;
+  font-weight: 800;
+  font-size: clamp(40px, 7vw, 68px);
+  line-height: 1.02;
+  letter-spacing: -0.015em;
+  text-align: center;
+  margin-bottom: 8px;
+}
+h1.title em {
+  font-style: italic;
+  font-weight: 400;
+  color: var(--crimson);
+}
+
+.dek {
+  text-align: center;
+  font-style: italic;
+  font-size: 18px;
+  color: var(--ink-soft);
+  margin-bottom: 44px;
+  max-width: 540px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ───── Prose ───── */
+.prose {
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-size: 19px;
+  line-height: 1.65;
+  color: var(--ink);
+}
+.prose p {
+  margin-bottom: 1.2em;
+}
+.prose p.lede::first-letter {
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  font-size: 4.4em;
+  line-height: 0.85;
+  float: left;
+  padding: 8px 12px 0 0;
+  color: var(--crimson);
+}
+.prose .pull {
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
+  font-size: 22px;
+  line-height: 1.4;
+  color: var(--ink-soft);
+  border-left: 3px solid var(--crimson);
+  padding: 4px 0 4px 22px;
+  margin: 28px 0;
+}
+
+.prose hr.section-break {
+  border: none;
+  text-align: center;
+  margin: 36px 0;
+  color: var(--rule);
+  letter-spacing: 0.4em;
+  font-family: 'Special Elite', monospace;
+  font-size: 12px;
+}
+.prose hr.section-break::before {
+  content: '⁂';
+  color: var(--ink-mute);
+}
+
+/* ───── Tier boxes ───── */
+.tiers-heading {
+  text-align: center;
+  font-family: 'Special Elite', monospace;
+  font-size: 11px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  margin: 56px 0 22px;
+  position: relative;
+}
+.tiers-heading::before,
+.tiers-heading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 30%;
+  height: 1px;
+  background: var(--rule);
+}
+.tiers-heading::before { left: 0; }
+.tiers-heading::after  { right: 0; }
+
+.tiers {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 40px;
+}
+@media (max-width: 640px) {
+  .tiers { grid-template-columns: 1fr; }
+}
+
+.tier {
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  padding: 28px 26px 26px;
+  position: relative;
+  box-shadow: 0 1px 2px rgba(40,30,20,0.06), 0 4px 14px rgba(40,30,20,0.05);
+  display: flex;
+  flex-direction: column;
+}
+.tier.paid {
+  border: 2px solid var(--crimson);
+}
+.tier.paid::before {
+  content: '';
+  position: absolute;
+  top: -10px; left: 50%;
+  transform: translateX(-50%) rotate(-1.5deg);
+  width: 90px; height: 22px;
+  background: var(--tape);
+  border-left: 1px dashed rgba(107,97,87,0.2);
+  border-right: 1px dashed rgba(107,97,87,0.2);
+}
+
+.tier-label {
+  font-family: 'Special Elite', monospace;
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  margin-bottom: 6px;
+}
+.tier.paid .tier-label { color: var(--crimson); }
+
+.tier-name {
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  font-size: 30px;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+  margin-bottom: 4px;
+}
+.tier-name em {
+  font-style: italic;
+  font-weight: 400;
+}
+
+.tier-price {
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
+  font-size: 19px;
+  color: var(--ink-soft);
+  margin-bottom: 18px;
+}
+.tier-price strong {
+  font-style: normal;
+  font-weight: 700;
+  color: var(--crimson);
+  font-size: 26px;
+  margin-right: 4px;
+}
+.tier-price .per { font-size: 14px; color: var(--ink-mute); }
+
+.tier-list {
+  list-style: none;
+  margin: 0 0 22px;
+  padding: 16px 0;
+  border-top: 1px dashed var(--rule);
+  border-bottom: 1px dashed var(--rule);
+  flex: 1;
+}
+.tier-list li {
+  position: relative;
+  padding-left: 22px;
+  margin-bottom: 10px;
+  font-size: 16px;
+  line-height: 1.45;
+  color: var(--ink-soft);
+}
+.tier-list li:last-child { margin-bottom: 0; }
+.tier-list li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: var(--crimson);
+  font-weight: 700;
+}
+
+.tier-cta {
+  display: inline-block;
+  font-family: 'Special Elite', monospace;
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  padding: 12px 22px;
+  border-radius: 2px;
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  border: 1px solid var(--ink);
+  color: var(--ink);
+  background: transparent;
+  text-decoration: none;
+  align-self: flex-start;
+}
+.tier-cta:hover {
+  background: var(--ink);
+  color: var(--paper);
+  text-decoration: none;
+}
+.tier.paid .tier-cta {
+  background: var(--crimson);
+  border-color: var(--crimson);
+  color: var(--paper);
+}
+.tier.paid .tier-cta:hover {
+  background: var(--crimson-deep);
+  border-color: var(--crimson-deep);
+}
+
+.tier-foot {
+  font-family: 'Source Serif 4', serif;
+  font-style: italic;
+  font-size: 14px;
+  color: var(--ink-mute);
+  margin-top: 10px;
+  line-height: 1.45;
+}
+
+/* ───── Closing line ───── */
+.closing {
+  text-align: center;
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
+  font-size: 20px;
+  color: var(--ink-soft);
+  margin-top: 44px;
+  padding: 0 8px;
+  line-height: 1.5;
+}
+.closing::before, .closing::after {
+  content: '—';
+  margin: 0 10px;
+  color: var(--ink-mute);
+}
+
+/* ───── Newsletter section ───── */
+.newsletter {
+  margin-top: 64px;
+  padding: 36px 32px 32px;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  position: relative;
+}
+.newsletter::before {
+  content: '';
+  position: absolute;
+  top: -8px; left: 50%;
+  transform: translateX(-50%);
+  width: 80px; height: 16px;
+  background: var(--tape);
+}
+
+.newsletter-kicker {
+  font-family: 'Special Elite', monospace;
+  font-size: 11px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  text-align: center;
+  margin-bottom: 8px;
+}
+.newsletter h2 {
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  font-size: 30px;
+  text-align: center;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+  margin-bottom: 8px;
+}
+.newsletter h2 em {
+  font-style: italic;
+  font-weight: 400;
+  color: var(--crimson);
+}
+.newsletter .nl-dek {
+  text-align: center;
+  font-style: italic;
+  color: var(--ink-soft);
+  margin-bottom: 22px;
+  max-width: 460px;
+  margin-left: auto;
+  margin-right: auto;
+  font-size: 16px;
+}
+
+.newsletter-bullets {
+  list-style: none;
+  margin: 0 auto 24px;
+  padding: 16px 0;
+  border-top: 1px dashed var(--rule);
+  border-bottom: 1px dashed var(--rule);
+  max-width: 480px;
+}
+.newsletter-bullets li {
+  position: relative;
+  padding-left: 22px;
+  margin-bottom: 8px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+.newsletter-bullets li:last-child { margin-bottom: 0; }
+.newsletter-bullets li::before {
+  content: '✦';
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: var(--gold);
+}
+
+.newsletter form {
+  max-width: 460px;
+  margin: 0 auto;
+}
+.nl-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+@media (max-width: 480px) {
+  .nl-row { grid-template-columns: 1fr; }
+}
+.nl-field label {
+  display: block;
+  font-family: 'Special Elite', monospace;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  margin-bottom: 4px;
+}
+.nl-field input[type="email"],
+.nl-field input[type="text"] {
+  width: 100%;
+  padding: 10px 12px;
+  font-family: 'Source Serif 4', serif;
+  font-size: 16px;
+  border: 1px solid var(--rule);
+  background: #fff;
+  border-radius: 2px;
+  color: var(--ink);
+}
+.nl-field input:focus {
+  outline: none;
+  border-color: var(--crimson);
+}
+.nl-field .opt {
+  font-family: 'Source Serif 4', serif;
+  font-style: italic;
+  font-size: 11px;
+  color: var(--ink-mute);
+  text-transform: none;
+  letter-spacing: 0;
+  margin-left: 4px;
+}
+
+.nl-consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  color: var(--ink-soft);
+  line-height: 1.5;
+}
+.nl-consent input {
+  margin-top: 4px;
+  accent-color: var(--crimson);
+  flex-shrink: 0;
+}
+.nl-consent label { cursor: pointer; }
+
+.nl-submit {
+  width: 100%;
+  padding: 13px 22px;
+  font-family: 'Special Elite', monospace;
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  background: var(--crimson);
+  color: var(--paper);
+  border: 1px solid var(--crimson);
+  border-radius: 2px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.nl-submit:hover { background: var(--crimson-deep); border-color: var(--crimson-deep); }
+.nl-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.nl-msg {
+  margin-top: 14px;
+  font-size: 14px;
+  text-align: center;
+  font-style: italic;
+  min-height: 20px;
+  line-height: 1.5;
+}
+.nl-msg.success { color: var(--ink-soft); }
+.nl-msg.error { color: var(--crimson); }
+
+.nl-foot {
+  font-size: 12px;
+  color: var(--ink-mute);
+  text-align: center;
+  margin-top: 14px;
+  line-height: 1.55;
+}
+.nl-foot a { color: var(--crimson); }
+
+.nl-spinner {
+  display: inline-block;
+  width: 12px; height: 12px;
+  border: 2px solid rgba(245,240,232,0.4);
+  border-top-color: var(--paper);
+  border-radius: 50%;
+  animation: nlspin 0.7s linear infinite;
+  vertical-align: middle;
+  margin-right: 8px;
+}
+@keyframes nlspin { to { transform: rotate(360deg); } }
+
+/* ───── Paid tier — pricing selector ───── */
+.tier.paid .tier-price-block {
+  margin-bottom: 18px;
+}
+.tier.paid .tier-price-block .tier-price-intro {
+  font-family: 'Source Serif 4', serif;
+  font-style: italic;
+  font-size: 14px;
+  color: var(--ink-mute);
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+
+.price-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.price-option {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: #fff;
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  position: relative;
+}
+.price-option:hover {
+  border-color: var(--ink-soft);
+  background: #fffdf7;
+}
+.price-option input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.price-option:has(input:checked) {
+  border-color: var(--crimson);
+  border-width: 2px;
+  padding: 11px 13px;
+  background: #fffaf3;
+}
+
+.price-option-label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.price-option-cadence {
+  font-family: 'Playfair Display', serif;
+  font-weight: 600;
+  font-size: 17px;
+  color: var(--ink);
+  letter-spacing: -0.005em;
+}
+.price-option-cadence em {
+  font-style: italic;
+  font-weight: 400;
+  color: var(--crimson);
+}
+.price-option-detail {
+  font-family: 'Source Serif 4', serif;
+  font-style: italic;
+  font-size: 13px;
+  color: var(--ink-mute);
+  line-height: 1.4;
+}
+
+.price-option-amount {
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  font-size: 20px;
+  color: var(--crimson);
+  white-space: nowrap;
+  margin-left: 14px;
+}
+.price-option-amount .per {
+  font-family: 'Source Serif 4', serif;
+  font-weight: 400;
+  font-style: italic;
+  font-size: 12px;
+  color: var(--ink-mute);
+  margin-left: 2px;
+}
+
+.price-option.founding {
+  border-color: var(--gold);
+}
+.price-option.founding::before {
+  content: 'Founding';
+  position: absolute;
+  top: -8px;
+  left: 14px;
+  background: var(--paper);
+  padding: 0 8px;
+  font-family: 'Special Elite', monospace;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.price-option.founding:has(input:checked) {
+  border-color: var(--gold);
+}
+.price-option.founding .price-option-amount {
+  color: var(--gold);
+}
+.founding-counter {
+  font-family: 'Special Elite', monospace;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  margin-top: 4px;
+}
+
+.zone-footnote {
+  font-family: 'Source Serif 4', serif;
+  font-style: italic;
+  font-size: 12px;
+  color: var(--ink-mute);
+  line-height: 1.5;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--rule);
+}
+.zone-footnote strong {
+  font-style: normal;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+/* Already-subscribed panel — replaces the entire subscribe-flow when the
+   signed-in user is already a paid subscriber. Visual aesthetic intentionally
+   mirrors the signin-prompt (in-card, cream + gold-dashed) to feel of-a-piece
+   with the rest of the card. */
+.already-subscribed-panel {
+  background: #fffaf3;
+  border: 1px dashed var(--gold);
+  border-radius: 2px;
+  padding: 22px 24px;
+  margin-top: 4px;
+}
+.already-sub-title {
+  font-family: 'Playfair Display', serif;
+  font-weight: 600;
+  font-size: 19px;
+  color: var(--ink);
+  letter-spacing: -0.005em;
+  margin: 0 0 12px 0;
+}
+.already-sub-body {
+  font-family: 'Source Serif 4', serif;
+  font-size: 15px;
+  color: var(--ink-soft);
+  line-height: 1.6;
+  margin: 0 0 12px 0;
+}
+.already-sub-body a {
+  color: var(--crimson);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.already-sub-body a:hover { color: var(--ink); }
+.already-sub-foot {
+  font-family: 'Source Serif 4', serif;
+  font-style: italic;
+  font-size: 12px;
+  color: var(--ink-mute);
+  line-height: 1.5;
+  margin: 14px 0 0 0;
+  padding-top: 12px;
+  border-top: 1px dashed var(--rule);
+}
+.already-sub-foot a {
+  color: var(--ink-soft);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.already-sub-foot a:hover { color: var(--crimson); }
+.already-sub-foot span {
+  font-style: normal;
+  color: var(--ink-soft);
+  font-weight: 500;
+}
+
+/* Sign-in prompt (in-card, not a modal) */
+.signin-prompt {
+  background: #fffaf3;
+  border: 1px dashed var(--gold);
+  border-radius: 2px;
+  padding: 16px 18px;
+  margin-bottom: 14px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+.signin-prompt strong {
+  font-weight: 600;
+  color: var(--ink);
+}
+.signin-prompt .signin-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+.signin-prompt button {
+  padding: 10px 18px;
+  font-family: 'Special Elite', monospace;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  background: var(--ink);
+  color: var(--paper);
+  border: 1px solid var(--ink);
+  border-radius: 2px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.signin-prompt button:hover { background: var(--ink-soft); border-color: var(--ink-soft); }
+.signin-prompt button:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* Subscribe button states */
+.tier.paid .tier-cta.subscribe-btn {
+  width: 100%;
+  text-align: center;
+  align-self: stretch;
+  cursor: pointer;
+}
+.tier.paid .tier-cta.subscribe-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.tier.paid .tier-cta.subscribe-btn .btn-spinner {
+  display: inline-block;
+  width: 10px; height: 10px;
+  border: 2px solid rgba(245,240,232,0.4);
+  border-top-color: var(--paper);
+  border-radius: 50%;
+  animation: nlspin 0.7s linear infinite;
+  vertical-align: middle;
+  margin-right: 8px;
+}
+
+.subscribe-msg {
+  margin-top: 12px;
+  font-size: 13px;
+  font-style: italic;
+  line-height: 1.5;
+  text-align: center;
+  min-height: 18px;
+}
+.subscribe-msg.error { color: var(--crimson); }
+.subscribe-msg.info { color: var(--ink-soft); }
+</style>
+</head>
+<body>
+
+<header data-ct-nav="header"></header>
+
+<main class="page">
+
+  <div class="kicker">Why we exist · what you get</div>
+  <h1 class="title">Cricket, <em>taken seriously.</em></h1>
+  <p class="dek">A small newspaper for people who love the game — the long form, the short form, and everything that has ever happened on a green field with a red ball or a white one.</p>
+
+  <article class="prose">
+
+    <p class="lede">Every other sport has, somewhere on the internet, a place where people who love it gather to think out loud. Football has a hundred. Basketball has thirty. American football has — oh, you'd better believe it — a stat for the third Tuesday of October. Cricket, the most absurdly varied and most quietly cerebral game in any language, deserves more places than it has. We made one of them.</p>
+
+    <p>Cricket Times is for people who think about cricket the way other people think about jazz: with affection, with arguments, and with the conviction that the music is more interesting than the marketing.</p>
+
+    <p>The heart of the paper is Test cricket — the long form, the five-day mystery, the format where a session can turn on a single ball and a career can be defined by an hour before tea on the fourth afternoon. That's the truth, and we won't pretend otherwise. But cricket is bigger than its longest form, and the paper goes wherever the game is interesting. <em>Selectively rather than dutifully</em>, as the editor likes to say. You can love something a lot and something a little less, but it is still love.</p>
+
+    <p>So if you came here for Test cricket: welcome — this is your seat. If you came here for the white-ball game: also welcome — pull up a chair. If you came here because someone sent you a link and you weren't entirely sure what cricket even was, but the writing seemed to know what it was on about: especially welcome. Stay for the writing.</p>
+
+    <hr class="section-break">
+
+    <p>The free part of Cricket Times is not a tease. It's the actual paper. Articles, statistical analyses, country-by-country results, head-to-head comparisons, batting and bowling records, the Test Cricket Oracle quiz on the first of every month, the Voices section, narrated audio for the long pieces — all of it open, no login, nothing to wait for. If you came here from a friend's link or a Google search and never sign up for anything, you'll still get the whole thing as it was meant to be read.</p>
+
+    <p>This isn't generosity, exactly. It's a belief that good writing about cricket — any cricket — is rarer than it should be, and the answer to "rare" is "share it widely." The articles you read were written for you whether you ever pay a penny.</p>
+
+    <div class="pull">If a friend sends you a link, the link works. If you bookmark a piece in 2026 and come back in 2030, the piece is still there. We don't put up walls around things people have already started reading.</div>
+
+    <p>So why does a paid tier exist at all?</p>
+
+    <hr class="section-break">
+
+    <p>Because someone has to keep the lights on, and the someone is — well, hi. It's me, Ivan. One person, one passion, one site, and a non-trivial monthly bill from the various services that quietly hold the whole thing together — hosting, domains, email, the database, the audio pipeline, a handful of others nobody thinks about until they stop working. The paid tier is how Cricket Times keeps existing on the days when the writing is hard and the bills don't stop arriving.</p>
+
+    <p>Subscriptions are also how the paper grows beyond one person — and if you write about cricket and would like to be read here, the <a href="about.html">about page</a> has more on that.</p>
+
+    <p>But "support the work" is a thin pitch on its own — a noble one, but thin. So the paid tier comes with things that make subscribing feel like joining the studio rather than just paying the rent.</p>
+
+    <p>The first is the <strong>archive</strong>. Every article ever published, browsable by author, era, team, format, statistic, and topic. The free tier gives you any single article you click on; the archive is where you go when you remember reading something a few months ago about the third innings at Headingley and you'd like to find it again. Or when you'd like to find six other things like it. The free site is a daily paper; the archive is the bound volumes on the shelf, organised properly.</p>
+
+    <p>Then there is the <strong>simulation tool</strong>, which lets you ask the question every cricket fan has had at the bar at midnight: <em>what if?</em> What if Lara had been in this batting lineup, what if Sri Lanka had had Marshall opening the bowling against Australia, what if the third innings had been twelve overs longer. The simulator is built on the same statistical models that power the analysis on the site, and it will give you genuine answers, which you may or may not want to hear. It is the most fun a spreadsheet has ever been allowed to be.</p>
+
+    <p>Connected to all of this — and quietly important — is <strong>data export</strong>. If you've used our filters to build a real analysis (a peer-comparison cohort, a venue-adjusted bowling table, a particular slice of the captaincy data), you can take it with you. Not a raw data dump — the actual analysis you built, the way you built it, exportable to a spreadsheet. For the readers who do this kind of work, it's the difference between admiring a tool and using one. We did not want to be the kind of site where you can see the answer but not work with it.</p>
+
+    <p>There are also smaller pleasures: the <strong>past Oracle quizzes</strong> as they roll into the archive at month-end (the live quiz on the first of each month stays free for everybody), the <strong>leaderboard</strong> across all editions for those of us who keep score, and the <strong>audio archive</strong> of every narrated piece — for slow afternoons, long drives, and the days when reading feels like work.</p>
+
+    <p>None of this is locked in a vault somewhere. It's locked in a room with a key on the door, and the key is roughly the cost of a cup of coffee a month. The price is what it is because making this work cost real time, and the work continues only if some readers decide they'd rather it kept happening.</p>
+
+    <hr class="section-break">
+
+    <p>And, since you've come this far — one more thing.</p>
+
+    <p>Subscribers also get <strong>Behind the Scenes</strong>, which is the editor's notebook. Pinned notes, half-formed thoughts, drafts in progress, photos from the desk, the occasional cricket ball with words written on it in marker. It's posted irregularly, like all good notebooks. Subscribers can reply, replies become threads, and threads occasionally become arguments about whether Headley really should rank above Bradman, or whether Harry Brook's Test record will look better or worse in twenty years. (The first one: probably not. The second one: ask me again in twenty years.)</p>
+
+    <p>It's not the headline reason to subscribe. It's the thing that makes subscribing feel less like a transaction and more like a key to a small, noisy room where the writing actually gets made.</p>
+
+    <hr class="section-break">
+
+    <p>If you read all the way down here, you and I are almost certainly the same kind of person. The kind who read the cricket section first, even when the cricket section was three lines long. The kind who, in any pub argument about <em>greatest ever</em>, has a strong second-favourite opinion to deploy if the obvious one gets shouted down. The kind who knows what a good ball looks like before it pitches, regardless of how many overs it's allowed to last.</p>
+
+    <p>Whichever box you pick below — and whether you sign up for the newsletter at the bottom of the page or never sign up for anything at all — thank you for being here. The paper exists because of readers like you, and frankly only because of readers like you. Cricket lives a little longer every time someone reads about it on purpose.</p>
+
+  </article>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       TIER BOXES
+  ═══════════════════════════════════════════════════════════════════════ -->
+
+  <div class="tiers-heading">— Pick your seat —</div>
+
+  <div class="tiers">
+
+    <!-- Free tier -->
+    <div class="tier free">
+      <div class="tier-label">Free reader</div>
+      <h2 class="tier-name">The <em>regular</em> seat</h2>
+      <div class="tier-price"><strong>$0</strong><span class="per">forever, no signup needed</span></div>
+
+      <ul class="tier-list">
+        <li>Every article, every week, in full</li>
+        <li>Statistical tools — batting, bowling, keeping, captaincy, country comparisons, head-to-heads</li>
+        <li>The monthly Oracle quiz on the first of every month</li>
+        <li>Audio narration on long pieces</li>
+        <li>Voices section and reader comments</li>
+      </ul>
+
+      <a href="stories.html" class="tier-cta">Start reading</a>
+      <p class="tier-foot">No login, no email needed. Sign in only if you want to comment on an article.</p>
+    </div>
+
+    <!-- Paid tier -->
+    <div class="tier paid">
+      <div class="tier-label">Paid subscriber</div>
+      <h2 class="tier-name">The <em>members'</em> room</h2>
+
+      <!-- Subscribe machinery — wrapped in #subscribe-flow so it can be hidden
+           as a unit when the signed-in user is already a paid subscriber.
+           When hidden, #already-subscribed-panel below takes over. -->
+      <div id="subscribe-flow">
+        <div class="tier-price-block">
+          <p class="tier-price-intro" id="tier-price-intro">Detecting your pricing&hellip;</p>
+
+          <div class="price-options" id="price-options">
+            <!-- Populated by subscribe script based on detected zone -->
+          </div>
+        </div>
+
+        <ul class="tier-list">
+          <li>Everything in the free tier</li>
+          <li>The full <strong>article archive</strong>, searchable and browsable</li>
+          <li>The <strong>simulation tool</strong> — ask <em>what if</em> and get an answer</li>
+          <li><strong>Data export</strong> for any analysis built through the site's filters</li>
+          <li>Past <strong>Oracle quizzes</strong> and the all-time <strong>leaderboard</strong></li>
+          <li><strong>Audio archive</strong> of every narrated piece</li>
+          <li><strong>Behind the Scenes</strong> — the editor's notebook, with replies and threads</li>
+          <li>The warm feeling of keeping a small newspaper alive</li>
+        </ul>
+
+        <!-- Account prompt (hidden by default; shown when user clicks Subscribe
+             without auth). Item (b), 2026-06-05: replaces the old email-link
+             form. All authentication now lives on /login.html — this panel
+             just carries the reader there (signup tab pre-selected; existing
+             readers switch to the Sign in tab on arrival) with a returnUrl
+             that brings them back here, selection preserved. -->
+        <div class="signin-prompt" id="signin-prompt" style="display: none;">
+          <strong>You'll need an account to subscribe</strong> &mdash; it takes under a minute, and you'll land right back here.
+          <div class="signin-form">
+            <button type="button" id="signin-submit">Create account or sign in</button>
+          </div>
+        </div>
+
+        <button type="button" class="tier-cta subscribe-btn" id="subscribe-btn" disabled>
+          Subscribe
+        </button>
+
+        <div class="subscribe-msg" id="subscribe-msg" role="status" aria-live="polite"></div>
+
+        <p class="zone-footnote" id="zone-footnote" style="display: none;"></p>
+
+        <p class="tier-foot">Cancel any time. Subscriptions are how the work continues.</p>
+      </div>
+
+      <!-- Already-subscribed panel (added 2026-05-11). Hidden by default.
+           Replaces #subscribe-flow above when the signed-in user already has
+           an active subscription. Plan switching and cancellation live on
+           manage.html. -->
+      <div class="already-subscribed-panel" id="already-subscribed-panel" style="display: none;">
+        <p class="already-sub-title">You're already a subscriber.</p>
+        <p class="already-sub-body">
+          Your Cricket Times subscription is active &mdash; you have full access to the archive, the simulation tool, data export, behind-the-scenes notes, and everything else.
+        </p>
+        <p class="already-sub-body">
+          To switch plans or cancel, head to your <a href="/manage.html">subscription management page</a>.
+        </p>
+        <p class="already-sub-foot">
+          Signed in as <span id="already-sub-email">&nbsp;</span> &middot;
+          <a href="#" id="already-sub-signout">Sign out</a>
+        </p>
+      </div>
+    </div>
+
+  </div>
+
+  <p class="closing">Either way, welcome. Both seats see the same game.</p>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       NEWSLETTER — open to free and paid alike
+  ═══════════════════════════════════════════════════════════════════════ -->
+
+  <section class="newsletter" id="newsletter" aria-labelledby="newsletter-title">
+
+    <p class="newsletter-kicker">The Cricket Times Dispatch</p>
+    <h2 id="newsletter-title">Notes from <em>the pavilion</em></h2>
+    <p class="nl-dek">An occasional letter from Cricket Times to your inbox — the new pieces, the statistical oddities, the small things that didn't quite fit elsewhere. Free either way: paid or unpaid, you're welcome on the list.</p>
+
+    <ul class="newsletter-bullets">
+      <li>A handful of short notes on pieces recently published — what they're about, what they argue, where to read them</li>
+      <li>The occasional round-up of statistical finds, player comparisons, and archival oddities worth a second look</li>
+      <li>Notes about new tools and features, when there are any worth mentioning</li>
+      <li>A respect for your inbox. Unsubscribe in one click, whenever you like.</li>
+    </ul>
+
+    <form id="nl-form" novalidate>
+      <div class="nl-row">
+        <div class="nl-field">
+          <label for="nl-email">Email address</label>
+          <input type="email" id="nl-email" name="email" placeholder="your@email.com" required autocomplete="email">
+        </div>
+        <div class="nl-field">
+          <label for="nl-name">First name <span class="opt">optional</span></label>
+          <input type="text" id="nl-name" name="name" placeholder="e.g. Jay" autocomplete="given-name">
+        </div>
+      </div>
+
+      <div class="nl-consent">
+        <input type="checkbox" id="nl-consent" name="consent" required>
+        <label for="nl-consent">I agree to receive email newsletters from Cricket Times. My data will be processed by MailerLite per their <a href="https://www.mailerlite.com/legal/privacy-policy" target="_blank" rel="noopener">privacy policy</a> and the Cricket Times <a href="privacy.html">privacy policy</a>. I can unsubscribe at any time.</label>
+      </div>
+
+      <button type="submit" class="nl-submit" id="nl-submit">Subscribe to the dispatch</button>
+      <div class="nl-msg" id="nl-msg" role="status" aria-live="polite"></div>
+    </form>
+
+    <p class="nl-foot">Your email is stored securely by MailerLite and will never be shared or sold.<br>Read the <a href="privacy.html">Cricket Times Privacy Policy</a>.</p>
+
+  </section>
+
+</main>
+
+<footer data-ct-nav="footer"></footer>
+
+<script>
+// Newsletter form — MailerLite endpoint matches the existing subscribe page
+(function () {
+  const form     = document.getElementById('nl-form');
+  const submit   = document.getElementById('nl-submit');
+  const msgEl    = document.getElementById('nl-msg');
+  const FORM_URL = 'https://assets.mailerlite.com/jsonp/2259944/forms/184395234410497566/subscribe';
+
+  function show(type, text) {
+    msgEl.className = 'nl-msg ' + type;
+    msgEl.textContent = text;
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email   = document.getElementById('nl-email').value.trim();
+    const name    = document.getElementById('nl-name').value.trim();
+    const consent = document.getElementById('nl-consent').checked;
+
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      show('error', 'Please enter a valid email address.');
+      return;
+    }
+    if (!consent) {
+      show('error', 'Please confirm your consent to receive emails.');
+      return;
+    }
+
+    submit.disabled = true;
+    submit.innerHTML = '<span class="nl-spinner"></span>Subscribing…';
+    msgEl.className = 'nl-msg';
+    msgEl.textContent = '';
+
+    try {
+      const payload = new FormData();
+      payload.append('fields[email]', email);
+      if (name) payload.append('fields[name]', name);
+      payload.append('ml-submit', '1');
+      payload.append('anticsrf', 'true');
+      payload.append('ajax', '1');
+
+      const res = await fetch(FORM_URL, { method: 'POST', body: payload });
+      if (!res.ok) throw new Error('Server error');
+
+      form.style.display = 'none';
+      show('success', '✓ You\'re on the list. The next dispatch from Cricket Times will find you when there\'s something worth saying.');
+    } catch (err) {
+      console.error(err);
+      submit.disabled = false;
+      submit.textContent = 'Subscribe to the dispatch';
+      show('error', 'Something went wrong. Please try again, or write to ivan@cricketimes.com.');
+    }
+  });
+})();
+</script>
+
+<!-- ───────────────────────────────────────────────────────────────────────
+     SUBSCRIPTION FLOW
+     - Detects pricing zone (USD / INR) on load
+     - Renders price options for that zone
+     - Shows footnote about the other zone for transparency
+     - Live founding-tier counter
+     - Delegates ALL authentication to /login.html (item b, 2026-06-05):
+       anonymous Subscribe clicks route to /login.html?mode=signup with a
+       returnUrl carrying the selected priceKey (+ zone override if any).
+       On return, the selection is re-applied from the URL — the reader
+       clicks Subscribe once more; checkout is NEVER auto-triggered.
+     - Calls createCheckoutSession Cloud Function and redirects to Stripe
+─────────────────────────────────────────────────────────────────────── -->
+<script type="module">
+import { initializeApp, getApps, getApp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
+import {
+  getAuth, onAuthStateChanged, signOut
+} from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
+import { getFunctions, httpsCallable, connectFunctionsEmulator } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-functions.js';
+import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
+
+// Firebase config — same project as the rest of the site (hitwicket-cba02).
+// API key is public by design; security via Firestore rules.
+const firebaseConfig = {
+  apiKey: 'AIzaSyBnfn9hK0y-p6nvIZ_AwoJnWD7DfDuIQd4',
+  authDomain: 'hitwicket-cba02.firebaseapp.com',
+  projectId: 'hitwicket-cba02',
+};
+
+const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const functions = getFunctions(app);
+const firestore = getFirestore(app);
+
+// Connect to local Functions emulator when running on localhost.
+// This makes Subscribe button calls hit the local emulator instead of
+// production Cloud Functions, so we can test against local Firestore.
+const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+if (isLocal) {
+  connectFunctionsEmulator(functions, '127.0.0.1', 5001);
+  console.log('[Cricket Times] Using local Functions emulator at 127.0.0.1:5001');
+}
+
+const detectPricingZone       = httpsCallable(functions, 'detectPricingZone');
+const getFoundingAvailability = httpsCallable(functions, 'getFoundingAvailability');
+const createCheckoutSession   = httpsCallable(functions, 'createCheckoutSession');
+
+// Email-key encoder — must match the server-side convention in checkout.js
+// and the rest of the codebase (admin tools, webhook).
+function encodeEmailKey(email) {
+  return (email || '').toLowerCase().replace(/[.@]/g, '_');
+}
+
+// ─── DOM refs ─────────────────────────────────────────────────────────────
+const introEl      = document.getElementById('tier-price-intro');
+const optionsEl    = document.getElementById('price-options');
+const subscribeBtn = document.getElementById('subscribe-btn');
+const msgEl        = document.getElementById('subscribe-msg');
+const footnoteEl   = document.getElementById('zone-footnote');
+const signinPrompt = document.getElementById('signin-prompt');
+const signinSubmit = document.getElementById('signin-submit');
+
+// Already-subscribed panel refs (added 2026-05-11). When the signed-in user
+// is already a paid subscriber, #subscribe-flow is hidden and #already-
+// subscribed-panel is shown in its place.
+const subscribeFlowEl    = document.getElementById('subscribe-flow');
+const alreadySubPanelEl  = document.getElementById('already-subscribed-panel');
+const alreadySubEmailEl  = document.getElementById('already-sub-email');
+const alreadySubSignout  = document.getElementById('already-sub-signout');
+
+// ─── State ────────────────────────────────────────────────────────────────
+let zone = null;          // 'usd' or 'inr'
+let availability = null;  // { usd: {...}, inr: {...} }
+let selectedPriceKey = null;
+
+// Display catalog. Cloud Function is source of truth for Price IDs and
+// authorisation; amounts here are for rendering only.
+const CATALOG = {
+  usd: [
+    { key: 'usd_monthly',  cadence: 'Monthly',          amount: '$8',  per: '/month',
+      detail: 'Billed monthly. Cancel any time.' },
+    { key: 'usd_annual',   cadence: 'Annual',           amount: '$72', per: '/year',
+      detail: 'Save $24 vs monthly. Cancel any time.' },
+    { key: 'usd_founding', cadence: 'Founding member',  amount: '$48', per: '/year',
+      detail: 'Founders lock in this rate forever.', founding: true },
+  ],
+  inr: [
+    { key: 'inr_monthly',  cadence: 'Monthly',          amount: '₹99',  per: '/month',
+      detail: 'Billed monthly. Cancel any time.' },
+    { key: 'inr_annual',   cadence: 'Annual',           amount: '₹899', per: '/year',
+      detail: 'Save ₹289 vs monthly. Cancel any time.' },
+    { key: 'inr_founding', cadence: 'Founding member',  amount: '₹599', per: '/year',
+      detail: 'Founders lock in this rate forever.', founding: true },
+  ],
+};
+
+const ZONE_INTRO = {
+  usd: 'Pricing in <strong>USD</strong> &mdash; for subscribers outside the Indian subcontinent.',
+  inr: 'Pricing in <strong>INR</strong> &mdash; for subscribers in India and the surrounding region.',
+};
+
+const ZONE_FOOTNOTE = {
+  usd: 'Subscribing from India, Pakistan, Bangladesh, Nepal, Sri Lanka, or Afghanistan? You\'ll see ₹ pricing when you visit from a network in those countries.',
+  inr: 'Subscribing from outside the subcontinent? You\'ll see USD pricing when you visit from a network elsewhere.',
+};
+
+// ─── Render ───────────────────────────────────────────────────────────────
+function renderOptions() {
+  if (!zone || !availability) return;
+
+  const items = CATALOG[zone];
+  const zoneAvail = availability[zone];
+
+  optionsEl.innerHTML = '';
+
+  items.forEach((item) => {
+    // Hide founding tier entirely when full
+    if (item.founding && !zoneAvail.available) return;
+
+    const id = 'price-' + item.key;
+    const wrapper = document.createElement('label');
+    wrapper.className = 'price-option' + (item.founding ? ' founding' : '');
+    wrapper.htmlFor = id;
+    wrapper.innerHTML =
+      '<input type="radio" name="price" id="' + id + '" value="' + item.key + '">' +
+      '<div class="price-option-label">' +
+        '<span class="price-option-cadence">' + item.cadence + '</span>' +
+        '<span class="price-option-detail">' + item.detail + '</span>' +
+        (item.founding
+          ? '<span class="founding-counter">' + zoneAvail.remaining + ' of ' + zoneAvail.cap + ' spots remaining</span>'
+          : '') +
+      '</div>' +
+      '<div class="price-option-amount">' + item.amount + '<span class="per">' + item.per + '</span></div>';
+    optionsEl.appendChild(wrapper);
+
+    wrapper.querySelector('input').addEventListener('change', (e) => {
+      if (e.target.checked) {
+        selectedPriceKey = item.key;
+        subscribeBtn.disabled = false;
+        msgEl.textContent = '';
+        msgEl.className = 'subscribe-msg';
+      }
+    });
+  });
+
+  // Pre-select annual by default — best balance of value and commitment
+  const defaultKey = zone + '_annual';
+  const defaultInput = optionsEl.querySelector('input[value="' + defaultKey + '"]');
+  if (defaultInput) {
+    defaultInput.checked = true;
+    selectedPriceKey = defaultKey;
+    subscribeBtn.disabled = false;
+  }
+
+  introEl.innerHTML = ZONE_INTRO[zone];
+  footnoteEl.textContent = ZONE_FOOTNOTE[zone];
+  footnoteEl.style.display = '';
+}
+
+// ─── Auth handoff to /login.html (item b, 2026-06-05) ─────────────────────
+//
+// This page no longer performs any authentication itself. The old email-link
+// flow (sendSignInLinkToEmail → inbox round-trip → signInWithEmailLink →
+// localStorage-driven auto-checkout) is gone, and with it both localStorage
+// keys (ct_signin_email, ct_pending_pricekey) and the stale-pricekey wart
+// that auto-fired startCheckout() at already-subscribed visitors.
+//
+// Instead, an anonymous Subscribe click routes to /login.html?mode=signup
+// (existing readers switch to the Sign in tab there — one click). The
+// returnUrl brings them back to this page with the selection carried as
+// plain URL state:
+//
+//   /login.html?mode=signup&returnUrl=%2Fsubscribe.html%3Fpricekey%3Dusd_annual
+//
+// login.html sanitizes returnUrl (same-origin paths only) and redirects on
+// successful signin/signup. On return, init() reads ?pricekey= and
+// pre-selects the matching radio — it never auto-triggers checkout. The
+// reader confirms with one more Subscribe click. ?zone= overrides (dev
+// tooling) are preserved through the round-trip.
+function buildReturnUrl() {
+  const ret = new URL('/subscribe.html', window.location.origin);
+  if (selectedPriceKey) ret.searchParams.set('pricekey', selectedPriceKey);
+  const z = new URLSearchParams(window.location.search).get('zone');
+  if (z) ret.searchParams.set('zone', z);
+  return ret.pathname + ret.search;
+}
+
+function goToLogin() {
+  const dest = new URL('/login.html', window.location.origin);
+  dest.searchParams.set('mode', 'signup');
+  dest.searchParams.set('returnUrl', buildReturnUrl());
+  window.location.href = dest.toString();
+}
+
+// ─── Checkout ─────────────────────────────────────────────────────────────
+async function startCheckout() {
+  if (!selectedPriceKey) {
+    msgEl.textContent = 'Please choose a billing cadence.';
+    msgEl.className = 'subscribe-msg error';
+    return;
+  }
+
+  if (!auth.currentUser) {
+    // Surface the account prompt; its button routes to /login.html with the
+    // current selection in the returnUrl. No in-page auth anymore (item b).
+    signinPrompt.style.display = '';
+    msgEl.textContent = '';
+    return;
+  }
+
+  subscribeBtn.disabled = true;
+  subscribeBtn.innerHTML = '<span class="btn-spinner"></span>Redirecting to Stripe…';
+  msgEl.textContent = '';
+  msgEl.className = 'subscribe-msg';
+
+  try {
+    const res = await createCheckoutSession({
+      priceKey: selectedPriceKey,
+      origin: window.location.origin,
+    });
+    if (res.data && res.data.url) {
+      window.location.href = res.data.url;
+      return;
+    }
+    throw new Error('Checkout session response missing URL.');
+  } catch (err) {
+    console.error('createCheckoutSession failed:', err);
+    let userMessage;
+    const code = err && err.code;
+    if (code === 'functions/resource-exhausted') {
+      userMessage = err.message || 'Founding tier just filled up. Please choose monthly or annual.';
+      try {
+        const { data } = await getFoundingAvailability();
+        availability = data;
+        renderOptions();
+      } catch (e) { /* leave the message */ }
+    } else if (code === 'functions/already-exists') {
+      // Defense in depth: the user is already a paid subscriber but slipped
+      // past the on-load check (e.g. signed in mid-flow via magic link).
+      // Swap the UI to the already-subscribed panel rather than just showing
+      // an error message — same end state as if init had caught them.
+      if (auth.currentUser) {
+        const swapped = await maybeShowAlreadySubscribedPanel(auth.currentUser);
+        if (swapped) return;
+      }
+      userMessage = (err.message || 'You already have an active subscription.') +
+        ' Visit /manage.html to manage your plan.';
+    } else if (code === 'functions/permission-denied') {
+      userMessage = err.message || 'This pricing isn\'t available from your location.';
+    } else if (code === 'functions/unauthenticated') {
+      // Auth state evaporated between page load and the call (signed out in
+      // another tab, token revoked). Route to login; selection survives in
+      // the returnUrl.
+      goToLogin();
+      return;
+    } else {
+      userMessage = 'Something went wrong starting checkout. Please try again, or write to ivan@cricketimes.com.';
+    }
+    msgEl.textContent = userMessage;
+    msgEl.className = 'subscribe-msg error';
+    subscribeBtn.disabled = false;
+    subscribeBtn.innerHTML = 'Subscribe';
+  }
+}
+
+// ─── Wire up ──────────────────────────────────────────────────────────────
+subscribeBtn.addEventListener('click', startCheckout);
+signinSubmit.addEventListener('click', goToLogin);
+
+if (new URLSearchParams(window.location.search).get('cancelled') === '1') {
+  msgEl.textContent = 'Checkout cancelled — no charge was made. Pick a cadence and try again whenever you like.';
+  msgEl.className = 'subscribe-msg info';
+}
+
+// ─── Already-subscribed detection ─────────────────────────────────────────
+//
+// If the signed-in user already has an active subscription, swap the entire
+// #subscribe-flow for the #already-subscribed-panel so they can't accidentally
+// re-checkout (which would create a second Stripe subscription and silently
+// overwrite their subscriptions/{emailKey} doc).
+//
+// Detection reads subscriptions/{emailKey}.status — the single source of
+// truth for paid status. The rules grant owner-read on this doc (matched
+// via the caller's auth token email == emailKey), so this read works for
+// the signed-in user reading their own subscription.
+//
+// Statuses that count as paid:
+//   - 'active':   normal paid subscriber
+//   - 'past_due': renewal payment failed but Stripe is still dunning. We
+//                 preserve access during the grace window — same policy as
+//                 the rules-side isPaidSubscriber() helper.
+// Admin users without a subscription doc fall through to the normal flow
+// (they'd see the tier grid and could subscribe normally if they wanted;
+// admin status is irrelevant on this page — it's not a content gate).
+//
+// Architecture note (2026-05-18, item h): this previously read
+// settings/userTypes and checked role ∈ {priority, admin, superadmin}.
+// That source conflated paid-status with the operational-role axis. After
+// (h), the webhook no longer writes userTypes, so reading it for paid
+// signal would silently fail for any real paid subscriber.
+//
+// Returns true if the panel was shown (so init can short-circuit).
+async function maybeShowAlreadySubscribedPanel(user) {
+  if (!user || !user.email)        return false;
+  if (!alreadySubPanelEl)          return false;  // markup missing — bail safely
+  try {
+    const subRef = doc(firestore, 'subscriptions', encodeEmailKey(user.email));
+    const snap = await getDoc(subRef);
+    if (!snap.exists()) return false;
+    const data = snap.data() || {};
+    const PAID_STATUSES = new Set(['active', 'past_due']);
+    if (!PAID_STATUSES.has(data.status)) return false;
+
+    // Active paid user — swap UI.
+    if (subscribeFlowEl)   subscribeFlowEl.style.display = 'none';
+    alreadySubPanelEl.style.display = '';
+    if (alreadySubEmailEl) alreadySubEmailEl.textContent = user.email;
+    return true;
+  } catch (err) {
+    // Network error, rules denial, anything else — fall through to normal
+    // flow. The server-side createCheckoutSession block is the real defense;
+    // this is the friendly UI path.
+    console.warn('[subscribe] could not check subscription state:', err);
+    return false;
+  }
+}
+
+// Sign-out from the already-subscribed panel. Useful if the user signed in
+// with the wrong account or wants to subscribe a different email.
+if (alreadySubSignout) {
+  alreadySubSignout.addEventListener('click', async (e) => {
+    e.preventDefault();
+    try {
+      await signOut(auth);
+      // Reload to reset to the anonymous tier-grid view.
+      window.location.reload();
+    } catch (err) {
+      console.error('Sign-out failed:', err);
+    }
+  });
+}
+
+// ─── Initial load ─────────────────────────────────────────────────────────
+(async function init() {
+  // Wait once for Firebase Auth to resolve initial state (IndexedDB session
+  // restore). onAuthStateChanged fires synchronously once the SDK has
+  // decided. We wrap in a promise so init can await; subsequent state
+  // changes are handled by the listener below.
+  const initialUser = await new Promise((resolve) => {
+    const unsub = onAuthStateChanged(auth, (user) => {
+      unsub();
+      resolve(user);
+    });
+  });
+
+  // Keep the signin-prompt-hide-on-signin behaviour from the original code.
+  // (With no in-page auth left this only matters for multi-tab signin, but
+  // it's harmless and correct.)
+  onAuthStateChanged(auth, (user) => {
+    if (user) signinPrompt.style.display = 'none';
+  });
+
+  // If user is signed in AND already a paid subscriber, swap UI and stop.
+  if (initialUser) {
+    const swapped = await maybeShowAlreadySubscribedPanel(initialUser);
+    if (swapped) return;
+  }
+
+  // ────────────────────────────────────────────────────────────────────
+  // DEV-ONLY zone override (added 2026-05-11 for Phase 3 INR tier testing
+  // from a US IP). Reading ?zone=usd or ?zone=inr from the URL bypasses
+  // detectPricingZone() entirely. Has no effect when the param is absent.
+  // Safe to leave in production: a curious user toggling zones just sees
+  // different prices, can't bypass any server-side check (Stripe price
+  // IDs are looked up server-side in createCheckoutSession). Remove after
+  // launch if you prefer a cleaner surface.
+  // ────────────────────────────────────────────────────────────────────
+  const urlZoneOverride = (() => {
+    const params = new URLSearchParams(window.location.search);
+    const z = (params.get('zone') || '').toLowerCase();
+    return (z === 'usd' || z === 'inr') ? z : null;
+  })();
+
+  // ────────────────────────────────────────────────────────────────────
+  // Re-apply a ?pricekey= carried back through the /login.html round-trip
+  // (item b). Pre-selects the radio the reader chose before authenticating
+  // — and ONLY pre-selects. Checkout is never auto-triggered from URL
+  // state; the reader confirms with a Subscribe click. Keys whose zone
+  // doesn't match the rendered zone are ignored silently (no such radio
+  // exists, and the server geo-gate is the real enforcement). Founding
+  // keys whose tier filled mid-roundtrip are likewise ignored (radio
+  // hidden by renderOptions).
+  // ────────────────────────────────────────────────────────────────────
+  function applyPricekeyFromUrl() {
+    const key = new URLSearchParams(window.location.search).get('pricekey');
+    if (!key) return;
+    const input = optionsEl.querySelector('input[value="' + key.replace(/[^a-z_]/g, '') + '"]');
+    if (input) {
+      input.checked = true;
+      selectedPriceKey = input.value;
+      subscribeBtn.disabled = false;
+    }
+  }
+
+  try {
+    const [zoneRes, availRes] = await Promise.all([
+      detectPricingZone(),
+      getFoundingAvailability(),
+    ]);
+    zone = urlZoneOverride || (zoneRes.data && zoneRes.data.zone) || 'usd';
+    availability = availRes.data;
+    if (urlZoneOverride) {
+      console.log('[subscribe] zone override active: ' + urlZoneOverride + ' (detected was: ' + (zoneRes.data && zoneRes.data.zone) + ')');
+    }
+    renderOptions();
+    applyPricekeyFromUrl();
+  } catch (err) {
+    console.error('Initial pricing fetch failed:', err);
+    zone = urlZoneOverride || 'usd';
+    availability = {
+      usd: { cap: 100, taken: 0, remaining: 100, available: true },
+      inr: { cap: 100, taken: 0, remaining: 100, available: true },
+    };
+    renderOptions();
+    applyPricekeyFromUrl();
+    if (!urlZoneOverride) {
+      msgEl.textContent = 'Couldn\'t verify live pricing. Showing USD by default — write to ivan@cricketimes.com if this doesn\'t look right.';
+      msgEl.className = 'subscribe-msg info';
+    }
+  }
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!-- HAND-WRITTEN HEAD TAGS [index swap 2026-06-05] — index.html is on the
+     deploy-tool injector EXCEPTION list, so nothing here is auto-stamped
+     and these tags are maintained by hand. The homepage is FREE: no
+     CT_PAGE_ID, no ct-7g-hide, no watchdog. Pre-launch gating is handled
+     entirely by prelaunch-guard.js — index.html was REMOVED from its
+     ALLOWED list at the swap, so the guard injects its own hide style,
+     tier-checks, and fail-closes to /comingsoon.html (including when
+     feature-flags.js itself fails to load — no separate watchdog needed).
+     AT LAUNCH: the prelaunch-guard.js tag below retires per the AT LAUNCH
+     checklist; feature-flags.js + auth-status.js stay for the signed-in
+     chrome. -->
+<script src="/feature-flags.js"></script>
+<script src="/prelaunch-guard.js"></script>
+<script src="/auth-status.js"></script>
+<script src="/article-window-filter.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>Cricket Times — Test Cricket News & Analysis</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,300;8..60,400;8..60,500;8..60,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+[data-nav-target], #latest, #fromTheDesk-title, #analysis-title, #statsPromo-title, #voices-title {
+  scroll-margin-top: 90px;
+}
+:root{
+  --bg:#FDF6E3;--surface:#FFFDF7;--surface2:#F5EDDA;--surface3:#E8DCC8;
+  --border:#D4C5A9;--border2:#c8b898;
+  --text:#1A1A1A;--text2:#444;--text3:#888;
+  --accent:#8B0000;--accent-hover:#6B0000;--accent-light:#A52A2A;--accent-dim:rgba(139,0,0,0.06);--accent-glow:rgba(139,0,0,0.04);
+  --gold:#B8860B;--gold-dim:rgba(184,134,11,0.10);--green:#1E6B3A;--blue:#1A5276;
+  --green-dim:rgba(30,107,58,0.10);
+  --red:#d04040;--red-dim:rgba(208,64,64,0.10);
+  --blue-light:#2471A3;--blue-dim:rgba(26,82,118,0.10);
+  --card-bg:#FFFDF7;--shadow:rgba(0,0,0,0.08);--radius:6px;
+  --text1:#1A1A1A;--text4:#aaa;--border-light:#E8DCC8;--surface4:#E8DCC8;
+}
+
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Source Serif 4',Georgia,serif;
+  min-height:100vh;
+  line-height:1.6;
+}
+
+/* ═══ MASTHEAD ═══ */
+.masthead{
+  text-align:center;
+  padding:20px 24px 16px;
+  border-bottom:2px solid var(--text);
+  position:relative;
+}
+.masthead-date{
+  font-family:'Inter',sans-serif;
+  font-size:11px;
+  font-weight:500;
+  letter-spacing:1.2px;
+  text-transform:uppercase;
+  color:var(--text3);
+  margin-bottom:8px;
+}
+.masthead-logo{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(36px,8vw,58px);
+  font-weight:700;
+  letter-spacing:-1px;
+  line-height:1.1;
+}
+.masthead-logo span{ color:var(--accent); }
+.masthead-tagline{
+  font-family:'Inter',sans-serif;
+  font-size:11px;
+  font-weight:500;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  color:var(--text3);
+  margin-top:6px;
+}
+
+/* ═══ SITE NAV (cross-site links) ═══ */
+.site-nav-bar{
+  border-bottom:1px solid var(--border);
+  background:var(--surface);
+  position:sticky;
+  top:0;
+  z-index:101;
+}
+.site-nav-inner{
+  max-width:1400px;
+  margin:0 auto;
+  padding:0 24px;
+  display:flex;
+  justify-content:center;
+  gap:0;
+}
+.site-nav-link{
+  font-family:'Inter',sans-serif;
+  font-size:12px;
+  font-weight:600;
+  letter-spacing:0.5px;
+  text-transform:uppercase;
+  color:var(--text2);
+  text-decoration:none;
+  padding:12px 18px;
+  position:relative;
+  transition:color 0.2s;
+}
+.site-nav-link:hover{ color:var(--accent); }
+.site-nav-link.active{ color:var(--accent); }
+.site-nav-link.active::after{
+  content:'';
+  position:absolute;
+  bottom:0;
+  left:18px;
+  right:18px;
+  height:2px;
+  background:var(--accent);
+}
+
+/* ═══ PAGE NAV (in-page section links) ═══ */
+.nav-bar{
+  border-bottom:1px solid var(--border2,#c8c4bc);
+  background:var(--surface2);
+  position:sticky;
+  top:41px;
+  z-index:100;
+}
+.nav-inner{
+  max-width:1400px;
+  margin:0 auto;
+  padding:0 24px;
+  display:flex;
+  justify-content:center;
+  gap:0;
+}
+.nav-link{
+  font-family:'Inter',sans-serif;
+  font-size:11px;
+  font-weight:600;
+  letter-spacing:0.5px;
+  text-transform:uppercase;
+  color:var(--text3);
+  text-decoration:none;
+  padding:10px 16px;
+  position:relative;
+  transition:color 0.2s;
+}
+.nav-link:hover{ color:var(--accent); }
+.nav-link.active{ color:var(--accent); }
+.nav-link.active::after{
+  content:'';
+  position:absolute;
+  bottom:0;
+  left:16px;
+  right:16px;
+  height:2px;
+  background:var(--accent);
+}
+@media(max-width:900px){
+  .site-nav-inner, .nav-inner{
+    overflow-x:auto;
+    justify-content:flex-start;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+  }
+  .site-nav-inner::-webkit-scrollbar, .nav-inner::-webkit-scrollbar{display:none}
+  .site-nav-link{ white-space:nowrap; padding:10px 12px; font-size:11px; }
+  .nav-link{ white-space:nowrap; padding:8px 12px; font-size:10.5px; }
+  .nav-bar{ top:37px; }
+}
+
+/* ═══ MAIN LAYOUT ═══ */
+.main{ max-width:1400px; margin:0 auto; padding:0 24px; }
+
+/* ─── TICKER ─── */
+.ticker{
+  background:var(--accent);
+  color:#fff;
+  padding:10px 24px;
+  display:flex;
+  align-items:center;
+  gap:16px;
+  overflow:hidden;
+}
+.ticker-label{
+  font-family:'Inter',sans-serif;
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  background:rgba(255,255,255,0.2);
+  padding:4px 10px;
+  border-radius:3px;
+  flex-shrink:0;
+}
+.ticker-content{
+  font-size:13px;
+  font-weight:500;
+  white-space:nowrap;
+  animation:scroll-left 30s linear infinite;
+}
+@keyframes scroll-left{
+  0%{transform:translateX(100%)}
+  100%{transform:translateX(-100%)}
+}
+
+/* ─── HERO ─── */
+.hero-section{
+  display:grid;
+  grid-template-columns:1fr 340px;
+  gap:0;
+  border-bottom:1px solid var(--border);
+  padding:32px 0;
+}
+.hero-main{
+  padding-right:32px;
+  border-right:1px solid var(--border);
+}
+.hero-category{
+  font-family:'Inter',sans-serif;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  color:var(--accent);
+  margin-bottom:12px;
+}
+.hero-headline{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(32px,5vw,48px);
+  font-weight:700;
+  line-height:1.15;
+  letter-spacing:-0.5px;
+  margin-bottom:16px;
+}
+.hero-headline a{ color:inherit; text-decoration:none; }
+.hero-headline a:hover{ text-decoration:underline; text-decoration-thickness:2px; text-underline-offset:4px; }
+.hero-summary{ font-size:18px; line-height:1.6; color:var(--text2); margin-bottom:20px; }
+.hero-image{
+  width:100%;
+  height:auto;
+  border-radius:4px;
+  margin-bottom:16px;
+  background:var(--surface3);
+}
+.hero-meta{
+  font-family:'Inter',sans-serif;
+  font-size:12px;
+  color:var(--text3);
+  display:flex;
+  gap:16px;
+  align-items:center;
+}
+.hero-author{ font-weight:600; color:var(--text2); }
+
+/* ─── SIDEBAR ─── */
+.hero-sidebar{ padding-left:24px; }
+.sidebar-section{ margin-bottom:28px; }
+.sidebar-title{
+  font-family:'Inter',sans-serif;
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:1.8px;
+  text-transform:uppercase;
+  color:var(--text3);
+  padding-bottom:10px;
+  border-bottom:1px solid var(--border);
+  margin-bottom:16px;
+}
+.sidebar-item{
+  padding:12px 0;
+  border-bottom:1px solid var(--surface3);
+}
+.sidebar-item:last-child{ border-bottom:none; }
+.sidebar-item-num{
+  font-family:'Playfair Display',serif;
+  font-size:28px;
+  font-weight:700;
+  color:var(--surface3);
+  float:left;
+  margin-right:12px;
+  line-height:1;
+}
+.sidebar-item-headline{
+  font-family:'Playfair Display',serif;
+  font-size:15px;
+  font-weight:600;
+  line-height:1.35;
+}
+.sidebar-item-headline a{ color:inherit; text-decoration:none; }
+.sidebar-item-headline a:hover{ color:var(--accent); }
+.sidebar-item-meta{ font-family:'Inter',sans-serif; font-size:11px; color:var(--text3); margin-top:4px; }
+
+/* ─── QUIZ WIDGET ─── */
+.quiz-widget{
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:6px;
+  padding:16px;
+  margin-top:16px;
+}
+.quiz-widget-label{
+  font-family:'Inter',sans-serif;
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  color:var(--accent);
+  margin-bottom:10px;
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+.quiz-question-text{
+  font-family:'Playfair Display',serif;
+  font-size:14px;
+  font-weight:600;
+  line-height:1.45;
+  color:var(--text);
+  margin-bottom:12px;
+}
+.quiz-options{ display:flex; flex-direction:column; gap:7px; }
+.quiz-option{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  cursor:pointer;
+  padding:8px 10px;
+  border-radius:4px;
+  border:1px solid var(--border);
+  background:var(--surface);
+  transition:all 0.15s;
+  font-family:'Inter',sans-serif;
+  font-size:13px;
+  color:var(--text2);
+  user-select:none;
+}
+.quiz-option:hover{ border-color:var(--accent); background:var(--accent-dim); color:var(--accent); }
+.quiz-option input[type="radio"]{ accent-color:var(--accent); width:14px; height:14px; flex-shrink:0; pointer-events:none; }
+.quiz-option.correct{ border-color:var(--green); background:rgba(26,104,72,0.1); color:var(--green); font-weight:600; }
+.quiz-option.wrong{ border-color:#b03030; background:rgba(176,48,48,0.08); color:#b03030; }
+.quiz-option.disabled{ pointer-events:none; }
+.quiz-result{ margin-top:12px; padding:10px 12px; border-radius:4px; font-family:'Inter',sans-serif; font-size:12px; font-weight:600; display:none; }
+.quiz-result.show{ display:block; }
+.quiz-result.correct{ background:rgba(26,104,72,0.12); border:1px solid var(--green); color:var(--green); }
+.quiz-result.wrong{ background:rgba(176,48,48,0.08); border:1px solid #b03030; color:#b03030; }
+.quiz-contributed{ margin-top:9px; font-family:'Inter',sans-serif; font-size:10px; color:var(--text3); font-style:italic; }
+#quizNameInput:focus{ border-color:#1A1A1A !important; background:#FFFDF7 !important; }
+#quizNameSubmit:hover{ background:#6B0000 !important; }
+
+@media(max-width:900px){
+  .hero-section{ grid-template-columns:1fr; }
+  .hero-main{ padding-right:0; border-right:none; padding-bottom:24px; border-bottom:1px solid var(--border); margin-bottom:24px; }
+  .hero-sidebar{ padding-left:0; }
+}
+
+/* ═══ CONTENT GRID ═══ */
+.content-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  gap:0;
+  padding:32px 0;
+  border-bottom:1px solid var(--border);
+}
+.content-col{
+  padding:0 24px;
+  border-right:1px solid var(--border);
+}
+.content-col:first-child{ padding-left:0; }
+.content-col:last-child{ border-right:none; padding-right:0; }
+.col-header{
+  font-family:'Inter',sans-serif;
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:1.8px;
+  text-transform:uppercase;
+  color:var(--accent);
+  padding-bottom:12px;
+  border-bottom:2px solid var(--accent);
+  margin-bottom:20px;
+}
+.article-card{ margin-bottom:24px; }
+.article-card:last-child{ margin-bottom:0; }
+.article-card-image{ width:100%; height:auto; border-radius:3px; margin-bottom:12px; background:var(--surface3); }
+.article-card-headline{ font-family:'Playfair Display',serif; font-size:18px; font-weight:600; line-height:1.3; margin-bottom:8px; }
+.article-card-headline a{ color:inherit; text-decoration:none; }
+.article-card-headline a:hover{ color:var(--accent); }
+.article-card-summary{ font-size:14px; line-height:1.55; color:var(--text2); margin-bottom:10px; }
+.article-card-meta{ font-family:'Inter',sans-serif; font-size:11px; color:var(--text3); }
+.article-mini{ display:flex; gap:14px; padding:14px 0; border-top:1px solid var(--surface3); }
+.article-mini:first-of-type{ border-top:none; }
+.article-mini-image{ width:80px; height:60px; object-fit:cover; border-radius:3px; flex-shrink:0; background:var(--surface3); }
+.article-mini-content{ flex:1; }
+.article-mini-headline{ font-family:'Playfair Display',serif; font-size:14px; font-weight:600; line-height:1.35; }
+.article-mini-headline a{ color:inherit; text-decoration:none; }
+.article-mini-headline a:hover{ color:var(--accent); }
+.article-mini-meta{ font-family:'Inter',sans-serif; font-size:10px; color:var(--text3); margin-top:4px; }
+
+@media(max-width:900px){
+  .content-grid{ grid-template-columns:1fr; }
+  .content-col{ padding:0; border-right:none; padding-bottom:28px; margin-bottom:28px; border-bottom:1px solid var(--border); }
+  .content-col:last-child{ margin-bottom:0; padding-bottom:0; border-bottom:none; }
+}
+
+/* ═══ ANALYSIS SECTION ═══ */
+.analysis-section{
+  padding:40px 0;
+  border-bottom:1px solid var(--border);
+}
+.section-header{ display:flex; justify-content:space-between; align-items:center; margin-bottom:28px; }
+.section-title{ font-family:'Playfair Display',serif; font-size:26px; font-weight:700; }
+.section-link{ font-family:'Inter',sans-serif; font-size:12px; font-weight:600; color:var(--accent); text-decoration:none; }
+.section-link:hover{ text-decoration:underline; }
+.analysis-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:28px; }
+.analysis-card{ background:var(--surface); border:1px solid var(--border); border-radius:6px; overflow:hidden; transition:transform 0.2s, box-shadow 0.2s; }
+.analysis-card:hover{ transform:translateY(-3px); box-shadow:0 8px 30px rgba(0,0,0,0.08); }
+.analysis-card-image{ width:100%; height:auto; background:var(--surface3); }
+.analysis-card-content{ padding:20px; }
+.analysis-card-category{ font-family:'Inter',sans-serif; font-size:10px; font-weight:700; letter-spacing:1.2px; text-transform:uppercase; color:var(--gold); margin-bottom:10px; }
+.analysis-card-headline{ font-family:'Playfair Display',serif; font-size:20px; font-weight:600; line-height:1.3; margin-bottom:10px; }
+.analysis-card-headline a{ color:inherit; text-decoration:none; }
+.analysis-card-headline a:hover{ color:var(--accent); }
+.analysis-card-excerpt{ font-size:14px; line-height:1.55; color:var(--text2); margin-bottom:14px; }
+.analysis-card-author{ font-family:'Inter',sans-serif; font-size:12px; font-weight:600; color:var(--text); }
+.analysis-card-author span{ color:var(--text3); font-weight:400; }
+@media(max-width:900px){ .analysis-grid{ grid-template-columns:1fr; gap:20px; } }
+
+/* ═══ ARTICLES LOADING / EMPTY / ERROR INDICATOR ═══
+   Visible by default below the (now-empty) hero section. Hides itself
+   once loadArticles() reports success. The body class .articles-loading
+   keeps the hero/grid/analysis sections invisible while we wait, so we
+   don't get an awkward stretch of empty containers between masthead and
+   indicator. */
+body.articles-loading .hero-section,
+body.articles-loading .content-grid,
+body.articles-loading .analysis-section{ visibility:hidden; }
+
+.articles-status{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:16px;
+  padding:80px 24px;
+  color:var(--text3);
+  font-family:'Source Serif 4',Georgia,serif;
+  text-align:center;
+}
+.articles-status.is-hidden{ display:none; }
+.articles-status-spinner{
+  width:28px;
+  height:28px;
+  border:2px solid var(--border);
+  border-top-color:var(--accent);
+  border-radius:50%;
+  animation:articles-spin 0.9s linear infinite;
+}
+.articles-status.is-error .articles-status-spinner,
+.articles-status.is-empty .articles-status-spinner{ display:none; }
+.articles-status-text{
+  font-size:15px;
+  margin:0;
+}
+.articles-status-retry{
+  margin-top:8px;
+  background:var(--accent);
+  color:#fff;
+  border:none;
+  padding:10px 20px;
+  font-family:'Source Serif 4',Georgia,serif;
+  font-size:14px;
+  cursor:pointer;
+  border-radius:0;
+  transition:background 0.2s;
+}
+.articles-status-retry:hover{ background:#a02020; }
+@keyframes articles-spin{ from{ transform:rotate(0deg); } to{ transform:rotate(360deg); } }
+
+/* ═══ SNIPPETS STRIP ═══ */
+.snippets-section{
+  padding:40px 0;
+  border-bottom:1px solid var(--border);
+}
+.snippets-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:28px;
+}
+.snippets-title{
+  font-family:'Playfair Display',serif;
+  font-size:26px;
+  font-weight:700;
+}
+.snippets-nav{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.snippets-page-label{
+  font-family:'Inter',sans-serif;
+  font-size:12px;
+  color:var(--text3);
+  min-width:60px;
+  text-align:center;
+}
+.snippets-btn{
+  width:36px;
+  height:36px;
+  border:1px solid var(--border);
+  background:var(--surface);
+  border-radius:4px;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transition:all 0.15s;
+  color:var(--text2);
+}
+.snippets-btn:hover:not(:disabled){
+  border-color:var(--accent);
+  color:var(--accent);
+  background:var(--accent-dim);
+}
+.snippets-btn:disabled{ opacity:0.3; cursor:default; }
+.snippets-btn svg{ width:16px; height:16px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.snippets-grid{
+  display:grid;
+  grid-template-columns:repeat(4, 1fr);
+  gap:20px;
+}
+@media(max-width:1100px){ .snippets-grid{ grid-template-columns:repeat(3,1fr); } }
+@media(max-width:760px)  { .snippets-grid{ grid-template-columns:repeat(2,1fr); } }
+@media(max-width:500px)  { .snippets-grid{ grid-template-columns:1fr; } }
+
+.snippet-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:6px;
+  padding:20px 22px;
+  display:flex;
+  flex-direction:column;
+  position:relative;
+  transition:transform 0.2s, box-shadow 0.2s;
+  min-height:130px;
+}
+.snippet-card:hover{ transform:translateY(-2px); box-shadow:0 6px 24px rgba(0,0,0,0.07); }
+.snippet-card::before{
+  content:'';
+  position:absolute;
+  top:0; left:0; right:0;
+  height:3px;
+  background:var(--accent);
+  border-radius:6px 6px 0 0;
+  opacity:0.6;
+}
+.snippet-card-rule{ width:28px; height:2px; background:var(--border2); margin-bottom:14px; flex-shrink:0; }
+.snippet-card-text{ font-family:'Source Serif 4',Georgia,serif; font-size:14px; line-height:1.65; color:var(--text2); flex:1; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   VOICES PANEL
+═══════════════════════════════════════════════════════════════════════════ */
+.voices-section{
+  padding:0 0 48px;
+}
+.voices-stage{
+  display:flex;
+  align-items:center;
+  border:1px solid var(--border);
+  border-radius:6px;
+  overflow:hidden;
+  position:relative;
+  max-width:1400px;
+  margin:0 auto;
+  background:var(--surface);
+}
+.voices-stage::before{
+  content:'';
+  position:absolute;
+  top:0; left:0; right:0;
+  height:3px;
+  background:var(--accent);
+  border-radius:6px 6px 0 0;
+  opacity:0.6;
+  z-index:1;
+}
+/* Ticker track */
+.voices-ticker{
+  flex:1;
+  min-width:0;
+  overflow:hidden;
+  position:relative;
+  padding:16px 8px;
+}
+.voices-ticker::before,
+.voices-ticker::after{
+  content:'';
+  position:absolute;
+  top:0; bottom:0;
+  width:24px;
+  z-index:2;
+  pointer-events:none;
+}
+.voices-ticker::before{ left:0;  background:linear-gradient(to right, var(--surface), transparent); }
+.voices-ticker::after { right:0; background:linear-gradient(to left,  var(--surface), transparent); }
+
+.voices-ticker-inner{
+  display:flex;
+  width:max-content;
+  animation:voiceScroll var(--scroll-dur, 40s) linear infinite;
+}
+.voices-ticker-inner:hover{ animation-play-state:paused; }
+
+@keyframes voiceScroll{
+  0%   { transform:translateX(0); }
+  100% { transform:translateX(-50%); }
+}
+
+.voices-ticker-text{
+  font-family:'Source Serif 4',Georgia,serif;
+  font-size:14px;
+  font-weight:400;
+  font-style:normal;
+  line-height:1.5;
+  color:var(--text2);
+  white-space:nowrap;
+  padding-right:120px;
+}
+
+/* Right-side meta */
+.voices-meta{
+  display:flex;
+  align-items:center;
+  flex-shrink:0;
+  padding:0 16px 0 12px;
+  border-left:1px solid var(--border);
+}
+.voices-more-link{
+  font-family:'Inter',sans-serif;
+  font-size:11px;
+  font-weight:600;
+  color:var(--accent);
+  text-decoration:none;
+  display:inline-flex;
+  align-items:center;
+  gap:3px;
+  white-space:nowrap;
+  transition:opacity 0.2s;
+}
+.voices-more-link:hover{ opacity:0.7; }
+.voices-more-link svg{ width:10px; height:10px; stroke:currentColor; fill:none; stroke-width:2.5; transition:transform 0.2s; }
+.voices-more-link:hover svg{ transform:translateX(2px); }
+.voices-divider{
+  width:1px; height:14px;
+  background:var(--border);
+  flex-shrink:0;
+}
+</style>
+<script type="module">
+  import { initializeApp, getApp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
+  import { getFirestore, collection, addDoc, getDocs, query, orderBy, where, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
+  const firebaseConfig = {
+    apiKey: "AIzaSyBnfn9hK0y-p6nvIZ_AwoJnWD7DfDuIQd4",
+    authDomain: "hitwicket-cba02.firebaseapp.com",
+    projectId: "hitwicket-cba02",
+    storageBucket: "hitwicket-cba02.firebasestorage.app",
+    messagingSenderId: "196915483829",
+    appId: "1:196915483829:web:071c47af79914aec88dafc"
+  };
+  // Reuse the default app if prelaunch-guard.js (or anything else) already
+  // initialised it; otherwise create. Without this, the second initializeApp
+  // throws "already exists".
+  let app;
+  try { app = getApp(); } catch (e) { app = initializeApp(firebaseConfig); }
+  const db  = getFirestore(app);
+  window._quizDb           = db;
+  window._quizFsCollection = collection;
+  window._quizFsAddDoc     = addDoc;
+  window._quizFsTimestamp  = serverTimestamp;
+  window._fsDb             = db;
+  window._fsGetDocs        = getDocs;
+  window._fsQuery          = query;
+  window._fsOrderBy        = orderBy;
+  window._fsWhere          = where;
+  window._fsCollection     = collection;
+</script>
+</head>
+<body class="articles-loading">
+
+<!-- MASTHEAD -->
+<header data-ct-nav="masthead"></header>
+
+<!-- SITE NAV -->
+<nav data-ct-nav="primary"></nav>
+
+<!-- PAGE NAV -->
+<nav class="nav-bar" id="pageNav">
+  <div class="nav-inner" id="pageNavInner">
+    <!-- Populated dynamically by buildPageNav() -->
+  </div>
+</nav>
+
+<!-- TICKER -->
+<div class="ticker" id="tickerBar">
+  <span class="ticker-label">Breaking</span>
+  <span class="ticker-content" id="tickerContent">
+    England announce squad for upcoming Ashes series • Virat Kohli surpasses 9,000 Test runs • Australia clinch Border-Gavaskar Trophy 3-1 • ICC announces new Test Championship cycle format • Ben Stokes hints at potential return to red-ball cricket
+  </span>
+</div>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- HERO -->
+  <section class="hero-section" id="latest" data-nav="Latest" data-nav-target="latest">
+    <!--
+      Hero and sidebar are populated by the loadArticles() IIFE further
+      down. Containers start empty; CSS hides the section while the
+      `articles-loading` class is on <body>. Once loadArticles() finishes
+      (success OR failure), the class is removed and a status indicator
+      shows underneath if there was a failure or zero results.
+    -->
+    <article class="hero-main"></article>
+
+    <aside class="hero-sidebar">
+      <div class="sidebar-section"></div>
+
+      <div class="quiz-widget" id="quizWidget" style="display:none">
+        <div class="quiz-widget-label">
+          <svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2.5"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          Googlies
+        </div>
+        <div class="quiz-question-text" id="quizQuestionText"></div>
+        <div class="quiz-options" id="quizOptionsContainer"></div>
+        <div class="quiz-result" id="quizResult"></div>
+        <div class="quiz-contributed" id="quizContributedBy"></div>
+      </div>
+    </aside>
+  </section>
+
+  <!-- Loading / empty / error indicator: visible only when JS hasn't yet
+       populated articles (or has confirmed there are none / a failure). -->
+  <div id="articlesStatus" class="articles-status">
+    <div class="articles-status-spinner" aria-hidden="true"></div>
+    <p class="articles-status-text">Loading articles…</p>
+  </div>
+
+  <!-- SNIPPETS STRIP -->
+  <section class="snippets-section" id="snippetsSection" data-nav="At a Glance" data-nav-target="fromTheDesk-title" style="display:none">
+    <div class="snippets-header">
+      <h2 class="snippets-title" id="fromTheDesk-title">At a Glance</h2>
+      <div class="snippets-nav">
+        <button class="snippets-btn" id="snippetsPrev" onclick="snippetsPage(-1, true)">
+          <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <span class="snippets-page-label" id="snippetsPageLabel"></span>
+        <button class="snippets-btn" id="snippetsNext" onclick="snippetsPage(1, true)">
+          <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="snippets-grid" id="snippetsGrid"></div>
+  </section>
+
+  <!-- THREE COLUMN GRID -->
+  <section class="content-grid">
+    <!--
+      Three empty content columns. loadArticles() finds them via
+      document.querySelectorAll('.content-col') and populates each via
+      renderColumn(). Headers and items are inserted by JS. If Firestore
+      returns nothing, columns stay empty; the #articlesStatus indicator
+      below shows the relevant message.
+    -->
+    <div class="content-col"></div>
+    <div class="content-col"></div>
+    <div class="content-col"></div>
+  </section>
+
+  <!-- ANALYSIS -->
+  <section class="analysis-section" id="analysis" data-nav="Analysis" data-nav-target="analysis-title">
+    <div class="section-header">
+      <h2 class="section-title" id="analysis-title">Deep Analysis</h2>
+      <a href="#" class="section-link">View all analysis →</a>
+    </div>
+    <div class="analysis-grid">
+      <!-- Empty: loadArticles() finds this via document.querySelector('.analysis-grid') and populates with up to 3 article cards. -->
+    </div>
+  </section>
+
+</main>
+
+<!-- STATS PROMO -->
+<section class="stats-promo" id="statsPromo" data-nav="Explore Stats" data-nav-target="statsPromo-title">
+  <div class="stats-promo-inner">
+    <div class="stats-header">
+      <h2 id="statsPromo-title">Explore Test Cricket Statistics</h2>
+      <p>Comprehensive data and analysis tools covering every Test match ever played</p>
+    </div>
+    <div class="stats-cards">
+      <a href="countries.html" class="stat-card">
+        <div class="stat-card-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
+        <h3 class="stat-card-title">Countries</h3>
+        <p class="stat-card-desc">Head-to-head records and historical results between nations</p>
+      </a>
+      <a href="batting.html" class="stat-card">
+        <div class="stat-card-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></svg></div>
+        <h3 class="stat-card-title">Batting Records</h3>
+        <p class="stat-card-desc">All-time batting leaders with advanced filtering options</p>
+      </a>
+      <a href="bowling.html" class="stat-card">
+        <div class="stat-card-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg></div>
+        <h3 class="stat-card-title">Bowling Records</h3>
+        <p class="stat-card-desc">All-time bowling leaders with wickets, averages and strike rates</p>
+      </a>
+      <a href="keeping.html" class="stat-card">
+        <div class="stat-card-icon"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div>
+        <h3 class="stat-card-title">Keeping</h3>
+        <p class="stat-card-desc">Wicketkeeping records including catches, stumpings and dismissals</p>
+      </a>
+      <a href="captaincy.html" class="stat-card">
+        <div class="stat-card-icon"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+        <h3 class="stat-card-title">Captaincy</h3>
+        <p class="stat-card-desc">Captain records with win rates, series results and leadership stats</p>
+      </a>
+      <a href="compare.html" class="stat-card">
+        <div class="stat-card-icon"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+        <h3 class="stat-card-title">Player Compare</h3>
+        <p class="stat-card-desc">Side-by-side statistical comparison of any two players</p>
+      </a>
+      <a href="simulation.html" class="stat-card">
+        <div class="stat-card-icon"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="3"/><circle cx="8" cy="8" r="1.5" fill="currentColor" stroke="none"/><circle cx="16" cy="8" r="1.5" fill="currentColor" stroke="none"/><circle cx="8" cy="16" r="1.5" fill="currentColor" stroke="none"/><circle cx="16" cy="16" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/></svg></div>
+        <h3 class="stat-card-title">Simulation</h3>
+        <p class="stat-card-desc">Custom weighted rankings based on your criteria</p>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- VOICES BAND -->
+<section class="voices-section" id="voicesSection" data-nav="Tailenders" data-nav-target="voices-title" style="display:none">
+  <div style="max-width:1400px;margin:0 auto;padding:0 24px">
+    <div class="section-header" style="margin-bottom:16px">
+      <h2 class="section-title" id="voices-title">Tailenders</h2>
+    </div>
+    <div class="voices-stage">
+      <div class="voices-ticker" id="voicesTicker">
+        <div class="voices-ticker-inner" id="voicesTickerInner"></div>
+      </div>
+      <div class="voices-meta" id="voicesMeta"></div>
+    </div>
+  </div>
+</section>
+
+<!-- NEWSLETTER SIGNUP -->
+<section style="background:var(--surface2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:48px 24px;">
+  <div style="max-width:600px;margin:0 auto;">
+    <div class="ct-newsletter-block">
+      <span class="nl-kicker">The Cricket Times Dispatch</span>
+      <h3>Get new analysis in your inbox</h3>
+      <p>Subscribe for summaries of our latest stories and statistical deep dives, delivered to your inbox when new pieces are published.</p>
+      <form id="ct-nl-form" novalidate>
+        <div class="nl-row">
+          <input type="email" id="ct-nl-email" placeholder="your@email.com" required autocomplete="email" />
+          <button type="submit" id="ct-nl-btn">Subscribe</button>
+        </div>
+        <p class="nl-note">No spam. Unsubscribe anytime. &nbsp;·&nbsp; <a href="subscribe.html">Full signup &amp; privacy info</a></p>
+        <div class="nl-msg" id="ct-nl-msg"></div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer data-ct-nav="footer"></footer>
+
+<style>
+.stats-promo{
+  padding:48px 0;
+  background:linear-gradient(180deg,var(--surface2) 0%,var(--bg) 100%);
+  border-bottom:1px solid var(--border);
+}
+.stats-promo-inner{ max-width:1400px; margin:0 auto; padding:0 24px; }
+.stats-header{ text-align:center; margin-bottom:36px; }
+.stats-header h2{ font-family:'Playfair Display',serif; font-size:32px; font-weight:700; margin-bottom:8px; }
+.stats-header p{ font-size:16px; color:var(--text2); }
+.stats-cards{ display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:20px; }
+.stat-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:24px;
+  text-align:center;
+  text-decoration:none;
+  color:inherit;
+  transition:all 0.25s;
+}
+.stat-card:hover{ border-color:var(--gold); transform:translateY(-4px); box-shadow:0 12px 40px rgba(192,128,24,0.12); }
+.stat-card-icon{ width:48px; height:48px; margin:0 auto 16px; background:var(--gold-dim); border-radius:12px; display:flex; align-items:center; justify-content:center; }
+.stat-card-icon svg{ width:24px; height:24px; stroke:var(--gold); fill:none; stroke-width:2; }
+.stat-card-title{ font-family:'Inter',sans-serif; font-size:14px; font-weight:700; margin-bottom:6px; }
+.stat-card-desc{ font-size:13px; color:var(--text3); line-height:1.45; }
+@media(max-width:900px){ .stats-cards{ grid-template-columns:repeat(2,1fr); gap:14px; } .stat-card{ padding:18px; } }
+
+.audio-listen-btn{
+  display:inline-flex; align-items:center; gap:5px; padding:5px 12px;
+  border-radius:20px; border:1px solid var(--border); background:var(--surface);
+  color:var(--text2); font-family:'Inter',sans-serif; font-size:11px; font-weight:600;
+  cursor:pointer; transition:all 0.2s; white-space:nowrap; vertical-align:middle;
+}
+.audio-listen-btn:hover{ background:var(--accent-dim); border-color:var(--accent); color:var(--accent); }
+.audio-listen-btn.playing{ background:var(--accent); border-color:var(--accent); color:#fff; animation:audio-pulse 1.5s ease-in-out infinite; }
+@keyframes audio-pulse{ 0%,100%{box-shadow:0 0 0 0 rgba(139,0,0,0.3)} 50%{box-shadow:0 0 0 6px rgba(139,0,0,0)} }
+.audio-listen-btn svg{ width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;flex-shrink:0; }
+.audio-listen-btn .audio-bars{ display:inline-flex;align-items:center;gap:2px;height:14px; }
+.audio-listen-btn .audio-bars span{ display:block;width:2px;background:currentColor;border-radius:1px;animation:audio-bar 0.8s ease-in-out infinite; }
+.audio-listen-btn .audio-bars span:nth-child(1){height:4px;animation-delay:0s}
+.audio-listen-btn .audio-bars span:nth-child(2){height:8px;animation-delay:0.15s}
+.audio-listen-btn .audio-bars span:nth-child(3){height:12px;animation-delay:0.3s}
+.audio-listen-btn .audio-bars span:nth-child(4){height:6px;animation-delay:0.45s}
+@keyframes audio-bar{ 0%,100%{transform:scaleY(1)} 50%{transform:scaleY(0.3)} }
+.footer{ background:var(--text); color:rgba(255,255,255,0.7); padding:48px 24px 32px; }
+.footer-inner{ max-width:1400px; margin:0 auto; }
+.footer-top{ display:flex; justify-content:space-between; align-items:flex-start; padding-bottom:32px; border-bottom:1px solid rgba(255,255,255,0.1); margin-bottom:24px; }
+.footer-brand{ font-family:'Playfair Display',serif; font-size:28px; font-weight:700; color:#fff; }
+.footer-nav{ display:flex; flex-wrap:wrap; gap:24px 32px; }
+.footer-nav a{ font-family:'Inter',sans-serif; font-size:12px; font-weight:500; color:rgba(255,255,255,0.6); text-decoration:none; }
+.footer-nav a:hover{ color:#fff; }
+.footer-bottom{ font-family:'Inter',sans-serif; font-size:11px; color:rgba(255,255,255,0.4); display:flex; justify-content:space-between; }
+@media(max-width:900px){ .footer-top{ flex-direction:column; gap:24px; } .footer-nav{ flex-wrap:wrap; gap:16px; } .footer-bottom{ flex-direction:column; gap:8px; } }
+
+</style>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════════════════════════════════
+const GH_OWNER  = 'joidevivre689103';
+const GH_REPO   = 'congenial-eureka';
+const GH_BRANCH = 'main';
+
+function rawUrl(file) {
+  return `https://raw.githubusercontent.com/${GH_OWNER}/${GH_REPO}/${GH_BRANCH}/${file}?t=${Date.now()}`;
+}
+
+async function ghFetch(file) {
+  const res = await fetch(rawUrl(file));
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error(`GitHub returned ${res.status} for ${file}`);
+  return res.json();
+}
+
+function escapeHTML(str) {
+  if (!str) return '';
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+function formatArticleDate(dateStr) {
+  if (!dateStr) return '';
+  return new Date(dateStr).toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' });
+}
+
+function timeAgo(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  const diffHrs  = Math.floor((Date.now() - d) / 3600000);
+  const diffDays = Math.floor(diffHrs / 24);
+  if (diffHrs < 1)  return 'Just now';
+  if (diffHrs < 24) return diffHrs + ' hours ago';
+  if (diffDays === 1) return 'Yesterday';
+  return d.toLocaleDateString('en-US', { month:'short', day:'numeric' });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SMOOTH SCROLL
+// ═══════════════════════════════════════════════════════════════════════════
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    const href = a.getAttribute('href');
+    if (href === '#') return;
+    e.preventDefault();
+    const t = document.querySelector(href);
+    if (t) t.scrollIntoView({ behavior:'smooth', block:'start' });
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TICKER — from Firestore
+// ═══════════════════════════════════════════════════════════════════════════
+(async function loadTicker() {
+  try {
+    let attempts = 0;
+    while (!window._fsDb && attempts++ < 20) await new Promise(r => setTimeout(r, 100));
+    if (!window._fsDb) return;
+    const { getDoc, doc } = await import('https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js');
+    const snap = await getDoc(doc(window._fsDb, 'config', 'ticker'));
+    if (!snap.exists()) return;
+    const data = snap.data();
+    if (data.enabled === false) {
+      document.getElementById('tickerBar').style.display = 'none';
+      return;
+    }
+    if (data.items && data.items.length > 0) {
+      document.getElementById('tickerContent').textContent = data.items.join(' • ');
+    }
+  } catch(e) { /* keep default */ }
+})();
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ARTICLES — from Firestore
+// ═══════════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════════
+// Loading-state helpers. Called by loadArticles to flip between loading,
+// empty, error, and success states. Visibility is driven by the
+// .articles-loading body class (hides hero/grid/analysis containers) and
+// the #articlesStatus indicator (shown until success).
+function showArticlesEmptyState() {
+  document.body.classList.remove('articles-loading');
+  const status = document.getElementById('articlesStatus');
+  if (status) {
+    status.classList.add('is-empty');
+    status.classList.remove('is-error', 'is-hidden');
+    status.innerHTML = '<p class="articles-status-text">No articles published yet. Check back soon.</p>';
+  }
+}
+function showArticlesErrorState(retryFn) {
+  document.body.classList.remove('articles-loading');
+  const status = document.getElementById('articlesStatus');
+  if (status) {
+    status.classList.add('is-error');
+    status.classList.remove('is-empty', 'is-hidden');
+    status.innerHTML = `
+      <p class="articles-status-text">Couldn't load articles. Please try again.</p>
+      <button class="articles-status-retry" type="button">Retry</button>`;
+    const btn = status.querySelector('.articles-status-retry');
+    if (btn && typeof retryFn === 'function') btn.addEventListener('click', retryFn);
+  }
+}
+function hideArticlesStatus() {
+  document.body.classList.remove('articles-loading');
+  const status = document.getElementById('articlesStatus');
+  if (status) status.classList.add('is-hidden');
+}
+
+(async function loadArticles() {
+  try {
+    // Wait briefly for Firestore to be ready (initialised in module script above)
+    let attempts = 0;
+    while (!window._fsDb && attempts++ < 20) await new Promise(r => setTimeout(r, 100));
+    if (!window._fsDb) {
+      showArticlesErrorState(() => location.reload());
+      return;
+    }
+
+    const snap = await window._fsGetDocs(
+      window._fsQuery(
+        window._fsCollection(window._fsDb, 'articles'),
+        window._fsWhere('status', '==', 'published'),
+        window._fsOrderBy('date', 'desc')
+      )
+    );
+    if (snap.empty) { showArticlesEmptyState(); return; }
+    let articles = snap.docs.map(d => ({ firestoreId: d.id, ...d.data() }));
+    // Audio-only standalones live on audio.html and the podcast feed,
+    // not on the homepage. They have no article body and would render
+    // as empty cards here. The flag is content-type metadata only;
+    // access rules are unchanged.
+    articles = articles.filter(a => !a.audioOnly);
+    if (articles.length === 0) { showArticlesEmptyState(); return; }
+
+    // Apply the homepage live-window filter (N days from first publish).
+    // Articles older than N days continue to live in the archive — they
+    // just don't render on the homepage. N is configured in CMS → Site
+    // Settings (config/site.homepageWindowDays), default 10.
+    if (window.CTArticleWindow) {
+      try {
+        const n = await window.CTArticleWindow.getWindowDays(window._fsDb);
+        articles = window.CTArticleWindow.filterToLiveWindow(articles, n);
+        if (articles.length === 0) { showArticlesEmptyState(); return; }
+      } catch (e) {
+        console.warn('Homepage window filter failed, showing all published articles:', e);
+      }
+    }
+
+    const heroArticle      = articles.find(a => a.placement === 'hero');
+    const newsCat          = articles.filter(a => a.category === 'news');
+    const featuresCat      = articles.filter(a => a.category === 'features');
+    const opinionCat       = articles.filter(a => a.category === 'opinion');
+    const analysisCat      = articles.filter(a => a.category === 'analysis');
+    const featuredArticles = articles.filter(a => a.placement === 'featured');
+
+    if (heroArticle) {
+      const heroMain = document.querySelector('.hero-main');
+      if (heroMain) {
+        const cat = heroArticle.category.charAt(0).toUpperCase() + heroArticle.category.slice(1);
+        heroMain.innerHTML = `
+          <div class="hero-category">${escapeHTML(cat)}</div>
+          <h2 class="hero-headline"><a href="article.html?id=${heroArticle.id}">${escapeHTML(heroArticle.headline)}</a></h2>
+          <p class="hero-summary">${escapeHTML(heroArticle.summary)}</p>
+          ${heroArticle.imageEnabled !== false && (heroArticle.imageUrl || heroArticle.image)
+            ? `<img class="hero-image" src="${escapeHTML(heroArticle.imageUrl || heroArticle.image)}" alt="${escapeHTML(heroArticle.headline)}" loading="lazy">`
+            : ''
+          }
+          <div class="hero-meta">
+            <span class="hero-author">By ${escapeHTML(heroArticle.author)}</span>
+            <span class="hero-time">${heroArticle.readTime} min read</span>
+            <span>${formatArticleDate(heroArticle.date)}</span>
+            ${heroArticle.audioEnabled !== false ? `<button class="audio-listen-btn" data-audio="true" data-article-id="${heroArticle.id}" onclick="toggleArticleAudio(this)"><svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg> Listen</button>` : ''}
+          </div>`;
+      }
+    }
+
+    const mostRead = articles.slice(0, 4);
+    const sidebarSection = document.querySelector('.sidebar-section');
+    if (sidebarSection && mostRead.length > 0) {
+      sidebarSection.innerHTML = '<h3 class="sidebar-title">Most Read</h3>' +
+        mostRead.map((a, i) => `
+          <div class="sidebar-item">
+            <span class="sidebar-item-num">${i + 1}</span>
+            <h4 class="sidebar-item-headline"><a href="article.html?id=${a.id}">${escapeHTML(a.headline)}</a></h4>
+            <div class="sidebar-item-meta">${escapeHTML(a.category.charAt(0).toUpperCase() + a.category.slice(1))} • ${a.readTime} min</div>
+          </div>`).join('');
+    }
+
+    const contentCols = document.querySelectorAll('.content-col');
+    if (contentCols.length >= 3) {
+      renderColumn(contentCols[0], 'Latest News',  newsCat.length     > 0 ? newsCat     : articles);
+      renderColumn(contentCols[1], 'Features',     featuresCat.length > 0 ? featuresCat : featuredArticles);
+      renderColumn(contentCols[2], 'Points of View', opinionCat.length  > 0 ? opinionCat  : articles.slice(-3));
+    }
+
+    const analysisGrid     = document.querySelector('.analysis-grid');
+    const analysisArticles = analysisCat.length > 0 ? analysisCat : articles.filter(a => a.readTime >= 10);
+    if (analysisGrid && analysisArticles.length > 0) {
+      const colors = ['linear-gradient(135deg,#2a4048,#1a3038)','linear-gradient(135deg,#483828,#382818)','linear-gradient(135deg,#384838,#283828)'];
+      analysisGrid.innerHTML = analysisArticles.slice(0, 3).map((a, i) => `
+        <article class="analysis-card">
+          ${a.imageEnabled !== false && (a.imageUrl || a.image)
+            ? `<img class="analysis-card-image" src="${escapeHTML(a.imageUrl || a.image)}" alt="${escapeHTML(a.headline)}" loading="lazy">`
+            : ''
+          }
+          <div class="analysis-card-content">
+            <div class="analysis-card-category">${escapeHTML(a.category.charAt(0).toUpperCase() + a.category.slice(1))}</div>
+            <h3 class="analysis-card-headline"><a href="article.html?id=${a.id}">${escapeHTML(a.headline)}</a></h3>
+            <p class="analysis-card-excerpt">${escapeHTML(a.summary)}</p>
+            <div class="analysis-card-author">${escapeHTML(a.author)} <span>• ${a.readTime} min read</span>
+              ${a.audioEnabled !== false ? `<button class="audio-listen-btn" data-audio="true" data-article-id="${a.id}" onclick="toggleArticleAudio(this)"><svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg> Listen</button>` : ''}
+            </div>
+          </div>
+        </article>`).join('');
+    }
+
+    // All sections populated — reveal them and hide the loading indicator.
+    hideArticlesStatus();
+  } catch(e) {
+    console.warn('Could not load articles from Firestore:', e);
+    showArticlesErrorState(() => location.reload());
+  }
+})();
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SNIPPETS
+// ═══════════════════════════════════════════════════════════════════════════
+const SNIPPETS_PER_PAGE  = 4;
+const SNIPPETS_ROTATE_MS = 30000;
+let allSnippets   = [];
+let snippetPage   = 0;
+let snippetTimer  = null;
+let snippetPaused = false;
+
+function renderSnippetPage() {
+  const grid    = document.getElementById('snippetsGrid');
+  const prevBtn = document.getElementById('snippetsPrev');
+  const nextBtn = document.getElementById('snippetsNext');
+  const label   = document.getElementById('snippetsPageLabel');
+  const totalPages = Math.ceil(allSnippets.length / SNIPPETS_PER_PAGE);
+  const start      = snippetPage * SNIPPETS_PER_PAGE;
+  const page       = allSnippets.slice(start, start + SNIPPETS_PER_PAGE);
+  grid.style.transition = 'opacity 0.4s ease';
+  grid.style.opacity = '0';
+  setTimeout(() => {
+    grid.innerHTML = page.map(s => `
+      <div class="snippet-card">
+        <div class="snippet-card-rule"></div>
+        <p class="snippet-card-text">${escapeHTML(s.text)}</p>
+      </div>`).join('');
+    grid.style.opacity = '1';
+  }, 400);
+  prevBtn.disabled = snippetPage === 0;
+  nextBtn.disabled = snippetPage >= totalPages - 1;
+  if (totalPages > 1) {
+    label.innerHTML = Array.from({ length: totalPages }, (_, i) =>
+      `<span style="display:inline-block;width:6px;height:6px;border-radius:50%;margin:0 3px;background:${i === snippetPage ? 'var(--accent)' : 'var(--border2)'};transition:background 0.3s"></span>`
+    ).join('');
+  }
+}
+
+function snippetsPage(dir, manual) {
+  const totalPages = Math.ceil(allSnippets.length / SNIPPETS_PER_PAGE);
+  if (dir > 0) { snippetPage = snippetPage >= totalPages - 1 ? 0 : snippetPage + 1; }
+  else { snippetPage = snippetPage <= 0 ? totalPages - 1 : snippetPage - 1; }
+  renderSnippetPage();
+  if (manual !== false) resetSnippetTimer();
+}
+
+function startSnippetTimer() {
+  if (snippetTimer) clearInterval(snippetTimer);
+  snippetTimer = setInterval(() => { if (!snippetPaused) snippetsPage(1, false); }, SNIPPETS_ROTATE_MS);
+}
+function resetSnippetTimer() { startSnippetTimer(); }
+
+(async function loadSnippets() {
+  try {
+    let attempts = 0;
+    while (!window._fsDb && attempts++ < 20) await new Promise(r => setTimeout(r, 100));
+    if (!window._fsDb) return;
+    const { getDoc, doc } = await import('https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js');
+    const snap = await getDoc(doc(window._fsDb, 'config', 'snippets'));
+    if (!snap.exists()) return;
+    const data = snap.data();
+    if (!Array.isArray(data.snippets)) return;
+    allSnippets = data.snippets.filter(s => s.enabled && s.text && s.text.trim().length > 0);
+    if (allSnippets.length === 0) return;
+    document.getElementById('snippetsSection').style.display = 'block';
+    const totalPages = Math.ceil(allSnippets.length / SNIPPETS_PER_PAGE);
+    if (totalPages <= 1) document.querySelector('.snippets-nav').style.display = 'none';
+    renderSnippetPage();
+    if (totalPages > 1) {
+      startSnippetTimer();
+      const section = document.getElementById('snippetsSection');
+      section.addEventListener('mouseenter', () => { snippetPaused = true; });
+      section.addEventListener('mouseleave', () => { snippetPaused = false; });
+    }
+  } catch(e) {
+    console.warn('Could not load snippets from Firestore:', e);
+  }
+})();
+
+// ═══════════════════════════════════════════════════════════════════════════
+// VOICES — loaded from Firestore
+// ═══════════════════════════════════════════════════════════════════════════
+(async function loadVoices() {
+  try {
+    // Wait briefly for Firebase module to initialise
+    let attempts = 0;
+    while (!window._fsDb && attempts++ < 20) await new Promise(r => setTimeout(r, 100));
+    if (!window._fsDb) return;
+
+    const { _fsDb: fsDb, _fsGetDocs: getDocs, _fsQuery: fsQuery,
+            _fsOrderBy: fsOrderBy, _fsCollection: fsCollection } = window;
+
+    // Check config doc for enabled/rotate flags
+    let sectionEnabled = true;
+    let rotateEnabled  = false;
+    try {
+      const { getDoc, doc } = await import('https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js');
+      const cfgSnap = await getDoc(doc(fsDb, 'config', 'voices'));
+      if (cfgSnap.exists()) {
+        if (cfgSnap.data().enabled === false) return;
+        rotateEnabled = cfgSnap.data().rotate === true;
+      }
+    } catch(e) {}
+
+    const snap = await getDocs(fsQuery(fsCollection(fsDb, 'voices'), fsOrderBy('createdAt', 'desc')));
+    const voices = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(v => v.visible !== false);
+    if (voices.length === 0) return;
+
+    const rotate = rotateEnabled && voices.length > 1;
+    const stage  = document.querySelector('.voices-stage');
+    const inner  = document.getElementById('voicesTickerInner');
+    let idx = 0;
+    let rotateTimer = null;
+
+    function showVoice(i) {
+      const v    = voices[i];
+      const text = escapeHTML(v.voice) + ' — ' + escapeHTML(v.name);
+      // ~12 chars/sec, min 20s
+      const dur  = Math.max(20, Math.round(text.length / 12)) + 's';
+      inner.innerHTML =
+        `<span class="voices-ticker-text">${text}</span>` +
+        `<span class="voices-ticker-text" aria-hidden="true">${text}</span>`;
+      stage.style.setProperty('--scroll-dur', dur);
+      // restart animation cleanly
+      inner.style.animation = 'none';
+      inner.offsetHeight;
+      inner.style.animation = '';
+      return parseFloat(dur) * 1000; // ms
+    }
+
+    // Kick off rotation — each voice plays for exactly one full scroll cycle
+    function scheduleNext() {
+      if (!rotate) return;
+      const ms = showVoice(idx);
+      rotateTimer = setTimeout(() => {
+        idx = (idx + 1) % voices.length;
+        scheduleNext();
+      }, ms);
+    }
+
+    // Pause rotation while hovering
+    if (rotate) {
+      const ticker = document.getElementById('voicesTicker');
+      ticker.addEventListener('mouseenter', () => {
+        clearTimeout(rotateTimer);
+        inner.style.animationPlayState = 'paused';
+      });
+      ticker.addEventListener('mouseleave', () => {
+        inner.style.animationPlayState = 'running';
+        // Resume from current voice for remaining duration
+        const remaining = parseFloat(getComputedStyle(inner).getPropertyValue('--scroll-dur') ||
+          stage.style.getPropertyValue('--scroll-dur')) * 1000 * 0.5; // approx half remaining
+        rotateTimer = setTimeout(() => {
+          idx = (idx + 1) % voices.length;
+          scheduleNext();
+        }, remaining);
+      });
+    }
+
+    scheduleNext();
+    if (!rotate) showVoice(0); // static: just show first
+
+    document.getElementById('voicesMeta').innerHTML =
+      `<a href="voices.html" class="voices-more-link">More Tailenders <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></a>`;
+    document.getElementById('voicesSection').style.display = 'block';
+  } catch(e) {
+    console.warn('Could not load voices.json:', e);
+  }
+})();
+
+// ═══════════════════════════════════════════════════════════════════════════
+// RENDER COLUMN HELPER
+// ═══════════════════════════════════════════════════════════════════════════
+function renderColumn(colEl, title, articles) {
+  if (!articles || articles.length === 0) return;
+  const gradients = [
+    'linear-gradient(135deg,#3a4a5a,#2a3a48)',
+    'linear-gradient(135deg,#4a5a4a,#3a4a38)',
+    'linear-gradient(135deg,#5a4a4a,#4a3a38)',
+    'linear-gradient(135deg,#4a4a5a,#38384a)',
+    'linear-gradient(135deg,#504a40,#403a30)'
+  ];
+  const lead = articles[0];
+  const rest = articles.slice(1, 5);
+  let html = `<h3 class="col-header">${escapeHTML(title)}</h3>
+    <article class="article-card">
+      ${lead.imageEnabled !== false && (lead.imageUrl || lead.image)
+        ? `<img class="article-card-image" src="${escapeHTML(lead.imageUrl || lead.image)}" alt="${escapeHTML(lead.headline)}" loading="lazy">`
+        : ''
+      }
+      <h4 class="article-card-headline"><a href="article.html?id=${lead.id}">${escapeHTML(lead.headline)}</a></h4>
+      <p class="article-card-summary">${escapeHTML(lead.summary)}</p>
+      <div class="article-card-meta">${escapeHTML(lead.author)} • ${lead.readTime} min read
+        ${lead.audioEnabled !== false ? `<button class="audio-listen-btn" data-audio="true" data-article-id="${lead.id}" onclick="toggleArticleAudio(this)"><svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg> Listen</button>` : ''}
+      </div>
+    </article>`;
+  rest.forEach((a, i) => {
+    html += `<article class="article-mini">
+      ${a.imageEnabled !== false && (a.imageUrl || a.image)
+        ? `<img class="article-mini-image" src="${escapeHTML(a.imageUrl || a.image)}" alt="${escapeHTML(a.headline)}" loading="lazy">`
+        : ''
+      }
+      <div class="article-mini-content">
+        <h4 class="article-mini-headline"><a href="article.html?id=${a.id}">${escapeHTML(a.headline)}</a></h4>
+        <div class="article-mini-meta">${timeAgo(a.date)}
+          ${a.audioEnabled !== false ? `<button class="audio-listen-btn" data-audio="true" data-article-id="${a.id}" onclick="toggleArticleAudio(this)"><svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg> Listen</button>` : ''}
+        </div>
+      </div>
+    </article>`;
+  });
+  colEl.innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// AUDIO
+// ═══════════════════════════════════════════════════════════════════════════
+const AUDIO_ICON_LISTEN  = '<svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg> Listen';
+const AUDIO_ICON_PLAYING = '<span class="audio-bars"><span></span><span></span><span></span><span></span></span> Playing';
+
+let currentAudio = null, currentAudioBtn = null, currentUtterance = null;
+
+function resetBtn(btn) {
+  if (!btn) return;
+  btn.classList.remove('playing');
+  btn.innerHTML = AUDIO_ICON_LISTEN;
+}
+
+function getArticleText(btn) {
+  const article = btn.closest('article, .hero-main, .analysis-card, .article-card, .article-mini');
+  if (!article) return '';
+  const headlineEl = article.querySelector('.hero-headline a, .article-card-headline a, .article-mini-headline a, .analysis-card-headline a');
+  const headline   = headlineEl ? headlineEl.textContent.trim() : '';
+  const summaryEl  = article.querySelector('.hero-summary, .article-card-summary, .analysis-card-excerpt');
+  const summary    = summaryEl ? summaryEl.textContent.trim() : '';
+  return summary ? headline + '. ' + summary : headline;
+}
+
+function toggleArticleAudio(btn) {
+  if (btn.classList.contains('playing')) {
+    if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+    if (currentUtterance) { window.speechSynthesis.cancel(); currentUtterance = null; }
+    resetBtn(btn); currentAudioBtn = null; return;
+  }
+  if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+  if (currentUtterance) { window.speechSynthesis.cancel(); currentUtterance = null; }
+  if (currentAudioBtn && currentAudioBtn !== btn) resetBtn(currentAudioBtn);
+  const text = getArticleText(btn);
+  if (!text || !window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.rate = 0.95; utterance.pitch = 1.0;
+  const voices = window.speechSynthesis.getVoices();
+  const preferred = voices.find(v => v.name.includes('Google UK English')) ||
+                    voices.find(v => v.name.includes('Google US English')) ||
+                    voices.find(v => v.lang.startsWith('en') && v.localService) ||
+                    voices.find(v => v.lang.startsWith('en'));
+  if (preferred) utterance.voice = preferred;
+  btn.classList.add('playing'); btn.innerHTML = AUDIO_ICON_PLAYING;
+  currentAudioBtn = btn; currentUtterance = utterance;
+  const resumeTimer = setInterval(() => {
+    if (!window.speechSynthesis.speaking) clearInterval(resumeTimer);
+    else { window.speechSynthesis.pause(); window.speechSynthesis.resume(); }
+  }, 10000);
+  utterance.onend  = () => { clearInterval(resumeTimer); resetBtn(btn); currentAudioBtn = null; currentUtterance = null; };
+  utterance.onerror = (e) => { clearInterval(resumeTimer); if(e.error!=='canceled') console.warn('TTS:',e.error); resetBtn(btn); currentAudioBtn=null; currentUtterance=null; };
+  window.speechSynthesis.speak(utterance);
+}
+if (window.speechSynthesis) {
+  window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+  window.speechSynthesis.getVoices();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// QUIZ
+// ═══════════════════════════════════════════════════════════════════════════
+(async function loadQuiz() {
+  try {
+    let attempts = 0;
+    while (!window._fsDb && attempts++ < 20) await new Promise(r => setTimeout(r, 100));
+    if (!window._fsDb) return;
+    const { getDoc, doc } = await import('https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js');
+    const snap = await getDoc(doc(window._fsDb, 'config', 'quiz'));
+    if (!snap.exists()) return;
+    const data = snap.data();
+    const quiz = data.today;
+    if (!quiz || !quiz.question || !quiz.optionA || !quiz.optionB || !quiz.optionC || !quiz.correctAnswer) return;
+    document.getElementById('quizQuestionText').textContent = quiz.question;
+    const options = [{ label:'A', text:quiz.optionA },{ label:'B', text:quiz.optionB },{ label:'C', text:quiz.optionC }];
+    const container = document.getElementById('quizOptionsContainer');
+    let answered = false;
+    function buildNamePrompt(onSubmit) {
+      const wrap = document.createElement('div');
+      wrap.style.cssText = 'margin-top:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap';
+      wrap.innerHTML = `<input id="quizNameInput" type="text" placeholder="Your name (optional)" style="flex:1;min-width:160px;padding:7px 10px;border:1px solid #D4C5A9;background:#F5EDDA;font-family:inherit;font-size:13px;outline:none;border-radius:3px"><button id="quizNameSubmit" style="padding:7px 14px;background:#8B0000;color:#FFFDF7;border:none;font-family:inherit;font-size:13px;cursor:pointer;border-radius:3px;white-space:nowrap">Submit name</button>`;
+      wrap.querySelector('#quizNameSubmit').addEventListener('click', () => { onSubmit(wrap.querySelector('#quizNameInput').value.trim()); wrap.remove(); });
+      return wrap;
+    }
+    options.forEach(opt => {
+      const label = document.createElement('label');
+      label.className = 'quiz-option';
+      label.innerHTML = `<input type="radio" name="quizAnswer" value="${opt.label}"><span>${opt.text}</span>`;
+      label.addEventListener('click', () => {
+        if (answered) return; answered = true;
+        const resultEl = document.getElementById('quizResult');
+        const isCorrect = opt.label === quiz.correctAnswer;
+        container.querySelectorAll('.quiz-option').forEach(el => {
+          el.classList.add('disabled');
+          const val = el.querySelector('input').value;
+          if (val === quiz.correctAnswer) el.classList.add('correct');
+          else if (val === opt.label && !isCorrect) el.classList.add('wrong');
+        });
+        label.querySelector('input').checked = true;
+        if (isCorrect) {
+          resultEl.textContent = '🎉 Congratulations! That\'s the correct answer!';
+          resultEl.className = 'quiz-result show correct';
+          const prompt = buildNamePrompt(async (name) => {
+            try {
+              const db=window._quizDb, col=window._quizFsCollection, add=window._quizFsAddDoc, ts=window._quizFsTimestamp;
+              if (db && col && add) await add(col(db,'quiz_answers'),{ quizQuestion:quiz.question, answer:opt.label, name:name||'Anonymous', answeredAt:ts?ts():new Date().toISOString(), quizDate:quiz.date||new Date().toISOString().slice(0,10) });
+            } catch(e) { console.warn('Quiz save error:',e); }
+          });
+          resultEl.after(prompt);
+        } else {
+          resultEl.textContent = `Not quite — the correct answer is: ${options.find(o=>o.label===quiz.correctAnswer).text}`;
+          resultEl.className = 'quiz-result show wrong';
+        }
+      });
+      container.appendChild(label);
+    });
+    if (quiz.contributedBy) document.getElementById('quizContributedBy').textContent = `Contributed by: ${quiz.contributedBy}`;
+    document.getElementById('quizWidget').style.display = 'block';
+  } catch(e) { /* quiz widget stays hidden */ }
+})();
+// ═══════════════════════════════════════════════════════════════════════════
+// VOICES — from voices.json, preview of up to 4 on front page
+// ═══════════════════════════════════════════════════════════════════════════
+
+// ── Dynamic Page Nav ──────────────────────────────────────────────────────────
+function buildPageNav() {
+  const inner = document.getElementById('pageNavInner');
+  const nav   = document.getElementById('pageNav');
+  if (!inner) return;
+
+  // Rebuild all links in DOM order every time
+  const sections = [...document.querySelectorAll('[data-nav]')];
+  inner.innerHTML = '';
+
+  sections.forEach((sec, i) => {
+    const isVisible = sec.style.display !== 'none';
+    if (!isVisible) return; // only include currently visible sections
+    const link = document.createElement('a');
+    const target = sec.dataset.navTarget || sec.id;
+    link.href = '#' + target;
+    link.className = 'nav-link';
+    link.textContent = sec.dataset.nav;
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+      const el = document.getElementById(target);
+      if (!el) return;
+      const siteNav = document.querySelector('.ct-nav-bar');
+      const pageNav = document.getElementById('pageNav');
+      const offset = (siteNav ? siteNav.offsetHeight : 0) + (pageNav ? pageNav.offsetHeight : 0) + 8;
+      const top = el.getBoundingClientRect().top + window.scrollY - offset;
+      window.scrollTo({ top, behavior: 'smooth' });
+    });
+    inner.appendChild(link);
+  });
+
+  // Mark first link active if none set
+  const links = inner.querySelectorAll('.nav-link');
+  if (links.length && !inner.querySelector('.nav-link.active')) {
+    links[0].classList.add('active');
+  }
+
+  nav.style.display = links.length ? '' : 'none';
+}
+
+// Observe every data-nav section for style changes (display toggled by async loaders)
+function observeNavSections() {
+  const observer = new MutationObserver(buildPageNav);
+  document.querySelectorAll('[data-nav]').forEach(sec => {
+    observer.observe(sec, { attributes: true, attributeFilter: ['style'] });
+  });
+}
+
+// Also poll briefly after load to catch async sections that fired before observer attached
+function pollPageNav() {
+  let ticks = 0;
+  const interval = setInterval(() => {
+    buildPageNav();
+    if (++ticks >= 10) clearInterval(interval); // poll for 5s
+  }, 500);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  buildPageNav();
+  observeNavSections();
+  pollPageNav();
+
+  // Highlight active section on scroll
+  window.addEventListener('scroll', () => {
+    const sections = [...document.querySelectorAll('[data-nav]')].filter(s => s.style.display !== 'none');
+    let current = sections[0]?.dataset.navTarget || sections[0]?.id || '';
+    sections.forEach(sec => {
+      if (window.scrollY >= sec.offsetTop - 80) current = sec.dataset.navTarget || sec.id;
+    });
+    document.querySelectorAll('#pageNavInner .nav-link').forEach(a => {
+      a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+    });
+  }, { passive: true });
+});
+// ─────────────────────────────────────────────────────────────────────────────
+</script>
+
+<style>
+.ct-newsletter-block{border:1px solid var(--border);border-top:3px solid var(--accent);background:var(--surface);padding:1.5rem 1.75rem;font-family:'Source Serif 4',Georgia,serif;}
+.ct-newsletter-block .nl-kicker{font-size:0.6rem;letter-spacing:0.25em;text-transform:uppercase;color:var(--accent);margin-bottom:0.5rem;display:block;}
+.ct-newsletter-block h3{font-family:'Playfair Display',Georgia,serif;font-size:1.15rem;font-weight:600;color:var(--text);margin:0 0 0.4rem;line-height:1.3;}
+.ct-newsletter-block p{font-size:0.85rem;color:var(--text2);line-height:1.65;margin:0 0 1rem;}
+.ct-newsletter-block .nl-row{display:flex;gap:0.5rem;flex-wrap:wrap;}
+.ct-newsletter-block input[type="email"]{flex:1;min-width:180px;border:1px solid var(--border);padding:0.6rem 0.85rem;font-family:'Source Serif 4',Georgia,serif;font-size:0.9rem;color:var(--text);background:#fff;outline:none;}
+.ct-newsletter-block input[type="email"]:focus{border-color:var(--accent);}
+.ct-newsletter-block button{background:var(--accent);color:#fff;border:none;padding:0.6rem 1.25rem;font-family:'Playfair Display',Georgia,serif;font-size:0.85rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:background 0.2s;}
+.ct-newsletter-block button:hover{background:var(--accent-hover);}
+.ct-newsletter-block button:disabled{opacity:0.6;cursor:not-allowed;}
+.ct-newsletter-block .nl-note{font-size:0.7rem;color:var(--text3);margin-top:0.6rem;}
+.ct-newsletter-block .nl-note a{color:var(--accent);}
+.ct-newsletter-block .nl-msg{font-size:0.85rem;margin-top:0.75rem;padding:0.5rem 0.75rem;display:none;}
+.ct-newsletter-block .nl-msg.success{display:block;background:#f0f7f0;border:1px solid #7aab7a;color:#2d5a2d;}
+.ct-newsletter-block .nl-msg.error{display:block;background:#fdf0f0;border:1px solid #c87a7a;color:#7a2020;}
+</style>
+
+<script>
+(function(){
+  var FORM_ACTION='https://assets.mailerlite.com/jsonp/2259944/forms/184395234410497566/subscribe';
+  var form=document.getElementById('ct-nl-form');
+  var btn=document.getElementById('ct-nl-btn');
+  var msg=document.getElementById('ct-nl-msg');
+  if(!form)return;
+  form.addEventListener('submit',function(e){
+    e.preventDefault();
+    var email=document.getElementById('ct-nl-email').value.trim();
+    if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){msg.className='nl-msg error';msg.textContent='Please enter a valid email address.';return;}
+    btn.disabled=true;btn.textContent='…';msg.className='nl-msg';
+    var payload=new FormData();
+    payload.append('fields[email]',email);
+    payload.append('ml-submit','1');
+    payload.append('anticsrf','true');
+    payload.append('ajax','1');
+    fetch(FORM_ACTION,{method:'POST',body:payload})
+      .then(function(res){
+        if(res.ok){form.innerHTML='<p class="nl-msg success" style="display:block;margin:0;">✓ Subscribed! You\'ll hear from us with the next dispatch.</p>';}
+        else{throw new Error();}
+      })
+      .catch(function(){msg.className='nl-msg error';msg.textContent='Something went wrong. Try the full signup page.';btn.disabled=false;btn.textContent='Subscribe';});
+  });
+}());
+</script>
+
+<script src="support-widget.js" defer></script>
+<script src="/ct-nav.js"></script>
+</html>

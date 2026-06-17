@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="robots" content="noindex, nofollow">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile & Payment — Cricket Times</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --cream: #FAF7F2;
+      --cream-dark: #F0EBE3;
+      --ink: #1a1a1a;
+      --ink-light: #4a4a4a;
+      --crimson: #8B0000;
+      --crimson-dark: #6B0000;
+      --gold: #C9A227;
+      --rule: #d4d0c8;
+      --green: #2e7d32;
+      --green-light: #e8f5e9;
+      --amber: #f57c00;
+      --amber-light: #fff3e0;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Source Serif 4', Georgia, serif;
+      background: var(--cream);
+      color: var(--ink);
+      line-height: 1.7;
+      min-height: 100vh;
+    }
+
+    /* ─── Auth Overlay ─────────────────────────────────────────────────── */
+    #auth-overlay {
+      position: fixed;
+      inset: 0;
+      background: var(--cream);
+      z-index: 99999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.3s ease;
+    }
+
+    #auth-overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .loading-msg {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 1.25rem;
+      color: var(--ink-light);
+      font-style: italic;
+    }
+
+    /* ─── Main Content ─────────────────────────────────────────────────── */
+    #main-content {
+      display: none;
+      min-height: 100vh;
+    }
+
+    #main-content.visible {
+      display: block;
+    }
+
+    /* ─── Header ───────────────────────────────────────────────────────── */
+    header {
+      background: var(--ink);
+      color: var(--cream);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .masthead {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .masthead a {
+      color: var(--cream);
+      text-decoration: none;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .back-link {
+      color: var(--cream);
+      text-decoration: none;
+      font-size: 0.9rem;
+      opacity: 0.8;
+      transition: opacity 0.2s;
+    }
+
+    .back-link:hover {
+      opacity: 1;
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      font-size: 0.85rem;
+    }
+
+    .user-email {
+      color: var(--cream);
+      opacity: 0.8;
+    }
+
+    .sign-out-btn {
+      background: transparent;
+      border: 1px solid var(--cream);
+      color: var(--cream);
+      padding: 0.4rem 0.8rem;
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .sign-out-btn:hover {
+      background: var(--cream);
+      color: var(--ink);
+    }
+
+    /* ─── Container ────────────────────────────────────────────────────── */
+    .container {
+      max-width: 700px;
+      margin: 0 auto;
+      padding: 2.5rem 2rem 4rem;
+    }
+
+    .page-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 0.5rem;
+    }
+
+    .page-subtitle {
+      color: var(--ink-light);
+      font-size: 0.95rem;
+      margin-bottom: 2rem;
+    }
+
+    /* ─── Section Cards ────────────────────────────────────────────────── */
+    .section-card {
+      background: white;
+      border: 1px solid var(--rule);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .section-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--crimson);
+      margin-bottom: 1rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .form-row {
+      margin-bottom: 1.25rem;
+    }
+
+    .form-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .form-row label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--ink);
+      margin-bottom: 0.4rem;
+    }
+
+    .form-row input[type="text"],
+    .form-row input[type="email"],
+    .form-row textarea,
+    .form-row select {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: 1rem;
+      border: 1px solid var(--rule);
+      background: var(--cream);
+      transition: border-color 0.2s;
+    }
+
+    .form-row input:focus,
+    .form-row textarea:focus,
+    .form-row select:focus {
+      outline: none;
+      border-color: var(--crimson);
+    }
+
+    .form-row textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    .form-row .hint {
+      font-size: 0.8rem;
+      color: var(--ink-light);
+      margin-top: 0.35rem;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    @media (max-width: 600px) {
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* ─── Status Badges ────────────────────────────────────────────────── */
+    .status-badge {
+      display: inline-block;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 0.25rem 0.6rem;
+      border-radius: 3px;
+      margin-left: 0.5rem;
+      vertical-align: middle;
+    }
+
+    .status-badge.complete {
+      background: var(--green-light);
+      color: var(--green);
+    }
+
+    .status-badge.pending {
+      background: var(--amber-light);
+      color: var(--amber);
+    }
+
+    /* ─── Tax Form Section ─────────────────────────────────────────────── */
+    .tax-options {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .tax-option {
+      flex: 1;
+      padding: 1rem;
+      border: 2px solid var(--rule);
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+    }
+
+    .tax-option:hover {
+      border-color: var(--crimson);
+    }
+
+    .tax-option.selected {
+      border-color: var(--crimson);
+      background: rgba(139, 0, 0, 0.05);
+    }
+
+    .tax-option h4 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--ink);
+      margin-bottom: 0.25rem;
+    }
+
+    .tax-option p {
+      font-size: 0.8rem;
+      color: var(--ink-light);
+    }
+
+    .tax-upload {
+      margin-top: 1rem;
+      padding: 1rem;
+      background: var(--cream);
+      border: 1px dashed var(--rule);
+      text-align: center;
+    }
+
+    .tax-upload-btn {
+      display: inline-block;
+      padding: 0.6rem 1.2rem;
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: 0.9rem;
+      background: white;
+      border: 1px solid var(--rule);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tax-upload-btn:hover {
+      border-color: var(--crimson);
+    }
+
+    .tax-upload input[type="file"] {
+      display: none;
+    }
+
+    .tax-upload .hint {
+      font-size: 0.8rem;
+      color: var(--ink-light);
+      margin-top: 0.5rem;
+    }
+
+    .uploaded-file {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem 1rem;
+      background: var(--green-light);
+      border: 1px solid #a5d6a7;
+      margin-top: 1rem;
+      font-size: 0.85rem;
+      color: var(--green);
+    }
+
+    .uploaded-file .icon {
+      font-size: 1.25rem;
+    }
+
+    .uploaded-file .name {
+      flex: 1;
+      font-weight: 600;
+    }
+
+    .uploaded-file .remove {
+      background: none;
+      border: none;
+      color: var(--crimson);
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    /* ─── Payment Methods ──────────────────────────────────────────────── */
+    .payment-options {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .payment-option {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem 1rem;
+      border: 1px solid var(--rule);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .payment-option:hover {
+      border-color: var(--crimson);
+    }
+
+    .payment-option.selected {
+      border-color: var(--crimson);
+      background: rgba(139, 0, 0, 0.05);
+    }
+
+    .payment-option input[type="radio"] {
+      display: none;
+    }
+
+    .payment-option .radio {
+      width: 18px;
+      height: 18px;
+      border: 2px solid var(--rule);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .payment-option.selected .radio {
+      border-color: var(--crimson);
+    }
+
+    .payment-option.selected .radio::after {
+      content: '';
+      width: 10px;
+      height: 10px;
+      background: var(--crimson);
+      border-radius: 50%;
+    }
+
+    .payment-option .label {
+      font-weight: 600;
+    }
+
+    .payment-details {
+      margin-top: 1rem;
+      display: none;
+    }
+
+    .payment-details.show {
+      display: block;
+    }
+
+    /* ─── Buttons ──────────────────────────────────────────────────────── */
+    .btn {
+      padding: 0.85rem 1.75rem;
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 1rem;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: var(--crimson);
+      color: white;
+      width: 100%;
+      margin-top: 1rem;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: var(--crimson-dark);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* ─── Toast ────────────────────────────────────────────────────────── */
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: var(--ink);
+      color: white;
+      padding: 1rem 1.5rem;
+      border-radius: 4px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s ease;
+      z-index: 10000;
+      max-width: 400px;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .toast.success {
+      background: var(--green);
+    }
+
+    .toast.error {
+      background: var(--crimson);
+    }
+
+    .toast-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+
+    .toast-message {
+      font-size: 0.9rem;
+      opacity: 0.9;
+    }
+
+    /* ─── Footer ───────────────────────────────────────────────────────── */
+    footer {
+      background: var(--ink);
+      color: var(--cream);
+      text-align: center;
+      padding: 1.5rem;
+      font-size: 0.85rem;
+      margin-top: 3rem;
+    }
+
+    footer a {
+      color: var(--gold);
+      text-decoration: none;
+    }
+
+    /* ─── Responsive ───────────────────────────────────────────────────── */
+    @media (max-width: 600px) {
+      .container {
+        padding: 1.5rem 1.25rem 3rem;
+      }
+
+      header {
+        flex-direction: column;
+        gap: 0.75rem;
+        text-align: center;
+      }
+
+      .header-right {
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+
+      .tax-options {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       AUTH OVERLAY
+  ════════════════════════════════════════════════════════════════════════ -->
+  <div id="auth-overlay">
+    <p class="loading-msg">Loading profile...</p>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       MAIN CONTENT
+  ════════════════════════════════════════════════════════════════════════ -->
+  <div id="main-content">
+    <header>
+      <div class="masthead"><a href="stories.html">Cricket Times</a></div>
+      <div class="header-right">
+        <a href="author-dashboard.html" class="back-link">← Back to Dashboard</a>
+        <div class="user-info">
+          <span class="user-email" id="user-email"></span>
+          <button class="sign-out-btn" id="sign-out-btn">Sign Out</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="container">
+      <h1 class="page-title">Profile & Payment</h1>
+      <p class="page-subtitle">Update your author information, payment method, and tax documentation.</p>
+
+      <!-- Basic Info -->
+      <div class="section-card">
+        <h2 class="section-title">Author Information</h2>
+        <div class="form-row">
+          <label for="display-name">Display Name</label>
+          <input type="text" id="display-name" placeholder="How your name appears on articles">
+          <p class="hint">This is the byline shown on your published articles.</p>
+        </div>
+        <div class="form-row">
+          <label for="bio">Short Bio</label>
+          <textarea id="bio" placeholder="A brief bio about yourself (2-3 sentences)"></textarea>
+          <p class="hint">Optional. May be displayed on your author profile page.</p>
+        </div>
+        <div class="form-grid">
+          <div class="form-row">
+            <label for="location">Location</label>
+            <input type="text" id="location" placeholder="e.g., Mumbai, India">
+          </div>
+          <div class="form-row">
+            <label for="twitter">Twitter/X Handle</label>
+            <input type="text" id="twitter" placeholder="@username">
+          </div>
+        </div>
+      </div>
+
+      <!-- Tax Information -->
+      <div class="section-card">
+        <h2 class="section-title">
+          Tax Information
+          <span class="status-badge pending" id="tax-status-badge">Required</span>
+        </h2>
+        <p style="margin-bottom:1rem;font-size:0.9rem;color:var(--ink-light)">
+          We need tax documentation before we can process any payouts. Select the form that applies to you:
+        </p>
+        <div class="tax-options">
+          <div class="tax-option" data-type="W-9" onclick="selectTaxType('W-9')">
+            <h4>W-9</h4>
+            <p>US-based contributors</p>
+          </div>
+          <div class="tax-option" data-type="W-8BEN" onclick="selectTaxType('W-8BEN')">
+            <h4>W-8BEN</h4>
+            <p>International (non-US) individuals</p>
+          </div>
+        </div>
+        <div class="tax-upload" id="tax-upload-area">
+          <label class="tax-upload-btn" for="tax-file">Upload Completed Form</label>
+          <input type="file" id="tax-file" accept=".pdf,.jpg,.jpeg,.png">
+          <p class="hint">PDF or image file, max 5MB</p>
+        </div>
+        <div class="uploaded-file" id="uploaded-tax-file" style="display:none">
+          <span class="icon">📄</span>
+          <span class="name" id="tax-file-name"></span>
+          <button class="remove" onclick="removeTaxFile()">×</button>
+        </div>
+      </div>
+
+      <!-- Payment Method -->
+      <div class="section-card">
+        <h2 class="section-title">
+          Payment Method
+          <span class="status-badge pending" id="payment-status-badge">Required</span>
+        </h2>
+        <p style="margin-bottom:1rem;font-size:0.9rem;color:var(--ink-light)">
+          Choose how you'd like to receive payouts:
+        </p>
+        <div class="payment-options">
+          <label class="payment-option" onclick="selectPaymentMethod('PayPal')">
+            <input type="radio" name="payment" value="PayPal">
+            <span class="radio"></span>
+            <span class="label">PayPal</span>
+          </label>
+          <label class="payment-option" onclick="selectPaymentMethod('Wise')">
+            <input type="radio" name="payment" value="Wise">
+            <span class="radio"></span>
+            <span class="label">Wise (TransferWise)</span>
+          </label>
+          <label class="payment-option" onclick="selectPaymentMethod('Bank Transfer')">
+            <input type="radio" name="payment" value="Bank Transfer">
+            <span class="radio"></span>
+            <span class="label">Bank Transfer</span>
+          </label>
+          <label class="payment-option" onclick="selectPaymentMethod('UPI')">
+            <input type="radio" name="payment" value="UPI">
+            <span class="radio"></span>
+            <span class="label">UPI (India only)</span>
+          </label>
+        </div>
+
+        <!-- PayPal Details -->
+        <div class="payment-details" id="details-PayPal">
+          <div class="form-row">
+            <label for="paypal-email">PayPal Email</label>
+            <input type="email" id="paypal-email" placeholder="your@email.com">
+          </div>
+        </div>
+
+        <!-- Wise Details -->
+        <div class="payment-details" id="details-Wise">
+          <div class="form-row">
+            <label for="wise-email">Wise Email</label>
+            <input type="email" id="wise-email" placeholder="your@email.com">
+            <p class="hint">The email associated with your Wise account</p>
+          </div>
+        </div>
+
+        <!-- Bank Transfer Details -->
+        <div class="payment-details" id="details-Bank Transfer">
+          <div class="form-row">
+            <label for="bank-name">Bank Name</label>
+            <input type="text" id="bank-name" placeholder="e.g., Chase, HDFC Bank">
+          </div>
+          <div class="form-grid">
+            <div class="form-row">
+              <label for="account-number">Account Number</label>
+              <input type="text" id="account-number" placeholder="Account number">
+            </div>
+            <div class="form-row">
+              <label for="routing-number">Routing / IFSC Code</label>
+              <input type="text" id="routing-number" placeholder="Routing or IFSC">
+            </div>
+          </div>
+          <div class="form-row">
+            <label for="account-holder">Account Holder Name</label>
+            <input type="text" id="account-holder" placeholder="Name on the account">
+          </div>
+        </div>
+
+        <!-- UPI Details -->
+        <div class="payment-details" id="details-UPI">
+          <div class="form-row">
+            <label for="upi-id">UPI ID</label>
+            <input type="text" id="upi-id" placeholder="yourname@upi">
+          </div>
+        </div>
+      </div>
+
+      <!-- Save Button -->
+      <button class="btn btn-primary" id="save-btn" onclick="saveProfile()">Save Changes</button>
+
+    </main>
+
+    <footer>
+      <p>© 2026 Cricket Times · <a href="privacy.html">Privacy</a> · <a href="mailto:submissions@cricketimes.com">Contact</a></p>
+    </footer>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast">
+    <div class="toast-title"></div>
+    <div class="toast-message"></div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+    import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+    import { getFirestore, doc, getDoc, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+    import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBnfn9hK0y-p6nvIZ_AwoJnWD7DfDuIQd4",
+      authDomain: "hitwicket-cba02.firebaseapp.com",
+      projectId: "hitwicket-cba02",
+      storageBucket: "hitwicket-cba02.firebasestorage.app",
+      messagingSenderId: "196915483829",
+      appId: "1:196915483829:web:071c47af79914aec88dafc"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
+
+    // State
+    let currentUser = null;
+    let authorData = null;
+    let selectedTaxType = null;
+    let selectedPaymentMethod = null;
+    let pendingTaxFile = null;
+
+    // DOM Elements
+    const overlay = document.getElementById('auth-overlay');
+    const mainContent = document.getElementById('main-content');
+    const userEmailSpan = document.getElementById('user-email');
+    const signOutBtn = document.getElementById('sign-out-btn');
+
+    // Make functions available globally
+    window.selectTaxType = selectTaxType;
+    window.selectPaymentMethod = selectPaymentMethod;
+    window.removeTaxFile = removeTaxFile;
+    window.saveProfile = saveProfile;
+
+    // Auth state
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        currentUser = user;
+        overlay.classList.add('hidden');
+        mainContent.classList.add('visible');
+        userEmailSpan.textContent = user.email;
+
+        await loadAuthorData(user.uid);
+      } else {
+        window.location.href = 'author-login.html';
+      }
+    });
+
+    // Sign out
+    signOutBtn.addEventListener('click', async () => {
+      await signOut(auth);
+      window.location.href = 'author-login.html';
+    });
+
+    // Load author data
+    async function loadAuthorData(uid) {
+      try {
+        const docRef = doc(db, 'authors', uid);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+          authorData = docSnap.data();
+          populateForm();
+        }
+      } catch (err) {
+        console.error('Error loading author data:', err);
+      }
+    }
+
+    // Populate form with existing data
+    function populateForm() {
+      if (!authorData) return;
+
+      document.getElementById('display-name').value = authorData.name || '';
+      document.getElementById('bio').value = authorData.bio || '';
+      document.getElementById('location').value = authorData.location || '';
+      document.getElementById('twitter').value = authorData.twitter || '';
+
+      // Tax info
+      if (authorData.taxFormType) {
+        selectTaxType(authorData.taxFormType);
+      }
+      if (authorData.taxFormReceived) {
+        document.getElementById('tax-status-badge').textContent = 'Complete';
+        document.getElementById('tax-status-badge').className = 'status-badge complete';
+        if (authorData.taxFormUrl) {
+          document.getElementById('uploaded-tax-file').style.display = 'flex';
+          document.getElementById('tax-file-name').textContent = `${authorData.taxFormType} form uploaded`;
+        }
+      }
+
+      // Payment method
+      if (authorData.paymentMethod) {
+        selectPaymentMethod(authorData.paymentMethod);
+        document.getElementById('payment-status-badge').textContent = 'Complete';
+        document.getElementById('payment-status-badge').className = 'status-badge complete';
+
+        // Fill in payment details
+        if (authorData.paymentMethod === 'PayPal') {
+          document.getElementById('paypal-email').value = authorData.paymentDetails || '';
+        } else if (authorData.paymentMethod === 'Wise') {
+          document.getElementById('wise-email').value = authorData.paymentDetails || '';
+        } else if (authorData.paymentMethod === 'UPI') {
+          document.getElementById('upi-id').value = authorData.paymentDetails || '';
+        } else if (authorData.paymentMethod === 'Bank Transfer' && authorData.bankDetails) {
+          document.getElementById('bank-name').value = authorData.bankDetails.bankName || '';
+          document.getElementById('account-number').value = authorData.bankDetails.accountNumber || '';
+          document.getElementById('routing-number').value = authorData.bankDetails.routingNumber || '';
+          document.getElementById('account-holder').value = authorData.bankDetails.accountHolder || '';
+        }
+      }
+    }
+
+    // Select tax type
+    function selectTaxType(type) {
+      selectedTaxType = type;
+      document.querySelectorAll('.tax-option').forEach(opt => {
+        opt.classList.toggle('selected', opt.dataset.type === type);
+      });
+    }
+
+    // Select payment method
+    function selectPaymentMethod(method) {
+      selectedPaymentMethod = method;
+      
+      // Update radio buttons
+      document.querySelectorAll('.payment-option').forEach(opt => {
+        const radio = opt.querySelector('input[type="radio"]');
+        const isSelected = radio.value === method;
+        opt.classList.toggle('selected', isSelected);
+        radio.checked = isSelected;
+      });
+
+      // Show/hide detail sections
+      document.querySelectorAll('.payment-details').forEach(div => {
+        div.classList.remove('show');
+      });
+      const detailsDiv = document.getElementById(`details-${method}`);
+      if (detailsDiv) {
+        detailsDiv.classList.add('show');
+      }
+    }
+
+    // Tax file upload
+    document.getElementById('tax-file').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      if (file.size > 5 * 1024 * 1024) {
+        showToast('error', 'File Too Large', 'Max file size is 5MB');
+        return;
+      }
+
+      pendingTaxFile = file;
+      document.getElementById('uploaded-tax-file').style.display = 'flex';
+      document.getElementById('tax-file-name').textContent = file.name;
+    });
+
+    // Remove tax file
+    function removeTaxFile() {
+      pendingTaxFile = null;
+      document.getElementById('uploaded-tax-file').style.display = 'none';
+      document.getElementById('tax-file').value = '';
+    }
+
+    // Save profile
+    async function saveProfile() {
+      if (!currentUser) return;
+
+      const saveBtn = document.getElementById('save-btn');
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Saving...';
+
+      try {
+        const updates = {
+          name: document.getElementById('display-name').value.trim(),
+          bio: document.getElementById('bio').value.trim(),
+          location: document.getElementById('location').value.trim(),
+          twitter: document.getElementById('twitter').value.trim(),
+          updatedAt: serverTimestamp()
+        };
+
+        // Tax form type
+        if (selectedTaxType) {
+          updates.taxFormType = selectedTaxType;
+        }
+
+        // Upload tax file if pending
+        if (pendingTaxFile) {
+          const taxRef = ref(storage, `tax-forms/${currentUser.uid}/${pendingTaxFile.name}`);
+          await uploadBytes(taxRef, pendingTaxFile);
+          updates.taxFormUrl = await getDownloadURL(taxRef);
+          updates.taxFormReceived = true;
+          updates.taxFormUploadedAt = serverTimestamp();
+        }
+
+        // Payment method
+        if (selectedPaymentMethod) {
+          updates.paymentMethod = selectedPaymentMethod;
+
+          if (selectedPaymentMethod === 'PayPal') {
+            updates.paymentDetails = document.getElementById('paypal-email').value.trim();
+          } else if (selectedPaymentMethod === 'Wise') {
+            updates.paymentDetails = document.getElementById('wise-email').value.trim();
+          } else if (selectedPaymentMethod === 'UPI') {
+            updates.paymentDetails = document.getElementById('upi-id').value.trim();
+          } else if (selectedPaymentMethod === 'Bank Transfer') {
+            updates.bankDetails = {
+              bankName: document.getElementById('bank-name').value.trim(),
+              accountNumber: document.getElementById('account-number').value.trim(),
+              routingNumber: document.getElementById('routing-number').value.trim(),
+              accountHolder: document.getElementById('account-holder').value.trim()
+            };
+            updates.paymentDetails = 'Bank Transfer configured';
+          }
+        }
+
+        // Save to Firestore
+        const docRef = doc(db, 'authors', currentUser.uid);
+        await updateDoc(docRef, updates);
+
+        // Update badges
+        if (updates.taxFormReceived) {
+          document.getElementById('tax-status-badge').textContent = 'Complete';
+          document.getElementById('tax-status-badge').className = 'status-badge complete';
+        }
+        if (updates.paymentMethod) {
+          document.getElementById('payment-status-badge').textContent = 'Complete';
+          document.getElementById('payment-status-badge').className = 'status-badge complete';
+        }
+
+        showToast('success', 'Profile Saved', 'Your changes have been saved.');
+
+      } catch (err) {
+        console.error('Error saving profile:', err);
+        showToast('error', 'Save Failed', 'Please try again.');
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Save Changes';
+      }
+    }
+
+    // Toast
+    function showToast(type, title, message) {
+      const toast = document.getElementById('toast');
+      toast.className = `toast ${type}`;
+      toast.querySelector('.toast-title').textContent = title;
+      toast.querySelector('.toast-message').textContent = message;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 4000);
+    }
+  </script>
+
+</body>
+</html>

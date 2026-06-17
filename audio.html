@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+<!-- CT_7G_INJECT:START (auto-injected by deploy tool — do not edit by hand) -->
+<style id="ct-7g-hide">body{visibility:hidden}</style>
+<script>window.CT_PAGE_ID="audio";</script>
+<script>setTimeout(function(){if(!window.__ctFlagsLoaded){location.replace("/comingsoon.html");}},2500);</script>
+<script src="/auth-status.js"></script>
+<!-- CT_7G_INJECT:END -->
+<script src="/feature-flags.js"></script>
+<script src="/prelaunch-guard.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Audio — Cricket Times</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400;1,700&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300;1,400&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --cream: #f5f0e8;
+      --cream-dark: #ede6d4;
+      --cream-border: #d4c9b0;
+      --crimson: #8b1a1a;
+      --crimson-light: #a82020;
+      --crimson-dark: #6b1212;
+      --ink: #1a1208;
+      --ink-mid: #3d3020;
+      --ink-light: #6b5e4a;
+      --ink-faint: #9a8f7a;
+      --gold: #c8a44a;
+      --gold-light: #e2c97e;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--cream);
+      color: var(--ink);
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: 16px;
+      line-height: 1.6;
+    }
+
+    /* ── MASTHEAD ── */
+    .masthead {
+      background: var(--cream);
+      padding: 0;
+    }
+    .masthead-top {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px 40px 4px;
+      font-size: 11px;
+      color: var(--ink-light);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+    .masthead-title {
+      text-align: center;
+      padding: 4px 40px 6px;
+    }
+    .masthead-title a {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: clamp(42px, 7vw, 80px);
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      text-decoration: none;
+      display: block;
+      line-height: 1;
+      color: var(--ink);
+    }
+    .masthead-title a .times { color: var(--crimson); font-weight: 900; }
+    .masthead-tagline {
+      font-family: 'Source Serif 4', serif;
+      font-size: 11px;
+      font-weight: 400;
+      color: var(--ink-light);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      text-align: center;
+      padding-bottom: 14px;
+    }
+
+    /* ── NAV ── */
+    nav.primary {
+      border-top: 1px solid var(--ink);
+      border-bottom: 1px solid var(--ink);
+      background: var(--cream);
+    }
+    nav.primary ul {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      list-style: none;
+    }
+    nav.primary ul li a {
+      display: block;
+      font-family: 'Source Serif 4', serif;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--ink);
+      text-decoration: none;
+      padding: 11px 18px;
+      border-bottom: 2px solid transparent;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    nav.primary ul li a:hover {
+      color: var(--crimson);
+    }
+    nav.primary ul li a.active {
+      color: var(--crimson);
+      border-bottom-color: var(--crimson);
+    }
+
+    /* ── PAGE HEADER ── */
+    .page-header {
+      text-align: center;
+      padding: 48px 40px 32px;
+      border-bottom: 1px solid var(--cream-border);
+    }
+    .page-header::before {
+      content: '🎙';
+      display: block;
+      font-size: 32px;
+      margin-bottom: 12px;
+    }
+    .page-header h1 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: clamp(28px, 5vw, 52px);
+      font-weight: 900;
+      color: var(--ink);
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+    }
+    .page-header .deck {
+      font-family: 'Source Serif 4', serif;
+      font-style: italic;
+      font-size: 16px;
+      color: var(--ink-light);
+      margin-top: 10px;
+    }
+    .rule-ornament {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 20px auto 0;
+      max-width: 400px;
+      color: var(--gold);
+    }
+    .rule-ornament::before, .rule-ornament::after {
+      content: ''; flex: 1; height: 1px; background: var(--gold);
+    }
+    .rule-ornament span { font-size: 18px; }
+
+    /* ── FILTER BAR ── */
+    .filter-bar {
+      max-width: 960px;
+      margin: 28px auto 0;
+      padding: 0 40px;
+      display: flex;
+      align-items: flex-end;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .filter-bar .search-field { flex: 1; min-width: 200px; }
+    .filter-bar label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--ink-light);
+      margin-bottom: 6px;
+    }
+    .filter-bar input {
+      width: 100%;
+      background: white;
+      border: 1px solid var(--cream-border);
+      border-radius: 0;
+      font-family: 'Source Serif 4', serif;
+      font-size: 15px;
+      color: var(--ink);
+      padding: 9px 14px;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .filter-bar input:focus {
+      border-color: var(--crimson);
+      box-shadow: 0 0 0 2px rgba(139,26,26,0.12);
+    }
+    .result-count {
+      font-style: italic;
+      font-size: 13px;
+      color: var(--ink-faint);
+      padding-bottom: 12px;
+    }
+
+    /* ── AUDIO GRID ── */
+    .audio-container {
+      max-width: 960px;
+      margin: 32px auto 60px;
+      padding: 0 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    /* ── AUDIO CARD ── */
+    .audio-card {
+      border-bottom: 1px solid var(--cream-border);
+      padding: 24px 0;
+      display: grid;
+      grid-template-columns: 64px 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+    .audio-card:first-child { border-top: 2px solid var(--ink); }
+
+    .card-number {
+      font-family: 'Playfair Display', serif;
+      font-size: 36px;
+      font-weight: 900;
+      color: var(--cream-border);
+      line-height: 1;
+      text-align: center;
+      padding-top: 4px;
+      user-select: none;
+    }
+    .audio-card.playing .card-number {
+      color: var(--crimson);
+    }
+
+    .card-content {}
+    .card-kicker {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--crimson);
+      margin-bottom: 4px;
+    }
+    .card-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--ink);
+      line-height: 1.25;
+      margin-bottom: 6px;
+    }
+    .card-meta {
+      font-size: 12px;
+      color: var(--ink-faint);
+      font-style: italic;
+      margin-bottom: 10px;
+    }
+    .card-meta span + span::before { content: ' · '; }
+    .card-summary {
+      font-size: 14px;
+      color: var(--ink-light);
+      line-height: 1.55;
+      margin-bottom: 14px;
+    }
+    .card-article-link {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--crimson);
+      text-decoration: none;
+      margin-bottom: 14px;
+      display: inline-block;
+    }
+    .card-article-link::after { content: ' →'; }
+
+    /* ── CUSTOM AUDIO PLAYER ── */
+    .audio-player {
+      background: white;
+      border: 1px solid var(--cream-border);
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .play-btn {
+      flex-shrink: 0;
+      width: 40px; height: 40px;
+      background: var(--crimson);
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s, transform 0.1s;
+      color: white;
+    }
+    .play-btn:hover { background: var(--crimson-light); transform: scale(1.05); }
+    .play-btn:active { transform: scale(0.97); }
+    .play-btn svg { width: 16px; height: 16px; fill: white; }
+
+    .player-track {
+      flex: 1;
+      min-width: 0;
+    }
+    .track-bar-wrap {
+      position: relative;
+      height: 4px;
+      background: var(--cream-border);
+      border-radius: 2px;
+      cursor: pointer;
+      margin-bottom: 8px;
+    }
+    .track-progress {
+      height: 100%;
+      background: var(--crimson);
+      border-radius: 2px;
+      width: 0%;
+      pointer-events: none;
+      position: relative;
+      transition: width 0.1s linear;
+    }
+    .audio-card.scrubbing .track-progress {
+      transition: none;
+    }
+    .track-progress::after {
+      content: '';
+      position: absolute;
+      right: -5px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 10px;
+      height: 10px;
+      background: var(--crimson);
+      border-radius: 50%;
+      display: block;
+    }
+    .track-times {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: var(--ink-faint);
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.03em;
+      gap: 10px;
+    }
+    .time-elapsed { flex: 1; }
+    .track-bar-wrap {
+      touch-action: none;
+    }
+    .track-bar-wrap:hover .track-progress::after {
+      transform: translateY(-50%) scale(1.3);
+    }
+
+    /* ── SPEED TOGGLE ── */
+    .speed-btn {
+      flex-shrink: 0;
+      background: transparent;
+      border: 1px solid var(--cream-border);
+      color: var(--ink-light);
+      font-family: 'Source Serif 4', serif;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      padding: 3px 8px;
+      cursor: pointer;
+      font-variant-numeric: tabular-nums;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+      min-width: 36px;
+      text-align: center;
+    }
+    .speed-btn:hover {
+      border-color: var(--crimson);
+      color: var(--crimson);
+    }
+    .speed-btn.boosted {
+      background: var(--crimson);
+      border-color: var(--crimson);
+      color: white;
+    }
+
+    /* Loading / empty states */
+    .loading-state {
+      text-align: center;
+      padding: 80px 20px;
+      color: var(--ink-faint);
+    }
+    .loading-spinner {
+      width: 32px; height: 32px;
+      border: 2px solid var(--cream-border);
+      border-top-color: var(--crimson);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-state p { font-style: italic; font-size: 14px; }
+
+    .empty-state {
+      text-align: center;
+      padding: 80px 20px;
+      color: var(--ink-faint);
+    }
+    .empty-state .icon { font-size: 48px; margin-bottom: 16px; }
+    .empty-state h3 {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: 22px;
+      color: var(--ink-light);
+      margin-bottom: 8px;
+    }
+    .empty-state p { font-size: 14px; font-style: italic; }
+
+    /* Now playing banner */
+    .now-playing-bar {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: var(--ink);
+      color: var(--cream);
+      padding: 12px 24px;
+      display: none;
+      align-items: center;
+      gap: 16px;
+      z-index: 100;
+      border-top: 2px solid var(--crimson);
+    }
+    .now-playing-bar.visible { display: flex; }
+    .now-playing-label {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--crimson);
+      white-space: nowrap;
+    }
+    .now-playing-title {
+      flex: 1;
+      font-family: 'Playfair Display', serif;
+      font-size: 14px;
+      font-style: italic;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .now-playing-close {
+      background: none;
+      border: none;
+      color: var(--ink-faint);
+      cursor: pointer;
+      font-size: 18px;
+      line-height: 1;
+      padding: 4px;
+      transition: color 0.12s;
+    }
+    .now-playing-close:hover { color: var(--cream); }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--ink);
+      color: var(--cream);
+      padding: 40px;
+    }
+    .footer-inner {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+    .footer-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px;
+      font-weight: 900;
+      color: var(--cream);
+      margin-bottom: 4px;
+    }
+    .footer-tagline {
+      font-family: 'IM Fell English', serif;
+      font-style: italic;
+      font-size: 12px;
+      color: var(--ink-faint);
+      margin-bottom: 24px;
+    }
+    .footer-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 20px;
+      margin-bottom: 24px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      padding-top: 20px;
+    }
+    .footer-nav a {
+      font-family: 'Source Serif 4', serif;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: rgba(245,240,232,0.5);
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+    .footer-nav a:hover { color: var(--cream); }
+    .footer-copy {
+      font-size: 12px;
+      color: var(--ink-faint);
+      font-style: italic;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 640px) {
+      .masthead-top { padding: 8px 16px 0; }
+      .masthead-title { padding: 10px 16px 6px; }
+      nav.primary ul li a { padding: 8px 10px; font-size: 10px; }
+      .filter-bar, .audio-container { padding-left: 16px; padding-right: 16px; }
+      .audio-card { grid-template-columns: 44px 1fr; gap: 12px; }
+      .card-number { font-size: 26px; }
+      footer { padding: 28px 16px; }
+      .now-playing-bar { padding: 10px 14px; }
+    }
+
+    mark {
+      background: rgba(200,164,74,0.35);
+      color: inherit;
+      padding: 0 2px;
+      border-radius: 2px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- MASTHEAD -->
+<header data-ct-nav="masthead"></header>
+
+<!-- PRIMARY NAV -->
+<nav data-ct-nav="primary"></nav>
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+  <h1>Audio</h1>
+  <p class="deck">Listen to every Cricket Times broadcast, essay and analysis</p>
+  <div class="rule-ornament"><span>✦</span></div>
+</div>
+
+<!-- FILTER BAR -->
+<div class="filter-bar">
+  <div class="search-field">
+    <label for="audioSearch">Search audio</label>
+    <input type="search" id="audioSearch" placeholder="Title, topic, player…" autocomplete="off" />
+  </div>
+  <div class="result-count" id="audioCount"></div>
+</div>
+
+<!-- AUDIO LIST -->
+<main class="audio-container" id="audioContainer">
+  <div class="loading-state" id="loadingState">
+    <div class="loading-spinner"></div>
+    <p>Tuning in to the archive…</p>
+  </div>
+</main>
+
+<!-- NOW PLAYING BAR -->
+<div class="now-playing-bar" id="nowPlayingBar" role="status" aria-live="polite">
+  <span class="now-playing-label">Now Playing</span>
+  <span class="now-playing-title" id="nowPlayingTitle"></span>
+  <button class="now-playing-close" id="nowPlayingClose" aria-label="Stop playback">✕</button>
+</div>
+
+<!-- FOOTER -->
+<footer data-ct-nav="footer"></footer>
+
+<!-- Firebase + player logic -->
+<script type="module">
+  import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+  import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBqXvBtBIV_NRQLN1e4VNZOjNR5rW4w8iQ",
+    authDomain: "hitwicket-cba02.firebaseapp.com",
+    projectId: "hitwicket-cba02",
+    storageBucket: "hitwicket-cba02.firebasestorage.app",
+    messagingSenderId: "550262141981",
+    appId: "1:550262141981:web:placeholder"
+  };
+
+  /* ── helpers ── */
+  function formatDate(ts) {
+    if (!ts) return '';
+    const d = ts.toDate ? ts.toDate() : new Date(ts);
+    return d.toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
+  }
+  function fmtTime(sec) {
+    if (isNaN(sec)) return '0:00';
+    const m = Math.floor(sec / 60), s = Math.floor(sec % 60);
+    return `${m}:${s.toString().padStart(2,'0')}`;
+  }
+  function escHtml(s) {
+    return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  function highlight(text, q) {
+    if (!q) return escHtml(text);
+    const re = new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi');
+    return escHtml(text).replace(re, '<mark>$1</mark>');
+  }
+
+  /* ── global audio state ── */
+  let currentAudio = null;
+  let currentCardEl = null;
+  const SPEED_STEPS = [1, 1.5, 2];
+  let currentSpeed = 1;
+
+  function speedLabel(r) {
+    return (r % 1 === 0 ? r.toFixed(0) : r.toString()) + '×';
+  }
+
+  function stopAll() {
+    if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+    if (currentCardEl) { currentCardEl.classList.remove('playing'); currentCardEl = null; }
+    document.getElementById('nowPlayingBar').classList.remove('visible');
+  }
+
+  document.getElementById('nowPlayingClose').addEventListener('click', stopAll);
+
+  function initPlayer(card, audioUrl, title) {
+    const playBtn = card.querySelector('.play-btn');
+    const progress = card.querySelector('.track-progress');
+    const barWrap = card.querySelector('.track-bar-wrap');
+    const timeEl = card.querySelector('.time-current');
+    const durEl = card.querySelector('.time-duration');
+    const speedBtn = card.querySelector('.speed-btn');
+
+    // Use the pre-rendered <audio> element with preload="metadata"
+    const audio = card.querySelector('audio');
+    let playing = false;
+    let knownDuration = NaN;
+    let probeStarted = false; // have we issued the seek-to-end probe yet?
+
+    function hasDuration() {
+      return isFinite(knownDuration) && knownDuration > 0;
+    }
+
+    // Try every source the browser exposes. For Firebase-streamed audio,
+    // audio.duration often stays Infinity forever — but after a seek probe,
+    // audio.seekable.end(0) reliably reports the real total in seconds.
+    function readDurationFromElement() {
+      if (isFinite(audio.duration) && audio.duration > 0) return audio.duration;
+      try {
+        if (audio.seekable && audio.seekable.length > 0) {
+          const end = audio.seekable.end(audio.seekable.length - 1);
+          if (isFinite(end) && end > 0) return end;
+        }
+      } catch (e) { /* ignore */ }
+      return NaN;
+    }
+
+    function captureDuration() {
+      if (hasDuration()) return;
+      const d = readDurationFromElement();
+      if (isFinite(d) && d > 0) {
+        knownDuration = d;
+        durEl.textContent = fmtTime(d);
+      }
+    }
+
+    function updateProgress() {
+      // Until we have a real duration, don't paint anything. This keeps the
+      // bar at 0% while the duration probe's transient currentTime values
+      // are flowing through, avoiding the "zip to end" flicker.
+      if (!hasDuration()) return;
+      timeEl.textContent = fmtTime(audio.currentTime);
+      const pct = Math.max(0, Math.min(100, (audio.currentTime / knownDuration) * 100));
+      progress.style.width = pct + '%';
+    }
+
+    function setPlayIcon(isPlaying) {
+      playBtn.innerHTML = isPlaying
+        ? `<svg viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>`
+        : `<svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>`;
+    }
+
+    // Pauses & resets UI for *this* card. Safe to call when already paused.
+    function pauseThis() {
+      audio.pause();
+      playing = false;
+      setPlayIcon(false);
+      card.classList.remove('playing');
+    }
+
+    // Issue the duration probe: seek past the end so the browser resolves
+    // the real duration (exposed via audio.seekable even when audio.duration
+    // stays Infinity, as with chunked/streamed Firebase audio).
+    function startDurationProbe() {
+      if (probeStarted || hasDuration() || playing) return;
+      probeStarted = true;
+      try { audio.currentTime = 1e9; } catch (e) { /* ignore */ }
+    }
+
+    audio.addEventListener('loadedmetadata', () => {
+      captureDuration();
+      if (!hasDuration()) startDurationProbe();
+    });
+    audio.addEventListener('durationchange', captureDuration);
+    audio.addEventListener('canplay', () => {
+      captureDuration();
+      if (!hasDuration()) startDurationProbe();
+    });
+    audio.addEventListener('progress', captureDuration);
+    // `seeked` fires when the probe's seek-to-end completes. seekable is
+    // populated at this point, so we can read duration from it.
+    audio.addEventListener('seeked', () => {
+      captureDuration();
+      // If the probe left us near the (now known) end and the user hasn't
+      // pressed play, rewind to 0. The progress bar has been suppressed up
+      // to this point, so the user never saw the probe's scan position.
+      if (hasDuration() && !playing && audio.currentTime > knownDuration - 1) {
+        try { audio.currentTime = 0; } catch (e) { /* ignore */ }
+      }
+    });
+    audio.addEventListener('timeupdate', updateProgress);
+    audio.addEventListener('ended', () => {
+      pauseThis();
+      progress.style.width = '0%';
+      timeEl.textContent = '0:00';
+      try { audio.currentTime = 0; } catch (e) { /* ignore */ }
+      if (currentAudio === audio) {
+        currentAudio = null;
+        currentCardEl = null;
+        document.getElementById('nowPlayingBar').classList.remove('visible');
+      }
+    });
+    audio.addEventListener('error', () => {
+      console.warn('Audio error for', title, audio.error);
+    });
+
+    // Kick off metadata loading, then poll as a final fallback if no event
+    // ever yields a usable duration.
+    audio.load();
+    const pollDur = setInterval(() => {
+      if (hasDuration()) { clearInterval(pollDur); return; }
+      captureDuration();
+      if (hasDuration()) { clearInterval(pollDur); return; }
+      // Still nothing? Kick off the probe if we haven't already.
+      if (!probeStarted && audio.readyState >= 1) startDurationProbe();
+    }, 400);
+    setTimeout(() => clearInterval(pollDur), 20000);
+
+    // Expose a pause-this-track hook so the play handler below can stop a
+    // different card cleanly without reaching into its internals.
+    card._pausePlayer = pauseThis;
+
+    playBtn.addEventListener('click', () => {
+      // Switching tracks: pause the previous one cleanly
+      if (currentAudio && currentAudio !== audio) {
+        if (currentCardEl && typeof currentCardEl._pausePlayer === 'function') {
+          currentCardEl._pausePlayer();
+        } else if (currentAudio) {
+          currentAudio.pause();
+        }
+        currentAudio = null;
+        currentCardEl = null;
+      }
+
+      if (playing) {
+        pauseThis();
+        document.getElementById('nowPlayingBar').classList.remove('visible');
+        currentAudio = null;
+        currentCardEl = null;
+      } else {
+        audio.playbackRate = currentSpeed;
+        const p = audio.play();
+        if (p && typeof p.then === 'function') {
+          p.catch(err => {
+            console.warn('Playback blocked/failed for', title, err);
+            pauseThis();
+          });
+        }
+        playing = true;
+        currentAudio = audio;
+        currentCardEl = card;
+        setPlayIcon(true);
+        card.classList.add('playing');
+        document.getElementById('nowPlayingTitle').textContent = title;
+        document.getElementById('nowPlayingBar').classList.add('visible');
+      }
+    });
+
+    // ── Seek ──
+    function clientXToTime(clientX) {
+      const rect = barWrap.getBoundingClientRect();
+      const pct = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+      return { pct, time: hasDuration() ? pct * knownDuration : null };
+    }
+
+    function seekTo(clientX) {
+      const { pct, time } = clientXToTime(clientX);
+      progress.style.width = (pct * 100) + '%';
+      if (time !== null) {
+        try { audio.currentTime = time; } catch (e) { /* ignore */ }
+        timeEl.textContent = fmtTime(time);
+      }
+    }
+
+    // Click to seek
+    barWrap.addEventListener('click', (e) => seekTo(e.clientX));
+
+    // Drag to seek — listeners are attached to the document only while a drag
+    // is in progress, then removed. This avoids the listener leak that would
+    // otherwise accumulate every time render() re-creates cards.
+    function onMove(e) {
+      const x = e.touches ? e.touches[0].clientX : e.clientX;
+      seekTo(x);
+      if (e.cancelable) e.preventDefault();
+    }
+    function onEnd() {
+      card.classList.remove('scrubbing');
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onEnd);
+      document.removeEventListener('touchmove', onMove);
+      document.removeEventListener('touchend', onEnd);
+      document.removeEventListener('touchcancel', onEnd);
+    }
+
+    barWrap.addEventListener('mousedown', (e) => {
+      card.classList.add('scrubbing');
+      seekTo(e.clientX);
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onEnd);
+      e.preventDefault();
+    });
+    barWrap.addEventListener('touchstart', (e) => {
+      card.classList.add('scrubbing');
+      seekTo(e.touches[0].clientX);
+      document.addEventListener('touchmove', onMove, { passive: false });
+      document.addEventListener('touchend', onEnd);
+      document.addEventListener('touchcancel', onEnd);
+      e.preventDefault();
+    }, { passive: false });
+
+    // ── Speed control ──
+    function applySpeed() {
+      audio.playbackRate = currentSpeed;
+      speedBtn.textContent = speedLabel(currentSpeed);
+      speedBtn.classList.toggle('boosted', currentSpeed !== 1);
+      speedBtn.setAttribute('aria-label', `Playback speed: ${speedLabel(currentSpeed)}. Click to change.`);
+    }
+    applySpeed();
+    speedBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const idx = SPEED_STEPS.indexOf(currentSpeed);
+      currentSpeed = SPEED_STEPS[(idx + 1) % SPEED_STEPS.length];
+      // Apply to every player on the page so the session shares the setting
+      document.querySelectorAll('.audio-card').forEach(c => {
+        const a = c.querySelector('audio');
+        const b = c.querySelector('.speed-btn');
+        if (a) a.playbackRate = currentSpeed;
+        if (b) {
+          b.textContent = speedLabel(currentSpeed);
+          b.classList.toggle('boosted', currentSpeed !== 1);
+        }
+      });
+    });
+
+    // Re-assert speed whenever playback (re)starts — some browsers reset it
+    audio.addEventListener('play', () => { audio.playbackRate = currentSpeed; });
+
+    setPlayIcon(false);
+  }
+
+  /* ── data & render ── */
+  let allAudio = [];
+
+  function render(q) {
+    const term = (q||'').toLowerCase();
+    const filtered = allAudio.filter(a =>
+      !term
+      || (a.headline||'').toLowerCase().includes(term)
+      || (a.summary||'').toLowerCase().includes(term)
+      || (a.category||'').toLowerCase().includes(term)
+    );
+
+    const container = document.getElementById('audioContainer');
+    document.getElementById('audioCount').textContent =
+      `${filtered.length} recording${filtered.length !== 1 ? 's' : ''}`;
+
+    if (filtered.length === 0) {
+      container.innerHTML = `<div class="empty-state">
+        <div class="icon">🎙</div>
+        <h3>No recordings found</h3>
+        <p>Try a different search term.</p>
+      </div>`;
+      return;
+    }
+
+    container.innerHTML = filtered.map((a, i) => {
+      const num = String(i + 1).padStart(2, '0');
+      const date = a.date || formatDate(a.createdAt);
+      const dur = a.duration ? `<span>${escHtml(a.duration)}</span>` : '';
+      const articleLink = a.articleId
+        ? `<a class="card-article-link" href="article.html?id=${escHtml(a.articleId)}">Read the article</a>`
+        : '';
+
+      return `
+        <div class="audio-card" data-id="${escHtml(a.id)}" data-url="${escHtml(a.audioUrl || '')}">
+          <div class="card-number">${num}</div>
+          <div class="card-content">
+            ${a.category ? `<div class="card-kicker">${highlight(a.category, term)}</div>` : ''}
+            <div class="card-title">${highlight(a.headline || 'Untitled', term)}</div>
+            <div class="card-meta">
+              ${date ? `<span>${date}</span>` : ''}
+              ${dur}
+            </div>
+            ${a.summary ? `<div class="card-summary">${highlight(a.summary, term)}</div>` : ''}
+            ${articleLink}
+            <div class="audio-player">
+              <button class="play-btn" aria-label="Play ${escHtml(a.headline||'audio')}">
+                <svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>
+              </button>
+              <div class="player-track">
+                <div class="track-bar-wrap" role="slider" aria-label="Seek">
+                  <div class="track-progress"></div>
+                </div>
+                <div class="track-times">
+                  <span class="time-elapsed"><span class="time-current">0:00</span> / <span class="time-duration">--:--</span></span>
+                  <button class="speed-btn" type="button" aria-label="Playback speed">1×</button>
+                </div>
+              </div>
+              <audio preload="metadata" src="${escHtml(a.audioUrl || '')}" style="display:none"></audio>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+
+    // init players
+    container.querySelectorAll('.audio-card').forEach((card, i) => {
+      const url = card.dataset.url;
+      const title = filtered[i].headline || 'Untitled';
+      if (url) initPlayer(card, url, title);
+    });
+  }
+
+  document.getElementById('audioSearch').addEventListener('input', function(){ render(this.value); });
+
+  /* ── load from Firestore ── */
+  async function load() {
+    try {
+      // Reuse the default app if already initialised (e.g. by
+      // prelaunch-guard.js); otherwise create. Without this, the second
+      // initializeApp throws "already exists".
+      let app;
+      try { app = getApp(); } catch (e) { app = initializeApp(firebaseConfig); }
+      const db = getFirestore(app);
+      // The audio archive is the audio equivalent of the article archive:
+      // every article that has ever been published, filtered client-side
+      // to those with audio. Mirrors archive.html's everPublished query.
+      // Withdrawn articles still appear here as long as audioEnabled is
+      // true — matching how the article archive treats text.
+      const snap = await getDocs(query(
+        collection(db, 'articles'),
+        where('everPublished', '==', true)
+      ));
+      allAudio = snap.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .filter(a => a.audioUrl && a.audioEnabled)
+        .sort((a, b) => {
+          const ta = a.date ? new Date(a.date).getTime() : (a.createdAt?.toDate ? a.createdAt.toDate() : new Date(0)).getTime();
+          const tb = b.date ? new Date(b.date).getTime() : (b.createdAt?.toDate ? b.createdAt.toDate() : new Date(0)).getTime();
+          return tb - ta; // newest first
+        });
+    } catch (err) {
+      console.error('Firestore load error:', err);
+      document.getElementById('audioContainer').innerHTML = `<div class="empty-state">
+        <div class="icon">⚠️</div>
+        <h3>Could not load audio</h3>
+        <p style="font-family:monospace;font-size:12px;margin-top:8px;color:#8b1a1a">${err.message}</p>
+      </div>`;
+      document.getElementById('loadingState')?.remove();
+      return;
+    }
+    document.getElementById('loadingState').remove();
+    render('');
+  }
+
+  load();
+</script>
+<script src="ct-nav.js"></script>
+</body>
+</html>

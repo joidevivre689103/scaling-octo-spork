@@ -1,0 +1,2434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!-- CT_7G_INJECT:START (auto-injected by deploy tool — do not edit by hand) -->
+<style id="ct-7g-hide">body{visibility:hidden}</style>
+<script>window.CT_PAGE_ID="countries";</script>
+<script>setTimeout(function(){if(!window.__ctFlagsLoaded){location.replace("/comingsoon.html");}},2500);</script>
+<script src="/auth-status.js"></script>
+<!-- CT_7G_INJECT:END -->
+<script src="/feature-flags.js"></script>
+<script src="/prelaunch-guard.js"></script>
+<script src="/ct-data-loader.js"></script><!-- Phase 3 §3: gated derived-data loader -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Country Results — Cricket Times</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+
+
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+:root{
+  --bg:#faf9f7;--surface:#ffffff;--surface2:#f5f4f2;--surface3:#eceae6;
+  --border:#d8d4cc;--border2:#c8c4bc;
+  --text:#1a1a18;--text2:#4a4a46;--text3:#7a7a74;
+  --accent:#a03020;--accent-hover:#801810;--accent-dim:rgba(160,48,32,0.08);--accent-glow:rgba(160,48,32,0.06);
+  --gold:#c08018;--gold-dim:rgba(192,128,24,0.10);--green:#1a6848;--blue:#1a4878;
+  --green:#1a9a60;--green-dim:rgba(26,154,96,0.10);
+  --red:#d04040;--red-dim:rgba(208,64,64,0.10);
+  --blue:#2870d0;--blue-dim:rgba(40,112,208,0.10);
+}
+body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-height:100vh;overflow-x:hidden}
+
+/* Header — removed (hdr-nav was redundant with shared ct-nav-bar) */
+
+/* Main */
+.main{max-width:1440px;margin:0 auto;padding:24px 32px 60px}
+.page-head{margin-bottom:24px;display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
+.page-head-text{flex:1;min-width:0}
+.page-title{font-family:'DM Serif Display',serif;font-size:26px;letter-spacing:-0.4px;margin-bottom:4px}
+.page-desc{font-size:13px;color:var(--text2)}
+.share-btn{
+  display:inline-flex;align-items:center;gap:6px;
+  font-family:'Inter',sans-serif;font-size:12px;font-weight:600;letter-spacing:0.3px;
+  color:var(--text2);background:var(--surface2);
+  border:1px solid var(--border);border-radius:6px;
+  padding:7px 14px;cursor:pointer;transition:all 0.15s;
+  text-decoration:none;white-space:nowrap;flex-shrink:0;
+}
+.share-btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;flex-shrink:0}
+.share-btn:hover{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
+.share-btn.copied{background:rgba(26,104,72,0.1);border-color:var(--green);color:var(--green)}
+
+/* ═══ Stats Banner (captaincy-style) ═══ */
+.stats-banner{
+  display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:24px;
+}
+.stat-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:12px;
+  padding:18px 20px;
+}
+.stat-label{
+  font-family:'Inter',sans-serif;font-size:10px;font-weight:600;letter-spacing:1.2px;
+  text-transform:uppercase;color:var(--text3);margin-bottom:10px;
+}
+.stat-value{
+  font-family:'DM Serif Display',serif;font-size:28px;line-height:1.1;color:var(--text);
+  letter-spacing:-0.3px;
+}
+.stat-sub{
+  font-family:'Inter',sans-serif;font-size:11px;color:var(--text3);margin-top:6px;line-height:1.35;
+}
+
+/* ═══ Top-level Tab Bar (H2H / Impact) ═══ */
+.tabbar{
+  display:flex;gap:0;border-bottom:1px solid var(--border);
+  margin-bottom:24px;
+}
+.tabbar-btn{
+  background:none;border:none;padding:14px 22px;cursor:pointer;
+  font-family:'Inter',sans-serif;font-size:13px;font-weight:600;letter-spacing:0.8px;
+  color:var(--text3);text-transform:uppercase;position:relative;
+  transition:color 0.15s;
+}
+.tabbar-btn:hover{color:var(--text)}
+.tabbar-btn.active{color:var(--accent)}
+.tabbar-btn.active::after{
+  content:'';position:absolute;left:0;right:0;bottom:-1px;height:2px;
+  background:var(--accent);
+}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+
+/* ═══ Collapsible Filters Card (captaincy-style) ═══ */
+.filters-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:12px;
+  margin-bottom:24px;
+}
+/* When OPEN: overflow visible so absolutely-positioned children (ms-panel
+   dropdowns) can extend beyond the card's bounds. When CLOSED: clip to hide
+   the collapsing body. The closed rule below applies the clip. */
+.filters-card.closed{overflow:hidden;border-radius:12px}
+.filters-header{
+  display:flex;align-items:center;gap:10px;padding:14px 20px;cursor:pointer;
+  user-select:none;font-family:'DM Serif Display',serif;font-size:18px;color:var(--text);
+}
+.filters-header .fh-chev{
+  width:14px;height:14px;transition:transform 0.25s;
+  stroke:var(--text3);stroke-width:2.5;fill:none;stroke-linecap:round;stroke-linejoin:round;
+}
+.filters-card.closed .fh-chev{transform:rotate(-90deg)}
+.filters-body{
+  padding:4px 20px 20px;
+  overflow:visible;transition:opacity 0.2s, padding 0.2s;
+}
+.filters-card.closed .filters-body{
+  height:0;padding-top:0;padding-bottom:0;opacity:0;overflow:hidden;
+}
+.filters-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:14px 16px;align-items:end;
+}
+.filters-grid .sel-group{min-width:0}
+.filters-grid .sel-group label{
+  font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;
+  color:var(--text3);margin-bottom:6px;display:block;
+}
+.filters-grid .sel-group.vs-span{grid-column:auto/span 2;align-items:end;display:flex;gap:12px}
+.filters-row{
+  display:flex;gap:14px;align-items:end;flex-wrap:wrap;margin-top:14px;
+  padding-top:14px;border-top:1px solid var(--border);
+}
+.filters-row .sel-group{flex:0 0 auto;min-width:120px}
+.filters-row .sel-group.year{min-width:100px}
+.filters-spacer{flex:1}
+
+.sel-group label{font-size:11px;font-weight:600;color:var(--text2);display:block;margin-bottom:6px;letter-spacing:0.3px}
+.team-select{
+  width:100%;background:var(--surface2);border:2px solid var(--border);border-radius:8px;
+  padding:10px 36px 10px 14px;color:var(--text);font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;
+  outline:none;cursor:pointer;appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%235a6578'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center;
+  transition:border-color 0.2s;
+}
+.team-select:focus{border-color:var(--accent)}
+
+/* Multi-select dropdown (country pickers) */
+.ms-wrap{position:relative;width:100%}
+.ms-trigger{
+  width:100%;background:var(--surface2);border:2px solid var(--border);border-radius:8px;
+  padding:10px 36px 10px 14px;color:var(--text);font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;
+  outline:none;cursor:pointer;text-align:left;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%235a6578'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center;
+  transition:border-color 0.2s;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.ms-trigger:hover{border-color:var(--border2)}
+.ms-trigger.ms-open{border-color:var(--accent)}
+.ms-trigger .ms-placeholder{color:var(--text3);font-weight:500}
+.ms-panel{
+  position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:50;min-width:260px;
+  background:var(--surface);border:1px solid var(--border);border-radius:8px;
+  box-shadow:0 8px 24px rgba(0,0,0,0.12);padding:6px;max-height:320px;overflow-y:auto;
+  display:none;
+}
+.ms-panel.ms-open{display:block}
+.ms-panel-head{
+  display:flex;gap:6px;padding:4px 6px 8px;border-bottom:1px solid var(--border);margin-bottom:4px;
+}
+.ms-mini-btn{
+  flex:1;padding:5px 8px;font-family:'Outfit',sans-serif;font-size:11px;font-weight:600;
+  background:var(--surface2);border:1px solid var(--border);border-radius:5px;color:var(--text2);
+  cursor:pointer;transition:all 0.15s;
+}
+.ms-mini-btn:hover{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
+.ms-opt{
+  display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:5px;cursor:pointer;
+  font-size:13px;color:var(--text);user-select:none;
+}
+.ms-opt:hover{background:var(--surface2)}
+.ms-opt.ms-sel{background:var(--accent-dim);color:var(--accent);font-weight:600}
+.ms-check{
+  display:inline-block;width:16px;height:16px;flex-shrink:0;
+  border:1.5px solid var(--border2);border-radius:3px;background:var(--surface);
+  position:relative;transition:background 0.12s, border-color 0.12s;
+}
+.ms-check.ms-radio{border-radius:50%}
+.ms-opt:hover .ms-check{border-color:var(--accent)}
+.ms-opt.ms-sel .ms-check{background:var(--accent);border-color:var(--accent)}
+/* Checkmark — small white tick rendered via border bottom+left rotated */
+.ms-opt.ms-sel .ms-check::after{
+  content:'';position:absolute;left:4px;top:0px;width:5px;height:10px;
+  border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg);
+}
+.ms-opt.ms-sel .ms-check.ms-radio::after{
+  left:3px;top:3px;width:8px;height:8px;
+  border:none;border-radius:50%;background:#fff;transform:none;
+}
+.ms-opt .ms-code{font-size:11px;color:var(--text3);font-family:'Inter',sans-serif;margin-left:auto}
+.ms-opt.ms-sel .ms-code{color:var(--accent)}
+
+/* Groups caption (shown when multi-country selected on either side) */
+.groups-caption{
+  display:flex;gap:24px;align-items:flex-start;justify-content:center;
+  padding:14px 18px;margin-bottom:16px;
+  background:var(--surface);border:1px solid var(--border);border-radius:10px;
+  font-family:'Outfit',sans-serif;flex-wrap:wrap;
+}
+.gc-side{display:flex;flex-direction:column;gap:6px;min-width:0;flex:1 1 260px;max-width:420px}
+.gc-side-label{
+  font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;
+  color:var(--text3);
+}
+.gc-side-teams{
+  font-size:13px;color:var(--text);line-height:1.55;font-weight:500;
+}
+.gc-side-teams .gc-code{
+  display:inline-block;padding:2px 8px;margin:2px 3px 2px 0;
+  background:var(--surface2);border:1px solid var(--border);border-radius:12px;
+  font-size:11px;font-weight:700;color:var(--text2);
+}
+.gc-vs{
+  font-family:'DM Serif Display',serif;font-size:18px;font-style:italic;
+  color:var(--text3);align-self:center;
+}
+
+/* Impact Analysis (tab-panel content) */
+.impact-loading{
+  text-align:center;padding:30px;color:var(--text3);font-size:13px;
+}
+.impact-loading .il-dot{
+  display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--accent);
+  margin:0 3px;animation:il-pulse 1.2s infinite ease-in-out;
+}
+.impact-loading .il-dot:nth-child(2){animation-delay:0.15s}
+.impact-loading .il-dot:nth-child(3){animation-delay:0.3s}
+@keyframes il-pulse{
+  0%,80%,100%{transform:scale(0.7);opacity:0.4}
+  40%{transform:scale(1);opacity:1}
+}
+.impact-results{display:none}
+.impact-results.visible{display:block}
+.impact-empty{
+  text-align:center;padding:30px;color:var(--text3);font-size:13px;font-style:italic;
+}
+
+.impact-stats{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;
+}
+.impact-card{
+  background:var(--surface2);border:1px solid var(--border);border-radius:10px;
+  padding:16px 18px;position:relative;overflow:hidden;
+}
+.impact-card.ic-aggregate{
+  background:linear-gradient(135deg,var(--accent-dim) 0%,var(--surface2) 60%);
+  border-color:var(--accent);
+}
+/* Full-row span ONLY when the aggregate card is the sole child (single-milestone mode).
+   In the merged dual-milestone view, two aggregate cards sit side-by-side in a 2-col grid. */
+.impact-card.ic-aggregate:only-child{grid-column:1/-1}
+.ic-label{
+  font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  color:var(--text3);margin-bottom:8px;
+}
+.ic-aggregate .ic-label{color:var(--accent)}
+.ic-headline{
+  font-family:'DM Serif Display',serif;font-size:28px;color:var(--text);line-height:1.1;margin-bottom:6px;
+}
+.ic-aggregate .ic-headline{font-size:34px;color:var(--accent)}
+.ic-break{
+  display:flex;gap:12px;font-size:11px;color:var(--text2);font-family:'Inter',sans-serif;
+  flex-wrap:wrap;margin-top:4px;
+}
+.ic-break span{white-space:nowrap}
+.ic-break .ic-w{color:var(--green);font-weight:600}
+.ic-break .ic-l{color:var(--red);font-weight:600}
+.ic-break .ic-d{color:var(--text3);font-weight:600}
+.ic-bar{
+  display:flex;height:5px;border-radius:3px;overflow:hidden;margin-top:10px;background:var(--border);
+}
+.ic-bar .ic-bar-w{background:var(--green)}
+.ic-bar .ic-bar-l{background:var(--red)}
+.ic-bar .ic-bar-d{background:var(--text3);opacity:0.5}
+
+.impact-table{
+  width:100%;border-collapse:collapse;margin-top:6px;font-size:13px;
+}
+.impact-table th{
+  text-align:left;padding:10px 12px;background:var(--surface2);color:var(--text3);
+  font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  border-bottom:1px solid var(--border);
+}
+.impact-table th.right{text-align:right}
+.impact-table th.center{text-align:center}
+.impact-table td{padding:12px;border-bottom:1px solid var(--border);color:var(--text);}
+.impact-table td.right{text-align:right;font-variant-numeric:tabular-nums}
+.impact-table tr:last-child td{border-bottom:none}
+.impact-table tr:hover td{background:var(--surface2)}
+.impact-table .it-winpct{font-weight:700;font-family:'DM Serif Display',serif;font-size:15px}
+.impact-table .it-winpct.good{color:var(--green)}
+.impact-table .it-winpct.mid{color:var(--text)}
+.impact-table .it-winpct.poor{color:var(--red)}
+.impact-table .it-country{font-weight:600}
+.impact-table .it-mini{font-size:11px;color:var(--text3)}
+
+/* Merged comparison table: visual separator between Batting and Bowling column groups.
+   Data rows have 8 columns: Country | Bat(Mat/WLD/Win%) | Bow(Mat/WLD/Win%) | Δ.
+   Header uses rowspan+colspan so nth-child alignment differs between thead and tbody.
+   We apply the separator to tbody data cells only; the header group titles
+   (colspan=3) naturally visually separate Batting/Bowling because they sit
+   above their own columns with different background. */
+.impact-table-merged tbody td:nth-child(5){border-left:2px solid var(--border)}
+.impact-table-merged tbody td:nth-child(8){border-left:2px solid var(--border);padding-left:16px}
+.impact-table-merged{font-size:12px}
+.impact-table-merged th{padding:8px 10px}
+.impact-table-merged td{padding:10px}
+
+/* Dual-aggregate grid (when both bat + bow milestones picked) */
+.impact-stats-dual{grid-template-columns:repeat(2,1fr)}
+
+/* Horizontal-scroll wrapper for the merged comparison table on narrow screens */
+.impact-table-scroll{
+  overflow-x:auto;-webkit-overflow-scrolling:touch;
+  margin-top:6px;border-radius:8px;
+}
+.impact-table-scroll > table{margin-top:0;min-width:520px}
+
+.vs-badge{
+  display:flex;align-items:center;justify-content:center;
+  font-family:'DM Serif Display',serif;font-size:20px;color:var(--text3);
+  padding:0 8px;padding-bottom:2px;
+}
+.swap-btn{
+  margin-top:16px;background:var(--surface2);border:1px solid var(--border);
+  border-radius:8px;padding:8px 14px;cursor:pointer;font-family:'Outfit',sans-serif;
+  font-size:12px;font-weight:600;color:var(--text2);transition:all 0.2s;
+  display:flex;align-items:center;gap:6px;
+}
+.swap-btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent);background:var(--accent-dim)}
+.swap-btn:disabled{opacity:0.45;cursor:not-allowed}
+.year-input{
+  width:100%;background:var(--surface2);border:2px solid var(--border);border-radius:8px;
+  padding:10px 12px;color:var(--text);font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;
+  outline:none;transition:border-color 0.2s;
+}
+.year-input:focus{border-color:var(--accent)}
+.swap-btn svg{width:14px;height:14px;stroke:currentColor;fill:none}
+
+/* No data state */
+.no-data{
+  text-align:center;padding:60px 20px;color:var(--text3);
+  font-size:14px;
+}
+.no-data .nd-icon{font-size:40px;margin-bottom:12px}
+
+/* Results Section */
+.results{display:none}
+.results.visible{display:block;animation:fadeIn 0.3s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* Scoreboard */
+.scoreboard{
+  background:var(--surface);border:1px solid var(--border);border-radius:14px;
+  padding:0;margin-bottom:20px;overflow:hidden;
+}
+.sb-body{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  border-top:1px solid var(--border);
+}
+.sb-stat{
+  padding:18px 12px;text-align:center;
+  border-right:1px solid var(--border);
+}
+.sb-stat:last-child{border-right:none}
+.sb-stat-label{font-size:9.5px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text3);margin-bottom:10px}
+.sb-stat-values{display:flex;align-items:center;justify-content:center;gap:8px}
+.sb-val{
+  font-family:'DM Serif Display',serif;font-size:28px;letter-spacing:-1px;
+  transition:color 0.3s;
+}
+.sb-val-sub{font-size:10px;font-weight:600;color:var(--text3);margin-top:2px}
+.sb-val.win,.sb-val.lose,.sb-val.neutral{color:inherit}
+.sb-val-sep{color:var(--border2);font-size:18px;font-weight:300;line-height:1}
+
+/* Bar chart */
+.bar-section{
+  background:var(--surface);border:1px solid var(--border);border-radius:14px;
+  padding:20px 24px;margin-bottom:20px;
+}
+.bar-title{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);margin-bottom:16px}
+.bar-row{margin-bottom:14px}
+.bar-label-row{display:flex;justify-content:space-between;margin-bottom:5px;font-size:12px;font-weight:600}
+.bar-label-left{color:var(--text2)}
+.bar-label-right{color:var(--text3)}
+.bar-track{background:var(--surface3);border-radius:4px;height:10px;overflow:hidden;position:relative}
+.bar-fill{height:100%;border-radius:4px;transition:width 0.7s cubic-bezier(.16,1,.3,1)}
+.bar-fill.green{background:linear-gradient(90deg,var(--green),#2cc97a)}
+.bar-fill.red{background:linear-gradient(90deg,var(--red),#e86060)}
+.bar-fill.blue{background:linear-gradient(90deg,var(--blue),#5090e8)}
+
+/* Stat cards grid */
+.stat-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;margin-bottom:20px}
+.stat-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:11px;
+  padding:16px 18px;
+}
+.sc-label{font-size:9.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);margin-bottom:6px}
+.sc-value{font-family:'DM Serif Display',serif;font-size:26px;letter-spacing:-0.5px}
+.sc-sub{font-size:11px;color:var(--text2);margin-top:2px}
+
+/* Match History Table */
+.section-title{
+  font-family:'DM Serif Display',serif;font-size:18px;letter-spacing:-0.3px;
+  margin-bottom:12px;margin-top:4px;
+}
+.tbl-wrap{overflow-x:auto;border-radius:11px;border:1px solid var(--border);margin-bottom:24px}
+.rec-table{
+  width:100%;border-collapse:separate;border-spacing:0;
+  background:var(--surface);min-width:500px;
+}
+.rec-table thead th{
+  padding:10px 14px;font-size:10px;font-weight:700;letter-spacing:0.8px;
+  text-transform:uppercase;color:var(--text3);text-align:center;
+  border-bottom:2px solid var(--border2);background:var(--surface2);
+  white-space:nowrap;
+}
+.rec-table thead th:first-child{text-align:center}
+.rec-table thead th.left{text-align:left}
+.rec-table tbody td{
+  padding:9px 14px;font-size:13px;font-weight:500;
+  text-align:center;font-variant-numeric:tabular-nums;
+  border-bottom:1px solid var(--border);
+}
+.rec-table tbody tr:last-child td{border-bottom:none}
+.rec-table tbody tr:hover td{background:rgba(0,0,0,0.018)}
+.rec-table tbody td.left{text-align:left}
+.result-badge{
+  display:inline-block;padding:2px 9px;border-radius:4px;
+  font-size:11px;font-weight:700;letter-spacing:0.3px;
+}
+.result-badge.won{background:var(--green-dim);color:var(--green)}
+.result-badge.lost{background:var(--red-dim);color:var(--red)}
+.result-badge.draw{background:var(--accent-dim);color:var(--accent)}
+
+/* Decade summary */
+.decade-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:24px}
+.decade-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:10px;
+  padding:14px 16px;
+}
+.dc-era{font-size:11px;font-weight:700;color:var(--text3);margin-bottom:8px}
+.dc-bar{display:flex;height:6px;border-radius:3px;overflow:hidden;margin-bottom:8px;gap:1px}
+.dc-bar-w{background:var(--green);border-radius:2px}
+.dc-bar-l{background:var(--red);border-radius:2px}
+.dc-bar-d{background:#c8cdd6;border-radius:2px}
+.dc-nums{display:flex;gap:8px;font-size:11px;font-weight:600}
+.dc-w{color:var(--green)}
+.dc-l{color:var(--red)}
+.dc-d{color:var(--text3)}
+
+/* Scroll */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+/* Pagination */
+.pag{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:10px}
+.pag-info{font-size:12px;color:var(--text3)}
+.pag-btns{display:flex;gap:4px}
+.pag-btn{
+  background:var(--surface);border:1px solid var(--border);border-radius:6px;
+  padding:6px 12px;cursor:pointer;font-family:'Outfit',sans-serif;
+  font-size:12px;font-weight:600;color:var(--text2);transition:all 0.2s;
+}
+.pag-btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent);background:var(--accent-dim)}
+.pag-btn:disabled{opacity:0.4;cursor:not-allowed}
+.pag-btn.on{background:var(--surface3);color:var(--accent);border-color:var(--accent)}
+
+/* Responsive */
+@media(max-width:1024px){
+  .main{padding:20px 24px 60px}
+  .stats-banner{grid-template-columns:repeat(3,1fr)}
+  .stats-banner .stat-card:nth-child(4),
+  .stats-banner .stat-card:nth-child(5){grid-column:span 1}
+  .stat-value{font-size:24px}
+}
+@media(max-width:767px){
+  .main{padding:12px 14px 40px}
+  .stats-banner{grid-template-columns:repeat(2,1fr);gap:10px}
+  .stats-banner .stat-card{padding:14px 16px}
+  .stat-value{font-size:22px}
+  .tabbar-btn{padding:12px 14px;font-size:12px;letter-spacing:0.5px}
+  .filters-header{font-size:16px;padding:12px 16px}
+  .filters-body{padding:4px 16px 16px}
+  .filters-grid{grid-template-columns:1fr;gap:12px}
+  .filters-grid .sel-group.vs-span{flex-direction:column;align-items:stretch;gap:10px}
+  .vs-badge{display:none}
+  .sb-header{padding:16px 18px}
+  .sb-team-code{font-size:28px}
+  .sb-val{font-size:24px}
+  .scoreboard{margin-bottom:16px}
+  .impact-stats{grid-template-columns:1fr}
+  .impact-stats-dual{grid-template-columns:1fr}
+  .ic-headline{font-size:24px}
+  .ic-aggregate .ic-headline{font-size:28px}
+}
+
+/* ═══ Cricket Times Masthead & Nav ═══ */
+.ct-masthead{text-align:center;padding:20px 24px 16px;border-bottom:2px solid var(--text);position:relative;background:var(--bg)}
+.ct-masthead-date{font-family:'Inter',sans-serif;font-size:11px;font-weight:500;letter-spacing:1.2px;text-transform:uppercase;color:var(--text3);margin-bottom:8px}
+.ct-masthead-logo{font-family:'Playfair Display',serif;font-size:clamp(36px,8vw,58px);font-weight:700;letter-spacing:-1px;line-height:1.1}
+.ct-masthead-logo a{text-decoration:none;color:inherit}
+.ct-masthead-logo span{color:var(--accent)}
+.ct-masthead-tagline{font-family:'Inter',sans-serif;font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-top:6px}
+.ct-nav-bar{border-bottom:1px solid var(--border);background:var(--surface);position:sticky;top:0;z-index:100}
+.ct-nav-inner{max-width:1400px;margin:0 auto;padding:0 24px;display:flex;justify-content:center;gap:0}
+.ct-nav-link{font-family:'Inter',sans-serif;font-size:12px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;color:var(--text2);text-decoration:none;padding:14px 20px;position:relative;transition:color 0.2s}
+.ct-nav-link:hover{color:var(--accent)}
+.ct-nav-link.active{color:var(--accent)}
+.ct-nav-link.active::after{content:'';position:absolute;bottom:0;left:20px;right:20px;height:2px;background:var(--accent)}
+@media(max-width:900px){
+  .ct-nav-inner{overflow-x:auto;justify-content:flex-start;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .ct-nav-inner::-webkit-scrollbar{display:none}
+  .ct-nav-link{white-space:nowrap;padding:12px 14px;font-size:11px}
+}
+.ct-footer{background:var(--text);color:rgba(255,255,255,0.7);padding:48px 24px 32px;margin-top:60px}
+.ct-footer-inner{max-width:1400px;margin:0 auto}
+.ct-footer-top{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:32px;border-bottom:1px solid rgba(255,255,255,0.1);margin-bottom:24px}
+.ct-footer-brand{font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:#fff}
+.ct-footer-nav{display:flex;gap:32px}
+.ct-footer-nav a{font-family:'Inter',sans-serif;font-size:12px;font-weight:500;color:rgba(255,255,255,0.6);text-decoration:none}
+.ct-footer-nav a:hover{color:#fff}
+.ct-footer-bottom{font-family:'Inter',sans-serif;font-size:11px;color:rgba(255,255,255,0.4);display:flex;justify-content:space-between}
+@media(max-width:900px){.ct-footer-top{flex-direction:column;gap:24px}.ct-footer-nav{flex-wrap:wrap;gap:16px}.ct-footer-bottom{flex-direction:column;gap:8px}}
+
+
+/* ══ Cricket Times Support Banner ══ */
+.ct-support-banner{max-width:1400px;margin:0 auto;padding:0 24px}
+.ct-support-inner{border-top:3px double var(--border2,#c8c4bc);border-bottom:3px double var(--border2,#c8c4bc);padding:36px 0;display:flex;align-items:center;gap:40px}
+.ct-support-icon{flex-shrink:0;width:72px;height:72px;border:2px solid var(--accent,#a03020);border-radius:50%;display:flex;align-items:center;justify-content:center}
+.ct-support-icon svg{width:32px;height:32px;stroke:var(--accent,#a03020);fill:none;stroke-width:1.5}
+.ct-support-content{flex:1}
+.ct-support-headline{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;line-height:1.3;margin-bottom:8px;color:var(--text,#1a1a18)}
+.ct-support-headline em{font-style:italic;color:var(--accent,#a03020)}
+.ct-support-body{font-family:'Source Serif 4',Georgia,serif;font-size:15px;color:var(--text2,#4a4a46);line-height:1.6;max-width:560px}
+.ct-support-actions{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:8px}
+.ct-support-btn{display:inline-flex;align-items:center;gap:8px;padding:12px 28px;background:var(--accent,#a03020);color:#fff;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;letter-spacing:0.5px;text-decoration:none;border:none;cursor:pointer;transition:all 0.2s ease}
+.ct-support-btn:hover{background:var(--accent-hover,#801810);transform:translateY(-1px)}
+.ct-support-btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2}
+.ct-support-aside{font-family:'Inter',sans-serif;font-size:10px;color:var(--text3,#7a7a74);letter-spacing:0.3px;text-align:center;max-width:220px}
+@media(max-width:768px){.ct-support-inner{flex-direction:column;text-align:center;gap:24px;padding:28px 0}.ct-support-body{margin:0 auto}.ct-support-headline{font-size:20px}}
+
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,300;8..60,400;8..60,500;8..60,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<header data-ct-nav="masthead"></header>
+<nav data-ct-nav="primary"></nav>
+
+
+<!-- Main -->
+<div class="main">
+  <div class="page-head">
+    <div class="page-head-text">
+      <div class="page-title">Country Records</div>
+      <div class="page-desc">Head-to-head Test match records &amp; milestone impact analysis</div>
+    </div>
+    <button class="share-btn" id="shareBtn" title="Copy link to this page" onclick="shareCountries(event)">
+      <svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/>
+        <circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+      Share
+    </button>
+  </div>
+
+  <!-- ═══ Stats Banner ═══ -->
+  <div class="stats-banner">
+    <div class="stat-card">
+      <div class="stat-label">Total Tests</div>
+      <div class="stat-value" id="totalTests">&hellip;</div>
+      <div class="stat-sub">Since 1877</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Countries</div>
+      <div class="stat-value">12</div>
+      <div class="stat-sub">Test-playing nations</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">First Test</div>
+      <div class="stat-value">1877</div>
+      <div class="stat-sub">Australia v England</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Closest Rivalry</div>
+      <div class="stat-value">ENG &middot; WI</div>
+      <div class="stat-sub">ENG 54 &middot; WI 59 &middot; 53 draws</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Biggest Margin</div>
+      <div class="stat-value">Inns + 579</div>
+      <div class="stat-sub">ENG v AUS, The Oval 1938</div>
+    </div>
+  </div>
+
+  <!-- ═══ Top-level Tab Bar ═══ -->
+  <div class="tabbar" role="tablist">
+    <button type="button" class="tabbar-btn active" id="tab-btn-h2h" data-tab="h2h" role="tab">Head-to-Head</button>
+    <button type="button" class="tabbar-btn" id="tab-btn-impact" data-tab="impact" role="tab">Impact Analysis</button>
+  </div>
+
+  <!-- ═══ H2H Tab Panel ═══ -->
+  <div class="tab-panel active" id="tab-h2h" role="tabpanel">
+    <!-- Collapsible Filters Card -->
+    <div class="filters-card" id="h2hFilters">
+      <div class="filters-header" onclick="toggleFilters('h2hFilters')">
+        <svg class="fh-chev" viewBox="0 0 14 14"><path d="M3 5l4 4 4-4"/></svg>
+        <span>Filters</span>
+      </div>
+      <div class="filters-body">
+        <div class="filters-grid">
+          <div class="sel-group">
+            <label>Group 1</label>
+            <div class="ms-wrap" id="ms1">
+              <button type="button" class="ms-trigger" id="ms1-trigger"><span class="ms-placeholder">— Select —</span></button>
+              <div class="ms-panel" id="ms1-panel"></div>
+            </div>
+          </div>
+          <div class="sel-group">
+            <label>Group 2</label>
+            <div class="ms-wrap" id="ms2">
+              <button type="button" class="ms-trigger" id="ms2-trigger"><span class="ms-placeholder">— Select —</span></button>
+              <div class="ms-panel" id="ms2-panel"></div>
+            </div>
+          </div>
+          <div class="sel-group">
+            <label>Venue</label>
+            <select id="filterHA" onchange="renderTable()" class="team-select">
+              <option value="all">All</option>
+              <option value="home">Home</option>
+              <option value="away">Away</option>
+              <option value="neutral">Neutral</option>
+            </select>
+          </div>
+          <div class="sel-group">
+            <label>Result</label>
+            <select id="filterResult" onchange="renderTable()" class="team-select">
+              <option value="">All results</option>
+              <option value="Won">Wins for Group 1</option>
+              <option value="Lost">Wins for Group 2</option>
+              <option value="Draw">Draws only</option>
+            </select>
+          </div>
+        </div>
+        <div class="filters-row">
+          <div class="sel-group year">
+            <label>From Year</label>
+            <input type="number" id="filterFrom" placeholder="Year" oninput="renderTable()" class="team-select" style="width:110px">
+          </div>
+          <div class="sel-group year">
+            <label>To Year</label>
+            <input type="number" id="filterTo" placeholder="Year" oninput="renderTable()" class="team-select" style="width:110px">
+          </div>
+          <button class="swap-btn" onclick="swapTeams()" title="Swap Group 1 and Group 2">
+            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M7 16V4m0 0L3 8m4-4l4 4"/><path d="M17 8v12m0 0l4-4m-4 4l-4-4"/>
+            </svg>
+            Swap
+          </button>
+          <button class="swap-btn" onclick="clearYearFilters()" title="Clear year &amp; venue filters">
+            <svg viewBox="0 0 24 24" width="14" height="14" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="stroke:currentColor;fill:none"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            Clear
+          </button>
+          <div class="filters-spacer"></div>
+          <button id="exportBtn" onclick="exportToExcel()" class="swap-btn" style="display:none" title="Export current view to Excel">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export
+          </button>
+        </div>
+      </div>
+    </div>
+
+  <!-- No data state -->
+  <div id="noData" class="no-data">
+    <div class="nd-icon">🏏</div>
+    <div>Select two countries above to see their head-to-head records</div>
+  </div>
+
+  <!-- Results -->
+  <div class="results" id="results">
+
+    <!-- Groups caption (shows when multi-select used) -->
+    <div id="groupsCaption" class="groups-caption" style="display:none"></div>
+
+    <!-- Scoreboard -->
+    <div class="scoreboard" id="scoreboard">
+      <div class="sb-body">
+        <div class="sb-stat">
+          <div class="sb-stat-label">Wins</div>
+          <div class="sb-stat-values">
+            <div class="sb-val" id="sbW1">—</div>
+          </div>
+        </div>
+        <div class="sb-stat">
+          <div class="sb-stat-label">Losses</div>
+          <div class="sb-stat-values">
+            <div class="sb-val" id="sbL1">—</div>
+          </div>
+        </div>
+        <div class="sb-stat">
+          <div class="sb-stat-label">Draws</div>
+          <div class="sb-stat-values">
+            <div class="sb-val neutral" id="sbD">—</div>
+          </div>
+        </div>
+        <div class="sb-stat">
+          <div class="sb-stat-label">Total</div>
+          <div class="sb-stat-values">
+            <div class="sb-val neutral" id="sbTotal">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bar Chart -->
+    <div class="bar-section">
+      <div class="bar-title">Win Distribution</div>
+      <div class="bar-row">
+        <div class="bar-label-row">
+          <span class="bar-label-left" id="barLabel1">Team 1 Wins</span>
+          <span class="bar-label-right" id="barPct1">0%</span>
+        </div>
+        <div class="bar-track"><div class="bar-fill green" id="barW1" style="width:0%"></div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label-row">
+          <span class="bar-label-left" id="barLabel2">Team 2 Wins</span>
+          <span class="bar-label-right" id="barPct2">0%</span>
+        </div>
+        <div class="bar-track"><div class="bar-fill red" id="barW2" style="width:0%"></div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label-row">
+          <span class="bar-label-left">Draws</span>
+          <span class="bar-label-right" id="barPctD">0%</span>
+        </div>
+        <div class="bar-track"><div class="bar-fill blue" id="barD" style="width:0%"></div></div>
+      </div>
+    </div>
+
+    <!-- By Decade -->
+    <div class="section-title">Records by Era</div>
+    <div class="decade-grid" id="decadeGrid"></div>
+
+    <!-- Match History -->
+    <div class="section-title">Match History</div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap">
+      <span style="font-size:12px;color:var(--text3)" id="matchCount"></span>
+    </div>
+    <div class="pag">
+      <div class="pag-info" id="pagInfo"></div>
+      <div class="pag-btns" id="pagBtns"></div>
+    </div>
+    <div class="tbl-wrap">
+      <table class="rec-table">
+        <thead>
+          <tr>
+            <th>Test #</th>
+            <th>Year</th>
+            <th class="left">Venue</th>
+            <th>H/A</th>
+            <th>Result</th>
+            <th>Margin</th>
+          </tr>
+        </thead>
+        <tbody id="matchTbody"></tbody>
+      </table>
+    </div>
+
+  </div><!-- /results -->
+
+  </div><!-- /tab-panel h2h -->
+
+  <!-- ═══════════════════════ Impact Analysis Tab ═══════════════════════ -->
+  <div class="tab-panel" id="tab-impact">
+
+  <!-- Filters Card (collapsible) -->
+  <div class="filters-card" id="impactFilters">
+    <div class="filters-header" onclick="toggleFilters('impactFilters')">
+      <svg class="fh-chev" viewBox="0 0 14 14"><polyline points="3 5 7 9 11 5"/></svg>
+      <span>Filters</span>
+    </div>
+    <div class="filters-body">
+      <div class="filters-grid">
+        <div class="sel-group">
+          <label>Country</label>
+          <div class="ms-wrap" id="msI">
+            <button type="button" class="ms-trigger" id="msI-trigger"><span class="ms-placeholder">— Select —</span></button>
+            <div class="ms-panel" id="msI-panel"></div>
+          </div>
+        </div>
+        <div class="sel-group">
+          <label>Batting Impact</label>
+          <select id="filterBatImpact" onchange="renderImpact()" class="team-select">
+            <option value="">— None —</option>
+            <!-- Options populated by buildImpactDropdowns() -->
+          </select>
+        </div>
+        <div class="sel-group">
+          <label>Bowling Impact</label>
+          <select id="filterBowImpact" onchange="renderImpact()" class="team-select">
+            <option value="">— None —</option>
+            <!-- Options populated by buildImpactDropdowns() -->
+          </select>
+        </div>
+      </div>
+      <button id="impactExportBtn" onclick="exportImpactToExcel()" class="swap-btn" disabled title="Select at least 2 filters to enable export">
+        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export to Excel
+      </button>
+    </div>
+  </div>
+
+  <!-- Impact description -->
+  <div style="font-size:13px;color:var(--text2);max-width:720px;margin-bottom:20px;line-height:1.6">
+    How often does an individual milestone translate into a team win? Pick a batting <em>or</em> bowling milestone &mdash; options cover counts (one, two&hellip; per match or innings), bands (100+ vs exactly 100&ndash;199, 5+ WI vs exactly 5 WI) and innings scope &mdash; to see win rates for every country. Pick <em>both</em> to compare side-by-side with a delta showing which milestone is more decisive for each country.
+  </div>
+
+  <div id="impactLoading" class="impact-loading" style="display:none">
+    <div>Loading match data<span class="il-dot"></span><span class="il-dot"></span><span class="il-dot"></span></div>
+  </div>
+  <div id="impactEmpty" class="impact-empty">Pick a batting or bowling milestone above to see win-rate analysis.</div>
+  <div id="impactResults" class="impact-results"></div>
+
+  </div><!-- /tab-panel impact -->
+</div>
+
+<script>
+// H2H is computed at page load from the data pipeline (data.json.gz) —
+// single source of truth. No baked-in match data: new Tests appear here
+// automatically once the pipeline regenerates data.json.gz.
+// Built by buildH2HFromData() below (defined after FULLNAME_TO_CODE).
+let H2H = null;
+const TEAMS = ["AFG", "AUS", "BAN", "ENG", "IND", "IRE", "NZ", "PAK", "SA", "SL", "WI", "ZIM"];
+const TEAM_NAMES = {"AUS": "Australia", "ENG": "England", "IND": "India", "PAK": "Pakistan", "SA": "South Africa", "WI": "West Indies", "NZ": "New Zealand", "SL": "Sri Lanka", "ZIM": "Zimbabwe", "BAN": "Bangladesh", "AFG": "Afghanistan", "IRE": "Ireland"};
+
+const VENUE_COUNTRY = {
+  "Adelaide":"AUS","Brisbane":"AUS","Cairns":"AUS","Canberra":"AUS","Darwin":"AUS","Hobart":"AUS","Melbourne":"AUS","Perth":"AUS","Sydney":"AUS","WACA-Perth":"AUS",
+  "Birmingham":"ENG","Cardiff":"ENG","Chester":"ENG","Leeds":"ENG","Lord's":"ENG","Manchester":"ENG","Nottingham":"ENG","Oval":"ENG","Sheffield":"ENG","Southampton":"ENG",
+  "Ahmedabad":"IND","Bangalore":"IND","Brabourne":"IND","Chandigarh":"IND","Chennai-Chepauk":"IND","Cuttack":"IND","Delhi":"IND","Dharamsala":"IND","Guwahati":"IND","Gymkhana Bom":"IND","Hyderabad":"IND","Indore":"IND","Jaipur":"IND","Jullunder":"IND","Kanpur":"IND","Kolkata":"IND","Lucknow":"IND","Madras":"IND","Mohali":"IND","Nagpur":"IND","Pune":"IND","Rajkot":"IND","Ranchi":"IND","Vizag":"IND","Wankhede":"IND",
+  "Bahawalpur":"PAK","Dacca":"PAK","Faisalabad":"PAK","Gujranwalla":"PAK","Hyderabad Snd":"PAK","Karachi":"PAK","Karachi-DCC":"PAK","Lahore":"PAK","Lahore Stadium":"PAK","Lahore-Jinnah":"PAK","Multan":"PAK","Multan-MCC":"PAK","Peshawar":"PAK","Peshawar-SerG":"PAK","Rawalpindi-PCC":"PAK","Rawalpindi-RCC":"PAK","Sheikupura":"PAK","Sialkot":"PAK",
+  "Bloemfontein":"SA","Cape Town":"SA","Centurion":"SA","Durban":"SA","East London":"SA","Jo'Burg-Ellis":"SA","Jo'Burg-New WS":"SA","Jo'Burg-Old WS":"SA","Port Elizabeth":"SA","Potchefstroom":"SA",
+  "Antigua":"WI","Bridgetown":"WI","Georgetown":"WI","Grenada":"WI","Kingston":"WI","Port of Spain":"WI","Providence":"WI","Roseau":"WI","St Kitts":"WI","St Lucia":"WI","St.Vincent":"WI",
+  "Auckland":"NZ","Christchurch":"NZ","Dunedin":"NZ","Hamilton":"NZ","Maunganui":"NZ","Napier":"NZ","Wellington":"NZ",
+  "Colombo-CCG":"SL","Colombo-PSS":"SL","Colombo-RPS":"SL","Colombo-SSC":"SL","Galle":"SL","Kandy":"SL","Moratuwa":"SL","Pallekele":"SL",
+  "Bulawayo":"ZIM","Harare":"ZIM",
+  "Chattogram":"BAN","Chittagong-MAA":"BAN","Dhaka":"BAN","Fatullah":"BAN","Khulna":"BAN","Mirpur":"BAN","Bogra":"BAN","Sylhet":"BAN",
+  "Dublin":"IRE","Belfast":"IRE"
+};
+
+const PAGE_SIZE = 20;
+let currentMatches = [];
+let currentPage = 1;
+
+// Populate dropdowns
+// ──────────────────────────────────────────────────────────────
+// Multi-select dropdown controller
+// Each picker keeps its own Set<string> of selected country codes.
+// Triggers onChange after every toggle; 'All' is a virtual row that flips
+// the set to equal TEAMS (or clears it when clicked while all-selected).
+// ──────────────────────────────────────────────────────────────
+function createMultiSelect(id, options, allLabel, onChange, {singleOnly=false} = {}) {
+  const root = document.getElementById(id);
+  const trigger = document.getElementById(id + '-trigger');
+  const panel = document.getElementById(id + '-panel');
+  const sel = new Set();
+  const api = {
+    set(codes){ sel.clear(); codes.forEach(c => sel.add(c)); render(); },
+    get(){ return Array.from(sel); },
+    size(){ return sel.size; },
+    has(c){ return sel.has(c); },
+  };
+
+  function buildPanel(){
+    const rows = [];
+    // "All" meta-row (only when multi-select)
+    if (!singleOnly) {
+      rows.push(`<div class="ms-panel-head">
+        <button type="button" class="ms-mini-btn" data-act="all">Select All</button>
+        <button type="button" class="ms-mini-btn" data-act="none">Clear</button>
+      </div>`);
+    }
+    options.forEach(o => {
+      // Use a <div> instead of <label> + <input> to avoid native label→input
+      // click activation firing alongside our own handler (which caused
+      // check/uncheck races, especially for Group 2). We render a purely
+      // visual checkbox (✓ icon when selected) keyed off the ms-sel class.
+      rows.push(`<div class="ms-opt" data-code="${o.code}" role="option" aria-selected="false">
+        <span class="ms-check${singleOnly ? ' ms-radio' : ''}" aria-hidden="true"></span>
+        <span>${o.label}</span>
+        <span class="ms-code">${o.code}</span>
+      </div>`);
+    });
+    panel.innerHTML = rows.join('');
+    panel.querySelectorAll('.ms-opt').forEach(row => {
+      row.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const code = row.dataset.code;
+        if (singleOnly) {
+          sel.clear();
+          sel.add(code);
+          closePanel();
+        } else {
+          if (sel.has(code)) sel.delete(code); else sel.add(code);
+        }
+        render();
+        onChange();
+      });
+    });
+    const headBtns = panel.querySelectorAll('.ms-mini-btn');
+    if (headBtns.length) {
+      headBtns[0].addEventListener('click', (e)=>{
+        e.preventDefault();
+        options.forEach(o => sel.add(o.code));
+        render();
+        onChange();
+      });
+      headBtns[1].addEventListener('click', (e)=>{
+        e.preventDefault();
+        sel.clear();
+        render();
+        onChange();
+      });
+    }
+  }
+
+  function render(){
+    panel.querySelectorAll('.ms-opt').forEach(row => {
+      const on = sel.has(row.dataset.code);
+      row.classList.toggle('ms-sel', on);
+      row.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+    // Update trigger label
+    if (sel.size === 0) {
+      trigger.innerHTML = '<span class="ms-placeholder">— Select —</span>';
+    } else if (!singleOnly && sel.size === options.length) {
+      trigger.textContent = allLabel || 'All';
+    } else if (sel.size === 1) {
+      const c = Array.from(sel)[0];
+      const match = options.find(o => o.code === c);
+      trigger.textContent = match ? match.label : c;
+    } else {
+      trigger.textContent = `${sel.size} selected`;
+    }
+  }
+
+  function openPanel(){ panel.classList.add('ms-open'); trigger.classList.add('ms-open'); }
+  function closePanel(){ panel.classList.remove('ms-open'); trigger.classList.remove('ms-open'); }
+  trigger.addEventListener('click', (e) => {
+    e.stopPropagation();
+    // Close any other open panels
+    document.querySelectorAll('.ms-panel.ms-open').forEach(p => {
+      if (p !== panel) { p.classList.remove('ms-open'); p.previousElementSibling.classList.remove('ms-open'); }
+    });
+    if (panel.classList.contains('ms-open')) closePanel(); else openPanel();
+  });
+
+  buildPanel();
+  render();
+  return api;
+}
+
+// Close any open panels on outside click
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.ms-wrap')) {
+    document.querySelectorAll('.ms-panel.ms-open').forEach(p => {
+      p.classList.remove('ms-open');
+      p.previousElementSibling.classList.remove('ms-open');
+    });
+  }
+});
+
+const TEAM_OPTIONS = TEAMS.map(c => ({ code: c, label: TEAM_NAMES[c] || c }));
+
+// Country vs Country pickers
+const ms1 = createMultiSelect('ms1', TEAM_OPTIONS, 'All countries', () => updateResults());
+const ms2 = createMultiSelect('ms2', TEAM_OPTIONS, 'All countries', () => updateResults());
+
+// Set defaults
+ms1.set(['AUS']);
+ms2.set(['ENG']);
+
+// Impact panel country picker (with 'All' support via Select All button)
+const msI = createMultiSelect('msI', TEAM_OPTIONS, 'All countries', () => renderImpact());
+msI.set(TEAMS.slice());  // default: all countries
+
+// ─────────────────────────────────────────────────────────────
+// Build Impact Analysis dropdowns
+// ─────────────────────────────────────────────────────────────
+// Values are encoded as pipe-separated strings so we can decode at render time
+// without a separate lookup table. Format:
+//   bat | min | max | count | scope      e.g.  "bat|100|+|2|1st"
+//   bow | i|m | min | max | count | scope e.g.  "bow|i|5|5|1|any"   (exact 5WI, any innings, 1x)
+//                                        e.g.  "bow|m|8|+|2|any"  (2× 8+ WM, any scope)
+//
+// scope: any | 1st | 2nd
+// For batting, innings refers to batting team's 1st/2nd batting innings.
+// For bowling, innings refers to bowler's team's 1st/2nd fielding innings
+// (= opposition's 1st/2nd batting innings).
+//
+// Max counts per (threshold, innings/match) reflect physical possibility:
+//   bat: 100+ or 100-199 per innings  = 1..4
+//        200+ or 200-299 per innings  = 1..2
+//        300+ or 300-399 per innings  = 1
+//        400+ per innings             = 1
+//   bow: 4+ or exact 4 per innings    = 1..2 (2×4 = 8 ≤ 10 wkts)
+//        5+ or exact 5 per innings    = 1..2 (2×5 = 10 = all wkts, possible)
+//        6..9 (any form) per innings  = 1
+//        8+ or exact 8 per match      = 1..2 (2×8 = 16 ≤ 20 match wkts)
+//        9+ or exact 9 per match      = 1..2 (2×9 = 18 ≤ 20)
+//        10+ or exact 10 per match    = 1..2 (2×10 = 20 = max)
+//        11..20 (any form) per match  = 1
+// ─────────────────────────────────────────────────────────────
+function buildImpactDropdowns() {
+  const batSel = document.getElementById('filterBatImpact');
+  const bowSel = document.getElementById('filterBowImpact');
+
+  // Clear all options except the "— None —" placeholder
+  [batSel, bowSel].forEach(sel => {
+    while (sel.options.length > 1) sel.remove(1);
+  });
+
+  const scopeLabel = s => s === 'any' ? 'the match' : s === '1st' ? '1st innings' : '2nd innings';
+  const num = n => ['','One','Two','Three','Four'][n] || String(n);
+
+  function addOpt(parent, value, label) {
+    const o = document.createElement('option');
+    o.value = value;
+    o.textContent = label;
+    parent.appendChild(o);
+  }
+  function addGroup(sel, title) {
+    const g = document.createElement('optgroup');
+    g.label = title;
+    sel.appendChild(g);
+    return g;
+  }
+
+  // ─── Batting ────────────────────────────────────────────────
+  // For each threshold band, emit count × scope options under an optgroup.
+  const batBands = [
+    { min:100, max:'+', maxCount:4, title:'Scores of 100+ (any century)',    short:'100+' },
+    { min:100, max:199, maxCount:4, title:'Scores of exactly 100–199',        short:'100–199' },
+    { min:200, max:'+', maxCount:2, title:'Scores of 200+ (any double)',      short:'200+' },
+    { min:200, max:299, maxCount:2, title:'Scores of exactly 200–299',        short:'200–299' },
+    { min:300, max:'+', maxCount:1, title:'Scores of 300+ (any triple)',      short:'300+' },
+    { min:300, max:399, maxCount:1, title:'Scores of exactly 300–399',        short:'300–399' },
+    { min:400, max:'+', maxCount:1, title:'Scores of 400+',                   short:'400+' },
+  ];
+  const scopes = ['any', '1st', '2nd'];
+  batBands.forEach(band => {
+    const g = addGroup(batSel, band.title);
+    for (let c = 1; c <= band.maxCount; c++) {
+      scopes.forEach(scope => {
+        const val = `bat|${band.min}|${band.max}|${c}|${scope}`;
+        const label = `${num(c)} ${band.short} score${c > 1 ? 's' : ''} in ${scopeLabel(scope)}`;
+        addOpt(g, val, label);
+      });
+    }
+  });
+
+  // ─── Bowling ────────────────────────────────────────────────
+  // Innings bands
+  const bowInn = [
+    { min:4, max:'+', maxCount:2, title:'4+ wickets in an innings',   short:'4+ WI' },
+    { min:4, max:4,   maxCount:2, title:'Exactly 4 wickets in an innings', short:'4-WI exact' },
+    { min:5, max:'+', maxCount:2, title:'5+ wickets in an innings',   short:'5+ WI' },
+    { min:5, max:5,   maxCount:2, title:'Exactly 5 wickets in an innings', short:'5-WI exact' },
+    { min:6, max:'+', maxCount:1, title:'6+ wickets in an innings',   short:'6+ WI' },
+    { min:6, max:6,   maxCount:1, title:'Exactly 6 wickets in an innings', short:'6-WI exact' },
+    { min:7, max:'+', maxCount:1, title:'7+ wickets in an innings',   short:'7+ WI' },
+    { min:7, max:7,   maxCount:1, title:'Exactly 7 wickets in an innings', short:'7-WI exact' },
+    { min:8, max:'+', maxCount:1, title:'8+ wickets in an innings',   short:'8+ WI' },
+    { min:8, max:8,   maxCount:1, title:'Exactly 8 wickets in an innings', short:'8-WI exact' },
+    { min:9, max:'+', maxCount:1, title:'9+ wickets in an innings',   short:'9+ WI' },
+    { min:9, max:9,   maxCount:1, title:'Exactly 9 wickets in an innings', short:'9-WI exact' },
+    { min:10,max:10,  maxCount:1, title:'All 10 wickets in an innings', short:'10-WI exact' },
+  ];
+  bowInn.forEach(band => {
+    const g = addGroup(bowSel, band.title);
+    for (let c = 1; c <= band.maxCount; c++) {
+      scopes.forEach(scope => {
+        const val = `bow|i|${band.min}|${band.max}|${c}|${scope}`;
+        const label = `${num(c)} ${band.short} haul${c > 1 ? 's' : ''} in ${scopeLabel(scope)}`;
+        addOpt(g, val, label);
+      });
+    }
+  });
+  // Match bands (no innings scope — always whole match)
+  const bowMatch = [];
+  for (let n = 8; n <= 20; n++) {
+    const maxCount = (n <= 10) ? 2 : 1;   // 2×10 = 20 (max), anything above forbids 2×
+    bowMatch.push({ min:n, max:'+', maxCount, title:`${n}+ wickets in the match`, short:`${n}+ WM` });
+    bowMatch.push({ min:n, max:n, maxCount, title:`Exactly ${n} wickets in the match`, short:`${n}-WM exact` });
+  }
+  bowMatch.forEach(band => {
+    const g = addGroup(bowSel, band.title);
+    for (let c = 1; c <= band.maxCount; c++) {
+      const val = `bow|m|${band.min}|${band.max}|${c}|any`;  // match-level is always whole match
+      const label = `${num(c)} ${band.short} haul${c > 1 ? 's' : ''} in the match`;
+      addOpt(g, val, label);
+    }
+  });
+}
+buildImpactDropdowns();
+
+function swapTeams() {
+  const a = ms1.get(), b = ms2.get();
+  ms1.set(b);
+  ms2.set(a);
+  updateResults();
+}
+
+function pct(n, total) {
+  if (!total) return '0%';
+  return Math.round(n / total * 100) + '%';
+}
+
+function updateResults() {
+  const t1Set = ms1.get(), t2Set = ms2.get();
+  const noData = document.getElementById('noData');
+  const results = document.getElementById('results');
+
+  // Data still loading → show loading state
+  if (!H2H) {
+    noData.innerHTML = '<div class="nd-icon">🏏</div><div>Loading match data&hellip;</div>';
+    noData.style.display = 'block';
+    results.classList.remove('visible');
+    return;
+  }
+
+  // Empty on either side → show prompt
+  if (t1Set.length === 0 || t2Set.length === 0) {
+    noData.innerHTML = '<div class="nd-icon">🏏</div><div>Select countries on both sides to see head-to-head records</div>';
+    noData.style.display = 'block';
+    results.classList.remove('visible');
+    return;
+  }
+
+  // Build union of all (t1, t2) pair match arrays, dedupe by test#
+  // Perspective: t1Set = "our side" (wins = Won), t2Set = "their side" (wins = Lost)
+  const seen = new Set();
+  const unioned = [];
+  t1Set.forEach(t1 => {
+    if (t2Set.includes(t1)) return; // skip same-country pairs (no H2H vs self)
+    t2Set.forEach(t2 => {
+      if (t1 === t2) return;
+      const pair = H2H[t1] && H2H[t1][t2];
+      if (!pair || !pair.matches || !pair.matches.length) return;
+      pair.matches.forEach(m => {
+        if (seen.has(m.test)) return;
+        seen.add(m.test);
+        // Derive home/away from venue relative to this pair's perspective
+        const vc = VENUE_COUNTRY[m.venue];
+        const ha = (vc && t1Set.includes(vc)) ? 'home' : (vc && t2Set.includes(vc)) ? 'away' : '';
+        unioned.push({ ...m, ha });
+      });
+    });
+  });
+
+  if (unioned.length === 0) {
+    noData.innerHTML = '<div class="nd-icon">🏏</div><div>No Test matches played between the selected sides yet.</div>';
+    noData.style.display = 'block';
+    results.classList.remove('visible');
+    return;
+  }
+
+  noData.style.display = 'none';
+  results.classList.add('visible');
+
+  // Label strings — pick single-country name if set is size 1, else generic
+  const t1Label = t1Set.length === 1 ? (TEAM_NAMES[t1Set[0]] || t1Set[0])
+                : t1Set.length === TEAMS.length ? 'All countries'
+                : t1Set.length + ' teams';
+  const t2Label = t2Set.length === 1 ? (TEAM_NAMES[t2Set[0]] || t2Set[0])
+                : t2Set.length === TEAMS.length ? 'All countries'
+                : t2Set.length + ' teams';
+
+  // Scoreboard
+  document.getElementById('barLabel1').textContent = t1Label + ' Wins';
+  document.getElementById('barLabel2').textContent = t2Label + ' Wins';
+
+  // Groups caption — shows the actual teams selected when either side has 2+ countries.
+  // Hidden for single-country-on-each-side since the scoreboard labels cover that case.
+  const capEl = document.getElementById('groupsCaption');
+  if (t1Set.length >= 2 || t2Set.length >= 2) {
+    const nameChip = c => `<span class="gc-code" title="${TEAM_NAMES[c] || c}">${TEAM_NAMES[c] || c} (${c})</span>`;
+    const sideLabel = (codes) => {
+      if (codes.length === TEAMS.length) return '<span class="gc-code">All 12 countries</span>';
+      return codes.map(nameChip).join('');
+    };
+    capEl.innerHTML = `
+      <div class="gc-side">
+        <div class="gc-side-label">Group 1 · ${t1Set.length} team${t1Set.length===1?'':'s'}</div>
+        <div class="gc-side-teams">${sideLabel(t1Set)}</div>
+      </div>
+      <div class="gc-vs">vs</div>
+      <div class="gc-side">
+        <div class="gc-side-label">Group 2 · ${t2Set.length} team${t2Set.length===1?'':'s'}</div>
+        <div class="gc-side-teams">${sideLabel(t2Set)}</div>
+      </div>`;
+    capEl.style.display = 'flex';
+  } else {
+    capEl.style.display = 'none';
+    capEl.innerHTML = '';
+  }
+
+  // Newest first
+  currentMatches = unioned.sort((a, b) => b.test - a.test);
+  currentPage = 1;
+  document.getElementById('filterResult').value = '';
+  document.getElementById('filterFrom').value = '';
+  document.getElementById('filterTo').value = '';
+  document.getElementById('filterHA').value = 'all';
+  renderTable();
+}
+
+function clearYearFilters() {
+  document.getElementById('filterFrom').value = '';
+  document.getElementById('filterTo').value = '';
+  document.getElementById('filterHA').value = 'all';
+  renderTable();
+}
+
+function normalizeMargin(margin) {
+  // Margins are now derived directly from D.R result strings at load time
+  // (buildH2HFromData), so labels are correct at source. The old frozen H2H
+  // had runs/wickets systematically swapped and this function used to flip
+  // them back; kept as a passthrough so call sites are untouched.
+  return margin;
+}
+
+function renderTable() {
+  const t1Set = ms1.get(), t2Set = ms2.get();
+  if (t1Set.length === 0 || t2Set.length === 0 || !currentMatches) return;
+
+  const filter = document.getElementById('filterResult').value;
+  const fromYear = parseInt(document.getElementById('filterFrom').value) || null;
+  const toYear = parseInt(document.getElementById('filterTo').value) || null;
+  const haFilter = (document.getElementById('filterHA') || {value:'all'}).value;
+  const t1Name = t1Set.length === 1 ? (TEAM_NAMES[t1Set[0]] || t1Set[0])
+               : t1Set.length === TEAMS.length ? 'All'
+               : t1Set.length + ' teams';
+  const t2Name = t2Set.length === 1 ? (TEAM_NAMES[t2Set[0]] || t2Set[0])
+               : t2Set.length === TEAMS.length ? 'All'
+               : t2Set.length + ' teams';
+
+  // Update filter label
+  const filterSel = document.getElementById('filterResult');
+  filterSel.options[1].textContent = 'Wins for ' + t1Name;
+  filterSel.options[2].textContent = 'Wins for ' + t2Name;
+
+  // Update HA dropdown labels with team name context
+  const haEl = document.getElementById('filterHA');
+  haEl.options[1].textContent = t1Name + ' Home';
+  haEl.options[2].textContent = t1Name + ' Away';
+
+  // Apply year filter to base set first (for scoreboard/bars/decades)
+  let yearFiltered = currentMatches;
+  if (fromYear) yearFiltered = yearFiltered.filter(m => m.year >= fromYear);
+  if (toYear) yearFiltered = yearFiltered.filter(m => m.year <= toYear);
+  if (haFilter !== 'all') yearFiltered = yearFiltered.filter(m => m.ha === haFilter);
+
+  // Recalculate summary stats from year-filtered matches
+  const w1 = yearFiltered.filter(m => m.result === 'Won').length;
+  const w2 = yearFiltered.filter(m => m.result === 'Lost').length;
+  const d  = yearFiltered.filter(m => m.result === 'Draw').length;
+  const tot = yearFiltered.length;
+
+  const sbW1el = document.getElementById('sbW1');
+  sbW1el.textContent = w1;
+  sbW1el.className = 'sb-val';
+  document.getElementById('sbL1').textContent = w2;
+  document.getElementById('sbL1').className = 'sb-val';
+  document.getElementById('sbD').textContent = d;
+  document.getElementById('sbTotal').textContent = tot;
+
+  // Bars
+  setTimeout(() => {
+    document.getElementById('barW1').style.width = pct(w1, tot);
+    document.getElementById('barW2').style.width = pct(w2, tot);
+    document.getElementById('barD').style.width = pct(d, tot);
+  }, 50);
+  document.getElementById('barPct1').textContent = pct(w1, tot);
+  document.getElementById('barPct2').textContent = pct(w2, tot);
+  document.getElementById('barPctD').textContent = pct(d, tot);
+
+  // Decades (from year-filtered matches)
+  const decades = {};
+  yearFiltered.forEach(m => {
+    const era = m.year < 1950 ? 'Pre-1950' : (Math.floor(m.year / 10) * 10) + 's';
+    if (!decades[era]) decades[era] = {w:0, l:0, d:0};
+    if (m.result === 'Won') decades[era].w++;
+    else if (m.result === 'Lost') decades[era].l++;
+    else decades[era].d++;
+  });
+  const decadeOrder = ['Pre-1950','1950s','1960s','1970s','1980s','1990s','2000s','2010s','2020s'];
+  const decadeGrid = document.getElementById('decadeGrid');
+  decadeGrid.innerHTML = '';
+  decadeOrder.forEach(era => {
+    if (!decades[era]) return;
+    const s = decades[era];
+    decadeGrid.innerHTML += `
+      <div class="decade-card">
+        <div class="dc-era">${era}</div>
+        <div class="dc-bar">
+          <div class="dc-bar-w" style="flex:${s.w}"></div>
+          <div class="dc-bar-l" style="flex:${s.l}"></div>
+          <div class="dc-bar-d" style="flex:${s.d}"></div>
+        </div>
+        <div class="dc-nums">
+          <span class="dc-w">W ${s.w}</span>
+          <span class="dc-l">L ${s.l}</span>
+          <span class="dc-d">D ${s.d}</span>
+        </div>
+      </div>`;
+  });
+
+  // Apply result filter on top of year filter for table
+  let filtered = yearFiltered;
+  if (filter === 'Won') filtered = filtered.filter(m => m.result === 'Won');
+  else if (filter === 'Lost') filtered = filtered.filter(m => m.result === 'Lost');
+  else if (filter === 'Draw') filtered = filtered.filter(m => m.result === 'Draw');
+
+  document.getElementById('matchCount').textContent = `${filtered.length} match${filtered.length !== 1 ? 'es' : ''}`;
+
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  if (currentPage > totalPages) currentPage = 1;
+
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const pageData = filtered.slice(start, start + PAGE_SIZE);
+
+  const tbody = document.getElementById('matchTbody');
+  tbody.innerHTML = pageData.map(m => {
+    const haLabel = m.ha === 'home' ? 'H' : m.ha === 'away' ? 'A' : 'N';
+    const haColor = m.ha === 'home' ? 'var(--green)' : m.ha === 'away' ? 'var(--red)' : 'var(--text3)';
+    return `<tr>
+      <td>${m.test}</td>
+      <td>${m.year}</td>
+      <td class="left">${m.venue || '—'}</td>
+      <td style="font-weight:700;color:${haColor}">${haLabel}</td>
+      <td><span class="result-badge ${m.result === 'Won' ? 'won' : m.result === 'Lost' ? 'lost' : 'draw'}">${m.result === 'Won' ? t1Name + ' won' : m.result === 'Lost' ? t2Name + ' won' : 'Draw'}</span></td>
+      <td style="color:var(--text2)">${normalizeMargin(m.margin) || '—'}</td>
+    </tr>`;
+  }).join('');
+
+  // Pagination
+  document.getElementById('pagInfo').textContent = `Showing ${start+1}–${Math.min(start+PAGE_SIZE, filtered.length)} of ${filtered.length}`;
+
+  const pagBtns = document.getElementById('pagBtns');
+  pagBtns.innerHTML = '';
+  const maxBtns = 5;
+  const halfMax = Math.floor(maxBtns / 2);
+  let startPage = Math.max(1, currentPage - halfMax);
+  let endPage = Math.min(totalPages, startPage + maxBtns - 1);
+  if (endPage - startPage < maxBtns - 1) startPage = Math.max(1, endPage - maxBtns + 1);
+
+  const prevBtn = document.createElement('button');
+  prevBtn.className = 'pag-btn';
+  prevBtn.textContent = '‹';
+  prevBtn.disabled = currentPage === 1;
+  prevBtn.onclick = () => { currentPage--; renderTable(); };
+  pagBtns.appendChild(prevBtn);
+
+  for (let p = startPage; p <= endPage; p++) {
+    const btn = document.createElement('button');
+    btn.className = 'pag-btn' + (p === currentPage ? ' on' : '');
+    btn.textContent = p;
+    btn.onclick = ((_p) => () => { currentPage = _p; renderTable(); })(p);
+    pagBtns.appendChild(btn);
+  }
+
+  const nextBtn = document.createElement('button');
+  nextBtn.className = 'pag-btn';
+  nextBtn.textContent = '›';
+  nextBtn.disabled = currentPage === totalPages || totalPages === 0;
+  nextBtn.onclick = () => { currentPage++; renderTable(); };
+  pagBtns.appendChild(nextBtn);
+  
+  // Show/hide export button
+  updateExportButton();
+}
+
+// Export to Excel function
+function exportToExcel(){
+  const t1Set = ms1.get(), t2Set = ms2.get();
+  if(t1Set.length === 0 || t2Set.length === 0 || !currentMatches || currentMatches.length === 0){alert('No matches to export');return;}
+
+  const t1Name = t1Set.length === 1 ? (TEAM_NAMES[t1Set[0]] || t1Set[0])
+               : t1Set.length === TEAMS.length ? 'All countries'
+               : t1Set.map(c => TEAM_NAMES[c] || c).join(', ');
+  const t2Name = t2Set.length === 1 ? (TEAM_NAMES[t2Set[0]] || t2Set[0])
+               : t2Set.length === TEAMS.length ? 'All countries'
+               : t2Set.map(c => TEAM_NAMES[c] || c).join(', ');
+
+  // Apply same filters as renderTable
+  const filter = document.getElementById('filterResult').value;
+  const fromYear = parseInt(document.getElementById('filterFrom').value) || null;
+  const toYear = parseInt(document.getElementById('filterTo').value) || null;
+  const haFilter = (document.getElementById('filterHA') || {value:'all'}).value;
+
+  let matches = currentMatches;
+  if (fromYear) matches = matches.filter(m => m.year >= fromYear);
+  if (toYear) matches = matches.filter(m => m.year <= toYear);
+  if (haFilter !== 'all') matches = matches.filter(m => m.ha === haFilter);
+  if (filter === 'Won') matches = matches.filter(m => m.result === 'Won');
+  else if (filter === 'Lost') matches = matches.filter(m => m.result === 'Lost');
+  else if (filter === 'Draw') matches = matches.filter(m => m.result === 'Draw');
+
+  if(matches.length === 0){alert('No matches to export');return;}
+
+  const w1 = matches.filter(m => m.result === 'Won').length;
+  const w2 = matches.filter(m => m.result === 'Lost').length;
+  const d = matches.filter(m => m.result === 'Draw').length;
+
+  // Create workbook
+  const wb = XLSX.utils.book_new();
+
+  // Summary sheet
+  const summaryData = [
+    ['Head-to-Head Summary', ''],
+    ['', ''],
+    ['Side 1', t1Name],
+    ['Side 2', t2Name],
+    ['Total Matches', matches.length],
+    ['', ''],
+    ['Side 1 Wins', w1],
+    ['Side 2 Wins', w2],
+    ['Draws', d],
+    ['', ''],
+    ['Side 1 Win %', matches.length > 0 ? ((w1/matches.length)*100).toFixed(1) + '%' : '—'],
+    ['Side 2 Win %', matches.length > 0 ? ((w2/matches.length)*100).toFixed(1) + '%' : '—']
+  ];
+  const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
+  wsSummary['!cols'] = [{wch: 20}, {wch: 40}];
+  XLSX.utils.book_append_sheet(wb, wsSummary, 'Summary');
+
+  // Match history sheet
+  const matchData = matches.map(m => ({
+    'Test #': m.test,
+    'Year': m.year,
+    'Venue': m.venue || '—',
+    'Home/Away': m.ha === 'home' ? 'Home' : m.ha === 'away' ? 'Away' : 'Neutral',
+    'Result': m.result === 'Won' ? 'Side 1 won' : m.result === 'Lost' ? 'Side 2 won' : 'Draw',
+    'Margin': normalizeMargin(m.margin) || '—'
+  }));
+  const wsMatches = XLSX.utils.json_to_sheet(matchData);
+  wsMatches['!cols'] = [{wch: 8}, {wch: 6}, {wch: 30}, {wch: 10}, {wch: 20}, {wch: 20}];
+  XLSX.utils.book_append_sheet(wb, wsMatches, 'Matches');
+
+  // Generate filename
+  const fnameT1 = t1Set.length === 1 ? (TEAM_NAMES[t1Set[0]] || t1Set[0]).replace(/\s+/g,'_') : (t1Set.length === TEAMS.length ? 'All' : t1Set.length + 'teams');
+  const fnameT2 = t2Set.length === 1 ? (TEAM_NAMES[t2Set[0]] || t2Set[0]).replace(/\s+/g,'_') : (t2Set.length === TEAMS.length ? 'All' : t2Set.length + 'teams');
+  const fname = fnameT1 + '_vs_' + fnameT2 + '.xlsx';
+  XLSX.writeFile(wb, fname);
+}
+
+// Show/hide export button based on results
+function updateExportButton(){
+  const btn = document.getElementById('exportBtn');
+  if(!btn) return;
+  const t1Set = ms1.get(), t2Set = ms2.get();
+  if(t1Set.length > 0 && t2Set.length > 0 && currentMatches && currentMatches.length > 0){
+    btn.style.display = 'inline-flex';
+  } else {
+    btn.style.display = 'none';
+  }
+}
+
+// ═════════════════════════════════════════════════════════════
+// Impact Analysis
+// ═════════════════════════════════════════════════════════════
+// Lazy-loads data.json.gz (~1.4 MB gzipped, ~6.7 MB JSON) the first
+// time the user picks an impact milestone, then caches it. Viewers who
+// never touch the panel never pay the download cost.
+//
+// D (after decompression) layout — verified against Players.xlsx and
+// Tests.xlsx (100s, 5WI, 10WM, team names, results all match):
+//   D.T  = team name list, 13 entries (0=Afghanistan ... 12=Zimbabwe)
+//           includes 'ICC World XI' at index 4.
+//   D.R  = result strings ("Australia won by 45 runs", "Match drawn"...)
+//   D.P  = player array; each p = [PlId, ShortName, FullName, Country, ...]
+//           country is the full name (e.g. "Australia"), matches D.T[].
+//   D.M  = match dict keyed by test number (stringified). Each m[] is 21
+//          ints; for our purposes:
+//            m[2] = team1 index into D.T
+//            m[3] = team2 index into D.T
+//            m[7] = year
+//            m[8] = index into D.R (result string)
+//   D.S  = flat list of scorecard rows, ~113k. Each s[] is 15 ints:
+//            s[0] = test number, s[1] = PlId, s[2] = innings (1-4),
+//            s[3] = runs scored that innings, s[9] = wickets taken
+//            that innings (while fielding against opposition innings).
+//
+// Attribution model: each player is treated as belonging to p[3]
+// (their career country). For the 99 edge-case S rows where p[3] is
+// neither m[2] nor m[3] (historical pre-1900 multi-nation players +
+// ICC World XI wrinkles, ~0.08% of data), we simply skip — they can't
+// be cleanly attributed and aren't worth the complexity.
+// ─────────────────────────────────────────────────────────────
+
+let __impactData = null;                // cached full D object
+let __impactLoadPromise = null;
+
+// Full-name → 3-letter code map, built lazily from TEAM_NAMES reverse lookup
+const FULLNAME_TO_CODE = {};
+Object.keys(TEAM_NAMES).forEach(code => { FULLNAME_TO_CODE[TEAM_NAMES[code]] = code; });
+
+// ═════════════════════════════════════════════════════════════
+// H2H from pipeline data (single source of truth)
+// ═════════════════════════════════════════════════════════════
+// Reconstructs the head-to-head table from D at load time. Includes
+// neutral-venue Tests (WTC finals, Pakistan's UAE era, the 1912
+// Triangular, Afghanistan's matches in India/UAE) which the old frozen
+// table silently omitted. Winner is derived from the D.R result-string
+// prefix (m[4] is unreliable for pre-1900 matches); margins come from
+// the same result strings, so labels are correct at source.
+
+function marginFromResult(res) {
+  let m = res.match(/won by an innings and (\d+) runs?/);
+  if (m) return 'inns & ' + m[1] + ' runs';
+  m = res.match(/won by (\d+) (runs?|wickets?)/);
+  if (m) return m[1] + ' ' + m[2];
+  return '';
+}
+
+function buildH2HFromData(D) {
+  const h = {};
+  Object.keys(D.M).forEach(k => {
+    const m = D.M[k], t = parseInt(k, 10);
+    const n1 = D.T[m[2]], n2 = D.T[m[3]];
+    const c1 = FULLNAME_TO_CODE[n1], c2 = FULLNAME_TO_CODE[n2];
+    if (!c1 || !c2 || c1 === c2) return;   // ICC World XI / unmapped
+    const res = D.R[m[8]] || '';
+    const drawn = !res || /drawn|tied|abandoned|no result/i.test(res);
+    let winner = null;
+    if (!drawn) {
+      if (res.startsWith(n1)) winner = c1;
+      else if (res.startsWith(n2)) winner = c2;
+    }
+    const isDraw = drawn || winner === null;
+    const venue = D.C[m[0]], year = m[7];
+    const margin = isDraw ? '' : marginFromResult(res);
+    [[c1, c2], [c2, c1]].forEach(pair => {
+      const me = pair[0], opp = pair[1];
+      if (!h[me]) h[me] = {};
+      if (!h[me][opp]) h[me][opp] = { wins: 0, losses: 0, draws: 0, total: 0, matches: [] };
+      const b = h[me][opp];
+      let r;
+      if (isDraw) { r = 'Draw'; b.draws++; }
+      else if (winner === me) { r = 'Won'; b.wins++; }
+      else { r = 'Lost'; b.losses++; }
+      b.total++;
+      b.matches.push({ test: t, year: year, venue: venue, result: r, margin: margin });
+    });
+  });
+  return h;
+}
+
+// Load pipeline data at startup and build the H2H table from it.
+(async function initH2HFromPipeline() {
+  try {
+    const D = await loadImpactData();
+    H2H = buildH2HFromData(D);
+    const tt = document.getElementById('totalTests');
+    if (tt) tt.textContent = Object.keys(D.M).length.toLocaleString('en-US');
+    updateResults();
+  } catch (e) {
+    console.error('Failed to load match data:', e);
+    const noData = document.getElementById('noData');
+    if (noData) {
+      noData.innerHTML = '<div class="nd-icon">⚠️</div><div>Could not load match data. Please refresh the page.</div>';
+      noData.style.display = 'block';
+    }
+  }
+})();
+
+async function loadImpactData() {
+  if (__impactData) return __impactData;
+  if (__impactLoadPromise) return __impactLoadPromise;
+  // Phase 3 §3: the dataset now comes from the gated serveDerivedData endpoint
+  // via CTData (Bearer ID token in, ?file=data, browser-native gzip inflation —
+  // no DecompressionStream). CTData has its own memory + sessionStorage cache;
+  // we keep __impactData populated because renderImpact() reads it directly.
+  __impactLoadPromise = CTData.load('data').then(function (D) {
+    __impactData = D;
+    return D;
+  });
+  return __impactLoadPromise;
+}
+
+// Cached derived structures (rebuild only when D changes, which it doesn't after initial load)
+let __playerCode = null;   // PlId → 3-letter country code
+let __matchInfo = null;    // testNum → { t1Code, t2Code, winnerCode | 'D', year }
+
+function buildDerivedLookups(D) {
+  if (__playerCode && __matchInfo) return;
+  __playerCode = new Map();
+  D.P.forEach(p => {
+    const code = FULLNAME_TO_CODE[p[3]];
+    if (code) __playerCode.set(p[0], code);
+  });
+  __matchInfo = new Map();
+  Object.keys(D.M).forEach(testKey => {
+    const m = D.M[testKey];
+    const t1 = FULLNAME_TO_CODE[D.T[m[2]]];
+    const t2 = FULLNAME_TO_CODE[D.T[m[3]]];
+    // Winner derivation from result string prefix, since m[4] can be odd
+    // for pre-1900 matches. Parse "Team won by ..." vs "Match drawn".
+    const resStr = D.R[m[8]] || '';
+    let winnerCode = 'D';
+    if (resStr && !/drawn|tied/i.test(resStr)) {
+      if (t1 && resStr.startsWith(D.T[m[2]])) winnerCode = t1;
+      else if (t2 && resStr.startsWith(D.T[m[3]])) winnerCode = t2;
+    }
+    __matchInfo.set(parseInt(testKey, 10), { t1: t1, t2: t2, winner: winnerCode, year: m[7] });
+  });
+}
+
+// Returns 'W'/'L'/'D' for a given country in a given match, or null if
+// the country is neither team (edge case: player's career country ≠ the
+// team they actually represented in that specific historical match).
+function resultFor(code, info) {
+  if (info.t1 !== code && info.t2 !== code) return null;
+  if (info.winner === 'D') return 'D';
+  if (info.winner === code) return 'W';
+  return 'L';
+}
+
+// Per-match, per-country mapping of which match-innings that country
+// BATTED in (sorted ascending). For most matches this is [1, 3] for team1
+// and [2, 4] for team2. In follow-on matches one team bats two innings back-to-back
+// (e.g. [1, 3] reversed or skipped). We derive it from actual scorecard
+// participation: for each (test, country), find innings where that country's
+// players scored runs OR were noted out or participated as not-out. The
+// first (lowest) match-innings is the country's 1st batting innings; the
+// second is the 2nd.
+//
+// For bowling: a country's fielding innings is the opposition's batting innings.
+// So country X bowling 1st = opposition's 1st batting innings, which is the
+// lowest match-innings of the OPPOSITE country's batting-innings list.
+let __teamBatInnings = null;  // Map<`${test}-${code}`, [inn1, inn2, ...]>
+
+function buildTeamInningsLookup(D) {
+  if (__teamBatInnings) return __teamBatInnings;
+  __teamBatInnings = new Map();
+  // First, collect: for each (test, innings, pidCountry) → if that player batted
+  // (scored runs, was not out, or was dismissed), the country batted in that innings.
+  const present = new Map(); // key `${test}-${inn}-${code}` → true
+  for (let i = 0; i < D.S.length; i++) {
+    const s = D.S[i];
+    // A player "batted" if runs > 0 OR notOut=1 OR dismissal code present (s[11] > 0)
+    // This is inclusive — ducks (0 runs, out) still count as a batting innings.
+    const batted = s[3] > 0 || s[4] === 1 || s[11] > 0;
+    if (!batted) continue;
+    const code = __playerCode.get(s[1]);
+    if (!code) continue;
+    const k = `${s[0]}-${s[2]}-${code}`;
+    present.set(k, true);
+  }
+  // Now, for each (test, code), collect sorted list of innings where country batted
+  const byTestCountry = new Map(); // `${test}-${code}` → Set<inn>
+  present.forEach((_, k) => {
+    const [test, inn, code] = k.split('-');
+    const key = `${test}-${code}`;
+    if (!byTestCountry.has(key)) byTestCountry.set(key, new Set());
+    byTestCountry.get(key).add(parseInt(inn, 10));
+  });
+  byTestCountry.forEach((innSet, key) => {
+    __teamBatInnings.set(key, Array.from(innSet).sort((a, b) => a - b));
+  });
+  return __teamBatInnings;
+}
+
+// Parse a dropdown value like "bat|100|+|2|1st" or "bow|i|5|5|1|any" or "bow|m|8|+|2|any"
+// Returns {kind, unit, min, max, count, scope, label, short} or null if invalid.
+function parseImpactValue(val) {
+  if (!val) return null;
+  const parts = val.split('|');
+  if (parts[0] === 'bat') {
+    if (parts.length !== 5) return null;
+    const [_, minS, maxS, countS, scope] = parts;
+    const min = parseInt(minS, 10);
+    const max = maxS === '+' ? Infinity : parseInt(maxS, 10);
+    const count = parseInt(countS, 10);
+    return { kind:'bat', unit:'-', min, max, count, scope };
+  }
+  if (parts[0] === 'bow') {
+    if (parts.length !== 6) return null;
+    const [_, unit, minS, maxS, countS, scope] = parts;
+    const min = parseInt(minS, 10);
+    const max = maxS === '+' ? Infinity : parseInt(maxS, 10);
+    const count = parseInt(countS, 10);
+    return { kind:'bow', unit, min, max, count, scope };
+  }
+  return null;
+}
+
+// Human-readable labels for a parsed query
+function labelForQuery(q) {
+  const bandRuns = (min, max) => max === Infinity ? `${min}+` : `${min}–${max}`;
+  const bandWkts = (min, max) => max === Infinity ? `${min}+` : `${min}`;   // exact-N shows just "N"
+  const scopeLbl = q.scope === 'any' ? 'the match' : q.scope === '1st' ? '1st innings' : '2nd innings';
+  const num = n => ['','One','Two','Three','Four'][n] || String(n);
+
+  if (q.kind === 'bat') {
+    const band = bandRuns(q.min, q.max);
+    return {
+      short: `${q.count}×${band}`,
+      section: `${num(q.count)} ${band} score${q.count>1?'s':''} in ${scopeLbl}`,
+      full: `${num(q.count)} ${band} score${q.count>1?'s':''} in ${scopeLbl}`,
+    };
+  }
+  // bowling
+  const w = bandWkts(q.min, q.max);
+  const exact = q.max !== Infinity ? ' exact' : '';
+  if (q.unit === 'i') {
+    return {
+      short: `${q.count}×${w}WI${exact}`,
+      section: `${num(q.count)} ${w}${exact} wkt inns haul${q.count>1?'s':''} in ${scopeLbl}`,
+      full: `${num(q.count)} ${w}${exact}-wkt innings haul${q.count>1?'s':''} in ${scopeLbl}`,
+    };
+  }
+  return {
+    short: `${q.count}×${w}WM${exact}`,
+    section: `${num(q.count)} ${w}${exact} wkt match haul${q.count>1?'s':''}`,
+    full: `${num(q.count)} ${w}${exact}-wkt match haul${q.count>1?'s':''}`,
+  };
+}
+
+// ─────────────────────────────────────────────────────────────
+// Collect per-match qualifying instances for a parsed query.
+// ─────────────────────────────────────────────────────────────
+// Input query: {kind, unit, min, max, count, scope}
+// Output: {
+//   perCountry: Map<testNum, Map<countryCode, matchQualifies>>,
+//   qualifyingTests: Map<countryCode, Set<testNum>>,
+//   // Also tracks how many qualifying *performances* each country had per match
+//   // for the ladder view (in 1× mode; higher count modes inherently require ≥count).
+//   perfCount: Map<testNum, Map<countryCode, numPerfs>>,
+// }
+//
+// Match qualifies for country C under the query iff:
+//   - the chosen scope (any / 1st innings / 2nd innings) contains ≥ count
+//     performances by C's players that fall in [min..max]
+//
+// "Scope = 1st innings" for batting means the batting-team's 1st batting
+// innings of the match; for bowling-innings query it means the bowling-team's
+// 1st fielding innings (= opposition's 1st batting innings). For bowling-
+// match queries (unit='m'), scope is always 'any' — the match-aggregate
+// doesn't split by innings.
+function collectMilestoneQuery(D, q) {
+  buildTeamInningsLookup(D);
+
+  // Determine per (s-row) whether it qualifies the basic per-performance bar.
+  // For bat: s[3] in [min..max]
+  // For bow 'i': s[9] in [min..max]   (exact or open)
+  // For bow 'm': handled specially — we aggregate wickets per (test,pid)
+  //              across the WHOLE match (ignoring scope for match-level queries
+  //              because scope='any' always for them), then check sum in [min..max]
+
+  const qualifyingTests = new Map();  // country → Set<test>
+  const perfCount = new Map();        // test → country → count of qualifying perfs
+
+  function recordQualify(test, code) {
+    if (!qualifyingTests.has(code)) qualifyingTests.set(code, new Set());
+    qualifyingTests.get(code).add(test);
+  }
+
+  // Helper: check if a given (test, code, inn) is within the query's scope
+  function inScope(test, code, inn) {
+    if (q.scope === 'any') return true;
+    // For bat: check code's own batting innings. For bow 'i': check opposition's batting innings.
+    let targetCode = code;
+    if (q.kind === 'bow') {
+      const info = __matchInfo.get(test);
+      if (!info) return false;
+      targetCode = (info.t1 === code) ? info.t2 : info.t1;
+      if (!targetCode) return false;
+    }
+    const list = __teamBatInnings.get(`${test}-${targetCode}`);
+    if (!list || list.length === 0) return false;
+    if (q.scope === '1st') return inn === list[0];
+    if (q.scope === '2nd') return list.length >= 2 && inn === list[1];
+    return false;
+  }
+
+  if (q.kind === 'bat') {
+    // Count qualifying performances per (test, country, innings)
+    // Key: `${test}-${code}-${inn}` → count
+    const perInnPerCountry = new Map();
+    for (let i = 0; i < D.S.length; i++) {
+      const s = D.S[i];
+      const runs = s[3];
+      if (runs < q.min || runs > q.max) continue;
+      const code = __playerCode.get(s[1]);
+      if (!code) continue;
+      if (!inScope(s[0], code, s[2])) continue;
+      const key = `${s[0]}-${code}-${s[2]}`;
+      perInnPerCountry.set(key, (perInnPerCountry.get(key) || 0) + 1);
+    }
+
+    // Now aggregate per (test, country) according to scope.
+    // - scope = 'any': sum perfs across all innings for that country in that test
+    //   then require sum >= count
+    // - scope = '1st' or '2nd': by construction only the matching innings
+    //   contributes. Sum is just the count in that single innings.
+    const aggByTestCountry = new Map();  // `${test}-${code}` → total in-scope count
+    perInnPerCountry.forEach((cnt, key) => {
+      const parts = key.split('-');
+      const test = parts[0]; const code = parts[1];  // inn not needed once we know it passed scope
+      const ak = `${test}-${code}`;
+      aggByTestCountry.set(ak, (aggByTestCountry.get(ak) || 0) + cnt);
+    });
+
+    // For scope='any' with count>=2, there's an extra wrinkle: is "Two 100+ in the
+    // match" = two centuries anywhere in the match combined, OR = two centuries in
+    // the same innings? We use the "combined anywhere in the match" interpretation
+    // since that matches the existing combined view. Users wanting "two in same
+    // innings" can pick scope='1st' or '2nd'.
+    //
+    // Note: when scope='any', count=2 matches if a country had 1 century in the 1st
+    // innings AND 1 century in the 2nd innings, OR 2 in one innings, OR any combo
+    // summing to ≥2.
+    aggByTestCountry.forEach((total, ak) => {
+      if (total < q.count) return;
+      const [testS, code] = ak.split('-');
+      const test = parseInt(testS, 10);
+      recordQualify(test, code);
+      if (!perfCount.has(test)) perfCount.set(test, new Map());
+      perfCount.get(test).set(code, total);
+    });
+  } else if (q.kind === 'bow' && q.unit === 'i') {
+    // Innings-level bowling: similar to batting
+    const perInnPerCountry = new Map();
+    for (let i = 0; i < D.S.length; i++) {
+      const s = D.S[i];
+      const wkts = s[9];
+      if (wkts < q.min || wkts > q.max) continue;
+      const code = __playerCode.get(s[1]);
+      if (!code) continue;
+      if (!inScope(s[0], code, s[2])) continue;
+      const key = `${s[0]}-${code}-${s[2]}`;
+      perInnPerCountry.set(key, (perInnPerCountry.get(key) || 0) + 1);
+    }
+    const aggByTestCountry = new Map();
+    perInnPerCountry.forEach((cnt, key) => {
+      const parts = key.split('-');
+      const test = parts[0]; const code = parts[1];
+      const ak = `${test}-${code}`;
+      aggByTestCountry.set(ak, (aggByTestCountry.get(ak) || 0) + cnt);
+    });
+    aggByTestCountry.forEach((total, ak) => {
+      if (total < q.count) return;
+      const [testS, code] = ak.split('-');
+      const test = parseInt(testS, 10);
+      recordQualify(test, code);
+      if (!perfCount.has(test)) perfCount.set(test, new Map());
+      perfCount.get(test).set(code, total);
+    });
+  } else if (q.kind === 'bow' && q.unit === 'm') {
+    // Match-level bowling: sum wickets per (test, pid) across ALL the match
+    // (scope is always 'any' for match-level queries). Then check if that
+    // player's total falls in [min..max]. Then per (test, country) count
+    // how many players qualified and require >= count.
+    const perMatchPlayerWkts = new Map(); // `${test}-${pid}` → total wkts in match
+    for (let i = 0; i < D.S.length; i++) {
+      const s = D.S[i];
+      if (!s[9]) continue;
+      const key = `${s[0]}-${s[1]}`;
+      perMatchPlayerWkts.set(key, (perMatchPlayerWkts.get(key) || 0) + s[9]);
+    }
+    const qualifiersPerCountry = new Map(); // `${test}-${code}` → num qualifying bowlers
+    perMatchPlayerWkts.forEach((total, key) => {
+      if (total < q.min || total > q.max) return;
+      const [testS, pidS] = key.split('-');
+      const pid = parseInt(pidS, 10);
+      const code = __playerCode.get(pid);
+      if (!code) return;
+      const ak = `${testS}-${code}`;
+      qualifiersPerCountry.set(ak, (qualifiersPerCountry.get(ak) || 0) + 1);
+    });
+    qualifiersPerCountry.forEach((n, ak) => {
+      if (n < q.count) return;
+      const [testS, code] = ak.split('-');
+      const test = parseInt(testS, 10);
+      recordQualify(test, code);
+      if (!perfCount.has(test)) perfCount.set(test, new Map());
+      perfCount.get(test).set(code, n);
+    });
+  }
+
+  return { qualifyingTests, perfCount };
+}
+
+async function renderImpact() {
+  const loadingEl = document.getElementById('impactLoading');
+  const emptyEl = document.getElementById('impactEmpty');
+  const resultsEl = document.getElementById('impactResults');
+
+  const batVal = document.getElementById('filterBatImpact').value;
+  const bowVal = document.getElementById('filterBowImpact').value;
+  const countrySet = new Set(msI.get());
+
+  // Nothing picked → empty prompt
+  if (!batVal && !bowVal) {
+    loadingEl.style.display = 'none';
+    resultsEl.classList.remove('visible');
+    resultsEl.innerHTML = '';
+    emptyEl.style.display = 'block';
+    __impactExportState = null;
+    updateImpactExportButton();
+    return;
+  }
+  if (countrySet.size === 0) {
+    loadingEl.style.display = 'none';
+    resultsEl.classList.remove('visible');
+    resultsEl.innerHTML = '';
+    emptyEl.style.display = 'block';
+    emptyEl.textContent = 'Pick at least one country to see impact analysis.';
+    __impactExportState = null;
+    updateImpactExportButton();
+    return;
+  }
+
+  // Load data on first use
+  if (!__impactData) {
+    loadingEl.style.display = 'block';
+    emptyEl.style.display = 'none';
+    resultsEl.classList.remove('visible');
+    try {
+      await loadImpactData();
+    } catch (err) {
+      loadingEl.innerHTML = '<div style="color:var(--red)">Failed to load match data. Please refresh.</div>';
+      console.error(err);
+      return;
+    }
+  }
+
+  loadingEl.style.display = 'none';
+  emptyEl.style.display = 'none';
+  resultsEl.classList.add('visible');
+
+  const D = __impactData;
+  buildDerivedLookups(D);
+
+  // Build queries from new encoded dropdown values
+  const queries = [];
+  const qBatParsed = parseImpactValue(batVal);
+  const qBowParsed = parseImpactValue(bowVal);
+  if (qBatParsed) queries.push(qBatParsed);
+  if (qBowParsed) queries.push(qBowParsed);
+
+  const countryLabel = countrySet.size === TEAMS.length ? 'All countries'
+                      : countrySet.size === 1 ? (TEAM_NAMES[Array.from(countrySet)[0]])
+                      : countrySet.size + ' countries';
+
+  let html = '';
+  const fmt = (n, tot) => tot ? ((n/tot)*100).toFixed(1) + '%' : '—';
+
+  // ─── Analyse one query ─────────────────────────────────────────
+  // Returns { perCountry: Map<code, {W,L,D,total}>, aggW, aggL, aggD, aggTotal }
+  // Each match/country pair contributes exactly one record (the match either
+  // qualifies under the query or doesn't — no per-performance subdivision).
+  function analyseQuery(q) {
+    const { qualifyingTests } = collectMilestoneQuery(D, q);
+    const perCountry = new Map();
+    let aggW=0, aggL=0, aggD=0;
+
+    qualifyingTests.forEach((testSet, code) => {
+      if (!countrySet.has(code)) return;
+      if (!perCountry.has(code)) perCountry.set(code, { W:0, L:0, D:0, total:0 });
+      const rec = perCountry.get(code);
+      testSet.forEach(test => {
+        const info = __matchInfo.get(test);
+        if (!info) return;
+        const r = resultFor(code, info);
+        if (!r) return;
+        rec[r]++;
+        rec.total++;
+        if (r === 'W') aggW++;
+        else if (r === 'L') aggL++;
+        else aggD++;
+      });
+    });
+    return { perCountry, aggW, aggL, aggD, aggTotal: aggW+aggL+aggD };
+  }
+
+  // ─── Render one query (single-milestone path) ──────────────────
+  // Layout: section header + aggregate card + per-country table.
+  // (Ladder is gone — the 'count' dimension is baked into the query itself
+  // via the new dropdown, so there's no natural 1+/2+/3+ breakdown to show.)
+  function renderSingleQuery(q, qi, stats) {
+    const { perCountry, aggW, aggL, aggD, aggTotal } = stats;
+    const ql = labelForQuery(q);
+    let s = `<div${qi > 0 ? ' style="margin-top:24px;padding-top:24px;border-top:1px solid var(--border)"' : ''}>`;
+    s += `<div style="font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text3);margin-bottom:12px">
+      ${q.kind === 'bat' ? 'Batting' : 'Bowling'} Impact · ${ql.full} · ${countryLabel}
+    </div>`;
+
+    if (aggTotal === 0) {
+      s += `<div class="impact-empty">No qualifying matches found for the selected countries.</div></div>`;
+      return s;
+    }
+
+    s += `<div class="impact-stats">
+      <div class="impact-card ic-aggregate">
+        <div class="ic-label">Aggregate · ${aggTotal} qualifying match${aggTotal === 1 ? '' : 'es'}</div>
+        <div class="ic-headline">${fmt(aggW, aggTotal)} won</div>
+        <div class="ic-break">
+          <span class="ic-w">W ${aggW} (${fmt(aggW, aggTotal)})</span>
+          <span class="ic-l">L ${aggL} (${fmt(aggL, aggTotal)})</span>
+          <span class="ic-d">D ${aggD} (${fmt(aggD, aggTotal)})</span>
+        </div>
+        <div class="ic-bar">
+          <div class="ic-bar-w" style="flex:${aggW}"></div>
+          <div class="ic-bar-l" style="flex:${aggL}"></div>
+          <div class="ic-bar-d" style="flex:${aggD}"></div>
+        </div>
+      </div>
+    </div>`;
+
+    // Per-country table (only when 2+ countries)
+    if (countrySet.size > 1 && perCountry.size > 0) {
+      const flat = Array.from(perCountry.entries()).map(([code, rec]) => ({
+        code, W:rec.W, L:rec.L, D:rec.D, total:rec.total,
+      }));
+      flat.sort((a, b) => b.total - a.total);
+
+      s += `<table class="impact-table" style="margin-top:18px">
+        <thead><tr>
+          <th>Country</th>
+          <th class="right">Qualifying</th>
+          <th class="right">W – L – D</th>
+          <th class="right">Win %</th>
+        </tr></thead><tbody>`;
+      flat.forEach(r => {
+        const wp = r.total ? (r.W/r.total)*100 : 0;
+        const cls = wp >= 60 ? 'good' : wp >= 40 ? 'mid' : 'poor';
+        s += `<tr>
+          <td class="it-country">${TEAM_NAMES[r.code] || r.code} <span class="it-mini">(${r.code})</span></td>
+          <td class="right">${r.total}</td>
+          <td class="right">
+            <span style="color:var(--green);font-weight:600">${r.W}</span> –
+            <span style="color:var(--red);font-weight:600">${r.L}</span> –
+            <span style="color:var(--text3);font-weight:600">${r.D}</span>
+          </td>
+          <td class="right"><span class="it-winpct ${cls}">${fmt(r.W, r.total)}</span></td>
+        </tr>`;
+      });
+      s += '</tbody></table>';
+    }
+
+    s += '</div>';
+    return s;
+  }
+
+  // ─── Render both queries side-by-side (dual-milestone path) ────
+  function renderMerged(qBat, sBat, qBow, sBow) {
+    const lBat = labelForQuery(qBat);
+    const lBow = labelForQuery(qBow);
+    let s = '';
+    s += `<div style="font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text3);margin-bottom:12px">
+      Combined Impact · ${lBat.full} &nbsp;vs&nbsp; ${lBow.full} · ${countryLabel}
+    </div>`;
+
+    // Two aggregate cards side-by-side on desktop, stacking on mobile
+    s += '<div class="impact-stats impact-stats-dual">';
+    [ [qBat, sBat, 'Batting', lBat], [qBow, sBow, 'Bowling', lBow] ].forEach(([q, st, kind, ql]) => {
+      const { aggW, aggL, aggD, aggTotal } = st;
+      if (aggTotal === 0) {
+        s += `<div class="impact-card"><div class="ic-label">${kind} · ${ql.short}</div>
+          <div class="impact-empty" style="padding:12px 0">No qualifying matches</div></div>`;
+        return;
+      }
+      s += `<div class="impact-card ic-aggregate">
+        <div class="ic-label">${kind} · ${ql.short} · ${aggTotal} match${aggTotal === 1 ? '' : 'es'}</div>
+        <div class="ic-headline">${fmt(aggW, aggTotal)} won</div>
+        <div class="ic-break">
+          <span class="ic-w">W ${aggW}</span>
+          <span class="ic-l">L ${aggL}</span>
+          <span class="ic-d">D ${aggD}</span>
+        </div>
+        <div class="ic-bar">
+          <div class="ic-bar-w" style="flex:${aggW}"></div>
+          <div class="ic-bar-l" style="flex:${aggL}"></div>
+          <div class="ic-bar-d" style="flex:${aggD}"></div>
+        </div>
+      </div>`;
+    });
+    s += '</div>';
+
+    // Master per-country comparison table
+    const unionCodes = new Set([...sBat.perCountry.keys(), ...sBow.perCountry.keys()]);
+    if (unionCodes.size === 0) return s;
+
+    const rows = Array.from(unionCodes).map(code => {
+      const b = sBat.perCountry.get(code);
+      const w = sBow.perCountry.get(code);
+      const bWp = b && b.total ? (b.W/b.total)*100 : null;
+      const wWp = w && w.total ? (w.W/w.total)*100 : null;
+      const delta = (bWp !== null && wWp !== null) ? (bWp - wWp) : null;
+      return { code, bat: b || null, bow: w || null, bWp, wWp, delta,
+               combinedTotal: (b ? b.total : 0) + (w ? w.total : 0) };
+    });
+    rows.sort((a, b) => b.combinedTotal - a.combinedTotal);
+
+    const pctCell = (wp) => {
+      if (wp === null) return `<span style="color:var(--text3)">—</span>`;
+      const cls = wp >= 60 ? 'good' : wp >= 40 ? 'mid' : 'poor';
+      return `<span class="it-winpct ${cls}">${wp.toFixed(1)}%</span>`;
+    };
+    const wldCell = (rec) => {
+      if (!rec) return `<span style="color:var(--text3)">—</span>`;
+      return `<span style="color:var(--green);font-weight:600">${rec.W}</span> – <span style="color:var(--red);font-weight:600">${rec.L}</span> – <span style="color:var(--text3);font-weight:600">${rec.D}</span>`;
+    };
+    const deltaCell = (d) => {
+      if (d === null) return `<span style="color:var(--text3)">—</span>`;
+      const sign = d > 0 ? '+' : '';
+      const color = Math.abs(d) < 2 ? 'var(--text3)' : (d > 0 ? 'var(--green)' : 'var(--red)');
+      return `<span style="color:${color};font-weight:700;font-family:'DM Serif Display',serif;font-size:14px">${sign}${d.toFixed(1)}%</span>`;
+    };
+
+    s += `<div style="margin-top:18px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3);margin-bottom:8px">
+      Per-country comparison · Δ = Batting win% − Bowling win%
+    </div>`;
+    s += `<div class="impact-table-scroll"><table class="impact-table impact-table-merged">
+      <thead>
+        <tr>
+          <th rowspan="2" style="vertical-align:bottom">Country</th>
+          <th colspan="3" class="center" style="border-bottom:1px solid var(--border)">Batting · ${lBat.short}</th>
+          <th colspan="3" class="center" style="border-bottom:1px solid var(--border)">Bowling · ${lBow.short}</th>
+          <th rowspan="2" class="right" style="vertical-align:bottom">Δ Win%</th>
+        </tr>
+        <tr>
+          <th class="right">Matches</th>
+          <th class="right">W–L–D</th>
+          <th class="right">Win %</th>
+          <th class="right">Matches</th>
+          <th class="right">W–L–D</th>
+          <th class="right">Win %</th>
+        </tr>
+      </thead>
+      <tbody>`;
+    rows.forEach(r => {
+      s += `<tr>
+        <td class="it-country">${TEAM_NAMES[r.code] || r.code} <span class="it-mini">(${r.code})</span></td>
+        <td class="right">${r.bat ? r.bat.total : '<span style="color:var(--text3)">—</span>'}</td>
+        <td class="right">${wldCell(r.bat)}</td>
+        <td class="right">${pctCell(r.bWp)}</td>
+        <td class="right">${r.bow ? r.bow.total : '<span style="color:var(--text3)">—</span>'}</td>
+        <td class="right">${wldCell(r.bow)}</td>
+        <td class="right">${pctCell(r.wWp)}</td>
+        <td class="right">${deltaCell(r.delta)}</td>
+      </tr>`;
+    });
+    s += '</tbody></table></div>';
+    return s;
+  }
+
+  // Dispatch
+  if (queries.length === 2) {
+    const [qBat, qBow] = queries;
+    const sBat = analyseQuery(qBat);
+    const sBow = analyseQuery(qBow);
+    html = renderMerged(qBat, sBat, qBow, sBow);
+  } else {
+    queries.forEach((q, qi) => {
+      const stats = analyseQuery(q);
+      html += renderSingleQuery(q, qi, stats);
+    });
+  }
+
+  resultsEl.innerHTML = html;
+
+  // Cache for export
+  __impactExportState = { queries, results: queries.map(analyseQuery), countryLabel, countrySet: new Set(countrySet) };
+  updateImpactExportButton();
+}
+
+// ═════════════════════════════════════════════════════════════
+// Impact Analysis — Export to Excel
+// ═════════════════════════════════════════════════════════════
+// Gating mirrors the H2H + Batting/Bowling/Captaincy/Fielding pages: at least
+// 2 user-selected filters must be active before Export enables. Filters that
+// count toward the threshold:
+//   1. Country selector (any countries picked)
+//   2. Batting Impact milestone selected
+//   3. Bowling Impact milestone selected
+// So the bare minimum is country + one milestone (the natural minimum to
+// produce results anyway).
+let __impactExportState = null;
+
+function countImpactActiveFilters(){
+  const batVal = document.getElementById('filterBatImpact').value;
+  const bowVal = document.getElementById('filterBowImpact').value;
+  const countrySize = (typeof msI !== 'undefined' && msI) ? msI.size() : 0;
+  let count = 0;
+  if (countrySize > 0) count++;
+  if (batVal) count++;
+  if (bowVal) count++;
+  return count;
+}
+
+function updateImpactExportButton(){
+  const btn = document.getElementById('impactExportBtn');
+  if (!btn) return;
+  const active = countImpactActiveFilters();
+  const hasResults = __impactExportState && __impactExportState.queries.length > 0;
+  const enabled = active >= 2 && hasResults;
+  btn.disabled = !enabled;
+  if (enabled) {
+    btn.title = 'Export current view to Excel';
+  } else if (active < 2) {
+    btn.title = `Select at least ${2 - active} more filter(s) to enable export`;
+  } else {
+    btn.title = 'No results to export';
+  }
+}
+
+function exportImpactToExcel(){
+  const btn = document.getElementById('impactExportBtn');
+  if (btn && btn.disabled) return; // defense layer
+
+  if (!__impactExportState || __impactExportState.queries.length === 0) {
+    alert('No results to export. Pick a country and a milestone first.');
+    return;
+  }
+
+  const { queries, results, countryLabel } = __impactExportState;
+  const wb = XLSX.utils.book_new();
+
+  // Summary sheet
+  const summaryData = [
+    ['Impact Analysis Export', ''],
+    ['', ''],
+    ['Countries', countryLabel],
+    ['Milestones', queries.map(q => labelForQuery(q).full).join('  vs  ')],
+    ['', ''],
+  ];
+  queries.forEach((q, i) => {
+    const st = results[i];
+    const ql = labelForQuery(q);
+    const kind = q.kind === 'bat' ? 'Batting' : 'Bowling';
+    summaryData.push([`${kind} · ${ql.full}`, '']);
+    summaryData.push(['  Qualifying matches', st.aggTotal]);
+    summaryData.push(['  Wins', st.aggW]);
+    summaryData.push(['  Losses', st.aggL]);
+    summaryData.push(['  Draws', st.aggD]);
+    summaryData.push(['  Win %', st.aggTotal ? ((st.aggW/st.aggTotal)*100).toFixed(1) + '%' : '—']);
+    summaryData.push(['', '']);
+  });
+  const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
+  wsSummary['!cols'] = [{wch: 32}, {wch: 40}];
+  XLSX.utils.book_append_sheet(wb, wsSummary, 'Summary');
+
+  // Per-country sheet(s) — one per query
+  queries.forEach((q, i) => {
+    const st = results[i];
+    const ql = labelForQuery(q);
+    const kind = q.kind === 'bat' ? 'Batting' : 'Bowling';
+    const rows = Array.from(st.perCountry.entries()).map(([code, rec]) => ({
+      'Country': TEAM_NAMES[code] || code,
+      'Code': code,
+      'Qualifying Matches': rec.total,
+      'Wins': rec.W,
+      'Losses': rec.L,
+      'Draws': rec.D,
+      'Win %': rec.total ? ((rec.W/rec.total)*100).toFixed(1) + '%' : '—'
+    }));
+    rows.sort((a, b) => b['Qualifying Matches'] - a['Qualifying Matches']);
+    if (rows.length === 0) {
+      const wsEmpty = XLSX.utils.aoa_to_sheet([['No qualifying matches for the selected countries.']]);
+      XLSX.utils.book_append_sheet(wb, wsEmpty, `${kind} (${i+1})`.slice(0, 31));
+      return;
+    }
+    const ws = XLSX.utils.json_to_sheet(rows);
+    ws['!cols'] = [{wch: 18}, {wch: 6}, {wch: 18}, {wch: 8}, {wch: 8}, {wch: 8}, {wch: 10}];
+    // Sheet names must be ≤31 chars and exclude : \ / ? * [ ]
+    const sheetName = `${kind} - ${ql.short}`.replace(/[:\\/?*\[\]]/g, '').slice(0, 31);
+    XLSX.utils.book_append_sheet(wb, ws, sheetName);
+  });
+
+  // Combined comparison sheet (only when both milestones selected)
+  if (queries.length === 2) {
+    const sBat = results[0].perCountry, sBow = results[1].perCountry;
+    const codes = new Set([...sBat.keys(), ...sBow.keys()]);
+    const lBat = labelForQuery(queries[0]);
+    const lBow = labelForQuery(queries[1]);
+    const cmpRows = Array.from(codes).map(code => {
+      const b = sBat.get(code), w = sBow.get(code);
+      const bWp = b && b.total ? (b.W/b.total)*100 : null;
+      const wWp = w && w.total ? (w.W/w.total)*100 : null;
+      const delta = (bWp !== null && wWp !== null) ? (bWp - wWp) : null;
+      return {
+        'Country': TEAM_NAMES[code] || code,
+        'Code': code,
+        [`Bat Matches (${lBat.short})`]: b ? b.total : 0,
+        'Bat W': b ? b.W : 0,
+        'Bat L': b ? b.L : 0,
+        'Bat D': b ? b.D : 0,
+        'Bat Win %': bWp !== null ? bWp.toFixed(1) + '%' : '—',
+        [`Bowl Matches (${lBow.short})`]: w ? w.total : 0,
+        'Bowl W': w ? w.W : 0,
+        'Bowl L': w ? w.L : 0,
+        'Bowl D': w ? w.D : 0,
+        'Bowl Win %': wWp !== null ? wWp.toFixed(1) + '%' : '—',
+        'Δ Win % (Bat − Bowl)': delta !== null ? (delta > 0 ? '+' : '') + delta.toFixed(1) + '%' : '—'
+      };
+    });
+    cmpRows.sort((a, b) => (b[`Bat Matches (${lBat.short})`] + b[`Bowl Matches (${lBow.short})`])
+                        - (a[`Bat Matches (${lBat.short})`] + a[`Bowl Matches (${lBow.short})`]));
+    const wsCmp = XLSX.utils.json_to_sheet(cmpRows);
+    XLSX.utils.book_append_sheet(wb, wsCmp, 'Comparison');
+  }
+
+  // Filename
+  const country = (typeof msI !== 'undefined' && msI && msI.size() === 1)
+                    ? (TEAM_NAMES[msI.get()[0]] || msI.get()[0]).replace(/\s+/g, '_')
+                    : (msI.size() === TEAMS.length ? 'AllCountries' : msI.size() + 'countries');
+  const milestone = queries.length === 2 ? 'BatVsBowl' : labelForQuery(queries[0]).short.replace(/[\s\/+]+/g, '_');
+  const fname = `Impact_${country}_${milestone}.xlsx`;
+  XLSX.writeFile(wb, fname);
+}
+
+// ═════════════════════════════════════════════════════════════
+// Tab switching (H2H ↔ Impact Analysis)
+// ═════════════════════════════════════════════════════════════
+// Buttons carry data-tab="h2h" or "impact"; we toggle .active on buttons
+// and on the corresponding tab-panel whose id is "tab-" + that value.
+// When the user opens the Impact tab for the first time and has a milestone
+// already selected, we re-render to make sure the ladder shows.
+document.querySelectorAll('.tabbar-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const target = btn.dataset.tab;
+    document.querySelectorAll('.tabbar-btn').forEach(b => {
+      const on = b.dataset.tab === target;
+      b.classList.toggle('active', on);
+      b.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+    document.querySelectorAll('.tab-panel').forEach(p => {
+      p.classList.toggle('active', p.id === 'tab-' + target);
+    });
+    // If Impact tab just became visible and we haven't rendered yet, trigger it.
+    if (target === 'impact') renderImpact();
+  });
+});
+
+// ═════════════════════════════════════════════════════════════
+// Collapsible Filters card
+// ═════════════════════════════════════════════════════════════
+// Click anywhere on the header row to toggle the `closed` class, which the
+// CSS uses to collapse the body and rotate the chevron.
+function toggleFilters(cardId) {
+  const card = document.getElementById(cardId);
+  if (card) card.classList.toggle('closed');
+}
+
+// Initial load
+updateResults();
+</script>
+
+<!-- SheetJS for Excel Export -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<!-- ══ Support Banner ══ -->
+<div class="ct-support-banner">
+  <div class="ct-support-inner">
+    <div class="ct-support-icon">
+      <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M12 2a2.5 2.5 0 0 0-2.5 2.5h5A2.5 2.5 0 0 0 12 2z"/><circle cx="12" cy="19" r="2" fill="var(--accent,#a03020)" stroke="none"/></svg>
+    </div>
+    <div class="ct-support-content">
+      <div class="ct-support-headline">Support <em>Independent</em> Cricket Stories</div>
+      <div class="ct-support-body">Cricket Times is free and independent. If you find value in our stories, analyses and tools, consider buying me a coffee to keep the scoreboard ticking.</div>
+    </div>
+    <div class="ct-support-actions">
+      <a href="https://buymeacoffee.com/YOUR_USERNAME" target="_blank" rel="noopener" class="ct-support-btn">
+        <svg viewBox="0 0 24 24"><path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><line x1="6" y1="2" x2="6" y2="4"/><line x1="10" y1="2" x2="10" y2="4"/><line x1="14" y1="2" x2="14" y2="4"/></svg>
+        Buy Me a Coffee
+      </a>
+      <span class="ct-support-aside">This is a personal contribution, not a donation — contributions are not tax-deductible.</span>
+    </div>
+  </div>
+</div>
+
+<footer data-ct-nav="footer"></footer>
+
+
+
+<script>
+// Share button — matches article.html's shareArticle pattern
+function shareCountries(e) {
+  const btn = e.currentTarget;
+  const url = window.location.href;
+  const title = 'Cricket Times — Country vs Country';
+
+  if (navigator.share) {
+    navigator.share({ title, url }).catch(() => {});
+    return;
+  }
+
+  navigator.clipboard.writeText(url).then(() => {
+    btn.classList.add('copied');
+    const originalHTML = btn.innerHTML;
+    btn.innerHTML = `<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Copied!`;
+    setTimeout(() => {
+      btn.classList.remove('copied');
+      btn.innerHTML = originalHTML;
+    }, 2500);
+  }).catch(() => {
+    const inp = document.createElement('input');
+    inp.value = url;
+    document.body.appendChild(inp);
+    inp.select();
+    document.execCommand('copy');
+    document.body.removeChild(inp);
+  });
+}
+</script>
+<script src="ct-nav.js"></script>
+</body>
+</html>

@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!-- CT_7G_INJECT:START (auto-injected by deploy tool — do not edit by hand) -->
+<style id="ct-7g-hide">body{visibility:hidden}</style>
+<script>window.CT_PAGE_ID="batting";</script>
+<script>setTimeout(function(){if(!window.__ctFlagsLoaded){location.replace("/comingsoon.html");}},2500);</script>
+<script src="/auth-status.js"></script>
+<!-- CT_7G_INJECT:END -->
+<script src="/feature-flags.js"></script>
+<script src="/prelaunch-guard.js"></script>
+<script src="/ct-data-loader.js"></script><!-- Phase 3 §3: gated derived-data loader -->
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Batting Records – Cricket Times</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+/* ── Reset & Variables ── */
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#FAF7F2;--surface:#fff;--surface2:#F5F0EA;--surface3:#EDE8E0;
+  --text:#1a1e26;--text2:#555;--text3:#888;
+  --accent:#8B2500;--accent-dim:rgba(139,37,0,0.08);--accent-light:rgba(139,37,0,0.15);
+  --border:#e0dcd5;--border2:#ccc;
+  --gold:#B8860B;--green:#2E7D32;--blue:#1565C0;
+  --font-display:'Playfair Display',Georgia,serif;
+  --font-body:'Source Serif 4','Georgia',serif;
+  --font-mono:'JetBrains Mono',monospace;
+  --radius:6px;
+}
+html{font-size:15px;scroll-behavior:smooth}
+body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-height:1.5;min-height:100vh}
+
+/* ── Masthead ── */
+.ct-masthead{text-align:center;padding:18px 20px 10px;border-bottom:2px solid var(--text)}
+.ct-masthead-date{font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:var(--text2);margin-bottom:4px}
+.ct-masthead-logo{font-family:var(--font-display);font-size:2.2rem;font-weight:700;letter-spacing:-0.5px}
+.ct-masthead-logo a{color:var(--text);text-decoration:none}
+.ct-masthead-logo span{font-style:italic;font-weight:400}
+.ct-masthead-tagline{font-family:var(--font-body);font-size:11px;letter-spacing:1.6px;text-transform:uppercase;color:var(--text3);margin-top:2px}
+
+/* ── CT Nav ── */
+.ct-nav-bar{border-bottom:1px solid var(--border);background:var(--bg);position:sticky;top:0;z-index:100}
+.ct-nav-inner{max-width:1100px;margin:0 auto;display:flex;justify-content:center;gap:0;overflow-x:auto}
+.ct-nav-link{padding:10px 18px;font-family:var(--font-body);font-size:12.5px;letter-spacing:0.8px;text-transform:uppercase;color:var(--text2);text-decoration:none;white-space:nowrap;transition:color 0.2s,border-color 0.2s;border-bottom:2px solid transparent}
+.ct-nav-link:hover{color:var(--accent)}
+.ct-nav-link.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
+
+/* ── Header ── */
+.header{background:var(--surface);padding:22px 32px 18px;border-bottom:1px solid var(--border)}
+.hdr-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between}
+.brand{display:flex;align-items:center;gap:12px}
+.brand-icon{width:38px;height:38px;background:var(--accent);color:#fff;border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:700;font-size:14px}
+.brand h1{font-family:var(--font-display);font-size:1.25rem;font-weight:600;letter-spacing:-0.3px}
+.brand-sub{font-size:11.5px;letter-spacing:0.8px;text-transform:uppercase;color:var(--text3);margin-top:3px;margin-left:50px}
+.hdr-nav{display:flex;gap:6px}
+.nav-link{display:flex;align-items:center;gap:6px;padding:8px 14px;font-size:12px;font-weight:500;color:var(--text2);text-decoration:none;border:1px solid var(--border);border-radius:var(--radius);transition:all 0.2s;letter-spacing:0.3px}
+.nav-link svg{width:16px;height:16px;fill:none;stroke:currentColor}
+.nav-link:hover{background:var(--accent-dim);color:var(--accent);border-color:var(--accent-light)}
+.nav-link.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.nav-link.active svg{stroke:#fff}
+
+/* ── Main ── */
+.main{max-width:1100px;margin:0 auto;padding:28px 32px 60px}
+.page-head{margin-bottom:22px}
+.page-title{font-family:var(--font-display);font-size:1.6rem;font-weight:700;letter-spacing:-0.3px}
+.page-desc{font-size:13px;color:var(--text2);margin-top:4px}
+
+/* ── Stat cards ── */
+.stat-cards{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-bottom:22px}
+.scard{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;transition:box-shadow 0.2s}
+.scard:hover{box-shadow:0 2px 10px rgba(0,0,0,0.06)}
+.scard-label{font-size:10.5px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:6px}
+.scard-val{font-family:var(--font-display);font-size:1.45rem;font-weight:700;color:var(--accent)}
+.scard-sub{font-size:11.5px;color:var(--text2);margin-top:3px}
+
+/* ── Filter panel ── */
+.fp{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:20px}
+.fp-head{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;cursor:pointer;user-select:none}
+.fp-head-left{display:flex;align-items:center;gap:8px}
+.fp-head svg{width:16px;height:16px;fill:none;stroke:var(--text2);transition:transform 0.25s}
+.fp-head-title{font-size:13px;font-weight:600;letter-spacing:0.3px}
+.fp-count{font-size:11px;color:var(--text3)}
+.fp-body{display:none;padding:14px 18px 18px;border-top:1px solid var(--border)}
+.fp.open .fp-body{display:block}
+.fp.open .fp-head svg{transform:rotate(180deg)}
+.fp-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px 16px}
+.fp-group label{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:0.8px;color:var(--text3);margin-bottom:4px}
+.fp-select,.fp-input{width:100%;padding:7px 10px;font-family:var(--font-body);font-size:13px;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text);outline:none;transition:border-color 0.2s}
+.fp-select:focus,.fp-input:focus{border-color:var(--accent)}
+.fp-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.fp-tag{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;font-size:11px;background:var(--accent-dim);color:var(--accent);border-radius:12px;cursor:pointer;transition:background 0.15s}
+.fp-tag:hover{background:var(--accent-light)}
+.fp-tag svg{width:12px;height:12px;stroke:currentColor;fill:none}
+.fp-reset{font-size:11px;color:var(--accent);cursor:pointer;text-decoration:underline;margin-left:auto}
+.fp-reset:hover{color:var(--text)}
+
+/* Multi-select dropdown */
+.ms-wrap{position:relative}
+.ms-btn{width:100%;padding:7px 10px;font-family:var(--font-body);font-size:13px;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text);cursor:pointer;text-align:left;outline:none;display:flex;justify-content:space-between;align-items:center}
+.ms-btn:focus{border-color:var(--accent)}
+.ms-btn::after{content:'▾';font-size:10px;color:var(--text3)}
+.ms-drop{display:none;position:absolute;top:100%;left:0;right:0;background:var(--surface);border:1px solid var(--border);border-radius:4px;max-height:200px;overflow-y:auto;z-index:50;box-shadow:0 4px 12px rgba(0,0,0,0.08)}
+.ms-drop.open{display:block}
+.ms-opt{display:flex;align-items:center;gap:8px;padding:6px 10px;font-size:12.5px;cursor:pointer;transition:background 0.15s}
+.ms-opt:hover{background:var(--surface2)}
+.ms-opt input{accent-color:var(--accent)}
+
+/* ── Tabs ── */
+.tabs{display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:0}
+.tab{padding:10px 22px;font-size:12.5px;font-weight:600;letter-spacing:0.5px;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all 0.2s;text-transform:uppercase;white-space:nowrap}
+.tab:hover{color:var(--text)}
+.tab.on{color:var(--accent);border-bottom-color:var(--accent)}
+
+/* ── Table ── */
+.tbl-wrap{overflow-x:auto;background:var(--surface);border:1px solid var(--border);border-top:none;border-radius:0 0 var(--radius) var(--radius)}
+.rec-table{width:100%;border-collapse:collapse;font-size:13px}
+.rec-table thead th{padding:9px 12px;text-align:left;font-size:9.5px;text-transform:uppercase;letter-spacing:0.8px;color:var(--text3);border-bottom:1px solid var(--border);cursor:pointer;white-space:nowrap;user-select:none;background:var(--surface2);position:sticky;top:0}
+.rec-table thead th:hover{color:var(--accent)}
+.rec-table thead th.sorted-asc::after{content:' ▲';font-size:8px}
+.rec-table thead th.sorted-desc::after{content:' ▼';font-size:8px}
+.rec-table tbody td{padding:9px 12px;border-bottom:1px solid var(--surface2);vertical-align:middle}
+.rec-table tbody tr:hover{background:var(--accent-dim)}
+.rec-table tbody tr:nth-child(even){background:rgba(0,0,0,0.015)}
+.rec-table .rank{color:var(--text3);font-family:var(--font-mono);font-size:11px;width:32px}
+.rec-table .player-name{font-weight:600;white-space:nowrap}
+.rec-table .country{color:var(--text2);font-size:12px}
+.rec-table .num{font-family:var(--font-mono);font-size:12.5px;text-align:right}
+.rec-table .num-center{font-family:var(--font-mono);font-size:12.5px;text-align:center}
+.rec-table .hs-star{color:var(--gold);font-size:10px;vertical-align:super}
+.highlight{background:var(--accent-dim) !important}
+
+/* ── Badge ── */
+.badge{display:inline-block;padding:2px 8px;font-size:10px;font-weight:600;border-radius:10px;letter-spacing:0.5px;text-transform:uppercase}
+.badge-gold{background:#FFF8E1;color:#B8860B}
+.badge-green{background:#E8F5E9;color:#2E7D32}
+
+/* ── Pagination ── */
+.pag{display:flex;justify-content:center;align-items:center;gap:6px;padding:16px 0}
+.pag-btn{padding:6px 12px;font-size:12px;font-family:var(--font-body);border:1px solid var(--border);border-radius:4px;background:var(--surface);cursor:pointer;color:var(--text);transition:all 0.15s}
+.pag-btn:hover:not(:disabled){background:var(--accent-dim);color:var(--accent);border-color:var(--accent)}
+.pag-btn:disabled{opacity:0.4;cursor:not-allowed}
+.pag-btn.on{background:var(--surface3);color:var(--accent);border-color:var(--accent)}
+
+/* scrollbar */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+/* ── Responsive ── */
+@media(max-width:1024px){
+  .main{padding:20px 24px 60px}
+  .header{padding:18px 24px 14px}
+  .stat-cards{grid-template-columns:repeat(3,1fr)}
+}
+@media(max-width:767px){
+  .header{padding:14px 16px}
+  .hdr-inner{flex-direction:column;align-items:flex-start;gap:10px}
+  .hdr-nav{position:absolute;top:14px;right:16px}
+  .nav-link span{display:none}
+  .nav-link{padding:8px 10px}
+  .main{padding:12px 14px 40px}
+  .stat-cards{grid-template-columns:repeat(2,1fr)}
+  .fp-grid{grid-template-columns:1fr 1fr}
+  .rec-table{min-width:620px}
+  .rec-table thead th{padding:7px 9px;font-size:8.5px}
+  .rec-table tbody td{padding:7px 9px;font-size:12px}
+  .tabs{width:100%;overflow-x:auto}
+}
+
+/* ══ Cricket Times Support Banner ══ */
+.ct-support-banner{max-width:1400px;margin:0 auto;padding:0 24px}
+.ct-support-inner{border-top:3px double var(--border2,#c8c4bc);border-bottom:3px double var(--border2,#c8c4bc);padding:36px 0;display:flex;align-items:center;gap:40px}
+.ct-support-icon{flex-shrink:0;width:72px;height:72px;border:2px solid var(--accent,#a03020);border-radius:50%;display:flex;align-items:center;justify-content:center}
+.ct-support-icon svg{width:32px;height:32px;stroke:var(--accent,#a03020);fill:none;stroke-width:1.5}
+.ct-support-content{flex:1}
+.ct-support-headline{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;line-height:1.3;margin-bottom:8px;color:var(--text,#1a1a18)}
+.ct-support-headline em{font-style:italic;color:var(--accent,#a03020)}
+.ct-support-body{font-family:'Source Serif 4',Georgia,serif;font-size:15px;color:var(--text2,#4a4a46);line-height:1.6;max-width:560px}
+.ct-support-actions{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:8px}
+.ct-support-btn{display:inline-flex;align-items:center;gap:8px;padding:12px 28px;background:var(--accent,#a03020);color:#fff;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;letter-spacing:0.5px;text-decoration:none;border:none;cursor:pointer;transition:all 0.2s ease}
+.ct-support-btn:hover{background:var(--accent-hover,#801810);transform:translateY(-1px)}
+.ct-support-btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2}
+.ct-support-aside{font-family:'Inter',sans-serif;font-size:10px;color:var(--text3,#7a7a74);letter-spacing:0.3px;text-align:center;max-width:220px}
+@media(max-width:768px){.ct-support-inner{flex-direction:column;text-align:center;gap:24px;padding:28px 0}.ct-support-body{margin:0 auto}.ct-support-headline{font-size:20px}}
+
+/* ── Footer ── */
+.ct-footer{background:var(--text);color:rgba(255,255,255,0.7);padding:48px 24px 32px;margin-top:60px}
+.ct-footer-inner{max-width:1400px;margin:0 auto}
+.ct-footer-top{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:32px;border-bottom:1px solid rgba(255,255,255,0.1);margin-bottom:24px}
+.ct-footer-brand{font-family:var(--font-display);font-size:28px;font-weight:700;color:#fff}
+.ct-footer-nav{display:flex;gap:32px}
+.ct-footer-nav a{font-family:var(--font-body);font-size:12px;font-weight:500;color:rgba(255,255,255,0.6);text-decoration:none}
+.ct-footer-nav a:hover{color:#fff}
+.ct-footer-bottom{font-family:var(--font-body);font-size:11px;color:rgba(255,255,255,0.4);display:flex;justify-content:space-between}
+@media(max-width:900px){.ct-footer-top{flex-direction:column;gap:24px}.ct-footer-nav{flex-wrap:wrap;gap:16px}.ct-footer-bottom{flex-direction:column;gap:8px}}
+
+</style>
+</head>
+<body>
+
+<!-- ── Masthead ── -->
+<header data-ct-nav="masthead"></header>
+<nav data-ct-nav="primary"></nav>
+
+<!-- ── Main ── -->
+<div class="main">
+
+  <div class="page-head">
+    <div class="page-title">Batting</div>
+    <div class="page-desc">All-time Test cricket batting statistics – sorted, filtered, and ranked</div>
+  </div>
+
+  <!-- Stat cards -->
+  <div class="stat-cards">
+    <div class="scard"><div class="scard-label">Players Listed</div><div class="scard-val" id="scTotal">—</div><div class="scard-sub">matching filters</div></div>
+    <div class="scard"><div class="scard-label">Highest Average</div><div class="scard-val" id="scAvg">—</div><div class="scard-sub" id="scAvgSub"></div></div>
+    <div class="scard"><div class="scard-label">Most Runs</div><div class="scard-val" id="scRuns">—</div><div class="scard-sub" id="scRunsSub"></div></div>
+    <div class="scard"><div class="scard-label">Most Centuries</div><div class="scard-val" id="sc100">—</div><div class="scard-sub" id="sc100Sub"></div></div>
+    <div class="scard"><div class="scard-label">Highest Score</div><div class="scard-val" id="scHS">—</div><div class="scard-sub" id="scHSSub"></div></div>
+    <div class="scard"><div class="scard-label">Best Strike Rate</div><div class="scard-val" id="scSR">—</div><div class="scard-sub" id="scSRSub"></div></div>
+  </div>
+
+  <!-- Filter panel -->
+  <div class="fp open" id="filterPanel">
+    <div class="fp-head" onclick="document.getElementById('filterPanel').classList.toggle('open')">
+      <div class="fp-head-left">
+        <svg viewBox="0 0 24 24" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        <span class="fp-head-title">Filters</span>
+        <span class="fp-count" id="filterCount"></span>
+      </div>
+    </div>
+    <div class="fp-body">
+      <div class="fp-grid">
+        <div class="fp-group">
+          <label>Country</label>
+          <select class="fp-select" id="fCountry" onchange="applyFilters()">
+            <option value="">All countries</option>
+          </select>
+        </div>
+        <div class="fp-group">
+          <label>Era</label>
+          <select class="fp-select" id="fEra" onchange="applyFilters()">
+            <option value="">All eras</option>
+            <option value="pre1950">Pre-1950</option>
+            <option value="1950">1950s</option>
+            <option value="1960">1960s</option>
+            <option value="1970">1970s</option>
+            <option value="1980">1980s</option>
+            <option value="1990">1990s</option>
+            <option value="2000">2000s</option>
+            <option value="2010">2010s</option>
+            <option value="2020">2020s</option>
+          </select>
+        </div>
+        <div class="fp-group">
+          <label>Batting Position</label>
+          <select class="fp-select" id="fPos" onchange="applyFilters()">
+            <option value="">All positions</option>
+            <option value="1-3">Top order (1–3)</option>
+            <option value="4-5">Middle order (4–5)</option>
+            <option value="6-7">Lower middle (6–7)</option>
+            <option value="8-11">Tail (8–11)</option>
+          </select>
+        </div>
+        <div class="fp-group">
+          <label>Min Tests</label>
+          <select class="fp-select" id="fTests" onchange="applyFilters()">
+            <option value="0" selected>No minimum</option>
+            <option value="10">10+</option>
+            <option value="20">20+</option>
+            <option value="40">40+</option>
+            <option value="50">50+</option>
+            <option value="75">75+</option>
+            <option value="100">100+</option>
+          </select>
+        </div>
+        <div class="fp-group">
+          <label>Min Innings</label>
+          <select class="fp-select" id="fInns" onchange="applyFilters()">
+            <option value="0">No minimum</option>
+            <option value="20">20+</option>
+            <option value="40">40+</option>
+            <option value="50">50+</option>
+            <option value="80">80+</option>
+            <option value="100">100+</option>
+          </select>
+        </div>
+        <div class="fp-group">
+          <label>Min Runs</label>
+          <select class="fp-select" id="fRuns" onchange="applyFilters()">
+            <option value="0">No minimum</option>
+            <option value="1000">1,000+</option>
+            <option value="2000">2,000+</option>
+            <option value="3000">3,000+</option>
+            <option value="5000">5,000+</option>
+            <option value="8000">8,000+</option>
+            <option value="10000">10,000+</option>
+          </select>
+        </div>
+        <div class="fp-group">
+          <label>Min Average</label>
+          <select class="fp-select" id="fAvg" onchange="applyFilters()">
+            <option value="0">No minimum</option>
+            <option value="25">25+</option>
+            <option value="30">30+</option>
+            <option value="35">35+</option>
+            <option value="40">40+</option>
+            <option value="45">45+</option>
+            <option value="50">50+</option>
+          </select>
+        </div>
+        <div class="fp-group">
+          <label>Min Strike Rate</label>
+          <select class="fp-select" id="fSR" onchange="applyFilters()">
+            <option value="0">No minimum</option>
+            <option value="40">40+</option>
+            <option value="50">50+</option>
+            <option value="60">60+</option>
+            <option value="70">70+</option>
+          </select>
+        </div>
+        <div class="fp-group">
+          <label>Opponents</label>
+          <div class="ms-wrap" id="msOpp">
+            <button class="ms-btn" type="button" onclick="toggleMS('msOpp')">All opponents</button>
+            <div class="ms-drop" id="msOpp-drop"></div>
+          </div>
+        </div>
+        <div class="fp-group">
+          <label>Min % Contribution/Inn</label>
+          <select class="fp-select" id="fContrib" onchange="applyFilters()">
+            <option value="0" selected>No minimum (≥ 0%)</option>
+            <option value="25">≥ 25%</option>
+            <option value="30">≥ 30%</option>
+            <option value="35">≥ 35%</option>
+            <option value="40">≥ 40%</option>
+            <option value="45">≥ 45%</option>
+            <option value="50">≥ 50%</option>
+            <option value="55">≥ 55%</option>
+            <option value="60">≥ 60%</option>
+            <option value="65">≥ 65%</option>
+            <option value="70">≥ 70%</option>
+            <option value="75">≥ 75%</option>
+          </select>
+        </div>
+        <div class="fp-group" style="grid-column:span 2">
+          <label>Search player</label>
+          <input class="fp-input" id="fSearch" placeholder="Name or country…" oninput="applyFilters()">
+        </div>
+        <div class="fp-group" style="display:flex;align-items:flex-end;gap:10px">
+          <span class="fp-reset" onclick="resetFilters()">Reset all</span>
+          <button id="exportBtn" onclick="exportToExcel()" title="Select at least 2 filters to enable export" style="margin-left:auto;display:inline-flex;align-items:center;gap:6px;padding:7px 14px;font-family:var(--font-body);font-size:12px;font-weight:600;border:1px solid var(--border);border-radius:4px;background:var(--surface);color:var(--text2);cursor:pointer;transition:all 0.15s;" onmouseover="if(!this.disabled){this.style.background='var(--accent-dim)';this.style.color='var(--accent)';this.style.borderColor='var(--accent)'}" onmouseout="if(!this.disabled){this.style.background='var(--surface)';this.style.color='var(--text2)';this.style.borderColor='var(--border)'}">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export to Excel
+          </button>
+        </div>
+      </div>
+      <div class="fp-tags" id="tagBox"></div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs" id="tabBar">
+    <div class="tab on" data-tab="runs" onclick="switchTab('runs')">Runs</div>
+    <div class="tab" data-tab="average" onclick="switchTab('average')">Average</div>
+    <div class="tab" data-tab="sr" onclick="switchTab('sr')">Strike Rate</div>
+    <div class="tab" data-tab="milestones" onclick="switchTab('milestones')">Milestones</div>
+    <div class="tab" data-tab="mom" onclick="switchTab('mom')">MoM</div>
+  </div>
+
+  <!-- Table -->
+  <div class="tbl-wrap">
+    <table class="rec-table" id="recTable">
+      <thead id="tHead"></thead>
+      <tbody id="tBody"></tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pag" id="pag"></div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     DATA + LOGIC
+═══════════════════════════════════════════════════════════════════════════ -->
+<!-- data.js removed (Phase 3 §3): dataset now loaded via CTData from the gated serveDerivedData endpoint -->
+<script>
+/* ──────────────────────────────────────────────────────────────────────────
+   D.P index mapping (confirmed from binary pipeline)
+   ────────────────────────────────────────────────────────────────────────── */
+const IDX = {
+  ID:0, NAME:1, FULL:2, COUNTRY:3, FROM:4, TO:5,
+  TESTS:6, INNS:7, NO:8, RUNS:9, BALLS:10,
+  AVG:11, ADJAVG:12, HS:13, FIFTIES:14, HUNDREDS:15,
+  AVGPOS:16,
+  OVERS:17, MAIDENS:18, BOWLRUNS:19, WKTS:20,
+  BOWLAVG:21, BOWLECON:22, BOWLSR:23,
+  FIVEWI:24, TENWM:25, BESTBOWL:26, BOWLTESTS:27,
+  MOM:29, BATHAND:30, BOWLTYPE:31
+};
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Build players array from D.P
+   ────────────────────────────────────────────────────────────────────────── */
+let D = null;        // dataset from the gated loader (replaces the old data.js global)
+let PLAYERS = [];
+
+function buildPlayers() {
+  if (typeof D === 'undefined' || !D.P) { console.error('data.js not loaded'); return; }
+  PLAYERS = D.P.map(p => ({
+    id:        p[IDX.ID],
+    name:      p[IDX.NAME]  || '',
+    fullName:  p[IDX.FULL]  || '',
+    country:   p[IDX.COUNTRY] || '',
+    from:      p[IDX.FROM]  || 0,
+    to:        p[IDX.TO]    || 0,
+    tests:     p[IDX.TESTS] || 0,
+    inns:      p[IDX.INNS]  || 0,
+    no:        p[IDX.NO]    || 0,
+    runs:      p[IDX.RUNS]  || 0,
+    balls:     p[IDX.BALLS] || 0,
+    avg:       p[IDX.AVG]   || 0,
+    adjAvg:    p[IDX.ADJAVG] || 0,
+    sr:        (p[IDX.BALLS] && p[IDX.BALLS] > 0) ? +((p[IDX.RUNS] / p[IDX.BALLS]) * 100).toFixed(2) : 0,
+    hs:        p[IDX.HS]       || 0,
+    fifties:   p[IDX.FIFTIES]  || 0,
+    hundreds:  p[IDX.HUNDREDS] || 0,
+    avgPos:    p[IDX.AVGPOS]   || 0,
+    mom:       p[IDX.MOM]      || 0,
+    batHand:   p[IDX.BATHAND]  || '',
+    bowlType:  p[IDX.BOWLTYPE] || ''
+  })).filter(p => p.inns > 0);  // only players who actually batted
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Compute 2x100s: matches where a player scored centuries in both innings
+   D.S layout: [matchId, playerId, inningsSlot, batRuns, ...]
+   ────────────────────────────────────────────────────────────────────────── */
+function buildTwoX100() {
+  if (!D.S) return;
+  // Accumulate innings centuries per player per match
+  const matchCents = {}; // key: pid_mid -> count of innings with 100+
+  for (const s of D.S) {
+    const mid = s[0], pid = s[1], batRuns = s[3];
+    if (!mid || !pid || !(batRuns >= 100)) continue;
+    const key = pid + '_' + mid;
+    matchCents[key] = (matchCents[key] || 0) + 1;
+  }
+  // Count matches where both innings had a century
+  const twoX100 = {};
+  for (const [key, cnt] of Object.entries(matchCents)) {
+    if (cnt >= 2) {
+      const pid = key.split('_')[0];
+      twoX100[pid] = (twoX100[pid] || 0) + 1;
+    }
+  }
+  // Attach to PLAYERS
+  const pidMap = new Map(PLAYERS.map(p => [p.id, p]));
+  for (const [pid, val] of Object.entries(twoX100)) {
+    const p = pidMap.get(+pid) || pidMap.get(pid);
+    if (p) p.twoX100 = val;
+  }
+  // Ensure all players have the field
+  PLAYERS.forEach(p => { if (p.twoX100 == null) p.twoX100 = 0; });
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Build per-player innings contribution data.
+   Stores contribInns: array of per-innings contribution % values (runs/teamTotal*100).
+   Deduplicates by (matchId, inningsSlot) per player — D.S can have multiple
+   rows per player per innings (batting + bowling entries).
+   D.S layout: s[0]=matchId, s[1]=playerId, s[2]=inningsSlot(1-4), s[3]=runs
+   D.M layout: m[17]=inn1 total, m[18]=inn2 total, m[19]=inn3 total, m[20]=inn4 total
+   ────────────────────────────────────────────────────────────────────────── */
+function buildContribPct() {
+  if (!D.S || !D.M) return;
+
+  // Per player: collect unique (mid, slot) → runs (take first occurrence)
+  const seen = new Map(); // key: pid → Map of "mid_slot" → runs
+
+  for (const s of D.S) {
+    const mid = s[0], pid = s[1], slot = s[2], runs = s[3], notOut = s[4];
+    if (!mid || !pid || slot == null || typeof runs !== 'number') continue;
+    if (slot < 1 || slot > 4) continue; // only valid innings slots
+    if (notOut === null || notOut === undefined) continue; // did not bat
+
+    if (!seen.has(pid)) seen.set(pid, new Map());
+    const innsMap = seen.get(pid);
+    const key = mid + '_' + slot;
+    if (innsMap.has(key)) continue; // already recorded this innings for this player
+    innsMap.set(key, { mid, slot, runs });
+  }
+
+  // Now compute contribution % for each unique innings
+  const contrib = new Map(); // pid → [pct, pct, ...]
+
+  for (const [pid, innsMap] of seen) {
+    for (const { mid, slot, runs } of innsMap.values()) {
+      const match = D.M[mid] || D.M[String(mid)];
+      if (!match) continue;
+      const teamTotal = match[16 + slot]; // m[17..20], slot is 1-based
+      if (!teamTotal || teamTotal <= 0) continue;
+      if (!contrib.has(pid)) contrib.set(pid, []);
+      contrib.get(pid).push((runs / teamTotal) * 100);
+    }
+  }
+
+  // Attach raw innings pct array to each player
+  const pidMap = new Map(PLAYERS.map(p => [p.id, p]));
+  for (const [pid, inns] of contrib) {
+    const p = pidMap.get(+pid) || pidMap.get(pid);
+    if (p) p.contribInns = inns;
+  }
+  PLAYERS.forEach(p => { if (!p.contribInns) p.contribInns = []; });
+}
+
+/* Return count of innings where contribution >= threshold % */
+function getContribCount(player, threshold) {
+  if (!player.contribInns || !player.contribInns.length) return 0;
+  return player.contribInns.filter(pct => pct >= threshold).length;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Build per-player opponent lookup from D.S + D.P
+   playerOpponents: Map<playerId, Set<countryName>>
+   Derives match teams from the countries of players who batted,
+   rather than relying on D.M team indices which are inconsistent.
+   ────────────────────────────────────────────────────────────────────────── */
+const playerOpponents = new Map();
+
+function buildOpponentLookup() {
+  if (!D.S || !D.P) return;
+
+  // 1. Build fast playerId → country lookup
+  const playerCountry = new Map();
+  D.P.forEach(p => { if (p[IDX.ID] && p[IDX.COUNTRY]) playerCountry.set(p[IDX.ID], p[IDX.COUNTRY]); });
+
+  // 2. Group D.S entries by matchId and collect player IDs per match
+  const matchPlayers = new Map(); // matchId → Set<playerId>
+  for (const entry of D.S) {
+    const mid = entry[0];
+    const pid = entry[1];
+    if (!mid || !pid) continue;
+    if (!matchPlayers.has(mid)) matchPlayers.set(mid, new Set());
+    matchPlayers.get(mid).add(pid);
+  }
+
+  // 3. For each match, find the two team countries from the players
+  const matchTeams = new Map(); // matchId → [country1, country2]
+  for (const [mid, pids] of matchPlayers) {
+    const countries = new Set();
+    for (const pid of pids) {
+      const c = playerCountry.get(pid);
+      if (c) countries.add(c);
+      if (countries.size >= 2) break; // only need two teams
+    }
+    if (countries.size === 2) matchTeams.set(mid, [...countries]);
+  }
+
+  // 4. For each scorecard entry, determine opponent
+  for (const entry of D.S) {
+    const mid = entry[0];
+    const pid = entry[1];
+    if (!mid || !pid) continue;
+
+    const teams = matchTeams.get(mid);
+    if (!teams) continue;
+
+    const pCountry = playerCountry.get(pid);
+    if (!pCountry) continue;
+
+    const opponent = (pCountry === teams[0]) ? teams[1] : (pCountry === teams[1]) ? teams[0] : null;
+    if (!opponent) continue;
+
+    if (!playerOpponents.has(pid)) playerOpponents.set(pid, new Set());
+    playerOpponents.get(pid).add(opponent);
+  }
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   State
+   ────────────────────────────────────────────────────────────────────────── */
+let currentTab   = 'runs';
+let filtered     = [];
+let sortKey       = 'runs';
+let sortDir       = 'desc';
+let page          = 1;
+const PER_PAGE    = 50;
+const COUNTRIES   = [];
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Populate country dropdown + opponents
+   ────────────────────────────────────────────────────────────────────────── */
+function populateCountries() {
+  const set = new Set();
+  PLAYERS.forEach(p => { if (p.country) set.add(p.country); });
+  const arr = [...set].sort();
+  const sel = document.getElementById('fCountry');
+  arr.forEach(c => { const o = document.createElement('option'); o.value = c; o.textContent = c; sel.appendChild(o); });
+
+  // Opponents multi-select
+  const drop = document.getElementById('msOpp-drop');
+  arr.forEach(c => {
+    const d = document.createElement('div');
+    d.className = 'ms-opt';
+    d.innerHTML = `<input type="checkbox" value="${c}" onchange="applyFilters()"><span>${c}</span>`;
+    drop.appendChild(d);
+  });
+}
+
+/* ── Multi-select helper ── */
+function toggleMS(id) {
+  document.getElementById(id + '-drop').classList.toggle('open');
+}
+document.addEventListener('click', e => {
+  document.querySelectorAll('.ms-drop.open').forEach(d => {
+    if (!d.parentElement.contains(e.target)) d.classList.remove('open');
+  });
+});
+function getMSValues(id) {
+  const checks = document.querySelectorAll(`#${id}-drop input:checked`);
+  return [...checks].map(c => c.value);
+}
+function updateMSLabel(id) {
+  const vals = getMSValues(id);
+  const btn = document.querySelector(`#${id} .ms-btn`);
+  btn.textContent = vals.length === 0 ? 'All opponents' : vals.join(', ');
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Stat cards
+   ────────────────────────────────────────────────────────────────────────── */
+function updateCards() {
+  document.getElementById('scTotal').textContent = filtered.length.toLocaleString();
+
+  if (filtered.length === 0) {
+    ['scAvg','scRuns','sc100','scHS','scSR'].forEach(id => document.getElementById(id).textContent = '—');
+    ['scAvgSub','scRunsSub','sc100Sub','scHSSub','scSRSub'].forEach(id => document.getElementById(id).textContent = '');
+    return;
+  }
+
+  // Highest Average (min 20 innings)
+  const qual = filtered.filter(p => p.inns >= 20);
+  if (qual.length) {
+    const byAvg = [...qual].sort((a,b) => b.avg - a.avg)[0];
+    document.getElementById('scAvg').textContent = byAvg.avg.toFixed(2);
+    document.getElementById('scAvgSub').textContent = byAvg.name;
+  }
+
+  // Most Runs
+  const byRuns = [...filtered].sort((a,b) => b.runs - a.runs)[0];
+  document.getElementById('scRuns').textContent = byRuns.runs.toLocaleString();
+  document.getElementById('scRunsSub').textContent = byRuns.name;
+
+  // Most Centuries
+  const by100 = [...filtered].sort((a,b) => b.hundreds - a.hundreds)[0];
+  document.getElementById('sc100').textContent = by100.hundreds;
+  document.getElementById('sc100Sub').textContent = by100.name;
+
+  // Highest Score — need to parse HS from D.P; for now use runs in a single innings isn't available
+  // HS isn't in our player object yet — we need to check if it's in D.P
+  // Index 13 was mapped to fifties, but the original batting-records had hs field
+  // For now, find player with highest HS if available, otherwise skip
+  // Note: looking at original RAW_PLAYERS, hs was a separate field. Check if D.P has it.
+  // Actually — re-examining the index map: the original page had hs at a specific index.
+  // We'll populate this from the hs field if it exists on the player object.
+  if (filtered[0].hs !== undefined) {
+    const byHS = [...filtered].sort((a,b) => b.hs - a.hs)[0];
+    document.getElementById('scHS').textContent = byHS.hs;
+    document.getElementById('scHSSub').textContent = byHS.name;
+  } else {
+    document.getElementById('scHS').textContent = '—';
+    document.getElementById('scHSSub').textContent = '';
+  }
+
+  // Best Strike Rate (min 20 innings, must have balls faced)
+  const srQual = filtered.filter(p => p.inns >= 20 && p.balls > 0);
+  if (srQual.length) {
+    const bySR = [...srQual].sort((a,b) => b.sr - a.sr)[0];
+    document.getElementById('scSR').textContent = Number(bySR.sr).toFixed(2);
+    document.getElementById('scSRSub').textContent = bySR.name;
+  } else {
+    document.getElementById('scSR').textContent = '—';
+    document.getElementById('scSRSub').textContent = '';
+  }
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Era matching
+   ────────────────────────────────────────────────────────────────────────── */
+function eraMatch(p, era) {
+  if (!era) return true;
+  if (era === 'pre1950') return p.from < 1950;
+  const d = parseInt(era);
+  return p.from <= d + 9 && p.to >= d;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Position matching
+   ────────────────────────────────────────────────────────────────────────── */
+function posMatch(p, pos) {
+  if (!pos) return true;
+  const [lo, hi] = pos.split('-').map(Number);
+  return p.avgPos >= lo && p.avgPos <= hi;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Filters
+   ────────────────────────────────────────────────────────────────────────── */
+function getFilters() {
+  return {
+    country:  document.getElementById('fCountry').value,
+    era:      document.getElementById('fEra').value,
+    pos:      document.getElementById('fPos').value,
+    tests:    +document.getElementById('fTests').value,
+    inns:     +document.getElementById('fInns').value,
+    runs:     +document.getElementById('fRuns').value,
+    avg:      +document.getElementById('fAvg').value,
+    sr:       +document.getElementById('fSR').value,
+    contrib:  +document.getElementById('fContrib').value,
+    opponents: getMSValues('msOpp'),
+    search:   document.getElementById('fSearch').value.trim().toLowerCase()
+  };
+}
+
+function applyFilters() {
+  updateMSLabel('msOpp');
+  const f = getFilters();
+  const hasContribData = PLAYERS.some(p => p.contribInns && p.contribInns.length > 0);
+  filtered = PLAYERS.filter(p => {
+    if (f.country && p.country !== f.country) return false;
+    if (!eraMatch(p, f.era)) return false;
+    if (!posMatch(p, f.pos)) return false;
+    if (f.tests && p.tests < f.tests) return false;
+    if (f.inns  && p.inns  < f.inns)  return false;
+    if (f.runs  && p.runs  < f.runs)  return false;
+    if (f.avg   && p.avg   < f.avg)   return false;
+    if (f.sr    && p.sr    < f.sr)    return false;
+    if (f.contrib && hasContribData && getContribCount(p, f.contrib) < 1) return false;
+    if (f.search) {
+      const q = f.search;
+      if (!p.name.toLowerCase().includes(q) && !p.fullName.toLowerCase().includes(q) && !p.country.toLowerCase().includes(q)) return false;
+    }
+    if (f.opponents.length > 0) {
+      // Exclude players from the selected opponent countries
+      if (f.opponents.includes(p.country)) return false;
+      const opps = playerOpponents.get(p.id);
+      if (!opps) return false;
+      // Player must have faced ALL selected opponents
+      if (!f.opponents.every(o => opps.has(o))) return false;
+    }
+    return true;
+  });
+
+  sortFiltered();
+  page = 1;
+  updateCards();
+  renderTags();
+  render();
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Sort
+   ────────────────────────────────────────────────────────────────────────── */
+function sortFiltered() {
+  const threshold = +document.getElementById('fContrib').value || 0;
+  filtered.sort((a, b) => {
+    let av, bv;
+    if (sortKey === 'contribPct') {
+      av = getContribCount(a, threshold);
+      bv = getContribCount(b, threshold);
+    } else {
+      av = a[sortKey] ?? 0;
+      bv = b[sortKey] ?? 0;
+    }
+    if (typeof av === 'string') return sortDir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av);
+    return sortDir === 'asc' ? av - bv : bv - av;
+  });
+}
+
+function toggleSort(key) {
+  if (sortKey === key) { sortDir = sortDir === 'desc' ? 'asc' : 'desc'; }
+  else { sortKey = key; sortDir = (key === 'name' || key === 'country') ? 'asc' : 'desc'; }
+  sortFiltered();
+  page = 1;
+  render();
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Tabs
+   ────────────────────────────────────────────────────────────────────────── */
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('on', t.dataset.tab === tab));
+
+  // Default sort per tab
+  const defaults = { runs: ['runs','desc'], average: ['avg','desc'], sr: ['sr','desc'], milestones: ['hundreds','desc'], mom: ['mom','desc'] };
+  [sortKey, sortDir] = defaults[tab] || ['runs','desc'];
+  sortFiltered();
+  page = 1;
+  render();
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Column definitions per tab
+   ────────────────────────────────────────────────────────────────────────── */
+function getCols() {
+  const base = [
+    { key:'_rank', label:'#',       cls:'rank' },
+    { key:'name',  label:'Player',  cls:'player-name' },
+    { key:'country', label:'Country', cls:'country' }
+  ];
+  switch(currentTab) {
+    case 'runs': return [...base,
+      { key:'from',       label:'From',    cls:'num' },
+      { key:'to',         label:'To',      cls:'num' },
+      { key:'tests',      label:'Tests',   cls:'num' },
+      { key:'inns',       label:'Inns',    cls:'num' },
+      { key:'no',         label:'NO',      cls:'num' },
+      { key:'runs',       label:'Runs',    cls:'num highlight' },
+      { key:'hs',         label:'HS',      cls:'num' },
+      { key:'avg',        label:'Avg',     cls:'num' },
+      { key:'sr',         label:'SR',      cls:'num' },
+      { key:'hundreds',   label:'100s',    cls:'num' },
+      { key:'twoX100',    label:'2X100S',  cls:'num-center' },
+      { key:'fifties',    label:'50s',     cls:'num' },
+      { key:'contribPct', label:'%Ct/Inn',  cls:'num-center' }
+    ];
+    case 'average': return [...base,
+      { key:'tests',      label:'Tests',   cls:'num' },
+      { key:'inns',       label:'Inns',    cls:'num' },
+      { key:'no',         label:'NO',      cls:'num' },
+      { key:'runs',       label:'Runs',    cls:'num' },
+      { key:'avg',        label:'Avg',     cls:'num highlight' },
+      { key:'sr',         label:'SR',      cls:'num' },
+      { key:'hundreds',   label:'100s',    cls:'num' },
+      { key:'contribPct', label:'%Ct/Inn',  cls:'num-center' }
+    ];
+    case 'sr': return [...base,
+      { key:'tests',      label:'Tests',   cls:'num' },
+      { key:'inns',       label:'Inns',    cls:'num' },
+      { key:'runs',       label:'Runs',    cls:'num' },
+      { key:'balls',      label:'BF',      cls:'num' },
+      { key:'sr',         label:'SR',      cls:'num highlight' },
+      { key:'avg',        label:'Avg',     cls:'num' },
+      { key:'hundreds',   label:'100s',    cls:'num' },
+      { key:'contribPct', label:'%Ct/Inn',  cls:'num-center' }
+    ];
+    case 'milestones': return [...base,
+      { key:'tests',      label:'Tests',   cls:'num' },
+      { key:'inns',       label:'Inns',    cls:'num' },
+      { key:'runs',       label:'Runs',    cls:'num' },
+      { key:'hs',         label:'HS',      cls:'num' },
+      { key:'hundreds',   label:'100s',    cls:'num highlight' },
+      { key:'twoX100',    label:'2X100S',  cls:'num-center' },
+      { key:'fifties',    label:'50s',     cls:'num' },
+      { key:'avg',        label:'Avg',     cls:'num' },
+      { key:'contribPct', label:'%Ct/Inn',  cls:'num-center' }
+    ];
+    case 'mom': return [...base,
+      { key:'tests',      label:'Tests',   cls:'num' },
+      { key:'inns',       label:'Inns',    cls:'num' },
+      { key:'runs',       label:'Runs',    cls:'num' },
+      { key:'avg',        label:'Avg',     cls:'num' },
+      { key:'mom',        label:'MoM',     cls:'num highlight' },
+      { key:'contribPct', label:'%Ct/Inn',  cls:'num-center' }
+    ];
+  }
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Render
+   ────────────────────────────────────────────────────────────────────────── */
+function render() {
+  const cols = getCols();
+
+  // Header
+  const thead = document.getElementById('tHead');
+  thead.innerHTML = '<tr>' + cols.map(c => {
+    if (c.key === '_rank') return `<th class="${c.cls}">${c.label}</th>`;
+    const sc = sortKey === c.key ? (sortDir === 'asc' ? 'sorted-asc' : 'sorted-desc') : '';
+    return `<th class="${c.cls} ${sc}" onclick="toggleSort('${c.key}')">${c.label}</th>`;
+  }).join('') + '</tr>';
+
+  // Body
+  const start = (page - 1) * PER_PAGE;
+  const slice = filtered.slice(start, start + PER_PAGE);
+  const tbody = document.getElementById('tBody');
+  tbody.innerHTML = slice.map((p, i) => {
+    return '<tr>' + cols.map(c => {
+      if (c.key === '_rank') return `<td class="${c.cls}">${start + i + 1}</td>`;
+      let val = p[c.key];
+      if (c.key === 'name') return `<td class="${c.cls}" title="${p.fullName}">${val}</td>`;
+      if (c.key === 'avg' || c.key === 'sr') val = (typeof val === 'number' && val > 0) ? val.toFixed(2) : '—';
+      if (c.key === 'runs' && typeof val === 'number') val = val.toLocaleString();
+      if (c.key === 'balls' && typeof val === 'number') val = val > 0 ? val.toLocaleString() : '—';
+      if (c.key === 'contribPct') {
+        const threshold = +document.getElementById('fContrib').value || 0;
+        val = getContribCount(p, threshold);
+      }
+      if (val === 0 && (c.key === 'hundreds' || c.key === 'twoX100' || c.key === 'fifties' || c.key === 'mom' || c.key === 'contribPct')) val = '0';
+      const hl = c.cls.includes('highlight') ? ' highlight' : '';
+      return `<td class="${c.cls}${hl}">${val ?? '—'}</td>`;
+    }).join('') + '</tr>';
+  }).join('');
+
+  renderPag();
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Pagination
+   ────────────────────────────────────────────────────────────────────────── */
+function renderPag() {
+  const totalPages = Math.ceil(filtered.length / PER_PAGE);
+  const pag = document.getElementById('pag');
+  if (totalPages <= 1) { pag.innerHTML = ''; return; }
+
+  let html = `<button class="pag-btn" onclick="goPage(1)" ${page===1?'disabled':''}>«</button>`;
+  html += `<button class="pag-btn" onclick="goPage(${page-1})" ${page===1?'disabled':''}>‹</button>`;
+
+  let start = Math.max(1, page - 2), end = Math.min(totalPages, page + 2);
+  if (page <= 3) end = Math.min(5, totalPages);
+  if (page >= totalPages - 2) start = Math.max(1, totalPages - 4);
+
+  for (let i = start; i <= end; i++) {
+    html += `<button class="pag-btn${i===page?' on':''}" onclick="goPage(${i})">${i}</button>`;
+  }
+
+  html += `<button class="pag-btn" onclick="goPage(${page+1})" ${page===totalPages?'disabled':''}>›</button>`;
+  html += `<button class="pag-btn" onclick="goPage(${totalPages})" ${page===totalPages?'disabled':''}>»</button>`;
+  html += `<span style="font-size:11px;color:var(--text3);margin-left:8px">${filtered.length.toLocaleString()} players</span>`;
+  pag.innerHTML = html;
+}
+
+function goPage(n) {
+  const totalPages = Math.ceil(filtered.length / PER_PAGE);
+  page = Math.max(1, Math.min(n, totalPages));
+  render();
+  document.querySelector('.tbl-wrap').scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Filter tags
+   ────────────────────────────────────────────────────────────────────────── */
+function renderTags() {
+  const f = getFilters();
+  const tags = [];
+  const x = '<svg viewBox="0 0 24 24" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+
+  if (f.country)  tags.push(`<span class="fp-tag" onclick="document.getElementById('fCountry').value='';applyFilters()">${f.country} ${x}</span>`);
+  if (f.era) {
+    const label = f.era === 'pre1950' ? 'Pre-1950' : f.era + 's';
+    tags.push(`<span class="fp-tag" onclick="document.getElementById('fEra').value='';applyFilters()">${label} ${x}</span>`);
+  }
+  if (f.pos) {
+    const posLabels = {'1-3':'Top order','4-5':'Middle order','6-7':'Lower middle','8-11':'Tail'};
+    tags.push(`<span class="fp-tag" onclick="document.getElementById('fPos').value='';applyFilters()">${posLabels[f.pos]||f.pos} ${x}</span>`);
+  }
+  if (f.tests)  tags.push(`<span class="fp-tag" onclick="document.getElementById('fTests').value='0';applyFilters()">Tests ≥${f.tests} ${x}</span>`);
+  if (f.inns)   tags.push(`<span class="fp-tag" onclick="document.getElementById('fInns').value='0';applyFilters()">Inns ≥${f.inns} ${x}</span>`);
+  if (f.runs)   tags.push(`<span class="fp-tag" onclick="document.getElementById('fRuns').value='0';applyFilters()">Runs ≥${f.runs.toLocaleString()} ${x}</span>`);
+  if (f.avg)    tags.push(`<span class="fp-tag" onclick="document.getElementById('fAvg').value='0';applyFilters()">Avg ≥${f.avg} ${x}</span>`);
+  if (f.sr)     tags.push(`<span class="fp-tag" onclick="document.getElementById('fSR').value='0';applyFilters()">SR ≥${f.sr} ${x}</span>`);
+  if (f.contrib) tags.push(`<span class="fp-tag" onclick="document.getElementById('fContrib').value='0';applyFilters()">%Ct/Inn ≥${f.contrib}% ${x}</span>`);
+  f.opponents.forEach(o => {
+    tags.push(`<span class="fp-tag" onclick="document.querySelector('#msOpp-drop input[value=\\'${o}\\']').checked=false;applyFilters()">vs ${o} ${x}</span>`);
+  });
+
+  const box = document.getElementById('tagBox');
+  box.innerHTML = tags.join('');
+  document.getElementById('filterCount').textContent = tags.length ? `(${tags.length} active)` : '';
+  updateExportButton(tags.length);
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Export gating: at least 2 active filters required
+   ────────────────────────────────────────────────────────────────────────── */
+function updateExportButton(activeCount) {
+  const btn = document.getElementById('exportBtn');
+  if (!btn) return;
+  const enabled = activeCount >= 2;
+  btn.disabled = !enabled;
+  if (enabled) {
+    btn.style.opacity = '1';
+    btn.style.cursor = 'pointer';
+    btn.title = 'Download current view as .xlsx — respects active filters';
+    btn.style.background = 'var(--surface)';
+    btn.style.color = 'var(--text2)';
+    btn.style.borderColor = 'var(--border)';
+  } else {
+    btn.style.opacity = '0.45';
+    btn.style.cursor = 'not-allowed';
+    const need = Math.max(0, 2 - activeCount);
+    btn.title = `Select at least ${need} more filter${need === 1 ? '' : 's'} to enable export`;
+    btn.style.background = 'var(--surface)';
+    btn.style.color = 'var(--text3)';
+    btn.style.borderColor = 'var(--border)';
+  }
+}
+
+function resetFilters() {
+  document.getElementById('fCountry').value = '';
+  document.getElementById('fEra').value = '';
+  document.getElementById('fPos').value = '';
+  document.getElementById('fTests').value = '0';
+  document.getElementById('fInns').value = '0';
+  document.getElementById('fRuns').value = '0';
+  document.getElementById('fAvg').value = '0';
+  document.getElementById('fSR').value = '0';
+  document.getElementById('fContrib').value = '0';
+  document.getElementById('fSearch').value = '';
+  document.querySelectorAll('#msOpp-drop input').forEach(c => c.checked = false);
+  applyFilters();
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Export to Excel
+   ────────────────────────────────────────────────────────────────────────── */
+function exportToExcel() {
+  // Gating: refuse if fewer than 2 active filters (defense beyond the disabled button)
+  const btn = document.getElementById('exportBtn');
+  if (btn && btn.disabled) {
+    alert('Please select at least 2 filters before exporting.');
+    return;
+  }
+  if (!filtered.length) { alert('No data to export.'); return; }
+
+  const threshold = +document.getElementById('fContrib').value || 0;
+
+  const EXPORT_COLS = [
+    { label:'#',                  fn:(p,i) => i + 1 },
+    { label:'Player',             fn:p => p.fullName || p.name || '' },
+    { label:'Country',            fn:p => p.country || '' },
+    { label:'From',               fn:p => p.from || '' },
+    { label:'To',                 fn:p => p.to || '' },
+    { label:'Tests',              fn:p => p.tests ?? '' },
+    { label:'Innings',            fn:p => p.inns ?? '' },
+    { label:'Not Outs',           fn:p => p.no ?? '' },
+    { label:'Runs',               fn:p => p.runs ?? '' },
+    { label:'HS',                 fn:p => p.hs ?? '' },
+    { label:'Average',            fn:p => p.avg ? Number(p.avg).toFixed(2) : '' },
+    { label:'Strike Rate',        fn:p => p.sr ? Number(p.sr).toFixed(2) : '' },
+    { label:'100s',               fn:p => p.hundreds ?? '' },
+    { label:'2x100s',             fn:p => p.twoX100 ?? '' },
+    { label:'50s',                fn:p => p.fifties ?? '' },
+    { label:'%Ct/Inn (≥' + threshold + '%)', fn:p => getContribCount(p, threshold) },
+    { label:'MoM',                fn:p => p.mom ?? '' },
+    { label:'Bowl Type',          fn:p => p.bowlType || '' },
+    { label:'Bat Hand',           fn:p => p.batHand || '' },
+  ];
+
+  const headers = EXPORT_COLS.map(c => c.label);
+  const rows = filtered.map((p, i) => EXPORT_COLS.map(c => c.fn(p, i)));
+
+  const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+
+  // Column widths
+  ws['!cols'] = EXPORT_COLS.map((c, i) => {
+    const maxData = Math.max(...rows.map(r => String(r[i]).length));
+    return { wch: Math.max(c.label.length, maxData) + 2 };
+  });
+
+  // Bold header row
+  headers.forEach((_, i) => {
+    const addr = XLSX.utils.encode_cell({ r:0, c:i });
+    if (ws[addr]) ws[addr].s = { font: { bold: true } };
+  });
+
+  const wb = XLSX.utils.book_new();
+
+  // Sheet name from active filters
+  const f = getFilters();
+  const parts = ['Batting'];
+  if (f.country) parts.push(f.country);
+  if (f.era) parts.push(f.era === 'pre1950' ? 'Pre1950' : f.era + 's');
+  if (f.runs) parts.push(f.runs + '+R');
+  if (f.avg)  parts.push('Avg' + f.avg);
+  const sheetName = parts.join('_').slice(0, 31);
+
+  XLSX.utils.book_append_sheet(wb, ws, sheetName);
+
+  const fname = 'CricketTimes_' + parts.join('_') + '_' + filtered.length + 'players.xlsx';
+  XLSX.writeFile(wb, fname);
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Init
+   ────────────────────────────────────────────────────────────────────────── */
+(async function init() {
+  try {
+    D = await CTData.load('data');          // gated fetch (Bearer token + browser gzip inflate)
+  } catch (e) {
+    console.error('Failed to load match data:', e);
+    return;                                 // page is paid-gated; non-entitled users are redirected before this runs
+  }
+  buildPlayers();
+  buildTwoX100();
+  buildContribPct();
+  buildOpponentLookup();
+  populateCountries();
+  applyFilters();
+})();
+</script>
+
+<!-- ══ Support Banner ══ -->
+<div class="ct-support-banner">
+  <div class="ct-support-inner">
+    <div class="ct-support-icon">
+      <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M12 2a2.5 2.5 0 0 0-2.5 2.5h5A2.5 2.5 0 0 0 12 2z"/><circle cx="12" cy="19" r="2" fill="var(--accent,#a03020)" stroke="none"/></svg>
+    </div>
+    <div class="ct-support-content">
+      <div class="ct-support-headline">Support <em>Independent</em> Cricket Stories</div>
+      <div class="ct-support-body">Cricket Times is free and independent. If you find value in our stories, analyses and tools, consider buying me a coffee to keep the scoreboard ticking.</div>
+    </div>
+    <div class="ct-support-actions">
+      <a href="https://buymeacoffee.com/YOUR_USERNAME" target="_blank" rel="noopener" class="ct-support-btn">
+        <svg viewBox="0 0 24 24"><path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><line x1="6" y1="2" x2="6" y2="4"/><line x1="10" y1="2" x2="10" y2="4"/><line x1="14" y1="2" x2="14" y2="4"/></svg>
+        Buy Me a Coffee
+      </a>
+      <span class="ct-support-aside">This is a personal contribution, not a donation — contributions are not tax-deductible.</span>
+    </div>
+  </div>
+</div>
+
+<footer data-ct-nav="footer"></footer>
+<script src="ct-nav.js"></script>
+
+</body>
+</html>

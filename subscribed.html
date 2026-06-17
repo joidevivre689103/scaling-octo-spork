@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Welcome — Cricket Times</title>
+  <meta name="description" content="Your Cricket Times subscription is active. Sign in to start reading." />
+
+  <!-- Fonts: matches subscribe.html / about.html -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400;1,600;1,700&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet">
+
+  <style>
+    /* ──────────────────────────────────────────────────────────
+       Palette + base — verbatim from subscribe.html / about.html
+       so cross-page borders/creams match exactly.
+       ────────────────────────────────────────────────────────── */
+    :root {
+      --cream: #fdfaf3;
+      --cream-shade: #f5efe0;
+      --rule: #c8b89a;
+      --rule-soft: #e2d9c4;
+      --ink: #1a1410;
+      --ink-light: #4a4138;
+      --ink-faint: #7a6f63;
+      --crimson: #8b1a1a;
+      --crimson-light: #a83232;
+      --gold: #b08a3e;
+      --warn: #b54a00;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body { height: 100%; }
+
+    body {
+      background: var(--cream);
+      color: var(--ink);
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-weight: 400;
+      font-size: 17px;
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* ──────────────────────────────────────────────────────────
+       Inline masthead — subscribe.html convention.
+       Eyebrow + two-tone wordmark + section-rule.
+       ────────────────────────────────────────────────────────── */
+    .masthead {
+      text-align: center;
+      padding: 2.25rem 1rem 1.25rem;
+      border-bottom: 3px double var(--rule);
+      background: var(--cream);
+    }
+
+    .masthead-eyebrow {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-style: italic;
+      font-weight: 400;
+      font-size: 0.78rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+      margin-bottom: 0.55rem;
+    }
+
+    .masthead-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-weight: 900;
+      font-size: clamp(2.6rem, 7vw, 4.2rem);
+      letter-spacing: -0.015em;
+      line-height: 1;
+      color: var(--ink);
+    }
+
+    .masthead-title span {
+      font-style: normal;
+      font-weight: 900;
+      color: var(--crimson);
+    }
+
+    .masthead-rule {
+      max-width: 1100px;
+      margin: 1rem auto 0;
+      padding-top: 0.65rem;
+      border-top: 1px solid var(--rule);
+      font-family: 'Playfair Display', Georgia, serif;
+      font-style: italic;
+      font-weight: 400;
+      font-size: 0.95rem;
+      letter-spacing: 0.04em;
+      color: var(--ink-faint);
+    }
+
+    /* Back-nav — matches subscribe.html / privacy.html */
+    .back-nav {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 0.9rem 1.25rem 0;
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: 0.92rem;
+    }
+
+    .back-nav a {
+      color: var(--ink-light);
+      text-decoration: none;
+      transition: opacity 0.18s ease;
+    }
+    .back-nav a:hover { opacity: 0.72; }
+
+    /* Main */
+    main {
+      flex: 1;
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 2rem 1.25rem 4rem;
+      width: 100%;
+    }
+
+    .section-kicker {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-style: italic;
+      font-weight: 400;
+      font-size: 0.86rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--crimson);
+      text-align: center;
+      margin-bottom: 0.4rem;
+    }
+
+    h1.welcome-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-weight: 700;
+      font-size: clamp(2rem, 5.5vw, 3rem);
+      line-height: 1.12;
+      letter-spacing: -0.01em;
+      text-align: center;
+      margin: 0 auto 1.4rem;
+      color: var(--ink);
+      max-width: 16ch;
+    }
+
+    .lede {
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-weight: 300;
+      font-size: 1.18rem;
+      line-height: 1.6;
+      text-align: center;
+      color: var(--ink-light);
+      margin: 0 auto 2.2rem;
+      max-width: 36rem;
+    }
+
+    .lede em {
+      font-style: italic;
+      color: var(--ink);
+    }
+
+    /* ──────────────────────────────────────────────────────────
+       Sign-in card — the headline next step.
+       This is the actual gateway to using the subscription:
+       paid features check Firebase Auth, so the reader needs
+       to be signed in (via email-link magic link) with the
+       same email they used at Stripe Checkout.
+       ────────────────────────────────────────────────────────── */
+    .signin-card {
+      border: 1px solid var(--rule);
+      background: #fbf6ec;
+      padding: 1.7rem 1.7rem 1.6rem;
+      margin: 0 auto 2rem;
+      max-width: 36rem;
+    }
+
+    .signin-eyebrow {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-style: italic;
+      font-weight: 400;
+      font-size: 0.78rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 0.5rem;
+      text-align: center;
+    }
+
+    .signin-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-weight: 700;
+      font-size: 1.45rem;
+      line-height: 1.2;
+      color: var(--ink);
+      margin-bottom: 0.7rem;
+      text-align: center;
+    }
+
+    .signin-title .crimson { color: var(--crimson); }
+
+    .signin-blurb {
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: 0.96rem;
+      line-height: 1.55;
+      color: var(--ink-light);
+      text-align: center;
+      margin-bottom: 1.3rem;
+    }
+
+    .signin-blurb strong {
+      color: var(--ink);
+      font-weight: 600;
+    }
+
+    .signin-form {
+      display: flex;
+      flex-direction: column;
+      gap: 0.7rem;
+      max-width: 24rem;
+      margin: 0 auto;
+    }
+
+    .signin-btn {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-weight: 600;
+      font-size: 0.98rem;
+      letter-spacing: 0.04em;
+      padding: 0.78rem 1.4rem;
+      border: 1px solid var(--ink);
+      background: var(--ink);
+      color: var(--cream);
+      cursor: pointer;
+      transition: background 0.18s ease, border-color 0.18s ease;
+      width: 100%;
+    }
+    .signin-btn:hover { background: var(--crimson); border-color: var(--crimson); }
+    .signin-btn:disabled { opacity: 0.55; cursor: wait; }
+
+    .signin-status {
+      margin-top: 1rem;
+      padding: 0.85rem 1rem;
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: 0.94rem;
+      line-height: 1.5;
+      border-left: 3px solid var(--rule);
+      background: var(--cream);
+      color: var(--ink-light);
+      max-width: 24rem;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .signin-status.success {
+      border-left-color: var(--gold);
+      color: var(--ink);
+    }
+
+    .signin-status.error {
+      border-left-color: var(--warn);
+      color: var(--warn);
+    }
+
+    .signin-status strong { font-weight: 600; color: var(--ink); }
+
+    .signedin-panel {
+      text-align: center;
+      padding: 0.4rem 0 0.2rem;
+    }
+
+    .signedin-email {
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 0.92rem;
+      color: var(--crimson);
+      word-break: break-all;
+      margin-bottom: 1rem;
+    }
+
+    /* Body prose */
+    .prose p {
+      margin: 0 auto 1.1rem;
+      max-width: 36rem;
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: 1.05rem;
+      line-height: 1.7;
+      color: var(--ink);
+    }
+
+    .prose p.muted {
+      color: var(--ink-light);
+      font-size: 0.98rem;
+    }
+
+    .prose em { font-style: italic; }
+
+    .prose a {
+      color: var(--crimson);
+      text-decoration: none;
+      border-bottom: 1px solid var(--rule-soft);
+    }
+    .prose a:hover { border-bottom-color: var(--crimson); }
+
+    .receipt {
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: 0.82rem;
+      color: var(--ink-faint);
+      text-align: center;
+      margin: 1.6rem auto 0;
+      max-width: 36rem;
+      letter-spacing: 0.02em;
+    }
+
+    .receipt .receipt-id {
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 0.78rem;
+      color: var(--ink-faint);
+      word-break: break-all;
+    }
+
+    /* Action row */
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.85rem;
+      margin: 2rem auto 0.5rem;
+      max-width: 36rem;
+    }
+
+    .btn {
+      display: inline-block;
+      font-family: 'Playfair Display', Georgia, serif;
+      font-weight: 600;
+      font-size: 0.95rem;
+      letter-spacing: 0.04em;
+      text-decoration: none;
+      padding: 0.78rem 1.4rem;
+      border: 1px solid var(--ink);
+      transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+      text-align: center;
+      min-width: 200px;
+    }
+
+    .btn-primary {
+      background: var(--ink);
+      color: var(--cream);
+      border-color: var(--ink);
+    }
+    .btn-primary:hover { background: var(--crimson); border-color: var(--crimson); }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--ink);
+      border-color: var(--rule);
+    }
+    .btn-secondary:hover { background: var(--cream-shade); border-color: var(--ink-light); }
+
+    /* Closing flourish */
+    .closing {
+      text-align: center;
+      margin: 3rem auto 0;
+      max-width: 36rem;
+    }
+
+    .closing-rule {
+      width: 60px;
+      height: 1px;
+      background: var(--rule);
+      margin: 0 auto 1.2rem;
+    }
+
+    .closing-tagline {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-style: italic;
+      font-weight: 400;
+      font-size: 1.05rem;
+      letter-spacing: 0.06em;
+      color: var(--crimson);
+    }
+
+    .closing-sig {
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: 0.85rem;
+      color: var(--ink-faint);
+      margin-top: 0.6rem;
+      letter-spacing: 0.04em;
+    }
+
+    /* Mobile */
+    @media (max-width: 600px) {
+      .masthead { padding: 1.75rem 1rem 1rem; }
+      .signin-card { padding: 1.3rem 1.1rem 1.4rem; }
+      .actions { flex-direction: column; align-items: stretch; }
+      .btn { min-width: 0; width: 100%; }
+    }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+  <!-- Inline masthead (subscribe.html convention — no ct-nav) -->
+  <header class="masthead">
+    <div class="masthead-eyebrow">Est. The Digital Age</div>
+    <div class="masthead-title">Cricket <span>Times</span></div>
+    <div class="masthead-rule">Welcome</div>
+  </header>
+
+  <div class="back-nav">
+    <a href="stories.html">← Return to Front Page</a>
+  </div>
+
+  <main>
+
+    <!-- Hero copy defaults to the post-checkout welcome (the page's
+         primary job as Stripe's success_url). The not-subscribed
+         state rewrites these via their ids — a signed-in free reader
+         must not be told their subscription is active. -->
+    <div class="section-kicker" id="pageKicker">A New Reader in the Pavilion</div>
+
+    <h1 class="welcome-title" id="pageTitle">Thank you for joining us.</h1>
+
+    <p class="lede" id="pageLede">
+      Your subscription is <em>active</em>, and the archive is open. Audio,
+      simulations, data exports &mdash; the whole pavilion.
+    </p>
+
+    <!-- ──────────────────────────────────────────────────────────
+         Sign-in card — resolves to one of four panels at runtime
+         based on Firebase auth state and subscription doc status:
+           (a) formPanel        — anonymous reader fresh from Stripe
+                                  Checkout. Email-link sign-in form.
+           (b) processingPanel  — signed in, just paid, but the
+                                  webhook hasn't written the sub doc
+                                  yet. Brief retry state.
+           (c) alignedPanel     — signed in with the email that was
+                                  used at checkout, status active.
+                                  Welcome and confirm.
+           (d) misalignedPanel  — signed in, but the subscription
+                                  was created against a different
+                                  email. Offer sign-out-and-redo or
+                                  contact-Ivan-to-merge.
+         The default visible state on first paint is (a). The JS
+         handler swaps panels once auth + subscription resolve.
+         ────────────────────────────────────────────────────────── -->
+    <div class="signin-card" id="signinCard">
+
+      <!-- (a) Anonymous reader (default visible state). Item (b),
+           2026-06-05: the in-page magic-link form is gone — all auth
+           lives on /login.html now. Post-(b), anyone who completed
+           checkout has a password account by construction, so this
+           panel (reachable only via direct visits or signed-out
+           states) just carries the reader to the sign-in page and
+           back, session_id preserved. -->
+      <div id="formPanel">
+        <div class="signin-eyebrow">Final step</div>
+        <div class="signin-title">
+          Sign in to confirm your <span class="crimson">subscription</span>.
+        </div>
+        <div class="signin-blurb">
+          Use the <strong>same email you used at checkout</strong>, with your
+          Cricket Times password. You&rsquo;ll land right back here.
+        </div>
+
+        <div class="signin-form">
+          <button type="button" class="signin-btn" id="signinBtn">
+            Sign in to Cricket Times
+          </button>
+        </div>
+
+        <div class="signin-status hidden" id="formStatus"></div>
+      </div>
+
+      <!-- (b) Processing: signed in, but subscription doc not yet present.
+              Webhooks are typically delivered within seconds but not
+              guaranteed instant — show a brief "we're confirming" state
+              and re-check rather than mistakenly showing the misaligned
+              copy. -->
+      <div id="processingPanel" class="signedin-panel hidden">
+        <div class="signin-eyebrow">Confirming</div>
+        <div class="signin-title">
+          Setting up your <span class="crimson">subscriber</span> access&hellip;
+        </div>
+        <div class="signin-blurb">
+          Stripe and the site are exchanging the last few notes. This usually
+          takes a few seconds.
+        </div>
+        <div class="signedin-email" id="processingEmail"></div>
+      </div>
+
+      <!-- (c) Aligned: signed in, subscription doc found for this email,
+              status active. Everything matches; just confirm and welcome. -->
+      <div id="alignedPanel" class="signedin-panel hidden">
+        <div class="signin-eyebrow" id="alignedTier">Subscriber</div>
+        <div class="signin-title">
+          You&rsquo;re all set, <span class="crimson">subscriber</span>.
+        </div>
+        <div class="signin-blurb">Signed in as</div>
+        <div class="signedin-email" id="alignedEmail"></div>
+        <div class="signin-blurb">
+          The archive is open. Audio, simulations, data exports &mdash; all yours.
+        </div>
+        <div class="signin-blurb" style="margin-top: -0.4rem;">
+          <a href="/manage.html">Manage your subscription</a>
+        </div>
+      </div>
+
+      <!-- (d) Misaligned: signed in as one email, but the subscription
+              was created against a different email. This happens when a
+              reader is logged in on the site (e.g. to comment on
+              articles) and then types a different address into Stripe
+              Checkout. The site recognises a subscription by email,
+              so they need to match.
+
+              The page presents ONE remedy: sign out and sign in again
+              with the checkout email. It does NOT offer a "write to Ivan
+              to merge accounts" path — that's a support-volume tax IJ
+              can't sustainably absorb solo. Genuinely-stuck readers can
+              still find the contact link in the site footer; not putting
+              it on the panel itself is the friction that filters lazy
+              contact from real contact. -->
+      <div id="misalignedPanel" class="signedin-panel hidden">
+        <div class="signin-eyebrow">One small thing</div>
+        <div class="signin-title">
+          Sign in with your <span class="crimson">checkout</span> email.
+        </div>
+        <div class="signin-blurb">
+          You&rsquo;re currently signed in as
+          <strong id="misalignedCurrentEmail"></strong>, but your subscription
+          is tied to a different address. The site recognises your
+          subscription by email, so they need to match.
+        </div>
+        <div class="signin-blurb" style="margin-bottom:1rem">
+          One tap below signs you out and takes you to the sign-in page
+          &mdash; sign in there with the email you used at checkout.
+        </div>
+        <div class="signin-form">
+          <button type="button" class="signin-btn" id="signoutBtn">
+            Sign out and use the checkout email
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Body prose — sits below the action so it doesn't compete -->
+    <div class="prose">
+      <p>
+        The work here is, on most days, a careful kind of attention paid to a
+        slow game and the people who play it. Long thoughts about Bradman&rsquo;s
+        average, McGrath&rsquo;s length, Bazball as data, the captains who
+        changed the culture and the keepers nobody noticed. Some shorter
+        pieces too, when a moment in a one-day game or a T20 deserves them.
+        <span id="independenceLine">Your subscription helps keep all of it independent.</span>
+      </p>
+      <p class="muted" id="receiptNote">
+        A receipt is on its way to your inbox from Stripe. If anything looks
+        amiss with your subscription, write to
+        <a href="mailto:ivan@cricketimes.com">ivan@cricketimes.com</a>
+        and I&rsquo;ll sort it out personally.
+      </p>
+    </div>
+
+    <!-- Reading actions — secondary CTAs.
+         Free articles are open without sign-in, so these work for
+         a reader who wants to start reading right now and verify
+         their email link later. -->
+    <div class="actions">
+      <a href="stories.html" class="btn btn-primary">Read the latest</a>
+      <a href="archive.html" class="btn btn-secondary">Open the archive</a>
+    </div>
+
+    <!-- Stripe session id, shown small and quiet -->
+    <p class="receipt hidden" id="receiptLine">
+      Reference: <span class="receipt-id" id="receiptId"></span>
+    </p>
+
+    <!-- Closing flourish -->
+    <div class="closing">
+      <div class="closing-rule"></div>
+      <div class="closing-tagline">Read the game.</div>
+      <div class="closing-sig">— Ivan</div>
+    </div>
+
+  </main>
+
+  <!-- Site-wide footer is delegated to ct-nav.js -->
+  <footer data-ct-nav="footer"></footer>
+
+  <!-- Firebase compat SDK (matches site convention) -->
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
+
+  <script>
+  (function(){
+    // ────────────────────────────────────────────────────────────
+    // Stripe session_id from URL — shown as a quiet receipt line.
+    // Absence is fine; the page is still useful as a generic
+    // welcome page if reached directly.
+    // ────────────────────────────────────────────────────────────
+    const params = new URLSearchParams(window.location.search);
+    const sessionId = params.get('session_id') || '';
+
+    if (sessionId) {
+      const line = document.getElementById('receiptLine');
+      const id   = document.getElementById('receiptId');
+      if (line && id) {
+        id.textContent = sessionId;
+        line.classList.remove('hidden');
+      }
+    }
+
+    // ────────────────────────────────────────────────────────────
+    // Page framing (added 2026-06-05, found in (b) testing).
+    //
+    // The static markup is the post-checkout celebration ("your
+    // subscription is active") because this page is Stripe's
+    // success_url. But it's also reachable directly, and a direct
+    // visitor — anonymous or signed-in-free — must not be told
+    // they're subscribed. Post-(b), every genuine Stripe arrival
+    // carries a session_id, so that's the discriminator:
+    //
+    //   session_id present → keep the celebratory default
+    //   absent             → neutral framing, applied synchronously
+    //                        here (script is at end of body, so no
+    //                        flash of the wrong copy)
+    //   signed-in + positively not subscribed → 'notsub' framing
+    //                        (applied later by the panel logic)
+    // ────────────────────────────────────────────────────────────
+    function setFraming(state) {
+      const kicker = document.getElementById('pageKicker');
+      const title  = document.getElementById('pageTitle');
+      const lede   = document.getElementById('pageLede');
+      const indep  = document.getElementById('independenceLine');
+      const note   = document.getElementById('receiptNote');
+
+      if (state === 'neutral') {
+        if (kicker) kicker.textContent = 'The Pavilion';
+        if (title)  title.textContent = 'Welcome.';
+        if (lede) {
+          lede.innerHTML =
+            'Just subscribed? Sign in below and we\u2019ll confirm ' +
+            'everything. Not a subscriber yet? ' +
+            '<a href="/subscribe.html">The members\u2019 room is this way</a>.';
+        }
+        if (indep) indep.textContent = 'Subscriptions keep all of it independent.';
+        if (note) note.classList.add('hidden');
+      } else if (state === 'notsub') {
+        if (kicker) kicker.textContent = 'A Reader in the Pavilion';
+        if (title)  title.textContent = 'Welcome \u2014 you\u2019re signed in.';
+        if (lede) {
+          lede.innerHTML =
+            'Your account gets you a name on the site and a voice in the ' +
+            'comments. The archive, audio, simulations and data exports ' +
+            'open with a <a href="/subscribe.html">subscription</a>.';
+        }
+        if (indep) indep.textContent = 'Subscriptions keep all of it independent.';
+        if (note) {
+          note.classList.remove('hidden');
+          note.innerHTML =
+            'You haven\u2019t been charged anything \u2014 there\u2019s no ' +
+            'subscription on this account. If you believe that\u2019s wrong, ' +
+            'write to <a href="mailto:ivan@cricketimes.com">ivan@cricketimes.com</a> ' +
+            'and I\u2019ll sort it out personally.';
+        }
+      }
+    }
+
+    if (!sessionId) setFraming('neutral');
+
+    // ────────────────────────────────────────────────────────────
+    // Firebase setup — public keys are intentionally public
+    // (security enforced by Firestore rules, not key secrecy).
+    // Same config as cms / admin / secrets.
+    // ────────────────────────────────────────────────────────────
+    const firebaseConfig = {
+      apiKey: "AIzaSyBnfn9hK0y-p6nvIZ_AwoJnWD7DfDuIQd4",
+      authDomain: "hitwicket-cba02.firebaseapp.com",
+      projectId: "hitwicket-cba02",
+      storageBucket: "hitwicket-cba02.firebasestorage.app"
+    };
+
+    let auth, db;
+    try {
+      if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+      auth = firebase.auth();
+      db   = firebase.firestore();
+    } catch (e) {
+      console.warn('[subscribed] Firebase init failed:', e && e.message);
+      const status = document.getElementById('formStatus');
+      if (status) {
+        status.classList.remove('hidden');
+        status.classList.add('error');
+        status.innerHTML =
+          'We couldn&rsquo;t reach the sign-in service from this page. ' +
+          'Your subscription is still active &mdash; try <a href="/login.html" ' +
+          'style="color:inherit;border-bottom:1px solid currentColor;">signing in here</a>, ' +
+          'or write to ' +
+          '<a href="mailto:ivan@cricketimes.com" style="color:inherit;border-bottom:1px solid currentColor;">ivan@cricketimes.com</a>.';
+      }
+      return;
+    }
+
+    // ────────────────────────────────────────────────────────────
+    // Sign-in handoff to /login.html (item b, 2026-06-05).
+    //
+    // The in-page magic-link flow that used to live here
+    // (sendSignInLinkToEmail → localStorage ct_pendingSignInEmail →
+    // isSignInWithEmailLink completion on return) is gone. It was a
+    // second, parallel auth system — and a passwordless-account
+    // creation path that login.html couldn't sign in afterwards.
+    //
+    // All auth is now /login.html (password). This page only builds
+    // the round-trip: signin tab, returnUrl pointing back here with
+    // session_id preserved so the receipt line and the webhook-retry
+    // logic survive the trip. login.html sanitizes returnUrl
+    // (same-origin paths only) and redirects after signin.
+    // ────────────────────────────────────────────────────────────
+    function buildReturnUrl() {
+      const base = window.location.pathname;
+      return sessionId ? base + '?session_id=' + encodeURIComponent(sessionId) : base;
+    }
+
+    function goToLogin() {
+      window.location.href =
+        '/login.html?mode=signin&returnUrl=' + encodeURIComponent(buildReturnUrl());
+    }
+
+    const signinGoBtn = document.getElementById('signinBtn');
+    if (signinGoBtn) {
+      signinGoBtn.addEventListener('click', goToLogin);
+    }
+
+    // Step (c): swap form for signed-in panel when authenticated.
+    // Try to upgrade tier label from subscriptions/{userId}.priceKey;
+    // failures are silent (default "Subscriber" label is fine).
+    const TIER_LABELS = {
+      usd_monthly:  'Monthly Subscriber',
+      usd_annual:   'Annual Subscriber',
+      usd_founding: 'Founding Member',
+      inr_monthly:  'Monthly Subscriber',
+      inr_annual:   'Annual Subscriber',
+      inr_founding: 'Founding Member'
+    };
+
+    function emailToUserId(email) {
+      // Mirrors the userId convention used by the webhook:
+      // "joseph.ivan@outlook.com" → "joseph_ivan_outlook_com"
+      return String(email || '')
+        .toLowerCase()
+        .replace(/\./g, '_')
+        .replace(/@/g, '_');
+    }
+
+    auth.onAuthStateChanged(function(user){
+      if (!user || !user.email) return;
+      // The reader is signed in. Three possible alignment states:
+      //   (b) processing — no subscription doc yet (webhook delay)
+      //   (c) aligned    — subscription doc exists for this email,
+      //                    status active
+      //   (d) misaligned — no subscription doc for this email
+      //                    (probably paid with a different address)
+      //
+      // We hide the form panel immediately so the reader never sees
+      // a sign-in form they don't need, then resolve which of (b)/(c)/(d)
+      // to show.
+      const formPanel = document.getElementById('formPanel');
+      if (formPanel) formPanel.classList.add('hidden');
+
+      resolveSignedInState(user);
+    });
+
+    // ────────────────────────────────────────────────────────────
+    // resolveSignedInState — branch (b) / (c) / (d).
+    //
+    // We came here knowing the reader is signed in. We need to find
+    // out whether their email is recognised as a paid subscriber.
+    //
+    // Source of truth (item h paid-axis, rewired 2026-06-05):
+    // subscriptions/{emailKey}.status — the single doc the webhook
+    // writes on Stripe events, the same doc createCheckoutSession,
+    // subscribe.html, and the rules-side isPaidSubscriber() consult.
+    // Statuses counting as paid: 'active' and 'past_due' (Stripe
+    // dunning grace window — same policy everywhere).
+    //
+    // The rules grant owner-read on this doc (caller's auth-token
+    // email, encoded, must equal the doc ID), so the signed-in
+    // reader can read their own subscription. This page already
+    // relied on that read for the tier label.
+    //
+    // HISTORY: this previously read settings/userTypes and checked
+    // role ∈ {priority, admin, superadmin}. After (h), the webhook
+    // no longer writes userTypes — paid status would silently never
+    // appear there for a real subscriber, and 'priority' is retired.
+    // userTypes now carries operational roles only.
+    //
+    // The subscription doc is written by stripeWebhook on the
+    // checkout.session.completed event, which is normally delivered
+    // within a second or two of payment but NOT guaranteed instant.
+    // So if the doc isn't paid yet, we retry briefly before
+    // concluding it's a real misalignment.
+    //
+    // Three possible outcomes from the read:
+    //
+    //   read SUCCEEDED, doc exists with paid status
+    //     → aligned. Welcome them. (We then optionally upgrade
+    //       the tier label from the generic one via priceKey on
+    //       the same doc — secondary, failure silent.)
+    //
+    //   read SUCCEEDED, doc missing or status not paid
+    //     → positive evidence of "not paid on this email".
+    //       With a session_id (payment just made): misaligned
+    //       panel — they paid under a different address.
+    //       Without one: not-subscribed panel — honest copy
+    //       with a path to subscribe (split added 2026-06-05).
+    //
+    //   read FAILED (permission denied, network, etc.)
+    //     → INCONCLUSIVE. We can't tell the difference between
+    //       "not a subscriber" and "rules quirk we can't predict".
+    //       Showing the alarming misaligned panel for an
+    //       inconclusive case is worse than wrong — it tells a
+    //       valid subscriber their payment is in trouble when
+    //       it isn't. Fall back to a soft alignedPanel with a
+    //       generic "you're signed in, the archive should open"
+    //       message and let the access gate be the actual gate.
+    //
+    // Retry rules:
+    //   - We have a session_id (reader just came from Stripe
+    //     Checkout) → if the doc is missing/unpaid or the read is
+    //     inconclusive on first try, retry up to ~10 seconds
+    //     for the webhook to fire. After that, take the result
+    //     at face value.
+    //   - No session_id (signed-in reader navigated here directly)
+    //     → one shot. No payment in flight; whatever the doc
+    //     says now is what's true.
+    //
+    // Behavioral note: admins/superadmins WITHOUT a subscription
+    // doc now land on the soft-aligned panel rather than the
+    // confirmed one. Correct — this page reports subscription
+    // state, not operational role.
+    // ────────────────────────────────────────────────────────────
+    async function resolveSignedInState(user) {
+      const userKey = emailToUserId(user.email);
+
+      // Show processing panel during retries — but only when a
+      // session_id is present, otherwise we'd be falsely promising
+      // a payment is being processed when none is.
+      if (sessionId) {
+        showPanel('processingPanel');
+        const procEmail = document.getElementById('processingEmail');
+        if (procEmail) procEmail.textContent = user.email;
+      }
+
+      const maxAttempts = sessionId ? 6 : 1;
+      const delayMs     = 1700;
+
+      // readResult will be one of:
+      //   { kind: 'paid' }        — subscriptions/{emailKey}.status is paid
+      //   { kind: 'not_listed' }  — doc missing, or status isn't paid
+      //   { kind: 'inconclusive', err } — read failed (rules, network)
+      let readResult = { kind: 'inconclusive' };
+
+      // Statuses that count as paid. Mirrors the rules-side
+      // isPaidSubscriber() helper and subscribe.html's panel check:
+      // 'past_due' keeps access during Stripe's dunning grace window.
+      const PAID_STATUSES = ['active', 'past_due'];
+
+      for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        try {
+          const snap = await db.collection('subscriptions').doc(userKey).get();
+          // NOTE: compat SDK here — snap.exists is a PROPERTY (no parens),
+          // unlike modular where it's a method. This page is deliberately
+          // still on compat 10.13.2 (not a gated page; 7.4 didn't touch it).
+          if (snap && snap.exists) {
+            const data = snap.data() || {};
+            const status = String(data.status || '').toLowerCase();
+            if (PAID_STATUSES.indexOf(status) !== -1) {
+              readResult = { kind: 'paid', status: status };
+              break;
+            }
+            // Doc exists but status isn't paid (cancelled, incomplete…).
+            readResult = { kind: 'not_listed' };
+            // Don't break yet — if we have a session_id, retry to
+            // give the webhook a chance to write/update.
+          } else {
+            // No subscription doc for this email yet. With a session_id
+            // in hand this is the normal webhook-latency window; retry.
+            readResult = { kind: 'not_listed' };
+          }
+        } catch (e) {
+          console.warn('[subscribed] subscriptions read failed:', e && e.message);
+          readResult = { kind: 'inconclusive', err: e };
+        }
+        if (readResult.kind === 'paid') break;
+        if (attempt < maxAttempts - 1) {
+          await new Promise(function(r){ setTimeout(r, delayMs); });
+        }
+      }
+
+      // ──────────────────────────────────────────────────────
+      // Branch on the result.
+      // ──────────────────────────────────────────────────────
+      if (readResult.kind === 'paid') {
+        // Aligned. Show the confirmed welcome panel.
+        showAlignedPanel(user, /* confirmed */ true);
+        return;
+      }
+
+      if (readResult.kind === 'not_listed' && sessionId) {
+        // Positive evidence of misalignment, AND a payment was
+        // just made. The reader paid with a different email than
+        // they're signed in with. Show the "one small thing" panel
+        // with the single sign-out-and-redo path.
+        showPanel('misalignedPanel');
+        const cur = document.getElementById('misalignedCurrentEmail');
+        if (cur) cur.textContent = user.email;
+        return;
+      }
+
+      // Split (added 2026-06-05, found in (b) testing):
+      //
+      //   not_listed, no session_id → POSITIVE evidence of "signed in
+      //     but not subscribed". Under the old userTypes read this was
+      //     conflated with the inconclusive case and got the soft
+      //     "your subscription should be active" copy — false for a
+      //     signed-in non-subscriber. The (h) paid axis makes the two
+      //     distinguishable: rules grant owner-read on
+      //     subscriptions/{emailKey}, so a SUCCESSFUL read of a
+      //     missing/unpaid doc is a fact, not a shrug. Show honest
+      //     copy with a path to subscribe (or to re-sign-in if they
+      //     paid under a different email).
+      //
+      //   inconclusive (read FAILED) → soft-aligned, unchanged. We
+      //     genuinely can't tell, so we don't alarm; the access gate
+      //     on paid pages is the real arbiter.
+      if (readResult.kind === 'not_listed') {
+        showNotSubscribedPanel(user);
+        return;
+      }
+
+      showAlignedPanel(user, /* confirmed */ false);
+    }
+
+    // showNotSubscribedPanel — signed in, positively no active
+    // subscription on this email, no payment in flight. Reuses the
+    // alignedPanel DOM with honest copy and two ways forward.
+    function showNotSubscribedPanel(user) {
+      showPanel('alignedPanel');
+      const tierEl   = document.getElementById('alignedTier');
+      const emailEl  = document.getElementById('alignedEmail');
+      const titleEl  = document.querySelector('#alignedPanel .signin-title');
+      const blurbEls = document.querySelectorAll('#alignedPanel .signin-blurb');
+
+      if (emailEl) emailEl.textContent = user.email;
+      if (tierEl)  tierEl.textContent = 'Signed in';
+      if (titleEl) {
+        titleEl.innerHTML =
+          'You&rsquo;re signed in &mdash; but not <span class="crimson">subscribed</span> yet.';
+      }
+      if (blurbEls && blurbEls[0]) blurbEls[0].textContent = 'Signed in as';
+      if (blurbEls && blurbEls[1]) {
+        blurbEls[1].innerHTML =
+          'This email doesn&rsquo;t have an active subscription. ' +
+          '<a href="/subscribe.html">Join the members&rsquo; room</a> &mdash; ' +
+          'or if you subscribed with a different address, ' +
+          '<a href="#" id="notSubSignout">sign out</a> and sign in with that one.';
+        const so = document.getElementById('notSubSignout');
+        if (so) {
+          so.addEventListener('click', function(ev){
+            ev.preventDefault();
+            signOutToLogin();
+          });
+        }
+      }
+      // The third blurb is the "Manage your subscription" link —
+      // pointless for a non-subscriber; hide it.
+      if (blurbEls && blurbEls[2]) blurbEls[2].classList.add('hidden');
+
+      // Retune the page framing for the signed-in free reader —
+      // both the celebratory default AND the neutral framing are
+      // wrong once we positively know there's no subscription.
+      setFraming('notsub');
+    }
+
+    // showAlignedPanel — shared rendering for two flavours:
+    //   confirmed=true  → "You're all set, subscriber." with a
+    //                     specific tier label ("Annual Subscriber" etc.)
+    //                     fetched from subscriptions/{userId} if rules allow.
+    //   confirmed=false → softer copy that doesn't claim a verified
+    //                     subscription, but also doesn't alarm. Used when
+    //                     the subscriptions lookup couldn't conclude.
+    async function showAlignedPanel(user, confirmed) {
+      showPanel('alignedPanel');
+      const tierEl  = document.getElementById('alignedTier');
+      const emailEl = document.getElementById('alignedEmail');
+      const titleEl = document.querySelector('#alignedPanel .signin-title');
+      const blurbEls = document.querySelectorAll('#alignedPanel .signin-blurb');
+
+      if (emailEl) emailEl.textContent = user.email;
+
+      if (confirmed) {
+        // Default tier label is "Subscriber"; try to upgrade to
+        // a specific label from the per-user subscription doc.
+        // Failure is fully silent — the generic label is fine.
+        try {
+          const subSnap = await db.collection('subscriptions').doc(emailToUserId(user.email)).get();
+          if (subSnap && subSnap.exists) {
+            const data = subSnap.data() || {};
+            if (TIER_LABELS[data.priceKey] && tierEl) {
+              tierEl.textContent = TIER_LABELS[data.priceKey];
+            }
+          }
+        } catch (_) { /* silent — the generic eyebrow is fine */ }
+      } else {
+        // Inconclusive case — soften the copy so we don't make
+        // claims we can't back up. Reader is signed in; if they
+        // genuinely have access, they'll see it on the next click.
+        if (tierEl) tierEl.textContent = 'Signed in';
+        if (titleEl) {
+          titleEl.innerHTML =
+            'You&rsquo;re signed in as a <span class="crimson">Cricket Times</span> reader.';
+        }
+        if (blurbEls && blurbEls[0]) blurbEls[0].textContent = 'Signed in as';
+        if (blurbEls && blurbEls[1]) {
+          blurbEls[1].textContent =
+            'Your subscription should be active. If anything looks ' +
+            'amiss when you start reading, write to ivan@cricketimes.com.';
+        }
+      }
+    }
+
+    function showPanel(panelId) {
+      const ids = ['formPanel', 'processingPanel', 'alignedPanel', 'misalignedPanel'];
+      ids.forEach(function(id){
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (id === panelId) el.classList.remove('hidden');
+        else                el.classList.add('hidden');
+      });
+    }
+
+    // Shared sign-out-and-re-sign-in routine (item b): signs out,
+    // busts the gate's cached verdict so gated pages re-check with
+    // the new auth state (same pattern as login.html), then routes
+    // to /login.html with the returnUrl bringing the reader back
+    // here — session_id intact if present, so the alignment check
+    // re-runs against the right account. Used by the misaligned
+    // panel's button and the not-subscribed panel's sign-out link.
+    async function signOutToLogin() {
+      try {
+        await auth.signOut();
+      } catch (e) {
+        console.warn('[subscribed] signOut failed:', e && e.message);
+      }
+      try { sessionStorage.removeItem('ct_access_verdict_v1'); } catch (e) {}
+      goToLogin();
+    }
+
+    const signoutBtn = document.getElementById('signoutBtn');
+    if (signoutBtn) {
+      signoutBtn.addEventListener('click', function(){
+        signoutBtn.disabled = true;
+        signoutBtn.textContent = 'Signing out\u2026';
+        signOutToLogin();
+      });
+    }
+
+  })();
+  </script>
+
+  <!-- Shared footer chrome (loaded after page scripts so it doesn't
+       race with anything that touches masthead/footer markup). -->
+  <script src="ct-nav.js"></script>
+
+</body>
+</html>

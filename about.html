@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!-- CT_7G_INJECT:START (auto-injected by deploy tool — do not edit by hand) -->
+<style id="ct-7g-hide">body{visibility:hidden}</style>
+<script>window.CT_PAGE_ID="about";</script>
+<script src="/feature-flags.js"></script>
+<script>setTimeout(function(){if(!window.__ctFlagsLoaded){location.replace("/comingsoon.html");}},2500);</script>
+<script src="/auth-status.js"></script>
+<!-- CT_7G_INJECT:END -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>About — Cricket Times</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400;1,600;1,700&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --cream: #fdfaf3;
+    --cream-dark: #ede7d9;
+    --crimson: #8b1a1a;
+    --crimson-light: #a02020;
+    --ink: #1a1410;
+    --ink-light: #3d3530;
+    --ink-soft: #2a2a2a;
+    --muted: #6b5d4f;
+    --rule: #c8b89a;
+    --gold: #b8860b;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--cream);
+    color: var(--ink);
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-size: 18px;
+    line-height: 1.65;
+  }
+
+  /* ── Masthead (verbatim from subscribe.html) ── */
+  .masthead {
+    text-align: center;
+    padding: 2rem 1rem 1.25rem;
+    border-bottom: 3px double var(--rule);
+  }
+  .masthead-eyebrow {
+    font-family: 'Source Serif 4', serif;
+    font-size: 0.65rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--ink-light);
+    margin-bottom: 0.5rem;
+  }
+  .masthead-title {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: clamp(2.5rem, 8vw, 5rem);
+    font-weight: 700;
+    line-height: 0.95;
+    color: var(--ink);
+    letter-spacing: -0.02em;
+    margin-bottom: 0.25rem;
+  }
+  .masthead-title span { color: var(--crimson); }
+  .masthead-title a { color: inherit; text-decoration: none; }
+
+  /* ── Back nav (verbatim from subscribe.html) ── */
+  .back-nav {
+    padding: 0.75rem 2rem;
+    border-bottom: 1px solid var(--rule);
+  }
+  .back-nav a {
+    font-family: 'Source Serif 4', serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--crimson);
+    text-decoration: none;
+  }
+  .back-nav a:hover { text-decoration: underline; }
+
+  @media (max-width: 600px) {
+    .masthead { padding: 1.5rem 1rem 0; }
+  }
+
+  .page {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 56px 24px 80px;
+  }
+
+  .kicker {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-style: italic;
+    color: var(--crimson);
+    font-size: 14px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    text-align: center;
+    margin-bottom: 14px;
+  }
+
+  h1 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-weight: 900;
+    font-size: 52px;
+    line-height: 1.05;
+    text-align: center;
+    margin: 0 0 10px;
+    letter-spacing: -0.5px;
+  }
+
+  .subhead {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-style: italic;
+    font-weight: 600;
+    font-size: 22px;
+    text-align: center;
+    color: var(--ink);
+    margin: 0 auto 40px;
+    max-width: 560px;
+    line-height: 1.4;
+  }
+
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 36px 0;
+  }
+  .divider::before, .divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--rule);
+  }
+  .divider span {
+    font-family: 'Playfair Display', Georgia, serif;
+    color: var(--muted);
+    font-size: 20px;
+  }
+
+  p {
+    margin: 0 0 22px;
+    text-align: justify;
+    hyphens: auto;
+  }
+
+  main p em {
+    color: var(--crimson);
+    font-weight: 600;
+    font-style: italic;
+  }
+
+  p.lead::first-letter {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-weight: 900;
+    float: left;
+    font-size: 72px;
+    line-height: 0.85;
+    padding: 6px 10px 0 0;
+    color: var(--crimson);
+  }
+
+  .pull {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-style: italic;
+    font-weight: 600;
+    font-size: 26px;
+    line-height: 1.35;
+    color: var(--ink);
+    text-align: center;
+    padding: 28px 20px;
+    margin: 36px 0;
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .signoff {
+    margin-top: 48px;
+    padding-top: 28px;
+    border-top: 1px solid var(--rule);
+    font-style: italic;
+    color: var(--muted);
+    text-align: center;
+    font-size: 16px;
+  }
+
+  .signoff strong {
+    display: block;
+    font-style: normal;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-weight: 700;
+    color: var(--ink);
+    font-size: 20px;
+    margin-bottom: 4px;
+  }
+
+  .contact-line {
+    text-align: center;
+    margin-top: 18px;
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-style: italic;
+    font-size: 15px;
+    color: var(--muted);
+  }
+  .contact-line a {
+    color: var(--crimson);
+    text-decoration: none;
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 1px;
+    transition: border-color 0.2s;
+  }
+  .contact-line a:hover {
+    border-bottom-color: var(--crimson);
+  }
+
+  @media (max-width: 600px) {
+    body { font-size: 17px; }
+    h1 { font-size: 38px; }
+    .subhead { font-size: 19px; }
+    .pull { font-size: 21px; }
+    .page { padding: 36px 20px 60px; }
+    p.lead::first-letter { font-size: 60px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <p class="masthead-eyebrow">Est. The Digital Age</p>
+  <div class="masthead-title"><a href="index.html">Cricket <span>Times</span></a></div>
+</header>
+
+<nav class="back-nav">
+  <a href="index.html">← Return to Front Page</a>
+</nav>
+
+<main class="page">
+
+  <div class="kicker">About</div>
+  <h1>Re-finding My Cello</h1>
+  <p class="subhead">A rather long detour through the corporate world, and the way back.</p>
+
+  <p class="lead">Richard Thaler — the Nobel laureate, behavioural economist, and one of my professors at the University of Chicago — gave a convocation address in 2003 in which he offered the graduating class a piece of advice. He narrated the story of Yo-Yo Ma, who began his musical life on the violin and was, by his own account, nothing remarkable at it, until someone handed him a cello and the instrument and the boy recognised each other. Thaler's advice was this: find your cello. Do not settle for the violin. Keep looking until you find the thing you were meant to do.</p>
+
+  <p>I heard that speech. I nodded, as one does at convocations. Then I went off and had a long corporate career, which is also what one does.</p>
+
+  <p>This site is me, rather belatedly, <em>re-finding</em> my cello. I had it once. I had set it down for a while.</p>
+
+  <div class="divider"><span>❦</span></div>
+
+  <p>I have followed Test cricket for many years now — so long that I would, as a batter (I was one, in my time), have raised my bat at crossing a particular milestone. And that is a long time to love anything. In those days the game came to us through the radio. The commentators painted the pictures for us — the slope at Lord's that could hold up a four-bound ball just long enough for a sprinting fielder to make something of it, the fading light at The Oval as Sunny was crafting that memorable 221, the bat with a hole in it that a spectator had handed Chandra as he walked out at Adelaide with a few still to get. I had never seen any of these places, of course. Everything I knew about them was hearsay — beautiful hearsay, pieced together from a commentator's voice and my own imagination. But I believed every word of it with the quiet ferocity of a small boy pressing his head against the ever-reliable Philips radio his father had bought, willing the signal not to drift during a tense over before lunch. A child with a shortwave radio and a decent imagination can travel quite far, and can miss quite a lot of homework.</p>
+
+  <p>It began, properly, in Nagpur (yes, the same Nagpur, where, thirty-eight years later, another Joseph — this one a Root — would walk out on his Test debut). I was eight, and somewhere in that year I fell in love with the game in the way one falls in love with anything at eight — completely, and without understanding any of it. My mother, a beautiful soul who was caring, funny and mischievous, told me once, with what might have been a faint twinkle in her eye, that if I wished to be like Sunil Gavaskar, I would need to eat my vegetables. I was not sure whether Gavaskar had in fact eaten his vegetables as a boy. But I was not going to risk it, and so I ate them.</p>
+
+  <p>The state cricket came later. I was thirteen, all of four foot eleven, and had just played a determined knock to stave off defeat against a Hyderabad Under-22 side masquerading as an Under-15 one. On the long ride home in the second-class compartment of an Indian Railways train, the team manager told me he would make sure I played for India. His name was Balan Pandit; at that time he was the best player the state had ever produced, had represented South Zone, and his word on matters of who might play for whom carried real weight. I wanted to believe him, the way one wants to believe any adult who says something wonderful. His words registered indelibly. But a small part of me — the part that could still do arithmetic — was also wondering how anyone could possibly know such a thing, and from so far away. Would the future really arrive that way? Desire and doubt, meeting each other for the first time. Anyway. I spent two years playing for Kerala at the Under-15 level, and then, when my father was transferred to what was still Madras, one more year for Tamil Nadu at the Under-19s — a small boy in two cricket cultures, hauling his kit across a language border at fifteen. I played alongside and against a handful of boys who did go on to wear the India cap. Watching them get there — from close enough to know exactly how good they were, and exactly how ordinary they were — was its own kind of education. I also played club cricket for Mambalam Mosquitos, a storied Madras club and an unsung nursery for young talent — a particular stance taken by its dedicated owner, P. S. Chander, who would sometimes give me a ride to the ground on the back of his scooter, and another one home. I remember one very hot day in particular — I had just scored 85, the heat had wrung me out, and rather than send me off to the electric train and then a bus, Chander Sir simply took me home. When we won the championship, Chander Sir drove me to the TNCA awards ceremony on that same scooter. K. Srikkanth shook my hand as I walked on stage to receive the trophy.</p>
+
+  <p>India did not, in the end, call. The dream of playing for the country is one that millions of Indian boys share, and the arithmetic of it is unsparing. Over lunch one afternoon in Cochin, my father, not unkindly, said <em>Monae</em> — the affectionate Malayalam word for <em>dear son</em> — <em>there are sixty-three crore people in India, and you want to be one of eleven.</em> He was right, of course. I was tilting at windmills. But at that age no obstacle is too much, and so I went on tilting. For every boy who makes it, a thousand do not, and most of those thousand were the best player in their school and a minor hero in their neighbourhood, and none of that is ever quite enough. But cricket gave me other things. Years later, when I was graduating from XLRI, my juniors presented me with a cricket ball on which they had painted four words: <em>We Almost Made It.</em> They were referring to a tournament final we had lost. It was bittersweet then and it is bittersweet now, and whenever I come across that ball — which is somewhere in the house, and which I really ought to find — it brings all of it back: the boys, the tournament, the innings that should have been longer, the ones that somehow were.</p>
+
+  <p>And yet. It is still just a cricket ball.</p>
+
+  <div class="pull">It deserves to be cover-driven, scything through the beautiful blades of grass, with that unmistakable sound a bat makes when the ball meets the middle — so clean that even Derek Randall would not move a step to chase, but would nod in silent admiration.</div>
+
+  <p>The journey of a thousand miles begins with a single step. It can also be interrupted somewhere in the middle.</p>
+
+  <p>Then came the corporate years. Many of them. Across several countries, in the way that careers these days tend to sprawl. I learned a great deal about spreadsheets, quarterly reviews, and the particular art of nodding thoughtfully in meetings. I liked a good deal of it. I disliked a fair bit of it. But much like in batting, you have to survive the sticky wicket to earn the right to feast on the flat track, and so I persevered and managed, along the way, to put food on the table. I also did not, during any of those years, stop thinking about cricket.</p>
+
+  <p>And somewhere along the way, the hearsay became real. I stood at the boundary at The Oval and watched Test cricket unfold under a sky I had only ever imagined. I stood at the Gabba too, and found it nothing like I had imagined — no Bishen Bedi spinning a web with his left-arm spinners and his colourful, ever-changing turbans, no Peter Toohey stopping everything at cover — but it was beautiful in its own way. Both grounds felt like old acquaintances meeting me for the first time.</p>
+
+  <p>Cricket Times is what happens when you give a reformed corporate lifer a dataset, a backlog of opinions developed over half a lifetime of watching the game, and too much time on his hands. It is a Test cricket site — unapologetically so. The long game is its heart: whites over five days, a session that can turn on a single ball, a career defined by how one handles an hour before tea on the fourth afternoon, and a match that can, after all of that, end in a draw that somehow feels like the correct result. There is beauty and excellence in the other formats too, and Cricket Times will wander down those paths sometimes — selectively rather than dutifully, in a lighter vein rather than in analysis, written to be enjoyed rather than argued with. You can love something a lot and something a little less, but it is still love.</p>
+
+  <p>I write about the players, the numbers behind them, and the stories the numbers tell when you sit with them long enough. Some of what appears here is analytical. Some of it is argumentative. A bit of it is sentimental, because that is what Test cricket does to you if you are not careful. I promise to keep it interesting more often than not.</p>
+
+  <p>I am based in Seattle now, which is not known for its cricket, though the rain would suggest otherwise. If you love the five-day game — or suspect you might, if someone gave you a reason to — I would be very glad to have you along. And if you love the short form, I would be very glad to have you along too. And if you think you have something to say about cricket and would like to say it in these pages, write to me. Cricket Times is still in its first innings, and hasn't opened its account yet, but if the idea of writing for people who actually care about the game appeals to you, I would very much like to hear from you. I read everything that comes in, and I reply to most of it, eventually.</p>
+
+  <p>I am back on the thousand-mile journey now, this time marching to a different tune — a slower and perhaps more beautiful tune on this long and winding camino. But it is still the cello.</p>
+
+  <div class="signoff">
+    <strong>Ivan Joseph</strong>
+  </div>
+
+  <div class="contact-line">
+    Write to me at <a href="mailto:ivan@cricketimes.com">ivan@cricketimes.com</a>
+  </div>
+
+</main>
+
+<!-- FOOTER -->
+<footer data-ct-nav="footer"></footer>
+
+<script src="ct-nav.js"></script>
+
+</body>
+</html>

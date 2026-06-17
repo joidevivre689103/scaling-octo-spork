@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+<!-- CT_7G_INJECT:START (auto-injected by deploy tool — do not edit by hand) -->
+<style id="ct-7g-hide">body{visibility:hidden}</style>
+<script>window.CT_PAGE_ID="archive";</script>
+<script>setTimeout(function(){if(!window.__ctFlagsLoaded){location.replace("/comingsoon.html");}},2500);</script>
+<script src="/auth-status.js"></script>
+<!-- CT_7G_INJECT:END -->
+<script src="/feature-flags.js"></script>
+<script src="/prelaunch-guard.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Article Archive — Cricket Times</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400;1,700&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300;1,400&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --cream: #f5f0e8;
+      --cream-dark: #ede6d4;
+      --cream-border: #d4c9b0;
+      --crimson: #8b1a1a;
+      --crimson-light: #a82020;
+      --crimson-dark: #6b1212;
+      --ink: #1a1208;
+      --ink-mid: #3d3020;
+      --ink-light: #6b5e4a;
+      --ink-faint: #9a8f7a;
+      --gold: #c8a44a;
+      --gold-light: #e2c97e;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--cream);
+      color: var(--ink);
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: 16px;
+      line-height: 1.6;
+    }
+
+    /* ── MASTHEAD ── */
+    .masthead {
+      background: var(--cream);
+      padding: 0;
+    }
+    .masthead-top {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px 40px 4px;
+      font-family: 'Source Serif 4', serif;
+      font-size: 11px;
+      color: var(--ink-light);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+    .masthead-title {
+      text-align: center;
+      padding: 4px 40px 6px;
+    }
+    .masthead-title a {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: clamp(42px, 7vw, 80px);
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      text-decoration: none;
+      display: block;
+      line-height: 1;
+      color: var(--ink);
+    }
+    .masthead-title a .times { color: var(--crimson); font-weight: 900; }
+    .masthead-tagline {
+      font-family: 'Source Serif 4', serif;
+      font-size: 11px;
+      font-weight: 400;
+      color: var(--ink-light);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      text-align: center;
+      padding-bottom: 14px;
+    }
+
+    /* ── NAV ── */
+    nav.primary {
+      border-top: 1px solid var(--ink);
+      border-bottom: 1px solid var(--ink);
+      background: var(--cream);
+    }
+    nav.primary ul {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      list-style: none;
+      gap: 0;
+    }
+    nav.primary ul li a {
+      display: block;
+      font-family: 'Source Serif 4', serif;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--ink);
+      text-decoration: none;
+      padding: 11px 18px;
+      border-bottom: 2px solid transparent;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    nav.primary ul li a:hover {
+      color: var(--crimson);
+    }
+    nav.primary ul li a.active {
+      color: var(--crimson);
+      border-bottom-color: var(--crimson);
+    }
+
+    /* ── PAGE HEADER ── */
+    .page-header {
+      text-align: center;
+      padding: 48px 40px 32px;
+      border-bottom: 1px solid var(--cream-border);
+      position: relative;
+    }
+    .page-header::before {
+      content: '❧';
+      display: block;
+      font-size: 28px;
+      color: var(--crimson);
+      margin-bottom: 12px;
+    }
+    .page-header h1 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: clamp(28px, 5vw, 52px);
+      font-weight: 900;
+      color: var(--ink);
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+    }
+    .page-header .deck {
+      font-family: 'Source Serif 4', serif;
+      font-style: italic;
+      font-size: 16px;
+      color: var(--ink-light);
+      margin-top: 10px;
+    }
+    .rule-ornament {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 20px auto 0;
+      max-width: 400px;
+      color: var(--gold);
+    }
+    .rule-ornament::before,
+    .rule-ornament::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--gold);
+    }
+    .rule-ornament span { font-size: 18px; }
+
+    /* ── SEARCH & FILTER ── */
+    .controls-bar {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 28px 40px 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      align-items: flex-end;
+    }
+    .search-field {
+      flex: 1;
+      min-width: 220px;
+    }
+    .search-field label {
+      display: block;
+      font-family: 'Source Serif 4', serif;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--ink-light);
+      margin-bottom: 6px;
+    }
+    .search-field input {
+      width: 100%;
+      background: white;
+      border: 1px solid var(--cream-border);
+      border-radius: 0;
+      font-family: 'Source Serif 4', serif;
+      font-size: 15px;
+      color: var(--ink);
+      padding: 9px 14px;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .search-field input:focus {
+      border-color: var(--crimson);
+      box-shadow: 0 0 0 2px rgba(139,26,26,0.12);
+    }
+    .result-count {
+      font-family: 'Source Serif 4', serif;
+      font-style: italic;
+      font-size: 13px;
+      color: var(--ink-faint);
+      white-space: nowrap;
+      padding-bottom: 12px;
+    }
+
+    /* ── ALPHA INDEX ── */
+    .alpha-index {
+      max-width: 960px;
+      margin: 20px auto 0;
+      padding: 0 40px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      align-items: center;
+    }
+    .alpha-index span.label {
+      font-family: 'Source Serif 4', serif;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--ink-light);
+      margin-right: 6px;
+    }
+    .alpha-btn {
+      background: none;
+      border: 1px solid var(--cream-border);
+      font-family: 'Playfair Display', serif;
+      font-size: 13px;
+      color: var(--ink-mid);
+      padding: 4px 9px;
+      cursor: pointer;
+      transition: background 0.12s, color 0.12s, border-color 0.12s;
+      line-height: 1;
+    }
+    .alpha-btn:hover {
+      background: var(--cream-dark);
+      border-color: var(--ink-mid);
+    }
+    .alpha-btn.active {
+      background: var(--crimson);
+      border-color: var(--crimson);
+      color: white;
+    }
+    .alpha-btn:disabled {
+      opacity: 0.3;
+      cursor: default;
+    }
+    .alpha-btn.all-btn {
+      font-family: 'Source Serif 4', serif;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    /* ── ARTICLE LIST ── */
+    .archive-container {
+      max-width: 960px;
+      margin: 32px auto 60px;
+      padding: 0 40px;
+    }
+
+    .alpha-section { margin-bottom: 40px; }
+    .alpha-section-head {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--ink);
+    }
+    .alpha-section-head .letter {
+      font-family: 'Playfair Display', serif;
+      font-size: 42px;
+      font-weight: 900;
+      color: var(--crimson);
+      line-height: 1;
+      min-width: 38px;
+    }
+    .alpha-section-head .rule {
+      flex: 1;
+      height: 1px;
+      background: var(--cream-border);
+    }
+
+    .article-entry {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px 24px;
+      align-items: start;
+      padding: 16px 0;
+      border-bottom: 1px solid var(--cream-border);
+      text-decoration: none;
+      color: inherit;
+      transition: background 0.12s;
+    }
+    .article-entry:last-child { border-bottom: none; }
+    .article-entry:hover { background: rgba(139,26,26,0.04); }
+    .article-entry:hover .entry-title { color: var(--crimson); }
+
+    .entry-body { min-width: 0; }
+    .entry-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--ink);
+      line-height: 1.25;
+      margin-bottom: 5px;
+      transition: color 0.12s;
+    }
+    .entry-kicker {
+      font-family: 'Source Serif 4', serif;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--crimson);
+      margin-bottom: 4px;
+    }
+    .entry-summary {
+      font-family: 'Source Serif 4', serif;
+      font-size: 14px;
+      color: var(--ink-light);
+      line-height: 1.5;
+    }
+    .entry-meta {
+      text-align: right;
+      white-space: nowrap;
+    }
+    .entry-date {
+      font-family: 'Source Serif 4', serif;
+      font-size: 12px;
+      color: var(--ink-faint);
+      font-style: italic;
+    }
+    .entry-audio-badge {
+      display: inline-block;
+      margin-top: 5px;
+      background: var(--crimson);
+      color: white;
+      font-family: 'Source Serif 4', serif;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 2px 7px;
+      border-radius: 2px;
+    }
+    .entry-read-link {
+      display: inline-block;
+      margin-top: 8px;
+      font-family: 'Source Serif 4', serif;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--crimson);
+      text-decoration: none;
+    }
+    .entry-read-link::after { content: ' →'; }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 80px 20px;
+      color: var(--ink-faint);
+    }
+    .empty-state .icon { font-size: 48px; margin-bottom: 16px; }
+    .empty-state h3 {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: 22px;
+      color: var(--ink-light);
+      margin-bottom: 8px;
+    }
+    .empty-state p {
+      font-size: 14px;
+      font-style: italic;
+    }
+
+    /* Loading skeleton */
+    .loading-state {
+      text-align: center;
+      padding: 80px 20px;
+      color: var(--ink-faint);
+    }
+    .loading-spinner {
+      width: 32px; height: 32px;
+      border: 2px solid var(--cream-border);
+      border-top-color: var(--crimson);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-state p {
+      font-family: 'Source Serif 4', serif;
+      font-style: italic;
+      font-size: 14px;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--ink);
+      color: var(--cream);
+      padding: 40px;
+    }
+    .footer-inner {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+    .footer-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px;
+      font-weight: 900;
+      color: var(--cream);
+      margin-bottom: 4px;
+    }
+    .footer-tagline {
+      font-family: 'IM Fell English', serif;
+      font-style: italic;
+      font-size: 12px;
+      color: var(--ink-faint);
+      margin-bottom: 24px;
+    }
+    .footer-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 20px;
+      margin-bottom: 24px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      padding-top: 20px;
+    }
+    .footer-nav a {
+      font-family: 'Source Serif 4', serif;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: rgba(245,240,232,0.5);
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+    .footer-nav a:hover { color: var(--cream); }
+    .footer-copy {
+      font-size: 12px;
+      color: var(--ink-faint);
+      font-style: italic;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 640px) {
+      .masthead-top { padding: 8px 16px 0; }
+      .masthead-title { padding: 10px 16px 6px; }
+      .controls-bar, .alpha-index, .archive-container { padding-left: 16px; padding-right: 16px; }
+      nav.primary ul li a { padding: 8px 10px; font-size: 10px; }
+      .article-entry { grid-template-columns: 1fr; }
+      .entry-meta { text-align: left; }
+      footer { padding: 28px 16px; }
+    }
+
+    /* highlight matching text */
+    mark {
+      background: rgba(200,164,74,0.35);
+      color: inherit;
+      padding: 0 2px;
+      border-radius: 2px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- MASTHEAD -->
+<header data-ct-nav="masthead"></header>
+
+<!-- PRIMARY NAV -->
+<nav data-ct-nav="primary"></nav>
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+  <h1>Article Archive</h1>
+  <p class="deck">Every dispatch, essay and dispatch in the Cricket Times canon</p>
+  <div class="rule-ornament"><span>✦</span></div>
+</div>
+
+<!-- CONTROLS -->
+<div class="controls-bar">
+  <div class="search-field">
+    <label for="searchInput">Search articles</label>
+    <input type="search" id="searchInput" placeholder="Title, author, topic…" autocomplete="off" />
+  </div>
+  <div class="result-count" id="resultCount"></div>
+</div>
+
+<!-- ALPHABETICAL INDEX -->
+<div class="alpha-index" id="alphaIndex">
+  <span class="label">Browse:</span>
+  <button class="alpha-btn all-btn active" data-letter="ALL">All</button>
+</div>
+
+<!-- ARTICLES -->
+<main class="archive-container" id="archiveContainer">
+  <div class="loading-state" id="loadingState">
+    <div class="loading-spinner"></div>
+    <p>Retrieving the archive…</p>
+  </div>
+</main>
+
+<!-- FOOTER -->
+<footer data-ct-nav="footer"></footer>
+
+<!-- Firebase -->
+<script type="module">
+  import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+  import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBqXvBtBIV_NRQLN1e4VNZOjNR5rW4w8iQ",
+    authDomain: "hitwicket-cba02.firebaseapp.com",
+    projectId: "hitwicket-cba02",
+    storageBucket: "hitwicket-cba02.firebasestorage.app",
+    messagingSenderId: "550262141981",
+    appId: "1:550262141981:web:placeholder"
+  };
+
+  /* ── helpers ── */
+  function formatDate(ts) {
+    if (!ts) return '';
+    const d = ts.toDate ? ts.toDate() : new Date(ts);
+    return d.toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
+  }
+
+  function highlight(text, query) {
+    if (!query) return escHtml(text);
+    const re = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi');
+    return escHtml(text).replace(re, '<mark>$1</mark>');
+  }
+
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  let allArticles = [];
+  let currentLetter = 'ALL';
+  let currentSearch = '';
+
+  /* ── render ── */
+  function buildAlphaIndex(articles) {
+    const letters = [...new Set(articles.map(a => (a.headline||'?')[0].toUpperCase()).filter(c => /[A-Z]/.test(c)))].sort();
+    const idx = document.getElementById('alphaIndex');
+    letters.forEach(l => {
+      const btn = document.createElement('button');
+      btn.className = 'alpha-btn';
+      btn.dataset.letter = l;
+      btn.textContent = l;
+      btn.addEventListener('click', () => setLetter(l, btn));
+      idx.appendChild(btn);
+    });
+  }
+
+  function setLetter(l, btn) {
+    currentLetter = l;
+    document.querySelectorAll('.alpha-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    render();
+  }
+
+  document.querySelector('.alpha-btn.all-btn').addEventListener('click', function(){
+    setLetter('ALL', this);
+  });
+
+  document.getElementById('searchInput').addEventListener('input', function(){
+    currentSearch = this.value.trim();
+    currentLetter = 'ALL';
+    document.querySelectorAll('.alpha-btn').forEach(b => b.classList.remove('active'));
+    document.querySelector('.alpha-btn.all-btn').classList.add('active');
+    render();
+  });
+
+  function render() {
+    const q = currentSearch.toLowerCase();
+    let filtered = allArticles.filter(a => {
+      const headline = (a.headline||'');
+      const matchLetter = currentLetter === 'ALL' || headline[0].toUpperCase() === currentLetter;
+      const matchSearch = !q || headline.toLowerCase().includes(q)
+        || (a.summary||'').toLowerCase().includes(q)
+        || (a.author||'').toLowerCase().includes(q)
+        || (a.category||'').toLowerCase().includes(q);
+      return matchLetter && matchSearch;
+    });
+
+    const container = document.getElementById('archiveContainer');
+    const countEl = document.getElementById('resultCount');
+    countEl.textContent = `${filtered.length} article${filtered.length !== 1 ? 's' : ''}`;
+
+    if (filtered.length === 0) {
+      container.innerHTML = `<div class="empty-state">
+        <div class="icon">📜</div>
+        <h3>No articles found</h3>
+        <p>Try a different search term or browse by letter.</p>
+      </div>`;
+      return;
+    }
+
+    // Group by first letter of headline
+    const groups = {};
+    filtered.forEach(a => {
+      const l = (a.headline||'?')[0].toUpperCase();
+      const key = /[A-Z]/.test(l) ? l : '#';
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(a);
+    });
+
+    const sortedKeys = Object.keys(groups).sort((a,b) => a === '#' ? 1 : b === '#' ? -1 : a.localeCompare(b));
+
+    container.innerHTML = sortedKeys.map(letter => `
+      <section class="alpha-section" id="section-${letter}">
+        <div class="alpha-section-head">
+          <span class="letter">${letter}</span>
+          <div class="rule"></div>
+        </div>
+        ${groups[letter].map(a => articleEntry(a, q)).join('')}
+      </section>
+    `).join('');
+  }
+
+  function articleEntry(a, q) {
+    const url = `article.html?id=${encodeURIComponent(a.id)}`;
+    const title = highlight(a.headline || 'Untitled', q);
+    const summary = highlight(a.summary || '', q);
+    const date = a.date || formatDate(a.createdAt);
+    const hasAudio = !!(a.audioUrl) && a.audioEnabled;
+
+    return `
+      <a class="article-entry" href="${url}">
+        <div class="entry-body">
+          ${a.category ? `<div class="entry-kicker">${escHtml(a.category)}</div>` : ''}
+          <div class="entry-title">${title}</div>
+          ${summary ? `<div class="entry-summary">${summary}</div>` : ''}
+          <span class="entry-read-link">Read article</span>
+        </div>
+        <div class="entry-meta">
+          ${date ? `<div class="entry-date">${date}</div>` : ''}
+          ${hasAudio ? `<div class="entry-audio-badge">🎙 Audio</div>` : ''}
+        </div>
+      </a>`;
+  }
+
+  /* ── fetch from Firestore ── */
+  async function loadArticles() {
+    try {
+      // Reuse the default app if already initialised (e.g. by
+      // prelaunch-guard.js); otherwise create. Without this, the second
+      // initializeApp throws "already exists".
+      let app;
+      try { app = getApp(); } catch (e) { app = initializeApp(firebaseConfig); }
+      const db = getFirestore(app);
+      // Archive shows every article that has ever been published, including
+      // those still on the homepage. This is intentionally a different
+      // filter from the homepage (which AND-combines `status == 'published'`
+      // with the N-day live window).
+      const snap = await getDocs(query(
+        collection(db, 'articles'),
+        where('everPublished', '==', true)
+      ));
+      allArticles = snap.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        // Audio-only standalones live on audio.html, not in the article
+        // archive. They have no article body and would render as empty
+        // entries here. The flag is content-type metadata; access rules
+        // (paywall) are unchanged.
+        .filter(a => !a.audioOnly)
+        .sort((a, b) => (a.headline||'').localeCompare(b.headline||''));
+    } catch (err) {
+      console.error('Firestore load error:', err);
+      document.getElementById('archiveContainer').innerHTML = `<div class="empty-state">
+        <div class="icon">⚠️</div>
+        <h3>Could not load articles</h3>
+        <p style="font-family:monospace;font-size:12px;margin-top:8px;color:#8b1a1a">${err.message}</p>
+      </div>`;
+      document.getElementById('loadingState')?.remove();
+      return;
+    }
+
+    document.getElementById('loadingState').remove();
+    buildAlphaIndex(allArticles);
+    render();
+  }
+
+  /* ── demo data (shown if Firestore not yet configured / fails) ── */
+  const DEMO_ARTICLES = [
+    { id:'1', title:'A Case for Muttiah Muralitharan', category:'Bowling Analysis', summary:'Revisiting the spinning genius and his unparalleled mastery on all surfaces over two decades of Test cricket.', publishedAt: { toDate: () => new Date('2024-03-10') } },
+    { id:'2', title:'Bradman\'s Average Revisited', category:'Batting Records', summary:'What does 99.94 really mean in the context of era, pitch conditions and peer comparison?', publishedAt: { toDate: () => new Date('2024-01-22') } },
+    { id:'3', title:'Captains Who Changed the Game', category:'Leadership', summary:'From Clive Lloyd to Imran Khan — how leadership shaped the culture and results of Test teams.', publishedAt: { toDate: () => new Date('2024-02-14') }, audioUrl: 'placeholder' },
+    { id:'4', title:'Defining the All-Time Test XI', category:'Selection', summary:'Our editorial board debates the XI that transcends era and nationality.', publishedAt: { toDate: () => new Date('2024-04-01') } },
+    { id:'5', title:'England\'s Bazball Era', category:'Modern Game', summary:'An analytical look at the stats behind England\'s aggressive new Test identity under McCullum and Stokes.', publishedAt: { toDate: () => new Date('2024-04-11') }, audioUrl: 'placeholder' },
+    { id:'6', title:'Five Wicket Hauls Through the Ages', category:'Bowling Records', summary:'A comprehensive survey of the most celebrated bowling milestones in Test history.', publishedAt: { toDate: () => new Date('2023-11-30') } },
+    { id:'7', title:'Glenn McGrath — The Art of Precision', category:'Bowling Analysis', summary:'How length, line and relentless consistency made McGrath the foremost seam bowler of his generation.', publishedAt: { toDate: () => new Date('2023-10-15') }, audioUrl: 'placeholder' },
+    { id:'8', title:'Home Advantage in Test Cricket', category:'Data Analysis', summary:'Quantifying the edge of playing at home — surface, crowd, familiarity — across all nine major venues.', publishedAt: { toDate: () => new Date('2024-03-27') } },
+    { id:'9', title:'India\'s Pace Revolution', category:'Bowling', summary:'How India developed a world-class pace attack in a decade of seismic change.', publishedAt: { toDate: () => new Date('2024-01-07') } },
+    { id:'10', title:'Jack Kallis: The Untold Numbers', category:'All-Rounders', summary:'Behind the famous batting average lies an equally remarkable bowling and fielding record that is rarely discussed.', publishedAt: { toDate: () => new Date('2023-12-19') } },
+    { id:'11', title:'Keeping Wickets — The Invisible Art', category:'Wicketkeeping', summary:'A study of catches, stumpings and decisive moments from the world\'s finest wicketkeepers.', publishedAt: { toDate: () => new Date('2024-02-28') }, audioUrl: 'placeholder' },
+    { id:'12', title:'Long-form Cricket in a Short-form World', category:'Editorial', summary:'Why Test cricket endures and what the data says about its continued relevance to fans.', publishedAt: { toDate: () => new Date('2024-04-08') } },
+  ];
+
+  loadArticles();
+</script>
+<script src="ct-nav.js"></script>
+</body>
+</html>
