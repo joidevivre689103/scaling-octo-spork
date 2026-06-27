@@ -119,12 +119,15 @@
    * (which already holds the parsed object in memory), is never sent anywhere,
    * and dies when the tab closes -- the same trust boundary as the live `D`
    * object, NOT persistent on-disk storage. See td-derived-data-loader.
-   * Freshness: a cached `data` copy lives for the browser session, so a mid-
-   * session pipeline refresh isn't seen until a new tab/session or clearCache()
-   * -- acceptable for a once-daily dataset, and the same model already used for
-   * ratings/model. */
+   * Freshness: every cross-page load REVALIDATES the cached copy with a
+   * conditional GET (If-None-Match against the server's ETag), so a mid-session
+   * pipeline publish is picked up on the next load automatically -- no
+   * clearCache and no stale data. A 304 means "unchanged, reuse cache" and
+   * carries no body, so the full ~1.4 MB download happens only when the data
+   * actually changed. */
   var SS_KEY    = 'ctd:';    // plain-JSON entries (fallback / older browsers)
   var SS_GZ_KEY = 'ctdz:';   // gzip+base64 entries (the default when supported)
+  var SS_VER_KEY = 'ctver:'; // ETag (version token) of the cached body, per file
   var HAS_CS = (typeof CompressionStream === 'function' &&
                 typeof DecompressionStream === 'function' &&
                 typeof Response === 'function' &&
@@ -132,6 +135,19 @@
 
   function ssKey(file)   { return SS_KEY + file; }
   function ssGzKey(file) { return SS_GZ_KEY + file; }
+  function ssVerKey(file) { return SS_VER_KEY + file; }
+
+  // The ETag the server returned for the currently-cached body. Sent back as
+  // If-None-Match so the server can answer 304 when nothing has changed.
+  function ssGetVer(file) {
+    try { return sessionStorage.getItem(ssVerKey(file)) || null; } catch (_) { return null; }
+  }
+  function ssSetVer(file, etag) {
+    try { sessionStorage.setItem(ssVerKey(file), etag); } catch (_) {}
+  }
+  function ssClearVer(file) {
+    try { sessionStorage.removeItem(ssVerKey(file)); } catch (_) {}
+  }
 
   // Uint8Array <-> base64, chunked to dodge call-stack / arg-length limits.
   function bytesToB64(bytes) {
@@ -207,16 +223,22 @@
   }
 
   /* --- network -------------------------------------------------------------- */
-  function doFetch(file, token) {
+  function doFetch(file, token, etag) {
     var ctrl  = (typeof AbortController !== 'undefined') ? new AbortController() : null;
     var timer = ctrl ? setTimeout(function () { ctrl.abort(); }, REQUEST_TIMEOUT_MS) : null;
 
+    var headers = { 'Authorization': 'Bearer ' + token, 'Accept': 'application/json' };
+    // Conditional GET: if we hold a version token for a cached copy, ask the
+    // server to confirm it. Server replies 304 (unchanged) or 200 (fresh body).
+    if (etag) headers['If-None-Match'] = etag;
+
     return fetch(ENDPOINT + '?file=' + encodeURIComponent(file), {
       method: 'GET',
-      headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/json' },
+      headers: headers,
+      cache: 'no-store',  // we run our own validation; don't let the HTTP cache turn a 304 into a silent 200
       signal: ctrl ? ctrl.signal : undefined
       // No credentials: the token rides in the header. Sending Authorization
-      // triggers a CORS preflight, which serveDerivedData answers (204) by design.
+      // (and If-None-Match) triggers a CORS preflight, which serveDerivedData answers (204).
     }).then(
       function (resp) { if (timer) clearTimeout(timer); return resp; },
       function (err)  {
@@ -239,21 +261,31 @@
   function handle(file, resp, isRetry) {
     var s = resp.status;
 
+    if (s === 304) {
+      // Only reachable when we sent If-None-Match: our cached body is current.
+      return Promise.resolve({ notModified: true });
+    }
     if (s === 200) {
       // The function sets Content-Encoding: gzip, so the browser has already
       // inflated the body -- response.json() works directly (no DecompressionStream).
-      return resp.json().catch(function () {
+      // ETag is the version token for THIS body (exposed via CORS) -- store it
+      // with the cache so the next load can revalidate cheaply.
+      var newEtag = null;
+      try { newEtag = resp.headers.get('ETag'); } catch (_) {}
+      return resp.json().then(function (data) {
+        return { data: data, etag: newEtag };
+      }, function () {
         throw CTDataError('parse', 'serveDerivedData returned a body that was not valid JSON.');
       });
     }
-    if (s === 401 && !isRetry) {                 // stale/expired token -> force-refresh once
+    if (s === 401 && !isRetry) {                 // stale/expired token -> force-refresh once, fetch unconditionally
       return getToken(true)
-        .then(function (t) { return doFetch(file, t); })
+        .then(function (t) { return doFetch(file, t, null); })
         .then(function (r) { return handle(file, r, true); });
     }
-    if (s === 502 && !isRetry) {                 // transient upstream -> one retry
+    if (s === 502 && !isRetry) {                 // transient upstream -> one retry (unconditional)
       return getToken(false)
-        .then(function (t) { return doFetch(file, t); })
+        .then(function (t) { return doFetch(file, t, null); })
         .then(function (r) { return handle(file, r, true); });
     }
     if (s === 403) {
@@ -277,20 +309,51 @@
       return Promise.reject(CTDataError('bad-file',
         'Unknown derived-data file "' + file + '" (allowed: data, ratings, model).'));
     }
-    if (mem[file]) return Promise.resolve(mem[file]);
+    if (mem[file]) return Promise.resolve(mem[file]);          // one page load: serve in-memory, no revalidation
 
     if (!load._inflight) load._inflight = {};
-    if (load._inflight[file]) return load._inflight[file];   // share an in-progress load
+    if (load._inflight[file]) return load._inflight[file];     // share an in-progress load
 
-    // ssGet is async (decompression streams), so the cross-page cache read is
-    // folded into the single-flight promise -- two near-simultaneous load()
-    // calls share one cache-read + (at most) one fetch.
+    // Cross-page / reload path. UNLIKE the old loader, a cached copy is no longer
+    // served blindly -- we ALWAYS revalidate with a conditional GET, so a mid-
+    // session publish is picked up on the next load automatically (no clearCache,
+    // no stale data):
+    //   - have cache -> send If-None-Match(etag): 304 => reuse cache (no body),
+    //                   200 => take the fresh body + its new etag.
+    //   - no cache   -> a normal full fetch.
+    // Cheap: the Firebase token is usually already cached and a 304 carries no
+    // body, so the ~1.4 MB download happens only when the data actually changed.
     var p = ssGet(file).then(function (cached) {
-      if (cached) { mem[file] = cached; return cached; }      // cross-page cache hit
+      var cachedEtag = cached ? ssGetVer(file) : null;
       return getToken(false)
-        .then(function (token) { return doFetch(file, token); })
+        .then(function (token) { return doFetch(file, token, cachedEtag); })
         .then(function (resp)  { return handle(file, resp, false); })
-        .then(function (data)  { mem[file] = data; ssSet(file, data); return data; });
+        .then(function (result) {
+          if (result && result.notModified) {                 // server confirms cache is current
+            if (cached) { mem[file] = cached; return cached; }
+            // 304 with no body to fall back on (shouldn't happen) -> force a clean refetch
+            return getToken(false)
+              .then(function (t) { return doFetch(file, t, null); })
+              .then(function (r) { return handle(file, r, true); })
+              .then(function (res2) {
+                mem[file] = res2.data; ssSet(file, res2.data);
+                if (res2.etag) ssSetVer(file, res2.etag); else ssClearVer(file);
+                return res2.data;
+              });
+          }
+          // fresh 200 body
+          mem[file] = result.data; ssSet(file, result.data);
+          if (result.etag) ssSetVer(file, result.etag); else ssClearVer(file);
+          return result.data;
+        })
+        .catch(function (err) {
+          // A genuine entitlement denial must surface (paywall UX) even if a stale
+          // local copy exists. For transient failures (network / timeout / cold
+          // start / 5xx) fall back to the cached copy so a blip never blanks the page.
+          if (err && err.code === 'forbidden') throw err;
+          if (cached) { mem[file] = cached; return cached; }
+          throw err;
+        });
     });
 
     // clear the in-flight slot on either outcome
@@ -307,6 +370,7 @@
       delete mem[f];
       try { sessionStorage.removeItem(ssKey(f)); } catch (_) {}
       try { sessionStorage.removeItem(ssGzKey(f)); } catch (_) {}
+      try { sessionStorage.removeItem(ssVerKey(f)); } catch (_) {}
     });
   }
 
