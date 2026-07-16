@@ -400,6 +400,15 @@ body{
 .article-mini-headline{ font-family:'Playfair Display',serif; font-size:14px; font-weight:600; line-height:1.35; }
 .article-mini-headline a{ color:inherit; text-decoration:none; }
 .article-mini-headline a:hover{ color:var(--accent); }
+/* Two-line clamped summary on compact cards. Prevents layout blowout while
+   giving readers a preview beyond the headline. Matches the .article-card-summary
+   family visually — same color token, tighter size for the compact context. */
+.article-mini-summary{
+  font-family:'Inter',sans-serif; font-size:12px; line-height:1.5;
+  color:var(--text2); margin-top:6px;
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
+  overflow:hidden; text-overflow:ellipsis;
+}
 .article-mini-meta{ font-family:'Inter',sans-serif; font-size:10px; color:var(--text3); margin-top:4px; }
 
 @media(max-width:900px){
@@ -1112,7 +1121,7 @@ function hideArticlesStatus() {
             <span class="hero-author">By ${escapeHTML(heroArticle.author)}</span>
             <span class="hero-time">${heroArticle.readTime} min read</span>
             <span>${formatArticleDate(heroArticle.date)}</span>
-            ${heroArticle.audioEnabled !== false ? `<button class="audio-listen-btn" data-audio="true" data-article-id="${heroArticle.id}" onclick="toggleArticleAudio(this)"><svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg> Listen</button>` : ''}
+            ${heroArticle.audioEnabled !== false && heroArticle.summaryAudioUrl ? `<button class="audio-listen-btn" data-audio="true" data-article-id="${heroArticle.id}" data-summary-audio-url="${escapeHTML(heroArticle.summaryAudioUrl)}" onclick="toggleArticleAudio(this)"><svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg> Listen</button>` : ''}
           </div>`;
       }
     }
@@ -1151,7 +1160,7 @@ function hideArticlesStatus() {
             <h3 class="analysis-card-headline"><a href="article.html?id=${a.id}">${escapeHTML(a.headline)}</a></h3>
             <p class="analysis-card-excerpt">${escapeHTML(a.summary)}</p>
             <div class="analysis-card-author">${escapeHTML(a.author)} <span>• ${a.readTime} min read</span>
-              ${a.audioEnabled !== false ? `<button class="audio-listen-btn" data-audio="true" data-article-id="${a.id}" onclick="toggleArticleAudio(this)"><svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg> Listen</button>` : ''}
+              ${a.audioEnabled !== false && a.summaryAudioUrl ? `<button class="audio-listen-btn" data-audio="true" data-article-id="${a.id}" data-summary-audio-url="${escapeHTML(a.summaryAudioUrl)}" onclick="toggleArticleAudio(this)"><svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg> Listen</button>` : ''}
             </div>
           </div>
         </article>`).join('');
@@ -1357,7 +1366,7 @@ function renderColumn(colEl, title, articles) {
       <h4 class="article-card-headline"><a href="article.html?id=${lead.id}">${escapeHTML(lead.headline)}</a></h4>
       <p class="article-card-summary">${escapeHTML(lead.summary)}</p>
       <div class="article-card-meta">${escapeHTML(lead.author)} • ${lead.readTime} min read
-        ${lead.audioEnabled !== false ? `<button class="audio-listen-btn" data-audio="true" data-article-id="${lead.id}" onclick="toggleArticleAudio(this)"><svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg> Listen</button>` : ''}
+        ${lead.audioEnabled !== false && lead.summaryAudioUrl ? `<button class="audio-listen-btn" data-audio="true" data-article-id="${lead.id}" data-summary-audio-url="${escapeHTML(lead.summaryAudioUrl)}" onclick="toggleArticleAudio(this)"><svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg> Listen</button>` : ''}
       </div>
     </article>`;
   rest.forEach((a, i) => {
@@ -1368,8 +1377,9 @@ function renderColumn(colEl, title, articles) {
       }
       <div class="article-mini-content">
         <h4 class="article-mini-headline"><a href="article.html?id=${a.id}">${escapeHTML(a.headline)}</a></h4>
+        ${a.summary ? `<p class="article-mini-summary">${escapeHTML(a.summary)}</p>` : ''}
         <div class="article-mini-meta">${timeAgo(a.date)}
-          ${a.audioEnabled !== false ? `<button class="audio-listen-btn" data-audio="true" data-article-id="${a.id}" onclick="toggleArticleAudio(this)"><svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg> Listen</button>` : ''}
+          ${a.audioEnabled !== false && a.summaryAudioUrl ? `<button class="audio-listen-btn" data-audio="true" data-article-id="${a.id}" data-summary-audio-url="${escapeHTML(a.summaryAudioUrl)}" onclick="toggleArticleAudio(this)"><svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg> Listen</button>` : ''}
         </div>
       </div>
     </article>`;
@@ -1380,10 +1390,26 @@ function renderColumn(colEl, title, articles) {
 // ═══════════════════════════════════════════════════════════════════════════
 // AUDIO
 // ═══════════════════════════════════════════════════════════════════════════
+//
+// Card-level "Listen" buttons play the article's summary audio — a short
+// AI-narrated take of the summary field, generated in the CMS and stored
+// at summaryAudioUrl on the article doc.
+//
+// The old behavior (removed 2026-07-16): browser speechSynthesis reading
+// headline+summary aloud in the OS's built-in TTS voice. That was a
+// stopgap when we had no real audio pipeline; with CMS-3 it became
+// obsolete. TTS on public pages sounded different across browsers, felt
+// robotic, and (crucially) was completely disconnected from the
+// ElevenLabs voice used for real audio.
+//
+// The button is rendered only when `summaryAudioUrl` is present on the
+// article — see the card-render sites above, all four gated on
+// `audioEnabled !== false && summaryAudioUrl`. So this handler can
+// assume the URL exists on the button's dataset.
 const AUDIO_ICON_LISTEN  = '<svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg> Listen';
 const AUDIO_ICON_PLAYING = '<span class="audio-bars"><span></span><span></span><span></span><span></span></span> Playing';
 
-let currentAudio = null, currentAudioBtn = null, currentUtterance = null;
+let currentAudio = null, currentAudioBtn = null;
 
 function resetBtn(btn) {
   if (!btn) return;
@@ -1391,49 +1417,41 @@ function resetBtn(btn) {
   btn.innerHTML = AUDIO_ICON_LISTEN;
 }
 
-function getArticleText(btn) {
-  const article = btn.closest('article, .hero-main, .analysis-card, .article-card, .article-mini');
-  if (!article) return '';
-  const headlineEl = article.querySelector('.hero-headline a, .article-card-headline a, .article-mini-headline a, .analysis-card-headline a');
-  const headline   = headlineEl ? headlineEl.textContent.trim() : '';
-  const summaryEl  = article.querySelector('.hero-summary, .article-card-summary, .analysis-card-excerpt');
-  const summary    = summaryEl ? summaryEl.textContent.trim() : '';
-  return summary ? headline + '. ' + summary : headline;
-}
-
 function toggleArticleAudio(btn) {
+  // Stop currently-playing audio if user clicked the same button again.
   if (btn.classList.contains('playing')) {
     if (currentAudio) { currentAudio.pause(); currentAudio = null; }
-    if (currentUtterance) { window.speechSynthesis.cancel(); currentUtterance = null; }
     resetBtn(btn); currentAudioBtn = null; return;
   }
+  // Stop any other in-flight audio (only one card plays at a time).
   if (currentAudio) { currentAudio.pause(); currentAudio = null; }
-  if (currentUtterance) { window.speechSynthesis.cancel(); currentUtterance = null; }
   if (currentAudioBtn && currentAudioBtn !== btn) resetBtn(currentAudioBtn);
-  const text = getArticleText(btn);
-  if (!text || !window.speechSynthesis) return;
-  window.speechSynthesis.cancel();
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.rate = 0.95; utterance.pitch = 1.0;
-  const voices = window.speechSynthesis.getVoices();
-  const preferred = voices.find(v => v.name.includes('Google UK English')) ||
-                    voices.find(v => v.name.includes('Google US English')) ||
-                    voices.find(v => v.lang.startsWith('en') && v.localService) ||
-                    voices.find(v => v.lang.startsWith('en'));
-  if (preferred) utterance.voice = preferred;
-  btn.classList.add('playing'); btn.innerHTML = AUDIO_ICON_PLAYING;
-  currentAudioBtn = btn; currentUtterance = utterance;
-  const resumeTimer = setInterval(() => {
-    if (!window.speechSynthesis.speaking) clearInterval(resumeTimer);
-    else { window.speechSynthesis.pause(); window.speechSynthesis.resume(); }
-  }, 10000);
-  utterance.onend  = () => { clearInterval(resumeTimer); resetBtn(btn); currentAudioBtn = null; currentUtterance = null; };
-  utterance.onerror = (e) => { clearInterval(resumeTimer); if(e.error!=='canceled') console.warn('TTS:',e.error); resetBtn(btn); currentAudioBtn=null; currentUtterance=null; };
-  window.speechSynthesis.speak(utterance);
-}
-if (window.speechSynthesis) {
-  window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
-  window.speechSynthesis.getVoices();
+
+  const url = btn.dataset.summaryAudioUrl;
+  if (!url) return; // shouldn't happen — button wouldn't have rendered
+
+  const audio = new Audio(url);
+  currentAudio = audio;
+  currentAudioBtn = btn;
+  btn.classList.add('playing');
+  btn.innerHTML = AUDIO_ICON_PLAYING;
+
+  audio.addEventListener('ended', () => {
+    resetBtn(btn);
+    currentAudio = null; currentAudioBtn = null;
+  });
+  audio.addEventListener('error', (e) => {
+    console.warn('Card audio playback error:', e);
+    resetBtn(btn);
+    currentAudio = null; currentAudioBtn = null;
+  });
+  audio.play().catch(err => {
+    // Autoplay policy will reject if this isn't a user gesture — but this
+    // handler IS a click handler, so we should be fine. Log any surprises.
+    console.warn('Card audio play() rejected:', err);
+    resetBtn(btn);
+    currentAudio = null; currentAudioBtn = null;
+  });
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
