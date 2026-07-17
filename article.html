@@ -352,6 +352,8 @@ body{
 .audio-bar-info{flex:1;min-width:0}
 .audio-bar-label{font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px}
 .audio-bar-sub{font-size:11px;color:var(--text3)}
+.audio-bar-badge{display:inline-block;margin-left:6px;padding:1px 6px;border-radius:4px;font-size:9px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;vertical-align:middle;background:var(--border);color:var(--text3)}
+.audio-bar-badge-ai{background:rgba(139,0,0,0.10);color:var(--accent)}
 .audio-bar-progress{
   flex:1;min-width:80px;height:4px;background:var(--border);border-radius:2px;
   overflow:hidden;cursor:pointer;position:relative;
@@ -1464,8 +1466,20 @@ function renderArticle(container, article, related) {
               <svg viewBox="0 0 24 24" id="audioPlayIcon"><polygon points="5 3 19 12 5 21 5 3"/></svg>
             </button>
             <div class="audio-bar-info">
-              <div class="audio-bar-label">Listen to this article</div>
-              <div class="audio-bar-sub">Narrated by the author</div>
+              <div class="audio-bar-label">Listen to this article${
+                article.audioSource === 'ai'
+                  ? ' <span class="audio-bar-badge audio-bar-badge-ai" title="AI-generated narration">AI</span>'
+                  : article.audioSource === 'recorded'
+                    ? ' <span class="audio-bar-badge" title="Narrated by a real voice">Voice</span>'
+                    : ''
+              }</div>
+              <div class="audio-bar-sub">${
+                article.audioSource === 'ai'
+                  ? 'AI-narrated'
+                  : article.audioSource === 'recorded'
+                    ? 'Narrated by the author'
+                    : 'Audio narration'
+              }</div>
             </div>
             <div class="audio-bar-progress" id="audioProgress" onclick="seekAudio(event)">
               <div class="audio-bar-progress-fill" id="audioProgressFill"></div>
