@@ -56,36 +56,63 @@
   // -------------------------------------------------------------- identity ---
   // The Firebase ID token proves who the user is. We cache it and refresh
   // periodically; the token (not email/uid) travels with each flush.
+  // Cricket Times standardized on the MODULAR Firebase SDK (10.12.5), so there
+  // is usually NO window.firebase (compat) global on reader pages. We reuse the
+  // page's already-initialized modular app via getApp() and read the ID token
+  // from there. A compat fallback is kept for any page still on the old global.
+  // The verified token (never email/uid) is what travels with each flush.
   var idToken = null;
   var identifiedSent = false;
-  function refreshToken() {
+  // Firebase modular SDK URLs — pinned to 10.12.5 to match Cricket Times'
+  // per-file SDK pinning. The literal "firebasejs/10.12.5" strings below mean
+  // the standard `grep firebasejs/X.Y.Z` bump sweep catches THIS file too, so
+  // the tracker stays in lockstep with every other SDK-importing file on a bump.
+  var FB_APP_URL  = 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
+  var FB_AUTH_URL = 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
+
+  function onUser(user) {
+    if (user) {
+      user.getIdToken().then(function (t) { idToken = t; }).catch(function () {});
+      if (!identifiedSent) { identifiedSent = true; queue({ event_type: 'identify' }); }
+    } else {
+      idToken = null;
+    }
+  }
+
+  // Path A — compat SDK (window.firebase), if a page happens to expose it.
+  function tryCompat() {
     try {
-      if (window.firebase && firebase.auth && firebase.auth().currentUser) {
-        return firebase.auth().currentUser.getIdToken()
-          .then(function(t){ idToken = t; return t; }).catch(function(){});
+      if (window.firebase && firebase.auth) {
+        firebase.auth().onIdTokenChanged(onUser);   // fires now + on refresh/sign-in/out
+        return true;
       }
     } catch (e) {}
-    return Promise.resolve(null);
+    return false;
   }
-  function setupAuth() {
-    try {
-      firebase.auth().onAuthStateChanged(function (user) {
-        if (user) {
-          refreshToken();
-          if (!identifiedSent) { identifiedSent = true; queue({ event_type: 'identify' }); }
-        } else { idToken = null; }
+
+  // Path B — modular SDK. Dynamically import the SAME version the page uses so
+  // we share its module instance and getApp() sees the already-initialized app.
+  // (ES module imports are cached by URL, so this reuses the page's Firebase.)
+  function tryModular() {
+    return import(FB_APP_URL).then(function (appMod) {
+      var app;
+      try { app = appMod.getApp(); } catch (e) { return false; }   // app not initialized yet
+      return import(FB_AUTH_URL).then(function (authMod) {
+        authMod.onIdTokenChanged(authMod.getAuth(app), onUser);
+        return true;
       });
-      setInterval(refreshToken, 30 * 60 * 1000); // refresh well within the 1h token life
-    } catch (e) {}
+    }).catch(function () { return false; });
   }
-  // Load-order independent: this tracker may be injected before the Firebase
-  // SDK finishes loading. Poll briefly for it, then wire up auth. Until then,
-  // events queue and the first flush (15s) carries the token once auth resolves
-  // (which normally happens in <1s), so even the initial page_view is attributed.
-  (function waitForFirebase(tries) {
+
+  // Try compat immediately; otherwise poll for the modular app to appear
+  // (it's initialized by an ES-module <script> which may run after us).
+  (function initAuth(tries) {
     tries = tries || 0;
-    try { if (window.firebase && firebase.auth) { setupAuth(); return; } } catch (e) {}
-    if (tries < 100) setTimeout(function(){ waitForFirebase(tries + 1); }, 100); // up to ~10s
+    if (tryCompat()) return;
+    tryModular().then(function (ok) {
+      if (ok) return;
+      if (tries < 100) setTimeout(function () { initAuth(tries + 1); }, 100); // up to ~10s
+    });
   })();
 
   // --------------------------------------------------------------- session ---
@@ -194,7 +221,7 @@
   window.addEventListener('pagehide', function(){ flushActive(true); });
 
   // ------------------------------------------------------------- kickoff -----
-  function start(){ refreshToken(); trackPageView(false); }
+  function start(){ trackPageView(false); }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
   else start();
 })();
