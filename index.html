@@ -17,6 +17,10 @@
 <script src="/prelaunch-guard.js"></script>
 <script src="/auth-status.js"></script>
 <script src="/article-window-filter.js"></script>
+<!-- Engagement tracker (analytics only — does NOT gate). index.html is on the
+     injector exception list, so it's added by hand here. Load-order tolerant:
+     it reuses the modular Firebase app via getApp() once initialized. -->
+<script src="/ct-tracker.js" async></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">

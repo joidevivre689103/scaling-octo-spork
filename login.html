@@ -1102,5 +1102,10 @@
     });
 
   </script>
+
+  <!-- Engagement tracker (analytics only — does NOT gate). login.html is on the
+       injector exception list, so it's added by hand here. Load-order tolerant:
+       it reuses the modular Firebase app via getApp() once initialized. -->
+  <script src="/ct-tracker.js" async></script>
 </body>
 </html>
