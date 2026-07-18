@@ -464,13 +464,28 @@
    * keys (excluding `closed`) OR 'none' if the email isn't listed or the
    * stored role isn't a known TIER_RANK value (e.g. legacy 'priority' or
    * 'regular' entries from before item (e); those map silently to 'none').
+   *
+   * 2026-07-18 — NON-RANKED ROLES. `subscriber` and `paidSubscriber` are
+   * reader-axis roles: they describe what a reader has bought or been given,
+   * not where they sit on the operational ladder, so they are deliberately
+   * absent from TIER_RANK. The original hasOwnProperty(TIER_RANK) filter
+   * would have collapsed both to 'none' — the same silent swallow that ate
+   * legacy 'priority' — which would have made a comp look like it saved
+   * correctly in admin.html while granting nothing at all. They are therefore
+   * allowlisted explicitly here. Rank-based callers (hasSiteAccess) still see
+   * them as unranked and fail them on any gate above 'public', which is
+   * correct: a paid subscriber is not an admin.
    */
+  const NON_RANKED_ROLES = ['subscriber', 'paidSubscriber'];
+
   async function getUserRole(db, email) {
     if (!email) return DEFAULT_USER_ROLE;
     try {
       const data = await readDoc(db, 'settings', 'userTypes');
       const role = data && data[emailToKey(email)];
-      if (typeof role === 'string' && Object.prototype.hasOwnProperty.call(TIER_RANK, role)) {
+      if (typeof role === 'string'
+          && (Object.prototype.hasOwnProperty.call(TIER_RANK, role)
+              || NON_RANKED_ROLES.indexOf(role) !== -1)) {
         return role;
       }
     } catch (e) {
@@ -539,6 +554,32 @@
       console.warn('[feature-flags] getUserIsPaid failed:', e?.message || e);
       return false;
     }
+  }
+
+  /**
+   * Does this user have paid ACCESS, by any route?
+   *
+   * Added 2026-07-18. Deliberately a SEPARATE function from getUserIsPaid
+   * rather than an extra clause inside it, because the two answer different
+   * questions and the distinction is load-bearing:
+   *
+   *   getUserIsPaid()      → "is this person paying us?"  (Stripe only)
+   *   getUserHasPaidAccess() → "should this person see paid content?"
+   *
+   * Complimentary access (the `paidSubscriber` role in settings/userTypes) grants the
+   * second and never the first. Keeping getUserIsPaid Stripe-pure means any
+   * present or future revenue count that calls it stays truthful, and a comp
+   * can never quietly inflate it. Access checks call this one instead.
+   *
+   * Both reads run concurrently; either alone is sufficient.
+   */
+  async function getUserHasPaidAccess(db, email) {
+    if (!email) return false;
+    const [stripePaid, role] = await Promise.all([
+      getUserIsPaid(db, email),
+      getUserRole(db, email)
+    ]);
+    return stripePaid || role === 'paidSubscriber';
   }
 
   /**
@@ -707,9 +748,12 @@
     }
 
     // Signed in: look up role and paid status concurrently.
+    // 2026-07-18: getUserHasPaidAccess, not getUserIsPaid — this is an ACCESS
+    // decision, so a complimentary `paidSubscriber` must pass here. getUserIsPaid
+    // stays Stripe-only for revenue questions.
     const [role, isPaid] = await Promise.all([
       getUserRole(db, email),
-      getUserIsPaid(db, email)
+      getUserHasPaidAccess(db, email)
     ]);
     const isAdmin = (role === 'admin' || role === 'superadmin');
     const tier = isPaid ? 'paid' : 'loggedIn';
@@ -771,7 +815,8 @@
     emailToKey,
     getSiteMinimumTier,
     getUserRole,
-    getUserIsPaid,
+    getUserIsPaid,         // Stripe only — "is this person paying us?"
+    getUserHasPaidAccess,  // Stripe OR complimentary role — "should they see paid content?"
     getFeatureGates,
     requireAccess,
     hasSiteAccess,
