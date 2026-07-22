@@ -29,8 +29,18 @@
   var COLLECT_URL     = 'https://us-central1-hitwicket-cba02.cloudfunctions.net/collectEngagement';
   var HEARTBEAT_MS    = 15000;              // active-time tick
   var SESSION_TIMEOUT = 30 * 60 * 1000;     // 30-min inactivity ends a session
+  var IDLE_TIMEOUT    = 180 * 1000;         // 180s with no real interaction = idle: active time
+                                            // stops accruing and the session stops being touched,
+                                            // even if the tab is still foreground+focused. Distinct
+                                            // from SESSION_TIMEOUT: idle pauses accrual; 30min of
+                                            // that idleness (measured from the last touch) rotates
+                                            // the session id on the next interaction.
   var FLUSH_MS        = 15000;              // batch flush cadence
   var MAX_BATCH       = 30;
+  var AUTH_WAIT_MS    = 4000;               // if Firebase never reports (static page, blocked
+                                            // SDK), stop holding events after this and send anon
+  var PENDING_KEY     = 'ct_pending';       // events carried to the next page when we unload
+                                            // before identity is known — see flush()/replayPending()
 
   // ------------------------------------------------------------- utilities ---
   function uuid() {
@@ -42,6 +52,7 @@
   }
   function lsGet(k){ try { return localStorage.getItem(k); } catch(e){ return null; } }
   function lsSet(k,v){ try { localStorage.setItem(k,v); } catch(e){} }
+  function lsDel(k){ try { localStorage.removeItem(k); } catch(e){} }
   function meta(name){ var el = document.querySelector('meta[name="'+name+'"]'); return el ? el.content : null; }
   function localDate(){ // YYYY-MM-DD in the user's local timezone
     var d = new Date(), p = function(n){ return (n<10?'0':'')+n; };
@@ -63,6 +74,18 @@
   // The verified token (never email/uid) is what travels with each flush.
   var idToken = null;
   var identifiedSent = false;
+  // Identity travels per-BATCH (flush sends one idToken for all events in it),
+  // and idToken is populated ASYNCHRONOUSLY once onIdTokenChanged fires. Any
+  // flush before that lands is attributed to the anonymous aggregate. That is
+  // survivable for page_views and heartbeats (re-emitted on every page and
+  // every 15s, so later flushes carry the token) but FATAL for session_start,
+  // which is emitted exactly once per session on the FIRST page. If that first
+  // page unloads inside the auth window — the classic login-page bounce after a
+  // fresh sign-in — the session_start beacons out tokenless and the session is
+  // filed as anonymous, never against the user. `authResolved` closes that
+  // window: no batch flushes until identity is known (a real token, or a
+  // definitive signed-out), and the once-per-session event waits for it.
+  var authResolved = false;
   // Firebase modular SDK URLs — pinned to 10.12.5 to match Cricket Times'
   // per-file SDK pinning. The literal "firebasejs/10.12.5" strings below mean
   // the standard `grep firebasejs/X.Y.Z` bump sweep catches THIS file too, so
@@ -72,11 +95,24 @@
 
   function onUser(user) {
     if (user) {
-      user.getIdToken().then(function (t) { idToken = t; }).catch(function () {});
+      // Resolve AFTER the token is in hand, not merely when a user appears —
+      // otherwise the drain would still race an unset idToken.
+      user.getIdToken().then(function (t) { idToken = t; markAuthResolved(); })
+                       .catch(function () { markAuthResolved(); }); // token fetch failed; don't hang
       if (!identifiedSent) { identifiedSent = true; queue({ event_type: 'identify' }); }
     } else {
       idToken = null;
+      markAuthResolved();   // definitively signed out — anonymous attribution is correct here
     }
+  }
+
+  // Identity is now known (token in hand, or known-anonymous). Release anything
+  // buffered during the pre-auth window so it flushes WITH the right identity.
+  // Safe to call more than once (token refreshes re-enter here); a flush with an
+  // empty batch is a no-op.
+  function markAuthResolved() {
+    authResolved = true;
+    flush(false);
   }
 
   // Path A — compat SDK (window.firebase), if a page happens to expose it.
@@ -115,6 +151,13 @@
     });
   })();
 
+  // Backstop: on a page where Firebase never reports (no SDK, blocked, or the
+  // app is never initialised) onIdTokenChanged won't fire, so nothing would
+  // ever resolve and the buffer would hold forever. Release it as anonymous
+  // after AUTH_WAIT_MS. On a normal signed-in page auth resolves in well under
+  // a second, so this timer never gets the chance to fire.
+  setTimeout(function () { if (!authResolved) markAuthResolved(); }, AUTH_WAIT_MS);
+
   // --------------------------------------------------------------- session ---
   function getSession() {
     var now = Date.now();
@@ -140,12 +183,32 @@
     ev.ts         = ev.ts         || new Date().toISOString();
     ev.local_date = ev.local_date || localDate();
     ev.session_id = ev.session_id || lsGet('ct_sid');
+    // Stamp the last REAL interaction time so the server can separate genuine
+    // engagement from the idle-grace tail: an event fired during the 180s grace
+    // carries the (older) last-interaction ts, so the server sees the gap
+    // between last interaction and last activity as grace, not engagement.
+    // lastInteraction is hoisted (declared in the heartbeat section) and set
+    // before any queue() call; the guard covers the pre-init instant.
+    ev.last_interaction_ts = ev.last_interaction_ts ||
+      new Date((typeof lastInteraction === 'number' ? lastInteraction : Date.now())).toISOString();
     // NOTE: no uid, no email. The server derives uid from the ID token.
     batch.push(ev);
     if (batch.length >= MAX_BATCH) flush(false);
   }
   function flush(useBeacon) {
     if (!batch.length) return;
+    if (!authResolved) {
+      // Identity unknown. A normal flush simply holds — the buffer waits for
+      // markAuthResolved(). But an unload can't wait: rather than beacon these
+      // events tokenless (which is exactly how session_start was being filed as
+      // anonymous), persist the batch and let the next page replay it once its
+      // auth is warm. The session is deferred, never lost, never misattributed.
+      if (useBeacon) {
+        try { lsSet(PENDING_KEY, JSON.stringify(batch)); } catch (e) {}
+        batch = [];
+      }
+      return;
+    }
     var payload = JSON.stringify({ events: batch, idToken: idToken });
     batch = [];
     try {
@@ -157,14 +220,31 @@
       }
     } catch (e) { /* never let analytics break the page */ }
   }
+
+  // Pull any events a previous page persisted on an unresolved unload and put
+  // them at the front of this page's batch. Cleared BEFORE parsing so a crash
+  // mid-replay can't cause a double-send (the collector counts every event, it
+  // does not dedupe). These ride out on this page's flush once auth resolves.
+  function replayPending() {
+    var raw = lsGet(PENDING_KEY);
+    if (!raw) return;
+    lsDel(PENDING_KEY);
+    try {
+      var evs = JSON.parse(raw);
+      if (evs && evs.length) batch = evs.concat(batch);
+    } catch (e) { /* corrupt buffer — drop it */ }
+  }
   setInterval(function(){ flush(false); }, FLUSH_MS);
 
   // ------------------------------------------------------------- page views ---
   var currentPageViewId = null;
+  var currentPagePath = null;   // path of the current page_view, stamped onto its
+                                // heartbeats so the server can attribute dwell time per page
   function trackPageView(isSpaNav) {
     touchSession();
     var sid = getSession();
     currentPageViewId = uuid();
+    currentPagePath = location.pathname;
     activeMsUnsent = 0;
     queue({
       event_type:      'page_view',
@@ -191,7 +271,27 @@
   // ------------------------------------------------ active-time heartbeat ----
   var activeMsUnsent = 0;
   var lastTick = Date.now();
-  function isActive(){ return document.visibilityState === 'visible' && document.hasFocus(); }
+
+  // Real-interaction clock. Without this, isActive() was true for any foreground
+  // focused tab — so an article left open on screen counted every idle second as
+  // engagement and never timed out (the 30-min rule only bites when the tab is
+  // backgrounded or blurred, because only then do the heartbeat touches stop).
+  // We now also require interaction within IDLE_TIMEOUT. Reading isn't clicking,
+  // so the 180s window is deliberately generous — a long reading pause still
+  // counts; only genuine abandonment goes idle.
+  var lastInteraction = Date.now();
+  function markInteraction(){ lastInteraction = Date.now(); }
+  // passive:true — these listeners never call preventDefault, so this keeps
+  // scroll/touch off the main-thread blocking path.
+  ['mousemove','mousedown','keydown','scroll','touchstart','click','wheel','pointerdown'].forEach(function (evt) {
+    window.addEventListener(evt, markInteraction, { passive: true, capture: true });
+  });
+
+  function isActive(){
+    return document.visibilityState === 'visible'
+        && document.hasFocus()
+        && (Date.now() - lastInteraction) < IDLE_TIMEOUT;
+  }
   setInterval(function () {
     var now = Date.now();
     if (isActive()) {
@@ -199,7 +299,7 @@
       touchSession();
       if (activeMsUnsent >= HEARTBEAT_MS && currentPageViewId) {
         queue({ event_type:'heartbeat', page_view_id: currentPageViewId, active_ms_delta: activeMsUnsent,
-                content_section: meta('ct:section') || sectionFromPath() });
+                url_path: currentPagePath, content_section: meta('ct:section') || sectionFromPath() });
         activeMsUnsent = 0;
       }
     }
@@ -209,7 +309,7 @@
   function flushActive(useBeacon) {
     if (activeMsUnsent > 0 && currentPageViewId) {
       queue({ event_type:'heartbeat', page_view_id: currentPageViewId, active_ms_delta: activeMsUnsent,
-              content_section: meta('ct:section') || sectionFromPath() });
+              url_path: currentPagePath, content_section: meta('ct:section') || sectionFromPath() });
       activeMsUnsent = 0;
     }
     flush(useBeacon);
@@ -221,7 +321,7 @@
   window.addEventListener('pagehide', function(){ flushActive(true); });
 
   // ------------------------------------------------------------- kickoff -----
-  function start(){ trackPageView(false); }
+  function start(){ replayPending(); trackPageView(false); }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
   else start();
 })();
