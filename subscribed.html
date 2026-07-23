@@ -668,6 +668,28 @@
             'write to <a href="mailto:ivan@cricketimes.com">ivan@cricketimes.com</a> ' +
             'and I\u2019ll sort it out personally.';
         }
+      } else if (state === 'complimentary') {
+        // Complimentary access (2026-07-18): full access, granted by hand,
+        // no Stripe record and nothing to pay. The 'notsub' framing above
+        // would be actively wrong here ("open with a subscription"), and the
+        // neutral framing invites them to subscribe for what they already
+        // have — hence a state of its own.
+        if (kicker) kicker.textContent = 'A Guest in the Pavilion';
+        if (title)  title.textContent = 'Welcome \u2014 you\u2019re all set.';
+        if (lede) {
+          lede.innerHTML =
+            'You have complimentary access to Cricket Times \u2014 the archive, ' +
+            'audio, simulations and data exports are all open to you, with ' +
+            'nothing to pay.';
+        }
+        if (indep) indep.textContent = 'Subscriptions keep all of it independent.';
+        if (note) {
+          note.classList.remove('hidden');
+          note.innerHTML =
+            'There\u2019s no subscription or billing attached to this account \u2014 ' +
+            'access was granted directly. If you think that\u2019s wrong, write to ' +
+            '<a href="mailto:ivan@cricketimes.com">ivan@cricketimes.com</a>.';
+        }
       }
     }
 
@@ -840,9 +862,18 @@
     //     says now is what's true.
     //
     // Behavioral note: admins/superadmins WITHOUT a subscription
-    // doc now land on the soft-aligned panel rather than the
-    // confirmed one. Correct — this page reports subscription
-    // state, not operational role.
+    // doc land on the not-subscribed panel (since the 2026-06-05
+    // not_listed/inconclusive split — before that they got the
+    // softer aligned copy). Correct — this page reports subscription
+    // state, not operational role, and admins hold access via
+    // isAdmin() regardless of what this page says.
+    //
+    // Complimentary readers (2026-07-18) are the exception that
+    // needed handling: like admins they have paid access with no
+    // subscriptions/ doc, but unlike admins they are outside readers
+    // who don't know the machinery — being told "not subscribed yet"
+    // and pointed at the price grid would have them buy what they
+    // were given. See the not_listed branch below.
     // ────────────────────────────────────────────────────────────
     async function resolveSignedInState(user) {
       const userKey = emailToUserId(user.email);
@@ -939,6 +970,16 @@
       //     genuinely can't tell, so we don't alarm; the access gate
       //     on paid pages is the real arbiter.
       if (readResult.kind === 'not_listed') {
+        // Complimentary access (2026-07-18) is checked HERE, not earlier:
+        // a live Stripe subscription always wins the messaging, and the
+        // misaligned case above (they just paid under another email) is
+        // still the actionable thing to tell them even if they also hold a
+        // complimentary grant. Only once we know there's no payment in
+        // flight and no Stripe record does the role decide the copy.
+        if (await hasComplimentaryAccess(userKey)) {
+          showComplimentaryPanel(user);
+          return;
+        }
         showNotSubscribedPanel(user);
         return;
       }
@@ -985,6 +1026,62 @@
       // both the celebratory default AND the neutral framing are
       // wrong once we positively know there's no subscription.
       setFraming('notsub');
+    }
+
+    // hasComplimentaryAccess — does this reader hold the 'paidSubscriber'
+    // role in settings/userTypes? Added 2026-07-18 with the complimentary
+    // tier. Such a reader has full paid access but NO subscriptions/ doc, so
+    // the Stripe read above returns 'not_listed' and — without this — they
+    // were told "you're signed in but not subscribed yet" and pointed at the
+    // subscribe page, i.e. asked to buy what they'd already been given.
+    //
+    // NOTE: compat SDK on this page — snap.exists is a PROPERTY, no parens.
+    // settings/* is readable by any signed-in user (the same doc
+    // feature-flags.js reads on every gated page), so no rules change.
+    // Fails CLOSED: any error returns false and the honest not-subscribed
+    // copy still shows, rather than promising access we couldn't verify.
+    async function hasComplimentaryAccess(userKey) {
+      if (!userKey) return false;
+      try {
+        const snap = await db.collection('settings').doc('userTypes').get();
+        if (!snap || !snap.exists) return false;
+        return (snap.data() || {})[userKey] === 'paidSubscriber';
+      } catch (e) {
+        console.warn('[subscribed] userTypes read failed:', e && e.message);
+        return false;
+      }
+    }
+
+    // showComplimentaryPanel — signed in, no Stripe subscription, but holds
+    // complimentary access. Reuses the alignedPanel DOM (as
+    // showNotSubscribedPanel does) with copy that's true of a gift account:
+    // full access, no plan, nothing to manage, nothing to pay.
+    function showComplimentaryPanel(user) {
+      showPanel('alignedPanel');
+      const tierEl   = document.getElementById('alignedTier');
+      const emailEl  = document.getElementById('alignedEmail');
+      const titleEl  = document.querySelector('#alignedPanel .signin-title');
+      const blurbEls = document.querySelectorAll('#alignedPanel .signin-blurb');
+
+      if (emailEl) emailEl.textContent = user.email;
+      if (tierEl)  tierEl.textContent = 'Complimentary';
+      if (titleEl) {
+        titleEl.innerHTML =
+          'You&rsquo;re all set &mdash; with our <span class="crimson">compliments</span>.';
+      }
+      if (blurbEls && blurbEls[0]) blurbEls[0].textContent = 'Signed in as';
+      if (blurbEls && blurbEls[1]) {
+        blurbEls[1].innerHTML =
+          'You have complimentary access to everything &mdash; the archive, ' +
+          'audio, simulations and data exports. There&rsquo;s nothing to pay ' +
+          'and no subscription to set up.';
+      }
+      // The third blurb is the "Manage your subscription" link — there is no
+      // plan and no billing behind a complimentary grant, so hide it (same
+      // reasoning as the non-subscriber case, opposite cause).
+      if (blurbEls && blurbEls[2]) blurbEls[2].classList.add('hidden');
+
+      setFraming('complimentary');
     }
 
     // showAlignedPanel — shared rendering for two flavours:
