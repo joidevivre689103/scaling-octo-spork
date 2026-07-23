@@ -723,6 +723,23 @@
    *
    * Added 2026-05-20 (item e). The single primitive every gated page
    * should consult, replacing per-page bespoke auth checks.
+   *
+   * ⚠ PARITY OBLIGATION — read before changing the predicate below.
+   * `functions/serveDerivedData.js` contains `requireAccessServer()`, a
+   * hand-maintained server-side PORT of this function, and it is the thing
+   * that actually protects the data (this client check only reveals the
+   * page). The two must move in lockstep. Its header claims a pointer
+   * comment lives here; it did not, until 2026-07-18 — which is exactly why
+   * the break below went unnoticed.
+   *
+   * Precedent: on 2026-07-18 this function switched from `getUserIsPaid()`
+   * (Stripe-only) to `getUserHasPaidAccess()` (Stripe OR the 'paidSubscriber'
+   * complimentary role). The server port was not updated in the same change,
+   * so complimentary readers passed here, saw the page render, and then got a
+   * 403 from serveDerivedData with no data on all nine data-bearing pages.
+   * Note the Admin SDK bypasses Firestore rules, so fixing `isPaidSubscriber()`
+   * in firestore.rules does NOT reach that function either. A parity break
+   * never looks like a permissions bug — it looks like a broken page.
    */
   async function requireAccess(db, opts) {
     const o = opts || {};
