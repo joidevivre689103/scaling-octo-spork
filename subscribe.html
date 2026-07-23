@@ -1345,6 +1345,14 @@ if (new URLSearchParams(window.location.search).get('cancelled') === '1') {
 // (h), the webhook no longer writes userTypes, so reading it for paid
 // signal would silently fail for any real paid subscriber.
 //
+// Amendment (2026-07-18, complimentary tier): userTypes is read again here,
+// but ONLY as a fallback after Stripe has said no, and ONLY for the single
+// 'paidSubscriber' role. This does not reintroduce the (h) problem: Stripe
+// remains the sole source of truth for REVENUE and is always checked first,
+// so a real paid subscriber is never resolved via userTypes. What (h)
+// retired was userTypes as THE paid signal; this is an additive
+// access-only grant that cannot mask or override a Stripe status.
+//
 // Returns true if the panel was shown (so init can short-circuit).
 async function maybeShowAlreadySubscribedPanel(user) {
   if (!user || !user.email)        return false;
@@ -1352,15 +1360,44 @@ async function maybeShowAlreadySubscribedPanel(user) {
   try {
     const subRef = doc(firestore, 'subscriptions', encodeEmailKey(user.email));
     const snap = await getDoc(subRef);
-    if (!snap.exists()) return false;
-    const data = snap.data() || {};
+    const data = snap.exists() ? (snap.data() || {}) : {};
     const PAID_STATUSES = new Set(['active', 'past_due']);
-    if (!PAID_STATUSES.has(data.status)) return false;
+    const stripePaid = PAID_STATUSES.has(data.status);
 
-    // Active paid user — swap UI.
+    // Complimentary access (2026-07-18): paid access granted by hand via the
+    // 'paidSubscriber' role in settings/userTypes, with no Stripe doc behind
+    // it. Without this check such a reader fell straight through to the tier
+    // grid and could pay for access they already have. Checked only when
+    // Stripe says no, so a real subscription always wins the messaging.
+    let complimentary = false;
+    if (!stripePaid) {
+      try {
+        const utSnap = await getDoc(doc(firestore, 'settings', 'userTypes'));
+        complimentary = utSnap.exists() &&
+          utSnap.data()[encodeEmailKey(user.email)] === 'paidSubscriber';
+      } catch (e) {
+        console.warn('[subscribe] could not check complimentary role:', e);
+      }
+    }
+    if (!stripePaid && !complimentary) return false;
+
+    // Paid one way or the other — swap UI.
     if (subscribeFlowEl)   subscribeFlowEl.style.display = 'none';
     alreadySubPanelEl.style.display = '';
     if (alreadySubEmailEl) alreadySubEmailEl.textContent = user.email;
+
+    // Complimentary readers have no plan and no billing, so the default copy
+    // ("your subscription is active", "switch plans or cancel") would be wrong
+    // — swap it for something true of a hand-granted account.
+    if (complimentary) {
+      const titleEl = alreadySubPanelEl.querySelector('.already-sub-title');
+      const bodyEls = alreadySubPanelEl.querySelectorAll('.already-sub-body');
+      if (titleEl) titleEl.textContent = "You already have full access.";
+      if (bodyEls[0]) bodyEls[0].textContent =
+        "You've been given complimentary access to Cricket Times — the archive, the simulation tool, data export, behind-the-scenes notes, and everything else. There's nothing to pay.";
+      if (bodyEls[1]) bodyEls[1].textContent =
+        "There's no plan or billing attached to a complimentary account, so there's nothing to manage. If you'd rather move to a paid subscription, get in touch.";
+    }
     return true;
   } catch (err) {
     // Network error, rules denial, anything else — fall through to normal

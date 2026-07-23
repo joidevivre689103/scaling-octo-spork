@@ -418,6 +418,25 @@
   </div>
 
   <!-- ─── No subscription state ─── -->
+  <!-- ─── Complimentary access state (2026-07-18) ───
+       Shown when the reader has NO Stripe subscription but DOES hold the
+       'paidSubscriber' role in settings/userTypes — i.e. complimentary access
+       granted by hand. Without this, they landed on #state-nosub, which told
+       them "we couldn't find an active subscription" and pushed them to pay
+       for access they already have. There is deliberately nothing to manage
+       here: a complimentary grant has no plan, no renewal, and no billing. -->
+  <div id="state-complimentary" class="state">
+    <div class="card">
+      <div class="card-body">
+        <p>You have <strong>complimentary access</strong> to Cricket Times &mdash; full access to the archive, the simulation tool, data export and everything else, with nothing to pay.</p>
+        <p style="color: var(--ink-muted); font-style: italic;">There's no plan or billing to manage, so there's nothing for you to do on this page. If you think this is wrong, or you'd rather move to a paid subscription, get in touch.</p>
+        <div class="btn-row">
+          <a class="btn" href="/">Back to Cricket Times</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div id="state-nosub" class="state">
     <div class="card">
       <div class="card-body">
@@ -654,6 +673,32 @@
   let currentSub = null; // last-loaded subscription doc data
   let currentUser = null;
 
+  // Does this reader hold complimentary access (the 'paidSubscriber' role in
+  // settings/userTypes) rather than a Stripe subscription? Added 2026-07-18
+  // alongside the complimentary tier: without it, a complimentary reader hit
+  // #state-nosub and was told to subscribe for access they already have.
+  // settings/* is readable by any signed-in user (same doc feature-flags.js
+  // reads), so this needs no rules change. Fails closed: any error falls back
+  // to the plain no-subscription state rather than over-promising access.
+  async function hasComplimentaryAccess(user) {
+    try {
+      const key = (user.email || "").toLowerCase().replace(/[.@]/g, "_");
+      if (!key) return false;
+      const snap = await getDoc(doc(db, "settings", "userTypes"));
+      return snap.exists() && snap.data()[key] === "paidSubscriber";
+    } catch (err) {
+      console.warn("Could not check complimentary access:", err);
+      return false;
+    }
+  }
+
+  // Shown when there's no LIVE Stripe subscription — either none ever, or one
+  // that has lapsed. Complimentary access is checked first so a hand-granted
+  // reader is never told they have nothing.
+  async function showNoStripeSubState(user) {
+    showState((await hasComplimentaryAccess(user)) ? "state-complimentary" : "state-nosub");
+  }
+
   async function loadSubscription(user) {
     const emailKey = (user.email || "").toLowerCase().replace(/[.@]/g, "_");
     if (!emailKey) {
@@ -663,13 +708,15 @@
     try {
       const snap = await getDoc(doc(db, "subscriptions", emailKey));
       if (!snap.exists()) {
-        showState("state-nosub");
+        await showNoStripeSubState(user);
         return;
       }
       const data = snap.data();
-      // Treat cancelled subscriptions (post-period-end) as "no active sub".
+      // Treat cancelled subscriptions (post-period-end) as "no active sub" —
+      // but a cancelled payer who also holds a complimentary grant still has
+      // access, so this routes through the same check.
       if (data.status === "cancelled" || data.status === "canceled") {
-        showState("state-nosub");
+        await showNoStripeSubState(user);
         return;
       }
       currentSub = data;
