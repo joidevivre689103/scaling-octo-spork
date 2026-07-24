@@ -90,7 +90,12 @@
     // above the breakpoint instead of the row scrolling.
     '.ct-nav-link{font-family:\'Inter\',sans-serif;font-size:12px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;color:#5a5450;text-decoration:none;padding:14px 14px;position:relative;transition:color 0.2s;white-space:nowrap;border:0;border-bottom:0}',
     '.ct-nav-link:hover{color:#8b0000;border-bottom:0}',
-    '.ct-nav-link.active{color:#8b0000;border-bottom:0}',
+    // font-weight repeated from .ct-nav-link on purpose. Several pages carry a
+    // legacy `.ct-nav-link.active{font-weight:600}` in their own <style>, which
+    // outranks the single-class base rule above (0,2,0 beats 0,1,0). Declaring it
+    // on the equally specific selector here lets load order settle it — this sheet
+    // is appended to <head> last, so at equal specificity it wins.
+    '.ct-nav-link.active{color:#8b0000;font-weight:600;border-bottom:0}',
     '.ct-nav-link.active::after{content:\'\';position:absolute;bottom:0;left:14px;right:14px;height:2px;background:#8b0000}',
     // Breakpoint raised 900→1100px when nav grew 10→12 items (2026-06-05):
     // 12 centered no-wrap items clip between ~900-1100px without scroll.
