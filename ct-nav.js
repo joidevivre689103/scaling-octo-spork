@@ -34,11 +34,17 @@
   ];
 
   // Footer appends these to the primary items
+  //
+  // `gated: 'paidAccess'` [2026-07-24] renders the link hidden and reveals it only
+  // for readers who actually hold paid access — Stripe subscribers AND complimentary
+  // (`paidSubscriber` role) readers alike. See revealGatedLinks() for the mechanism
+  // and why it fails closed.
   var FOOTER_EXTRAS = [
     { href: '/bts.html',                   label: 'Behind the Scenes' },
     { href: '/about.html',                 label: 'About' },
     { href: 'mailto:contact@cricketimes.com', label: 'Contact' },
     { href: '/subscribe.html',             label: 'Subscribe' },
+    { href: '/manage.html',                label: 'Manage Subscription', gated: 'paidAccess' },
     { href: '/voices.html',                label: 'Voices' },
     { href: '/terms.html',                 label: 'Terms of Service' },
     { href: '/privacy.html',               label: 'Privacy Policy' }
@@ -94,6 +100,11 @@
     '.ct-footer-nav{display:flex;gap:32px;flex-wrap:wrap}',
     '.ct-footer-nav a{font-family:\'Inter\',sans-serif;font-size:12px;font-weight:500;color:rgba(255,255,255,0.6);text-decoration:none}',
     '.ct-footer-nav a:hover{color:#fff}',
+    // Entitlement-gated footer links start hidden and are revealed by
+    // revealGatedLinks() (attribute removed). Hiding in CSS rather than by
+    // omitting the node keeps the reveal a single attribute write with no
+    // re-render, and means the link is never briefly visible to the wrong reader.
+    '.ct-footer-nav a[data-ct-gated]{display:none}',
     '.ct-footer-bottom{font-family:\'Inter\',sans-serif;font-size:11px;color:rgba(255,255,255,0.4);display:flex;justify-content:space-between;align-items:flex-start;gap:24px}',
     // Left column: copyright + no-copying notice stacked vertically
     '.ct-footer-legal{display:flex;flex-direction:column;gap:6px;max-width:48%}',
@@ -181,7 +192,8 @@
   function renderFooter(el) {
     var all = NAV_ITEMS.concat(FOOTER_EXTRAS);
     var links = all.map(function(item) {
-      return '<a href="' + esc(item.href) + '">' + esc(item.label) + '</a>';
+      var attrs = item.gated ? ' data-ct-gated="' + esc(item.gated) + '"' : '';
+      return '<a href="' + esc(item.href) + '"' + attrs + '>' + esc(item.label) + '</a>';
     }).join('');
     el.className = 'ct-footer';
     el.innerHTML =
@@ -253,6 +265,72 @@
     });
   }
 
+  // ── Entitlement-gated footer links ──
+  // Added 2026-07-24 for the "Manage Subscription" link.
+  //
+  // Constraint that shapes this whole function: ct-nav.js deliberately loads NO
+  // Firebase SDK (see the tagline-override note above — it runs on pages with no
+  // Firebase, with modular v10, and with compat v9, so REST is the only portable
+  // call). So we do not read auth ourselves. We wait for feature-flags.js — which
+  // the 7-G inject block loads on every gated page — and ask it.
+  //
+  // MUST be getUserHasPaidAccess (Stripe OR `paidSubscriber` role), NOT
+  // getUserIsPaid (Stripe only). Using the latter would hide the link from exactly
+  // the complimentary readers it most needs to reach — the same Stripe-only
+  // assumption behind the manage/subscribe bugs fixed in #73 and the
+  // serveDerivedData parity break.
+  //
+  // FAILS CLOSED. No flags, no such function, an error, or a timeout all leave the
+  // link hidden. A missing link is a discoverability annoyance; a link shown to a
+  // non-subscriber sends them to a page telling them to subscribe, which is worse.
+  var FLAGS_WAIT_MS = 6000;   // generous: cold Firestore read on mobile data
+  var FLAGS_POLL_MS = 100;
+
+  function whenFlagsReady(cb) {
+    var waited = 0;
+    (function poll() {
+      if (window.__ctFlagsLoaded) return cb(true);
+      if (waited >= FLAGS_WAIT_MS) return cb(false);
+      waited += FLAGS_POLL_MS;
+      setTimeout(poll, FLAGS_POLL_MS);
+    })();
+  }
+
+  function revealGatedLinks() {
+    var gated = document.querySelectorAll('.ct-footer-nav a[data-ct-gated="paidAccess"]');
+    if (!gated.length) return;
+
+    whenFlagsReady(function(ready) {
+      if (!ready) {
+        // Not an error worth shouting about: on an ungated page feature-flags.js
+        // may simply not be present. Left hidden by design.
+        return;
+      }
+      var fn = window.getUserHasPaidAccess || window.ctGetUserHasPaidAccess;
+      if (typeof fn !== 'function') {
+        console.warn('[ct-nav] getUserHasPaidAccess() not found on window — the ' +
+          '"Manage Subscription" footer link will stay hidden for everyone. If ' +
+          'feature-flags.js renamed or stopped exporting it, update this probe.');
+        return;
+      }
+      var result;
+      try {
+        result = fn();
+      } catch (e) {
+        console.warn('[ct-nav] getUserHasPaidAccess() threw; leaving gated links hidden.', e);
+        return;
+      }
+      // Tolerates either a boolean or a Promise<boolean> so a future
+      // sync/async change in feature-flags.js doesn't silently break this.
+      Promise.resolve(result).then(function(hasAccess) {
+        if (!hasAccess) return;
+        for (var i = 0; i < gated.length; i++) gated[i].removeAttribute('data-ct-gated');
+      }).catch(function() {
+        // Silent, fail closed.
+      });
+    });
+  }
+
   function init() {
     ensureFonts();
     injectCss();
@@ -262,6 +340,7 @@
     for (var a = 0; a < mastheads.length; a++) renderMasthead(mastheads[a]);
     for (var b = 0; b < primaries.length; b++) renderPrimary(primaries[b]);
     for (var c = 0; c < footers.length;   c++) renderFooter(footers[c]);
+    if (footers.length) revealGatedLinks();
     if (mastheads.length) applyTaglineOverride();
   }
 
