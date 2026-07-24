@@ -73,18 +73,30 @@
 
     // Primary nav
     '.ct-nav-bar{border-bottom:1px solid #e5e0d8;background:#fff;position:sticky;top:0;z-index:100}',
-    '.ct-nav-inner{max-width:1400px;margin:0 auto;padding:0 24px;display:flex;justify-content:center;gap:0}',
+    // overflow-x + scrollbar-hiding are UNCONDITIONAL as of 2026-07-24, not
+    // media-scoped. They used to live only in the max-width:1100px block below,
+    // which left 1101px–1448px (viewport wider than the breakpoint but narrower
+    // than max-width 1400 + 48 padding) with no escape hatch: 12 centred items
+    // simply clipped. Pages happened to be covered because several carried
+    // their own duplicate `.ct-nav-inner{overflow-x:auto}` — dead CSS in every
+    // other respect (this block outranks it: injectCss appends to <head> after
+    // the page's own <style>), but load-bearing for exactly this one property.
+    // Folding it in here is what lets those page-level blocks be deleted.
+    '.ct-nav-inner{max-width:1400px;margin:0 auto;padding:0 24px;display:flex;justify-content:center;gap:0;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}',
+    '.ct-nav-inner::-webkit-scrollbar{display:none}',
     // Explicit border:0 override: some pages use border-bottom for their own active-underline, causing a double-line.
-    '.ct-nav-link{font-family:\'Inter\',sans-serif;font-size:12px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;color:#5a5450;text-decoration:none;padding:14px 14px;position:relative;transition:color 0.2s;border:0;border-bottom:0}',
+    // white-space:nowrap likewise unconditional (same 2026-07-24 reason): without
+    // it a two-word label ("Behind the Scenes", "Past Oracles") wraps mid-item
+    // above the breakpoint instead of the row scrolling.
+    '.ct-nav-link{font-family:\'Inter\',sans-serif;font-size:12px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;color:#5a5450;text-decoration:none;padding:14px 14px;position:relative;transition:color 0.2s;white-space:nowrap;border:0;border-bottom:0}',
     '.ct-nav-link:hover{color:#8b0000;border-bottom:0}',
     '.ct-nav-link.active{color:#8b0000;border-bottom:0}',
     '.ct-nav-link.active::after{content:\'\';position:absolute;bottom:0;left:14px;right:14px;height:2px;background:#8b0000}',
     // Breakpoint raised 900→1100px when nav grew 10→12 items (2026-06-05):
     // 12 centered no-wrap items clip between ~900-1100px without scroll.
     '@media(max-width:1100px){',
-    '  .ct-nav-inner{overflow-x:auto;justify-content:flex-start;-webkit-overflow-scrolling:touch;scrollbar-width:none}',
-    '  .ct-nav-inner::-webkit-scrollbar{display:none}',
-    '  .ct-nav-link{white-space:nowrap;padding:12px 14px;font-size:11px}',
+    '  .ct-nav-inner{justify-content:flex-start}',
+    '  .ct-nav-link{padding:12px 14px;font-size:11px}',
     '}',
 
     // Footer
@@ -105,7 +117,10 @@
     // omitting the node keeps the reveal a single attribute write with no
     // re-render, and means the link is never briefly visible to the wrong reader.
     '.ct-footer-nav a[data-ct-gated]{display:none}',
-    '.ct-footer-bottom{font-family:\'Inter\',sans-serif;font-size:11px;color:rgba(255,255,255,0.4);display:flex;justify-content:space-between;align-items:flex-start;gap:24px}',
+    // flex-wrap:wrap folded in from the page-level chrome blocks (2026-07-24).
+    // Above the 900px breakpoint this row is legal text left / data attribution
+    // right; without wrap a long attribution line overlaps rather than dropping.
+    '.ct-footer-bottom{font-family:\'Inter\',sans-serif;font-size:11px;color:rgba(255,255,255,0.4);display:flex;justify-content:space-between;align-items:flex-start;gap:24px;flex-wrap:wrap}',
     // Left column: copyright + no-copying notice stacked vertically
     '.ct-footer-legal{display:flex;flex-direction:column;gap:6px;max-width:48%}',
     '.ct-footer-copy{color:rgba(255,255,255,0.5)}',
@@ -268,23 +283,55 @@
   // ── Entitlement-gated footer links ──
   // Added 2026-07-24 for the "Manage Subscription" link.
   //
-  // Constraint that shapes this whole function: ct-nav.js deliberately loads NO
-  // Firebase SDK (see the tagline-override note above — it runs on pages with no
-  // Firebase, with modular v10, and with compat v9, so REST is the only portable
-  // call). So we do not read auth ourselves. We wait for feature-flags.js — which
-  // the 7-G inject block loads on every gated page — and ask it.
-  //
   // MUST be getUserHasPaidAccess (Stripe OR `paidSubscriber` role), NOT
   // getUserIsPaid (Stripe only). Using the latter would hide the link from exactly
   // the complimentary readers it most needs to reach — the same Stripe-only
   // assumption behind the manage/subscribe bugs fixed in #73 and the
   // serveDerivedData parity break.
   //
-  // FAILS CLOSED. No flags, no such function, an error, or a timeout all leave the
-  // link hidden. A missing link is a discoverability annoyance; a link shown to a
-  // non-subscriber sends them to a page telling them to subscribe, which is worse.
+  // WHY THIS IS NOT A PLAIN window.getUserHasPaidAccess() CALL (fixed 2026-07-24):
+  // the first cut of this function probed bare `window` and called the function
+  // with no arguments. Both were wrong, and it warned on every page:
+  //   1. feature-flags.js exports nothing onto bare window. Its entire API hangs
+  //      off window.CTFeatureFlags (single namespace object, assigned last).
+  //   2. The signature is getUserHasPaidAccess(db, email) — a Firestore instance
+  //      and an email address. Called bare it hits `if (!email) return false` and
+  //      reports "not paid" for everyone, which fails closed but silently and for
+  //      the wrong reason. Worse, it would look like it was working.
+  // So we have to supply db and email ourselves.
+  //
+  // THE "NO FIREBASE SDK" RULE, AND WHY WE BEND IT HERE:
+  // ct-nav.js deliberately loads no Firebase SDK (see the tagline-override note
+  // above — it runs on pages with no Firebase, with modular v10, and with compat
+  // v9, so REST is the only portable call). That rule still holds for the tagline.
+  // Here we bend it, narrowly and safely: we only reach for the SDK *after*
+  // __ctFlagsLoaded is true, i.e. only on pages where feature-flags.js is present
+  // and has already called initializeApp(). We never initialize anything — we
+  // await CTFeatureFlags.firebaseReady and use the app it hands back. On a page
+  // with no feature-flags.js this branch is never entered and no SDK is fetched.
+  //
+  // The alternative — re-deriving entitlement over Firestore REST right here —
+  // was rejected: it would make this the FIFTH place the paid predicate is
+  // spelled out (feature-flags.js, firestore.rules, serveDerivedData.js,
+  // manage.html's hasComplimentaryAccess, and this). Delegating to
+  // CTFeatureFlags keeps exactly one definition of "paid" on the client.
+  //
+  // FAILS CLOSED. No flags, no namespace, no such function, an SDK import failure,
+  // an anonymous visitor, an error, or a timeout all leave the link hidden. A
+  // missing link is a discoverability annoyance; a link shown to a non-subscriber
+  // sends them to a page telling them to subscribe, which is worse.
   var FLAGS_WAIT_MS = 6000;   // generous: cold Firestore read on mobile data
   var FLAGS_POLL_MS = 100;
+  var GATE_WAIT_MS  = 9000;   // hard ceiling on the whole resolve chain
+
+  // MUST match the version pinned in feature-flags.js and every gated page.
+  // Same URL string ⇒ the browser reuses the already-fetched module graph, so
+  // this adds no network cost on a page that has loaded feature-flags.js, and
+  // guarantees we're not mixing SDK versions against the same FirebaseApp
+  // (the cross-version Firestore/Auth gotcha in the 7.5 notes).
+  // On a version bump this file is caught by `grep -r "firebasejs/10\.12\.5"`.
+  var FB_FIRESTORE_URL = 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
+  var FB_AUTH_URL      = 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
 
   function whenFlagsReady(cb) {
     var waited = 0;
@@ -294,6 +341,47 @@
       waited += FLAGS_POLL_MS;
       setTimeout(poll, FLAGS_POLL_MS);
     })();
+  }
+
+  // Returns Promise<boolean>. Rejects only on a genuinely unexpected failure;
+  // every "we can't tell" path resolves false so the caller stays fail-closed.
+  //
+  // Order matters: auth first, then Firestore. If nobody is signed in there is
+  // no email, so there is nothing to look up and we skip the Firestore import
+  // and both document reads entirely — the common case on public pages.
+  function resolvePaidAccess(CTFF) {
+    var app;
+    return CTFF.firebaseReady
+      .then(function(a) {
+        app = a;
+        return import(FB_AUTH_URL);
+      })
+      .then(function(authMod) {
+        var auth = authMod.getAuth(app);
+        // The first onAuthStateChanged emission — NOT auth.currentUser. See the
+        // authSettled note in feature-flags.js: currentUser is synchronously
+        // null until Firebase rehydrates a persisted session, so reading it
+        // directly would report "signed out" for a signed-in returning visitor
+        // and hide the link from the exact people who need it. The first
+        // emission fires only after persistence resolves.
+        return new Promise(function(resolve) {
+          var unsub = authMod.onAuthStateChanged(auth, function(user) {
+            if (typeof unsub === 'function') unsub();
+            resolve(user);
+          });
+        });
+      })
+      .then(function(user) {
+        var email = user && user.email;
+        if (!email) return false;     // anonymous — nothing to reveal
+        return import(FB_FIRESTORE_URL).then(function(fsMod) {
+          var db = fsMod.getFirestore(app);
+          // The single source of truth for "should this person see paid
+          // content?" — Stripe active/past_due OR the paidSubscriber role.
+          return CTFF.getUserHasPaidAccess(db, email);
+        });
+      })
+      .then(function(v) { return v === true; });
   }
 
   function revealGatedLinks() {
@@ -306,27 +394,43 @@
         // may simply not be present. Left hidden by design.
         return;
       }
-      var fn = window.getUserHasPaidAccess || window.ctGetUserHasPaidAccess;
-      if (typeof fn !== 'function') {
-        console.warn('[ct-nav] getUserHasPaidAccess() not found on window — the ' +
-          '"Manage Subscription" footer link will stay hidden for everyone. If ' +
-          'feature-flags.js renamed or stopped exporting it, update this probe.');
+      var CTFF = window.CTFeatureFlags;
+      if (!CTFF || typeof CTFF.getUserHasPaidAccess !== 'function') {
+        // Loud, because __ctFlagsLoaded was true — feature-flags.js ran but did
+        // not expose the API we expect. That's a contract break, not a missing
+        // dependency, and it silently hides the link for every paying user.
+        console.warn('[ct-nav] window.CTFeatureFlags.getUserHasPaidAccess is not ' +
+          'a function — the "Manage Subscription" footer link will stay hidden ' +
+          'for everyone. feature-flags.js loaded (__ctFlagsLoaded is true) but ' +
+          'its export shape changed. Update this probe to match.');
         return;
       }
-      var result;
-      try {
-        result = fn();
-      } catch (e) {
-        console.warn('[ct-nav] getUserHasPaidAccess() threw; leaving gated links hidden.', e);
+      if (!CTFF.firebaseReady || typeof CTFF.firebaseReady.then !== 'function') {
+        console.warn('[ct-nav] CTFeatureFlags.firebaseReady is missing or not a ' +
+          'promise; cannot obtain a Firestore instance. Gated links stay hidden.');
         return;
       }
-      // Tolerates either a boolean or a Promise<boolean> so a future
-      // sync/async change in feature-flags.js doesn't silently break this.
-      Promise.resolve(result).then(function(hasAccess) {
+
+      // One chain, one hard timeout, one fail-closed catch.
+      var settled = false;
+      var timer = setTimeout(function() {
+        if (settled) return;
+        settled = true;
+        console.warn('[ct-nav] entitlement check exceeded ' + GATE_WAIT_MS +
+          'ms; leaving gated links hidden.');
+      }, GATE_WAIT_MS);
+
+      resolvePaidAccess(CTFF).then(function(hasAccess) {
+        if (settled) return;          // timed out already; do not reveal late
+        settled = true;
+        clearTimeout(timer);
         if (!hasAccess) return;
         for (var i = 0; i < gated.length; i++) gated[i].removeAttribute('data-ct-gated');
-      }).catch(function() {
-        // Silent, fail closed.
+      }).catch(function(e) {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        console.warn('[ct-nav] entitlement check failed; gated links stay hidden.', e);
       });
     });
   }
