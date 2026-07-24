@@ -560,10 +560,46 @@
 <div id="toast" class="toast"></div>
 
 <!-- ═══════════════════════════════════════════════════════════════════
+     Skeleton watchdog (added 2026-07-24)
+
+     Deliberately a CLASSIC script, not a module, and deliberately BEFORE the
+     module below: a top-level throw inside a module kills that module only, so
+     this survives to report it. Without this, any such throw presents to the
+     reader as "Loading your subscription…" forever, with no clue anything broke
+     — which is exactly how the app/duplicate-app bug hid.
+
+     The module sets window.__ctManageReady on its first auth callback. If that
+     hasn't happened within the budget, we show the error state instead of an
+     eternal skeleton. 8s is well clear of a cold Firestore read on mobile data.
+     ═══════════════════════════════════════════════════════════════════ -->
+<script>
+(function () {
+  var BUDGET_MS = 8000;
+  setTimeout(function () {
+    if (window.__ctManageReady) return;
+    var loading = document.getElementById("state-loading");
+    if (!loading || !loading.classList.contains("active")) return; // moved on; fine
+    var detail = document.getElementById("error-detail");
+    if (detail) {
+      detail.textContent =
+        "The page couldn't finish starting up. If reloading doesn't help, please get in touch " +
+        "— your subscription itself is unaffected.";
+    }
+    document.querySelectorAll(".state").forEach(function (el) { el.classList.remove("active"); });
+    var err = document.getElementById("state-error");
+    if (err) err.classList.add("active");
+    console.error("[manage] startup watchdog fired after " + BUDGET_MS +
+      "ms — the module script never reached its first auth callback. Check for an " +
+      "uncaught error above (app/duplicate-app is the known one).");
+  }, BUDGET_MS);
+})();
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════════════
      Application logic
      ═══════════════════════════════════════════════════════════════════ -->
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+  import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
   import {
     getAuth, onAuthStateChanged, signOut
   } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
@@ -576,6 +612,10 @@
 
   // ── Firebase config ───────────────────────────────────────────────────
   // API key is intentionally public (security is via Firestore rules).
+  //
+  // FALLBACK ONLY. Since 7.5 S1 the canonical init lives in feature-flags.js,
+  // which the 7-G inject block above loads before this module runs — so on the
+  // live site the app already exists and this literal is never used.
   const firebaseConfig = {
     apiKey: "AIzaSyBnfn9hK0y-p6nvIZ_AwoJnWD7DfDuIQd4",
     authDomain: "hitwicket-cba02.firebaseapp.com",
@@ -583,9 +623,27 @@
     storageBucket: "hitwicket-cba02.appspot.com",
   };
 
-  const app  = initializeApp(firebaseConfig);
+  // ── App handle — REUSE, never re-init ────────────────────────────────
+  //
+  // BUG FIXED 2026-07-24: this was `initializeApp(firebaseConfig)` unconditionally.
+  // feature-flags.js had already created the [DEFAULT] app with a FULLER config
+  // (extra fields / a different storageBucket string), so Firebase threw
+  //   "Firebase App named '[DEFAULT]' already exists with different options or
+  //    config (app/duplicate-app)"
+  // on the FIRST line of this module. An uncaught throw at module top level kills
+  // the ENTIRE script: no handlers bound, onAuthStateChanged never registered, and
+  // #state-loading (active by default) stayed on screen forever. The page chrome
+  // rendered perfectly, which is why it read as "page loads, content doesn't".
+  //
+  // Same failure family as architecture.html's two-app split (#69/#40): auth on one
+  // app, work on another. Rule for any injected page: NEVER call initializeApp
+  // unconditionally — adopt the app feature-flags.js made. Matches ct-tracker.js.
+  const app  = getApps().length ? getApp() : initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db   = getFirestore(app);
+  // NB: verify these three callables really are deployed in us-central1 (the rest
+  // of the estate is us-west1) — a region mismatch surfaces as functions/not-found
+  // on click, not at load. Covered by Phase 3 Test 4.
   const functions = getFunctions(app, "us-central1");
 
   // Callable refs
@@ -680,6 +738,14 @@
   // settings/* is readable by any signed-in user (same doc feature-flags.js
   // reads), so this needs no rules change. Fails closed: any error falls back
   // to the plain no-subscription state rather than over-promising access.
+  //
+  // ⚠ COUPLED TO THE ROLE-VISIBILITY FIX (launch-blocker (4)). This function is a
+  // direct client read of settings/userTypes — the exact map that fix removes. If
+  // roles move to custom claims (Option B), replace the getDoc with a read off the
+  // ID token: (await user.getIdTokenResult()).claims.role === "paidSubscriber".
+  // If they move to userRoles/{emailKey} (Option A), just repoint the doc path.
+  // Either way this is a FOURTH place entitlement is decided — add it to the
+  // three-places parity list when that work is scoped.
   async function hasComplimentaryAccess(user) {
     try {
       const key = (user.email || "").toLowerCase().replace(/[.@]/g, "_");
@@ -975,6 +1041,9 @@
 
   // ── Auth state ───────────────────────────────────────────────────────
   onAuthStateChanged(auth, async (user) => {
+    // Tell the watchdog above we got this far — from here on, any stall is a
+    // real network/permissions problem and lands in state-error on its own.
+    window.__ctManageReady = true;
     if (!user) {
       currentUser = null;
       currentSub = null;
