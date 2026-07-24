@@ -1056,5 +1056,41 @@
   });
 </script>
 
+<!-- ── Shared footer chrome ─────────────────────────────────────────────────
+     ADDED 2026-07-24. manage.html previously carried NO ct-nav.js at all — its
+     three-item top nav (Home / My Subscription / Manage) is bespoke markup, so
+     the page had none of the shared footer, and none of the footer's links.
+
+     Only the FOOTER is mounted here, deliberately. ct-nav.js renders whichever
+     of its three blocks it finds (data-ct-nav="masthead" / "primary" / "footer"),
+     and mounting "primary" would drop the full 12-item newsroom nav onto what is
+     a narrow account-settings page — a different information architecture, and
+     it would sit oddly beneath the existing three-item nav. Footer-only gives
+     the page its site-wide links (including Manage Subscription) without
+     disturbing the local chrome.
+
+     NOTE ON THE GATED LINK: ct-nav.js hides a[data-ct-gated] via CSS and reveals
+     it only after window.__ctFlagsLoaded goes true AND
+     window.CTFeatureFlags.getUserHasPaidAccess(db, email) resolves true. That
+     namespace comes from feature-flags.js, which the 7-G deploy tool injects
+     into this page's <head>. If the injected block is ever removed, the footer
+     still renders — the Manage Subscription link just stays hidden. Fails
+     closed by design; see revealGatedLinks() in ct-nav.js.
+
+     NO DUPLICATE-APP RISK. ct-nav.js never calls initializeApp(). For the gate
+     it awaits CTFeatureFlags.firebaseReady and reuses the app feature-flags.js
+     already created — the same app this page's own module gets from
+     `getApps().length ? getApp() : initializeApp(...)` at line ~641. One app,
+     three consumers. It pins the same SDK version (10.12.5) as this page, so
+     the dynamic imports resolve to the already-fetched module graph.
+
+     CHECK THE src BELOW BEFORE DEPLOYING. "/ct-nav.js" is the expected served
+     path, but the authority is whatever the already-deployed pages use: open
+     any page that has the shared footer, view source, and copy its ct-nav
+     <script> line verbatim. A wrong path fails silently — the footer div just
+     stays empty, no console error. -->
+<div data-ct-nav="footer"></div>
+<script src="/ct-nav.js"></script>
+
 </body>
 </html>
