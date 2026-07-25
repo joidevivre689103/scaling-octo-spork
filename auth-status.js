@@ -19,6 +19,11 @@
  *
  * REQUIRES a Firestore rule allowing authenticated create on /logins. Without
  * it every write fails permission-denied — caught and logged, never fatal.
+ *
+ * It ALSO stamps users/{uid}.lastLoginAt on the same event, which needs
+ * 'lastLoginAt' in the owner-update allowlist on users/{uid}. That write is
+ * strictly best-effort: see touchLastLogin() for why it's a separate concern
+ * from the audit row and why it can't use setDoc({merge:true}).
  * ------------------------------------------------------------------------
  *
  * A small fixed top-right "email · Sign out" / "Sign in" control, mirroring
@@ -221,6 +226,58 @@
     return fsModPromise;
   }
 
+  /* ----------------------------------------------------------------------
+   * touchLastLogin — stamps users/{uid}.lastLoginAt on the same sign-in.
+   *
+   * WHY BOTH THIS AND THE logins ROW. They answer different questions and
+   * scale differently:
+   *   logins/{autoId}  — append-only audit trail. One doc per sign-in,
+   *                      grows forever. Answers "when, and from what page",
+   *                      for one account under investigation.
+   *   users/{uid}.lastLoginAt — current state. One value per user,
+   *                      overwritten. Answers "which accounts have gone
+   *                      dormant" across the whole base without reading the
+   *                      trail at all. At 10k subscribers a dormancy report
+   *                      off the trail would mean scanning every row ever
+   *                      written; off this field it's one doc per user.
+   * Written now, while the base is small, so that reporting built later has
+   * real history instead of starting from the day it ships.
+   *
+   * updateDoc, NOT setDoc({merge:true}). A merge-write against a missing doc
+   * is a CREATE as far as rules are concerned, and the create rule on
+   * users/{uid} requires hasOnly(['email','emailKey','displayName',
+   * 'createdAt']) — a merge carrying only lastLoginAt is denied. Worse, if
+   * that rule were ever loosened, a merge would conjure a users doc with no
+   * email, and other rules join against that doc. So: update only, and if
+   * there's no doc, there's no doc.
+   *
+   * That not-found case is REAL, not theoretical: accounts created before
+   * the users collection existed (2026-05-15) have an Auth record and no
+   * profile doc. They will never get a lastLoginAt from this path. Any
+   * dormancy report must therefore treat a MISSING lastLoginAt as "unknown",
+   * not as "never signed in" — the two look identical here and are not the
+   * same thing. A backfill would need a Cloud Function, which is out of
+   * scope for a client-side stamp.
+   *
+   * Failure is logged at debug level and otherwise ignored. This is a
+   * nice-to-have riding along with the audit write; it must never be able to
+   * clear the marker (that would re-record the login row on the next
+   * emission and duplicate the trail) and must never surface to the reader.
+   * -------------------------------------------------------------------- */
+  function touchLastLogin(fs, app, user) {
+    try {
+      return fs.updateDoc(
+        fs.doc(fs.getFirestore(app), 'users', user.uid),
+        { lastLoginAt: fs.serverTimestamp() }   // rule pins this to request.time;
+                                                // any client-chosen value is denied
+      ).catch(function (e) {
+        var code = (e && e.code) || '';
+        if (code === 'not-found') return;       // pre-2026-05-15 account, no profile doc
+        console.debug('[auth-status] lastLoginAt not stamped:', code || e);
+      });
+    } catch (e) { /* SDK shape changed; the audit row still went in */ }
+  }
+
   function recordLogin(app, user) {
     if (!user || !user.email) return;              // anonymous or emailless: nothing to key on
     if (!isNewSignIn(user.uid)) return;
@@ -235,6 +292,13 @@
         page: location.pathname,
         timestamp: fs.serverTimestamp()           // server clock: a device with a
                                                   // wrong date can't reorder the log
+      }).then(function (ref) {
+        // Deliberately AFTER the audit write and deliberately not awaited into
+        // the outer catch: the trail is the thing that matters, and a failure
+        // to stamp the profile must not be reported as "sign-in not recorded"
+        // when the sign-in was, in fact, recorded.
+        touchLastLogin(fs, app, user);
+        return ref;
       });
     }).catch(function (e) {
       // Most likely cause by far is a missing/narrow Firestore rule on /logins.
