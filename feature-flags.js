@@ -47,13 +47,14 @@
  *   - TIER_RANK: object mapping tier name → numeric rank
  *   - emailToKey(email): converts an email to its `settings/userTypes` key
  *   - getSiteMinimumTier(db): Promise<string> — reads config/featureFlags
- *   - getUserRole(db, email): Promise<string> — reads settings/userTypes
+ *   - getUserRole(db, email, user?): Promise<string> — token custom-claim first,
+ *     then settings/userTypes fallback (Phase 2, item #4; user? is optional)
  *   - getUserIsPaid(db, email): Promise<boolean> — reads subscriptions/{emailKey}.status
  *     (added 2026-05-18, item h)
  *   - getFeatureGates(db, { bypassCache? }): Promise<FeatureGates> — reads
  *     settings/featureGates with 5-min session cache
  *     (added 2026-05-20, item e)
- *   - requireAccess(db, { page?, feature?, email? }): Promise<Verdict> — the
+ *   - requireAccess(db, { page?, feature?, email?, user? }): Promise<Verdict> — the
  *     single primitive every gated page should consult
  *     (added 2026-05-20, item e)
  *   - hasSiteAccess(userRole, minimumTier): boolean — legacy rank comparison
@@ -355,7 +356,7 @@
         gates = await getFeatureGates(db);
         const user = await authSettled(auth, au.onAuthStateChanged);        // 3
         email = user ? user.email : null;
-        return requireAccess(db, { page: pageId, email });                  // 4 (db first)
+        return requireAccess(db, { page: pageId, email, user });            // 4 (db first)
       });
     } catch (e) {
       // Init / import / auth threw. Treat like a timeout: the tiebreaker below
@@ -478,19 +479,110 @@
    */
   const NON_RANKED_ROLES = ['subscriber', 'paidSubscriber'];
 
-  async function getUserRole(db, email) {
+  /**
+   * A role string is usable iff it's a known rank OR a known non-ranked role.
+   * Anything else (legacy 'priority'/'regular', typos, undefined) is not.
+   * Shared by the claim path and the directory-read path below so both apply
+   * the identical validity test.
+   */
+  function isKnownRole(role) {
+    return typeof role === 'string'
+      && (Object.prototype.hasOwnProperty.call(TIER_RANK, role)
+          || NON_RANKED_ROLES.indexOf(role) !== -1);
+  }
+
+  // ─── PHASE 2 (item #4): role travels on the ID token as a custom claim ───
+  // The role is stamped onto the user's Firebase ID token server-side (see
+  // functions/userRoles.js). Reading it here needs NO Firestore read, and it is
+  // the ONLY path that survives once settings/userTypes' read rule is locked to
+  // isAdmin() — at that point a non-admin's directory read below returns
+  // permission-denied and yields 'none'. Until that rule flip, the directory
+  // read is kept as a fallback so nobody loses access mid-migration.
+  //
+  // A token minted BEFORE the claim was set won't carry it. getIdTokenResult()
+  // returns the cached token (refreshed automatically ~hourly), so a freshly
+  // granted role — or, post-flip, any user whose token predates their claim —
+  // could read 'none' for up to ~1h. The forced-refresh rescue at the end of
+  // getUserRole closes that window; a sessionStorage guard bounds it to one
+  // forced refresh per tab so a genuinely role-less reader isn't refreshed on
+  // every page.
+  const ROLE_REFRESH_GUARD_KEY = 'ct_role_claim_refresh_tried';
+
+  // Resolve the current Firebase user — the one passed in (efficiency path for
+  // the bootstrap, which already has it) or, failing that, from the initialized
+  // app. Returns null if auth isn't ready or nobody is signed in.
+  async function resolveCurrentUser(user) {
+    if (user) return user;
+    try {
+      const app = await firebaseReady;
+      const { getAuth } = await import(
+        'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js'
+      );
+      return getAuth(app).currentUser || null;
+    } catch (e) {
+      console.warn('[feature-flags] resolveCurrentUser failed:', e?.message || e);
+      return null;
+    }
+  }
+
+  // Read the `role` custom claim off the user's ID token. `force` refreshes the
+  // token first (to pick up a claim set after the current token was minted).
+  // Returns the raw claim value or undefined — validity is checked by the caller.
+  async function getRoleFromClaim(email, user, force) {
+    try {
+      const u = await resolveCurrentUser(user);
+      if (!u) return undefined;
+      // Guard: never read one account's claim to answer a question about another.
+      // email here comes from the signed-in user upstream, so they normally match;
+      // a mismatch means the caller asked about someone else — fall back to the read.
+      if (email && u.email && u.email.toLowerCase() !== String(email).toLowerCase()) {
+        return undefined;
+      }
+      const res = await u.getIdTokenResult(!!force);
+      return res && res.claims ? res.claims.role : undefined;
+    } catch (e) {
+      console.warn('[feature-flags] getRoleFromClaim failed:', e?.message || e);
+      return undefined;
+    }
+  }
+
+  /**
+   * Resolve a user's role. Token-first (custom claim), then a settings/userTypes
+   * read as a migration-window fallback, then a one-time forced token refresh to
+   * rescue a stale token. Returns a known role or DEFAULT_USER_ROLE ('none').
+   *
+   * `user` is optional: pass the already-resolved Firebase User to skip the
+   * currentUser lookup; omit it and this self-resolves from the initialized app.
+   * Backward-compatible — existing callers pass only (db, email).
+   */
+  async function getUserRole(db, email, user) {
     if (!email) return DEFAULT_USER_ROLE;
+
+    // 1) Fast path: the claim on the current token. No Firestore read.
+    const claimRole = await getRoleFromClaim(email, user, false);
+    if (isKnownRole(claimRole)) return claimRole;
+
+    // 2) Fallback: settings/userTypes. Works until its read rule is flipped to
+    //    isAdmin(); after that this returns nothing for non-admins (denied → catch).
     try {
       const data = await readDoc(db, 'settings', 'userTypes');
       const role = data && data[emailToKey(email)];
-      if (typeof role === 'string'
-          && (Object.prototype.hasOwnProperty.call(TIER_RANK, role)
-              || NON_RANKED_ROLES.indexOf(role) !== -1)) {
-        return role;
-      }
+      if (isKnownRole(role)) return role;
     } catch (e) {
-      console.warn('[feature-flags] getUserRole failed:', e?.message || e);
+      console.warn('[feature-flags] getUserRole directory fallback failed:', e?.message || e);
     }
+
+    // 3) Rescue: neither produced a role. If we haven't already this tab, force a
+    //    single token refresh and re-check the claim — this covers a role granted
+    //    after the current token was minted (esp. once the directory read is gone).
+    let alreadyTried = false;
+    try { alreadyTried = sessionStorage.getItem(ROLE_REFRESH_GUARD_KEY) === '1'; } catch (_) {}
+    if (!alreadyTried) {
+      try { sessionStorage.setItem(ROLE_REFRESH_GUARD_KEY, '1'); } catch (_) {}
+      const refreshed = await getRoleFromClaim(email, user, true);
+      if (isKnownRole(refreshed)) return refreshed;
+    }
+
     return DEFAULT_USER_ROLE;
   }
 
@@ -573,11 +665,11 @@
    *
    * Both reads run concurrently; either alone is sufficient.
    */
-  async function getUserHasPaidAccess(db, email) {
+  async function getUserHasPaidAccess(db, email, user) {
     if (!email) return false;
     const [stripePaid, role] = await Promise.all([
       getUserIsPaid(db, email),
-      getUserRole(db, email)
+      getUserRole(db, email, user)   // user optional; forwarded for the claim path
     ]);
     return stripePaid || role === 'paidSubscriber';
   }
@@ -746,6 +838,9 @@
     const page = o.page;
     const feature = o.feature;
     const email = o.email;
+    const user = o.user;   // optional: already-resolved Firebase User (from the
+                           // bootstrap's authSettled). Lets the role/paid lookups
+                           // read the claim off it directly. Omit → self-resolve.
 
     // Exactly one of page/feature must be provided.
     if ((!page && !feature) || (page && feature)) {
@@ -769,8 +864,8 @@
     // decision, so a complimentary `paidSubscriber` must pass here. getUserIsPaid
     // stays Stripe-only for revenue questions.
     const [role, isPaid] = await Promise.all([
-      getUserRole(db, email),
-      getUserHasPaidAccess(db, email)
+      getUserRole(db, email, user),
+      getUserHasPaidAccess(db, email, user)
     ]);
     const isAdmin = (role === 'admin' || role === 'superadmin');
     const tier = isPaid ? 'paid' : 'loggedIn';
