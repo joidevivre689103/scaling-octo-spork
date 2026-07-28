@@ -309,18 +309,7 @@
         subscription.
     </p>
 
-    <h3>1.4 Voluntary contributions</h3>
-    <p>
-        From time to time Cricket Times may offer readers the option of making a voluntary financial
-        contribution through <strong>Buy Me a Coffee</strong>. It is always optional, it is never required
-        to read anything, and it is not a subscription. If you choose to contribute, any personal or
-        payment information you give is collected and processed by Buy Me a Coffee under its own
-        <a href="https://www.buymeacoffee.com/privacy-policy" target="_blank" rel="noopener">privacy policy</a>.
-        <strong>We do not receive or store your payment details</strong>, and contributing does not create
-        an account or change the access you hold.
-    </p>
-
-    <h3>1.5 How the site is read (engagement analytics)</h3>
+    <h3>1.4 How the site is read (engagement analytics)</h3>
     <p>
         We measure how the site is used, so that we can tell which writing is worth continuing and which
         parts of the site nobody opens. This measurement is built by us and runs on our own Firebase
@@ -363,21 +352,23 @@
         </tr>
     </table>
     <p>
-        Two deliberate limits are worth naming. First, the analytics records are keyed to an internal
-        account identifier — a random string issued by Firebase — and <strong>your email address never
-        enters the analytics pipeline</strong>; it is held separately with your account. Second, we do not
-        follow you across other websites, we do not buy or receive data about you from anyone else, and we
-        do not build an advertising or interest profile from any of this.
+        Two deliberate limits are worth naming. First, the reading measurement above — the pages, the
+        timings, the history — is keyed to an <strong>internal account identifier, a random string issued
+        by Firebase, and not to your email address</strong>. The sign-in log is the one exception: it is
+        written against the account's email address, because its purpose is to show us who signed in
+        rather than what they read. Second, we do not follow you across other websites, we do not buy or
+        receive data about you from anyone else, and we do not build an advertising or interest profile
+        from any of this.
     </p>
 
-    <h3>1.6 Comments, reactions, and submissions</h3>
+    <h3>1.5 Comments, reactions, and submissions</h3>
     <p>
         If you post a comment we store its text, your display name, your account identifier, and the time
         it was posted. Reactions store the fact that your account reacted, so the count is right. If you
         submit an article as a contributor, we store the submission and anything you upload with it.
     </p>
 
-    <h3>1.7 Technical records</h3>
+    <h3>1.6 Technical records</h3>
     <p>
         Our hosting and server infrastructure is provided by <strong>Google Firebase</strong> and Google
         Cloud, which keeps operational logs — including IP addresses, request times, and browser and
@@ -388,7 +379,7 @@
         readers or to work out where you are.
     </p>
 
-    <h3>1.8 Identifiers in subscriber content</h3>
+    <h3>1.7 Identifiers in subscriber content</h3>
     <p>
         Content served to a signed-in account may carry an identifier tying that copy to the account it
         was served to. It exists for one purpose: if subscriber material is republished in breach of our
@@ -425,16 +416,24 @@
         </tr>
     </table>
     <p>
-        If you are in the UK or EU and you object to the analytics described in section 1.5 on the basis
+        If you are in the UK or EU and you object to the analytics described in section 1.4 on the basis
         of your particular situation, write to us and we will stop measuring your account and delete what
         we hold for it. You do not have to give a reason beyond that.
     </p>
 
     <h2>3. How long we keep it</h2>
     <ul>
-        <li><strong>Detailed activity records</strong> — deleted automatically after <strong>90 days</strong>.</li>
-        <li><strong>Summary figures derived from them</strong> — for example daily and per-page totals — are
-            kept while your account exists, and are deleted with it.</li>
+        <li><strong>Detailed activity records</strong> — the underlying event log, in which each page you
+            opened is a separate entry with its own timestamp — are kept for <strong>90 days</strong> and
+            then deleted automatically. Deletion runs as a background job rather than on the stroke of the
+            ninetieth day, so an entry may survive a short time past its expiry before it is removed.</li>
+        <li><strong>Summary figures derived from them</strong> — including, for each account, a daily
+            record of which pages it opened, how many times, and how long was spent on each — are kept
+            while your account exists, and are deleted with it. We want to be plain that these summaries
+            outlive the detailed records they are built from: what expires at 90 days is the moment-by-moment
+            trail, not the daily per-page picture.</li>
+        <li><strong>Sign-in records</strong> — kept while your account is open, and deleted when you close
+            it.</li>
         <li><strong>Account and subscription records</strong> — kept while your account is open, and deleted
             when you close it, except where we must keep payment and tax records for longer by law.</li>
         <li><strong>Comments</strong> — kept while posted. If you close your account you can ask us to
@@ -457,8 +456,7 @@
         The only third parties that handle your data are the service providers we need in order to
         operate — <strong>Google Firebase and Google Cloud</strong> (hosting, authentication, database, and
         email delivery for account messages), <strong>Stripe</strong> (subscription payments),
-        <strong>MailerLite</strong> (the newsletter), and <strong>Buy Me a Coffee</strong> (voluntary
-        contributions, where offered) — and each only to the extent needed to provide that service. We may also disclose information where we are legally
+        and <strong>MailerLite</strong> (the newsletter) — and each only to the extent needed to provide that service. We may also disclose information where we are legally
         required to, or where it is necessary to establish or defend a legal claim.
     </p>
     <p>
@@ -469,12 +467,20 @@
 
     <h2>5. Cookies and local storage</h2>
     <p>
-        <strong>There are no advertising cookies and no third-party tracking cookies on this site</strong>,
-        which is why you have not been asked to dismiss a cookie banner. What we do use is strictly
-        functional: a session cookie and a token that keep you signed in, and a small amount of browser
-        storage that remembers things like whether you have already reacted to a comment and whether this
-        visit has already been counted as a sign-in. Clearing your browser storage signs you out; it does
-        not delete anything we hold.
+        <strong>There are no advertising cookies on this site, and no third-party tracking on the pages
+        where you read.</strong> What we use ourselves is strictly functional: a session cookie and a
+        token that keep you signed in, and a small amount of browser storage that remembers things like
+        whether you have already reacted to a comment and whether this visit has already been counted as a
+        sign-in. Clearing your browser storage signs you out; it does not delete anything we hold.
+    </p>
+    <p>
+        One exception is worth naming plainly. The pages that carry an email signup form load that form
+        from <strong>MailerLite</strong> rather than serving it ourselves. To render it, MailerLite's code
+        contacts MailerLite's servers, requests a web font from Google, and may store an identifier in
+        your browser. This happens only on those pages, and only because the form is there — it is not
+        used to follow you, and none of it runs on the pages where you read. We intend to replace these
+        forms with a version that loads no third-party code at all, and we will update this section when
+        that is done.
     </p>
 
     <h2>6. Your rights</h2>
