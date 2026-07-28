@@ -1345,13 +1345,18 @@ if (new URLSearchParams(window.location.search).get('cancelled') === '1') {
 // (h), the webhook no longer writes userTypes, so reading it for paid
 // signal would silently fail for any real paid subscriber.
 //
-// Amendment (2026-07-18, complimentary tier): userTypes is read again here,
-// but ONLY as a fallback after Stripe has said no, and ONLY for the single
-// 'paidSubscriber' role. This does not reintroduce the (h) problem: Stripe
-// remains the sole source of truth for REVENUE and is always checked first,
-// so a real paid subscriber is never resolved via userTypes. What (h)
-// retired was userTypes as THE paid signal; this is an additive
-// access-only grant that cannot mask or override a Stripe status.
+// Amendment (2026-07-18, complimentary tier): a 'paidSubscriber' role also
+// grants access, ONLY as a fallback after Stripe has said no. This does not
+// reintroduce the (h) problem: Stripe remains the sole source of truth for
+// REVENUE and is always checked first, so a real paid subscriber is never
+// resolved via role. It's an additive access-only grant that cannot mask or
+// override a Stripe status.
+//
+// Amendment (2026-07-27, item #4): the role is now read from the ID-token
+// custom claim, not settings/userTypes — that doc became admin-read-only when
+// the role directory was locked down. This page no longer reads userTypes at
+// all; the claim is the source. See feature-flags.js / serveDerivedData, which
+// read the same claim server- and client-side.
 //
 // Returns true if the panel was shown (so init can short-circuit).
 async function maybeShowAlreadySubscribedPanel(user) {
@@ -1372,9 +1377,15 @@ async function maybeShowAlreadySubscribedPanel(user) {
     let complimentary = false;
     if (!stripePaid) {
       try {
-        const utSnap = await getDoc(doc(firestore, 'settings', 'userTypes'));
-        complimentary = utSnap.exists() &&
-          utSnap.data()[encodeEmailKey(user.email)] === 'paidSubscriber';
+        // Role now travels on the ID-token custom claim (item #4, 2026-07-27).
+        // settings/userTypes is no longer readable by non-admins, so read the
+        // role off the token instead of the doc. Force-refresh ONCE if the claim
+        // is absent — catches a just-granted comp whose current token predates
+        // the claim (setUserRole stamps the claim, but the browser keeps the old
+        // token until it refreshes ~hourly).
+        let res = await user.getIdTokenResult();
+        if (!res.claims.role) res = await user.getIdTokenResult(true);
+        complimentary = res.claims.role === 'paidSubscriber';
       } catch (e) {
         console.warn('[subscribe] could not check complimentary role:', e);
       }
