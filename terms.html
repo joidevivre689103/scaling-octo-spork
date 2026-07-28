@@ -12,8 +12,9 @@
 <!-- CT_7G_INJECT:END -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Terms of Service · Cricket Times</title>
-  <meta name="description" content="Terms of Service for Cricket Times — coming before launch." />
-  <meta name="robots" content="noindex" />
+  <meta name="description" content="Terms of Service for Cricket Times — subscriptions, permitted use, copyright, comments, and contributor submissions." />
+  <!-- NOTE (2026-07-28): the interim page carried <meta name="robots" content="noindex">.
+       Removed, on the assumption a published legal page should be indexable. Re-add if that is wrong. -->
   <style>
     body {
       margin: 0;
@@ -52,6 +53,35 @@
       font-style: italic;
     }
     p { margin: 0 0 18px; font-size: 17px; }
+
+    h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 25px;
+      font-weight: 700;
+      line-height: 1.25;
+      margin: 44px 0 14px;
+      padding-top: 22px;
+      border-top: 1px solid #e5e0d8;
+    }
+    h2 .num {
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      color: #8b0000;
+      display: block;
+      margin-bottom: 6px;
+    }
+    h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 19px;
+      font-weight: 700;
+      margin: 26px 0 8px;
+    }
+    ul { margin: 0 0 18px; padding-left: 22px; }
+    li { font-size: 17px; margin-bottom: 8px; }
+    li strong { font-weight: 600; }
+
     .panel {
       background: #fff;
       border: 1px solid #e5e0d8;
@@ -65,8 +95,30 @@
       font-size: 22px;
       font-weight: 700;
       margin: 0 0 12px;
+      padding-top: 0;
+      border-top: none;
     }
     .panel p:last-child { margin-bottom: 0; }
+
+    .toc {
+      background: #faf8f4;
+      border: 1px solid #e5e0d8;
+      border-radius: 4px;
+      padding: 20px 24px 16px;
+      margin: 0 0 36px;
+    }
+    .toc p {
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #8a8176;
+      margin: 0 0 10px;
+    }
+    .toc ol { margin: 0; padding-left: 20px; }
+    .toc li { font-size: 15.5px; margin-bottom: 4px; }
+
     a { color: #8b0000; text-decoration: underline; text-underline-offset: 2px; }
     a:hover { color: #1a1917; }
     .small {
@@ -74,11 +126,14 @@
       font-size: 13px;
       color: #6b645d;
       margin-top: 36px;
+      padding-top: 20px;
+      border-top: 1px solid #e5e0d8;
     }
     @media (max-width: 600px) {
       .page-wrap { padding: 40px 20px 60px; }
       .lede { font-size: 17px; }
-      p { font-size: 16px; }
+      p, li { font-size: 16px; }
+      h2 { font-size: 22px; }
     }
   </style>
 </head>
@@ -91,23 +146,143 @@
 
     <p class="kicker">Legal</p>
     <h1>Terms of <span>Service</span></h1>
-    <p class="lede">Coming before launch.</p>
+    <p class="lede">The rules that govern your use of Cricket Times. Please read section 3 in particular — it sets out what you may and may not do with what you find here.</p>
 
-    <p>The Cricket Times Terms of Service are being prepared and will be published before the site's full public launch. They will cover the rules and expectations that govern your use of <a href="stories.html">cricketimes.com</a> — including subscription terms, comment guidelines, contributor relationships, intellectual property, and limits of liability.</p>
+    <p>These Terms of Service ("Terms") are an agreement between you and <strong>Dreamers LLC</strong>, a Washington State limited liability company trading as <strong>Cricket Times</strong> ("Cricket Times", "we", "us"), and they govern your use of <a href="/">cricketimes.com</a> and any associated pages, feeds, datasets, and services (together, the "Site").</p>
 
-    <p>In the meantime, the following baseline terms apply to anyone using this site:</p>
+    <p>By visiting the Site, creating an account, subscribing, commenting, or submitting an article, you accept these Terms. If you do not accept them, please do not use the Site.</p>
 
-    <div class="panel">
-      <h2>Baseline terms (interim)</h2>
-      <p><strong>Copyright.</strong> All site code, content, design, and original editorial material are © 2026 Cricket Times. All rights reserved. Site code, content, and design may not be copied, republished, scraped, or used to train machine-learning systems without prior written permission.</p>
-      <p><strong>Third-party data.</strong> Test match and player records are compiled by Ananth Narayanan and used with permission. Cross-reference data from <a href="https://cricsheet.org" target="_blank" rel="noopener">Cricsheet</a> is used under <a href="https://opendatacommons.org/licenses/by/1-0/" target="_blank" rel="noopener">ODC-BY 1.0</a>.</p>
-      <p><strong>Comments and reactions.</strong> By posting a comment, you agree that the comment is your own, accurate to your knowledge, and not unlawful. Cricket Times reserves the right to remove comments at any time for any reason, including violation of decency, accuracy, or relevance.</p>
-      <p><strong>No warranty.</strong> Statistics, analysis, and editorial content are provided as-is. Cricket Times makes best efforts toward accuracy but does not warrant that every figure is current or error-free. Do not use this site as the sole basis for financial, betting, or fantasy-cricket decisions.</p>
+    <div class="toc">
+      <p>Contents</p>
+      <ol>
+        <li><a href="#s1">Accounts</a></li>
+        <li><a href="#s2">What the Site is</a></li>
+        <li><a href="#s3">Copyright and permitted use</a></li>
+        <li><a href="#s4">Where the data comes from</a></li>
+        <li><a href="#s5">Subscriptions and payment</a></li>
+        <li><a href="#s6">Complimentary access</a></li>
+        <li><a href="#s7">Comments and reactions</a></li>
+        <li><a href="#s8">Contributor submissions</a></li>
+        <li><a href="#s9">Things you may not do</a></li>
+        <li><a href="#s10">Accuracy and no warranty</a></li>
+        <li><a href="#s11">Limitation of liability</a></li>
+        <li><a href="#s12">Suspension and termination</a></li>
+        <li><a href="#s13">Changes to these Terms</a></li>
+        <li><a href="#s14">Governing law</a></li>
+        <li><a href="#s15">Contact</a></li>
+      </ol>
     </div>
 
-    <p>The full Terms of Service will replace this page when ready. For licensing inquiries, partnership questions, or anything else that needs a written response, please contact <a href="mailto:ivan@cricketimes.com">ivan@cricketimes.com</a>.</p>
+    <h2 id="s1"><span class="num">Section 1</span>Accounts</h2>
+    <p>Some parts of the Site are open to everyone; others require an account, and others require a paid subscription or an equivalent grant of access. You must provide an accurate email address when you register, keep your password confidential, and tell us promptly if you believe your account has been used by someone else.</p>
+    <p>An account is personal to one individual. It may not be shared, sold, lent, or operated on behalf of a group, an institution, or a newsroom. You are responsible for everything done through your account.</p>
+    <p>You must be at least 13 years old to hold an account. If you are under the age of majority where you live, you may only purchase a subscription with the consent of a parent or guardian who agrees to these Terms on your behalf.</p>
 
-    <p class="small">Last updated: 5 May 2026.</p>
+    <h2 id="s2"><span class="num">Section 2</span>What the Site is</h2>
+    <p>Cricket Times is an independent publication about Test cricket. It combines editorial writing with statistical pages, derived datasets, rankings, simulations, and models built specifically for this Site. Some of that material is free to read; some sits behind a subscription.</p>
+    <p>Nothing on the Site is financial, betting, or fantasy-sports advice. See section 10.</p>
+
+    <h2 id="s3"><span class="num">Section 3</span>Copyright and permitted use</h2>
+
+    <div class="panel">
+      <h2>The short version</h2>
+      <p><strong>Nothing on this Site may be copied, reproduced, republished, redistributed, or reused in any form without our prior written permission.</strong> That applies to the editorial writing, the statistical pages, the derived datasets, the rankings and models, the design, and the code — whether the material is free to read or behind the subscription, and whether you are a subscriber, a complimentary reader, or a passer-by.</p>
+      <p>Reading it is what your access is for. Republishing it is not.</p>
+    </div>
+
+    <h3>3.1 Ownership</h3>
+    <p>All material on the Site — including articles, headlines, analysis, editorial photography and illustration, statistical tables and visualisations, derived and computed datasets, ranking systems and models, page design, typography, layout, and source code — is © 2026 Dreamers LLC unless credited otherwise, and is protected by copyright and other intellectual property laws. Section 4 describes the third-party records that some of this material is built from; our compilation, derivation, computation, arrangement, and presentation of those records is our own work and is covered by this section.</p>
+    <p>"Cricket Times" and the Cricket Times masthead are our marks. Nothing here grants you a licence to use them.</p>
+
+    <h3>3.2 What your access permits</h3>
+    <p>Subject to these Terms, we grant you a limited, personal, non-exclusive, non-transferable, revocable licence to access and read the Site, and to display it on a device you control, for your own private and non-commercial use. That is the whole of the licence. Every right not expressly granted here is reserved.</p>
+
+    <h3>3.3 What your access does not permit</h3>
+    <p>Without our prior written permission, you may not:</p>
+    <ul>
+      <li><strong>Copy or reproduce</strong> any part of the Site, in whole or in part, in any medium now known or later devised;</li>
+      <li><strong>Republish, redistribute, syndicate, mirror, or publicly display</strong> any part of it, including on a website, in a newsletter, in an app, on social media beyond ordinary linking, or in print;</li>
+      <li><strong>Adapt, translate, or make derivative works</strong> from it, including reformatting a table, restating a dataset, or rebuilding a visualisation from the underlying figures;</li>
+      <li><strong>Extract data in bulk</strong> — by scraping, crawling, spidering, harvesting, automated download, systematic manual copying, or any other means, whether or not the extraction is technically permitted by the Site;</li>
+      <li><strong>Use any part of the Site to train, fine-tune, evaluate, ground, or otherwise develop a machine-learning model, large language model, or other artificial-intelligence system</strong>, and you may not permit or facilitate a third party doing so. This restriction is express, is not waived by any technical means of access, and applies whether the material is retrieved by a person, a browser agent, or an automated crawler. We do not grant a text-and-data-mining exception, and any such use is expressly reserved;</li>
+      <li><strong>Share subscriber content</strong> with anyone who does not hold their own access — by forwarding, screenshotting, exporting, reposting, or passing on your credentials;</li>
+      <li><strong>Remove, obscure, or alter</strong> any copyright notice, credit line, watermark, or identifier attached to material you receive.</li>
+    </ul>
+
+    <h3>3.4 Quotation and linking</h3>
+    <p>You are welcome to link to us, and to quote us the way one publication quotes another: a short extract, quoted accurately, attributed to Cricket Times, and accompanied by a link to the page it came from. That courtesy does not extend to reproducing an article substantially, reproducing a table or dataset, or quoting at a length that saves your reader the trouble of visiting. Where local law grants you a right of quotation, criticism, review, or reporting that is wider than this paragraph, that right is unaffected.</p>
+
+    <h3>3.5 Attribution of leaks</h3>
+    <p>Content served to a signed-in account may carry identifiers that associate the copy you receive with your account. This is used only to establish the source of material that is republished or redistributed in breach of these Terms. It is described in the <a href="/privacy.html">Privacy Policy</a>.</p>
+
+    <h3>3.6 Asking for permission</h3>
+    <p>Permission is often given, and it costs nothing to ask. Licensing, syndication, and republication enquiries go to <a href="mailto:ivan@cricketimes.com">ivan@cricketimes.com</a>.</p>
+
+    <h2 id="s4"><span class="num">Section 4</span>Where the data comes from</h2>
+    <p>The underlying Test match and player records are compiled by Ananth Narayanan and used with permission. Cross-reference data is drawn from <a href="https://cricsheet.org" target="_blank" rel="noopener">Cricsheet</a> under the <a href="https://opendatacommons.org/licenses/by/1-0/" target="_blank" rel="noopener">Open Data Commons Attribution Licence 1.0</a>, and our use of it is subject to that licence's attribution requirement.</p>
+    <p>Underlying factual records may carry their own rights and permissions, which these Terms do not purport to grant you. Our own contribution — the compilation, the derived and computed datasets, the models, and everything built on top — is covered by section 3.</p>
+
+    <h2 id="s5"><span class="num">Section 5</span>Subscriptions and payment</h2>
+    <p>Paid access is sold as a recurring subscription. Payment is taken by <strong>Stripe</strong>, our payment processor; we do not receive or store your card number. Prices are shown at the point of purchase and include or exclude tax as indicated there.</p>
+    <p>Unless you cancel, a subscription renews automatically at the end of each billing period at the then-current price. You may cancel at any time from your account page; cancellation takes effect at the end of the period you have already paid for, and your access continues until then.</p>
+    <p>We may change prices for future billing periods. Where we do, we will tell you before the change takes effect, and you may cancel if you would rather not continue.</p>
+    <p>Except where a refund is required by law, payments are non-refundable, including for partly used periods. If something has gone wrong with your subscription, write to us before disputing a charge — most problems are quicker to fix directly.</p>
+
+    <h2 id="s6"><span class="num">Section 6</span>Complimentary access</h2>
+    <p>Cricket Times may, at its sole discretion, extend complimentary access to the subscriber experience to a small number of individuals. Complimentary access is a discretionary courtesy. It is not an offer, a promise, a prize, a service purchased, or anything bargained for, and nothing on the Site or in these Terms should be read as an invitation to request it.</p>
+    <p>Where it is granted, it is personal to the recipient and non-transferable; it may be limited or open-ended in duration; and it may be varied, suspended, or withdrawn at any time, with or without notice and without reason being given. It creates no payment obligation on either side, and it carries no refund, credit, compensation, or continuation right of any kind.</p>
+    <p>Except in respect of payment, these Terms apply to complimentary access exactly as they apply to a paid subscription — and section 3 in particular applies without any relaxation.</p>
+
+    <h2 id="s7"><span class="num">Section 7</span>Comments and reactions</h2>
+    <p>Where comments are open, you may post under the display name on your account. By posting, you confirm that the comment is your own work, is accurate as far as you know, and is not unlawful, defamatory, harassing, hateful, or an infringement of anyone else's rights.</p>
+    <p>You keep ownership of what you write. You grant us a non-exclusive, worldwide, royalty-free licence to store, display, and reproduce your comment on the Site and in connection with it, for as long as it remains posted.</p>
+    <p>We may remove any comment, at any time, for any reason — including decency, accuracy, relevance, or the general quality of the conversation — and we are not obliged to explain a removal. Reactions are a rough indication of reader sentiment, not a measurement, and we may recalculate, reset, or withdraw them.</p>
+
+    <h2 id="s8"><span class="num">Section 8</span>Contributor submissions</h2>
+    <p>If you submit an article or other material for publication, you keep the copyright in your work. You grant Cricket Times a perpetual, worldwide, non-exclusive, royalty-free licence to edit, publish, archive, syndicate, and promote it on and in connection with the Site, including in any audio version we produce.</p>
+    <p>You confirm that the work is original to you, that it has not been generated in substantial part by an artificial-intelligence system without our knowledge, that you hold the rights in any image or material you supply with it, and that publishing it will not infringe anyone's rights or breach any obligation of confidence you owe.</p>
+    <p>We are not obliged to publish anything submitted, and submission creates no payment obligation unless we have agreed one with you in writing. We may edit for length, accuracy, style, and house conventions. Once published, we may keep the piece in the archive indefinitely.</p>
+
+    <h2 id="s9"><span class="num">Section 9</span>Things you may not do</h2>
+    <p>In addition to the restrictions in section 3, you may not:</p>
+    <ul>
+      <li>circumvent, disable, probe, or attempt to defeat any paywall, access gate, rate limit, or security measure on the Site;</li>
+      <li>access the Site by any automated means, or through any interface other than an ordinary web browser, without our written permission;</li>
+      <li>impose an unreasonable load on the Site's infrastructure, or interfere with its availability to others;</li>
+      <li>use the Site to send unsolicited messages, to advertise, or to harvest other users' details;</li>
+      <li>misrepresent who you are, or register an account in someone else's name;</li>
+      <li>use the Site for any unlawful purpose, or in breach of any applicable export, sanctions, or data-protection law.</li>
+    </ul>
+    <p>Security researchers acting in good faith are welcome; please write to us before testing anything, and give us a reasonable chance to fix what you find before disclosing it.</p>
+
+    <h2 id="s10"><span class="num">Section 10</span>Accuracy and no warranty</h2>
+    <p>Statistics, derived datasets, models, simulations, rankings, and editorial content are provided <strong>as-is</strong>. We take accuracy seriously and correct errors when we find them, but we do not warrant that every figure is current, complete, or free from error, and source data can itself be wrong or revised.</p>
+    <p>To the fullest extent permitted by law, we disclaim all warranties, express or implied, including any implied warranty of merchantability, fitness for a particular purpose, and non-infringement, and we do not warrant that the Site will be uninterrupted or error-free.</p>
+    <p><strong>Do not use this Site as the sole basis for any financial, betting, or fantasy-cricket decision.</strong> If you do, you do so entirely at your own risk.</p>
+
+    <h2 id="s11"><span class="num">Section 11</span>Limitation of liability</h2>
+    <p>To the fullest extent permitted by law, Cricket Times and Dreamers LLC will not be liable for any indirect, incidental, special, consequential, exemplary, or punitive damages, or for any loss of profit, revenue, data, or goodwill, arising out of or connected with your use of the Site — whether the claim is framed in contract, tort, or otherwise, and whether or not we were told such loss was possible.</p>
+    <p>Our total aggregate liability arising out of or connected with the Site and these Terms is limited to the greater of (a) the amount you actually paid us in the twelve months before the event giving rise to the claim, and (b) fifty United States dollars.</p>
+    <p>Some jurisdictions do not allow certain exclusions or limitations. Where that is so, the exclusions and limitations above apply to the fullest extent that jurisdiction permits, and nothing in these Terms excludes liability that cannot lawfully be excluded.</p>
+
+    <h2 id="s12"><span class="num">Section 12</span>Suspension and termination</h2>
+    <p>You may close your account at any time by writing to us. We may suspend or terminate an account, with or without notice, if we reasonably believe these Terms have been breached — and we will normally do so immediately in the case of a breach of section 3 or section 9.</p>
+    <p>Where we terminate a paid subscription for a breach, we may withhold any refund for the unused part of the period. Sections 3, 4, 7, 8, 10, 11, and 14 survive the end of your account.</p>
+
+    <h2 id="s13"><span class="num">Section 13</span>Changes to these Terms</h2>
+    <p>We may update these Terms. The version on this page is the version in force, and the date it took effect is shown at the foot of the page. Where a change materially affects your rights, we will make reasonable efforts to tell subscribers in advance — by email or by a notice on the Site. Continuing to use the Site after a change takes effect means you accept the updated Terms.</p>
+
+    <h2 id="s14"><span class="num">Section 14</span>Governing law</h2>
+    <p>These Terms are governed by the laws of the State of Washington, United States, without regard to its conflict-of-laws rules. The state and federal courts sitting in King County, Washington have exclusive jurisdiction over any dispute arising out of or connected with them, and you consent to that jurisdiction and venue. Nothing in this section deprives you of the protection of any mandatory consumer law of the country in which you live.</p>
+    <p>If any provision of these Terms is held unenforceable, the rest remain in force. Our not enforcing a provision on one occasion is not a waiver of it.</p>
+
+    <h2 id="s15"><span class="num">Section 15</span>Contact</h2>
+    <p>Licensing, syndication, republication, and permission requests: <a href="mailto:ivan@cricketimes.com">ivan@cricketimes.com</a>.</p>
+    <p>Everything else, including account and subscription questions: <a href="mailto:contact@cricketimes.com">contact@cricketimes.com</a>.</p>
+    <p>How we handle your personal data is set out separately in the <a href="/privacy.html">Privacy Policy</a>, which forms part of these Terms.</p>
+
+    <p class="small">Dreamers LLC (Washington State), trading as Cricket Times.<br />
+    Effective 28 July 2026. Supersedes the interim terms of 5 May 2026.</p>
 
   </main>
 

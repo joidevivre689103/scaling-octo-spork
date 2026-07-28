@@ -12,6 +12,7 @@
 <!-- CT_7G_INJECT:END -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Privacy Policy – Cricket Times</title>
+    <meta name="description" content="What Cricket Times collects, why, how long it is kept, and who can see it.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
@@ -129,6 +130,15 @@
             border-bottom: 1px solid var(--rule-light);
         }
 
+        h3 {
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+            font-size: 1.08rem;
+            color: var(--ink);
+            margin-top: 1.5rem;
+            margin-bottom: 0.35rem;
+        }
+
         p {
             margin-bottom: 1rem;
             text-align: justify;
@@ -152,6 +162,47 @@
 
         li {
             margin-bottom: 0.4rem;
+        }
+
+        .summary-box {
+            background: #fff;
+            border: 1px solid var(--rule-light);
+            border-left: 3px solid var(--crimson);
+            padding: 1.25rem 1.5rem;
+            margin: 0 0 2rem;
+            border-radius: 3px;
+        }
+        .summary-box p { text-align: left; margin-bottom: 0.6rem; }
+        .summary-box p:last-child { margin-bottom: 0; }
+        .summary-box .label {
+            font-family: 'Source Serif 4', serif;
+            font-size: 0.72rem;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--ink-light);
+            margin-bottom: 0.6rem;
+        }
+
+        table.data {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0.75rem 0 1.25rem;
+            font-size: 0.94rem;
+        }
+        table.data th, table.data td {
+            text-align: left;
+            vertical-align: top;
+            padding: 0.5rem 0.7rem;
+            border-bottom: 1px solid var(--rule-light);
+        }
+        table.data th {
+            font-family: 'Source Serif 4', serif;
+            font-size: 0.72rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--ink-light);
+            font-weight: 600;
+            border-bottom: 1px solid var(--rule);
         }
 
         .contact-box {
@@ -179,144 +230,299 @@
             p {
                 text-align: left;
             }
+            table.data { font-size: 0.88rem; }
+            table.data th, table.data td { padding: 0.4rem 0.4rem; }
         }
     </style>
 </head>
 <body>
 
+<!-- NOTE (2026-07-28): masthead + back-nav pointed at stories.html, which is now a stub
+     after the index swap. Repointed to "/". -->
 <header>
-    <a href="stories.html" class="masthead">Cricket <span>Times</span></a>
+    <a href="/" class="masthead">Cricket <span>Times</span></a>
     <div class="tagline">The Longest Format, Examined</div>
 </header>
 
 <nav class="back-nav">
-    <a href="stories.html">← Return to Front Page</a>
+    <a href="/">← Return to Front Page</a>
 </nav>
 
 <main>
     <h1>Privacy Policy</h1>
-    <p class="effective-date">Effective — June 2026</p>
+    <p class="effective-date">Effective — 28 July 2026</p>
+
+    <div class="summary-box">
+        <p class="label">The short version</p>
+        <p>We are a small independent publication, not an advertising business. We do not sell your data, we do not share it with advertisers, and there are no third-party tracking or advertising cookies on this site.</p>
+        <p>We do measure how the site is read, and we do it ourselves rather than handing it to an outside analytics company. For a signed-in reader, that measurement is <strong>per-person</strong>: we can see which pages your account opened and roughly how long you spent on each. It is keyed to an internal account identifier, never to your email address, and only the site's administrators can see it.</p>
+        <p>If you would rather we did not hold any of it, write to <a href="mailto:contact@cricketimes.com">contact@cricketimes.com</a> and we will delete your account and its records.</p>
+    </div>
 
     <p>
-        Cricket Times ("we", "us", or "the site") is a Test cricket statistics and analysis platform
-        available at <strong>cricketimes.com</strong>. We are committed to being transparent about how
-        we collect and use information when you visit our site.
+        This policy explains what Cricket Times collects, why, how long it is kept, and who can see it.
+        Cricket Times is operated by <strong>Dreamers LLC</strong>, a Washington State limited liability
+        company, at <strong>cricketimes.com</strong>. Dreamers LLC is the controller of the personal data
+        described here. It sits alongside our <a href="/terms.html">Terms of Service</a>.
     </p>
 
-    <h2>Information We Collect</h2>
-    <p>
-        Cricket Times does not require you to create an account or submit personal information to browse
-        the site. However, certain data may be collected automatically when you visit:
-    </p>
-    <ul>
-        <li><strong>Usage data</strong> — pages viewed, time spent on pages, referring URLs, browser type,
-            device type, and approximate geographic location (derived from your IP address).</li>
-        <li><strong>Cookies and similar technologies</strong> — small text files placed on your device by
-            our site or by third-party services we use, such as advertising partners and analytics
-            providers. These help us understand site usage and deliver relevant advertisements.</li>
-    </ul>
+    <h2>1. What we collect</h2>
 
-    <h2>Third-Party Advertising</h2>
+    <h3>1.1 Account information</h3>
     <p>
-        We use third-party advertising services, including Google AdSense, to display advertisements on
-        Cricket Times. These services may use cookies and similar tracking technologies to collect
-        information about your visits to this and other websites in order to serve ads that may be of
-        interest to you.
-    </p>
-    <p>
-        Google's use of advertising cookies is governed by its own privacy policy, available at
-        <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">policies.google.com/privacy</a>.
-        You may opt out of personalised advertising by visiting
-        <a href="https://adssettings.google.com" target="_blank" rel="noopener">Google Ads Settings</a>
-        or the
-        <a href="https://optout.networkadvertising.org/" target="_blank" rel="noopener">Network Advertising Initiative opt-out page</a>.
+        Much of the site can be read without an account. If you create one, we collect your
+        <strong>email address</strong>, a <strong>password</strong> (which is hashed by Google Firebase
+        Authentication — we never see or store the password itself), the <strong>display name</strong>
+        you choose to appear beside your comments, and the <strong>access level</strong> your account
+        holds. We also record when your account was created and when it last signed in.
     </p>
 
-    <h2>Analytics</h2>
+    <h3>1.2 Subscription information</h3>
     <p>
-        We may use analytics tools (such as Google Analytics) to understand how visitors interact with
-        Cricket Times. These tools collect information such as how often you visit, which pages you
-        view, and what other sites you visited before arriving here. We use this information solely to
-        improve the site. You can opt out of Google Analytics by installing the
-        <a href="https://tools.google.com/dlpage/gaoptout" target="_blank" rel="noopener">Google Analytics Opt-out Browser Add-on</a>.
+        If you subscribe, payment is taken by <strong>Stripe</strong>, our payment processor.
+        <strong>We never receive or store your card number.</strong> What we hold is the status of your
+        subscription — whether it is active, cancelled, or lapsed — together with the identifiers Stripe
+        gives us so the two systems can refer to the same subscription. Stripe processes your payment
+        details under its own
+        <a href="https://stripe.com/privacy" target="_blank" rel="noopener">privacy policy</a>.
     </p>
 
-    <h2>Buy Me a Coffee</h2>
+    <h3>1.3 The newsletter</h3>
     <p>
-        Cricket Times offers a voluntary financial contribution option through Buy Me a Coffee. If you
-        choose to make a contribution, any personal or payment information you provide is collected and
-        processed by Buy Me a Coffee under its own
-        <a href="https://www.buymeacoffee.com/privacy-policy" target="_blank" rel="noopener">privacy policy</a>.
-        We do not store your payment details.
-    </p>
-
-    <h2>Firebase Services</h2>
-    <p>
-        Certain features of Cricket Times use Google Firebase for content management and storage.
-        Firebase may collect technical information such as device identifiers, IP addresses, and usage
-        data in accordance with
-        <a href="https://firebase.google.com/support/privacy" target="_blank" rel="noopener">Firebase's privacy documentation</a>.
-    </p>
-
-    <h2>Newsletter Subscription</h2>
-    <p>
-        Cricket Times offers a voluntary email newsletter. If you choose to subscribe, we collect your
-        email address and, optionally, your first name. This information is used solely to send you
-        summaries of new articles and updates published on Cricket Times.
+        The newsletter is separate from your account, and subscribing to it is entirely voluntary. If you
+        sign up we collect your <strong>email address</strong> and, if you give it, your
+        <strong>first name</strong>. These are used for one thing: sending you summaries of what has been
+        published on Cricket Times.
     </p>
     <p>
-        Your subscription data is stored and processed by <strong>MailerLite</strong>, our email
-        marketing service provider, in accordance with their
+        Newsletter subscriptions are stored and sent by <strong>MailerLite</strong>, our email service
+        provider, under its own
         <a href="https://www.mailerlite.com/legal/privacy-policy" target="_blank" rel="noopener">privacy policy</a>.
-        MailerLite is based in the European Union and processes data in accordance with GDPR.
-        Cricket Times does not store your email address independently of MailerLite.
+        MailerLite is based in the European Union. Signing up to the newsletter does not create a Cricket
+        Times account; if you also hold an account, the email address on it is held separately by us as
+        account data, as described in section 1.1.
     </p>
     <p>
-        By subscribing you consent to receiving email communications from Cricket Times. You may
-        unsubscribe at any time by clicking the unsubscribe link in any newsletter email, or by
-        contacting us at <a href="mailto:contact@cricketimes.com">contact@cricketimes.com</a>.
-        We will action all unsubscribe and data deletion requests promptly.
+        You can unsubscribe at any time using the link at the foot of any newsletter email, or by writing
+        to <a href="mailto:contact@cricketimes.com">contact@cricketimes.com</a>. We action unsubscribe and
+        deletion requests promptly, and unsubscribing from the newsletter does not affect your account or
+        subscription.
     </p>
+
+    <h3>1.4 Voluntary contributions</h3>
+    <p>
+        From time to time Cricket Times may offer readers the option of making a voluntary financial
+        contribution through <strong>Buy Me a Coffee</strong>. It is always optional, it is never required
+        to read anything, and it is not a subscription. If you choose to contribute, any personal or
+        payment information you give is collected and processed by Buy Me a Coffee under its own
+        <a href="https://www.buymeacoffee.com/privacy-policy" target="_blank" rel="noopener">privacy policy</a>.
+        <strong>We do not receive or store your payment details</strong>, and contributing does not create
+        an account or change the access you hold.
+    </p>
+
+    <h3>1.5 How the site is read (engagement analytics)</h3>
+    <p>
+        We measure how the site is used, so that we can tell which writing is worth continuing and which
+        parts of the site nobody opens. This measurement is built by us and runs on our own Firebase
+        infrastructure. <strong>It is not Google Analytics, and no analytics vendor, advertising network,
+        or data broker receives any of it.</strong>
+    </p>
+    <p>
+        For a signed-in reader, the measurement is tied to that account. We collect:
+    </p>
+    <table class="data">
+        <tr>
+            <th>What</th>
+            <th>Detail</th>
+        </tr>
+        <tr>
+            <td><strong>Page path</strong></td>
+            <td>The path of the page you opened — for example <code>/oracle.html</code>. Anything after
+                the <code>?</code> in a web address is never recorded.</td>
+        </tr>
+        <tr>
+            <td><strong>Time and duration</strong></td>
+            <td>When you arrived, how long the visit lasted, and how much of that time you were actually
+                reading rather than idle. Time is counted in short intervals and only while the page is
+                visible and you have interacted with it recently.</td>
+        </tr>
+        <tr>
+            <td><strong>Per-page reading history</strong></td>
+            <td>For an account, a list of which specific pages that account has opened and how long was
+                spent on each. This is individual reading behaviour, not just an aggregate count, and we
+                describe it plainly here because that distinction matters.</td>
+        </tr>
+        <tr>
+            <td><strong>Return visits</strong></td>
+            <td>How often an account comes back, and when it last did.</td>
+        </tr>
+        <tr>
+            <td><strong>Sign-in records</strong></td>
+            <td>A record of each sign-in: the account's email address, the page you arrived on, and a
+                timestamp set by our server.</td>
+        </tr>
+    </table>
+    <p>
+        Two deliberate limits are worth naming. First, the analytics records are keyed to an internal
+        account identifier — a random string issued by Firebase — and <strong>your email address never
+        enters the analytics pipeline</strong>; it is held separately with your account. Second, we do not
+        follow you across other websites, we do not buy or receive data about you from anyone else, and we
+        do not build an advertising or interest profile from any of this.
+    </p>
+
+    <h3>1.6 Comments, reactions, and submissions</h3>
+    <p>
+        If you post a comment we store its text, your display name, your account identifier, and the time
+        it was posted. Reactions store the fact that your account reacted, so the count is right. If you
+        submit an article as a contributor, we store the submission and anything you upload with it.
+    </p>
+
+    <h3>1.7 Technical records</h3>
+    <p>
+        Our hosting and server infrastructure is provided by <strong>Google Firebase</strong> and Google
+        Cloud, which keeps operational logs — including IP addresses, request times, and browser and
+        device information — as an ordinary part of serving and securing a website. Google handles this
+        under its
+        <a href="https://firebase.google.com/support/privacy" target="_blank" rel="noopener">Firebase privacy documentation</a>.
+        We use these logs for security, abuse prevention, and debugging. We do not use them to identify
+        readers or to work out where you are.
+    </p>
+
+    <h3>1.8 Identifiers in subscriber content</h3>
+    <p>
+        Content served to a signed-in account may carry an identifier tying that copy to the account it
+        was served to. It exists for one purpose: if subscriber material is republished in breach of our
+        <a href="/terms.html">Terms of Service</a>, it lets us establish where the copy came from. It is
+        not used for advertising, profiling, or any other purpose, and it is derived from your account
+        identifier rather than from anything about you personally.
+    </p>
+
+    <h2>2. Why we collect it, and on what basis</h2>
+    <table class="data">
+        <tr>
+            <th>Purpose</th>
+            <th>Basis (UK/EU GDPR)</th>
+        </tr>
+        <tr>
+            <td>Running your account and giving you the access you hold</td>
+            <td>Performance of our contract with you</td>
+        </tr>
+        <tr>
+            <td>Taking payment and managing subscriptions</td>
+            <td>Performance of our contract; legal obligation for tax and accounting records</td>
+        </tr>
+        <tr>
+            <td>Understanding how the site is read, so we can decide what to publish</td>
+            <td>Our legitimate interest in running and improving an independent publication</td>
+        </tr>
+        <tr>
+            <td>Keeping the site secure, and enforcing our Terms</td>
+            <td>Our legitimate interest in protecting the site and our work</td>
+        </tr>
+        <tr>
+            <td>Sending emails you asked for</td>
+            <td>Your consent, which you can withdraw at any time</td>
+        </tr>
+    </table>
+    <p>
+        If you are in the UK or EU and you object to the analytics described in section 1.5 on the basis
+        of your particular situation, write to us and we will stop measuring your account and delete what
+        we hold for it. You do not have to give a reason beyond that.
+    </p>
+
+    <h2>3. How long we keep it</h2>
     <ul>
-        <li><strong>Data collected:</strong> email address, optional first name</li>
-        <li><strong>Purpose:</strong> sending newsletter summaries of new Cricket Times articles</li>
-        <li><strong>Processor:</strong> MailerLite (EU-based)</li>
-        <li><strong>Retention:</strong> until you unsubscribe or request deletion</li>
-        <li><strong>Your rights:</strong> access, rectification, erasure — contact <a href="mailto:contact@cricketimes.com">contact@cricketimes.com</a></li>
+        <li><strong>Detailed activity records</strong> — deleted automatically after <strong>90 days</strong>.</li>
+        <li><strong>Summary figures derived from them</strong> — for example daily and per-page totals — are
+            kept while your account exists, and are deleted with it.</li>
+        <li><strong>Account and subscription records</strong> — kept while your account is open, and deleted
+            when you close it, except where we must keep payment and tax records for longer by law.</li>
+        <li><strong>Comments</strong> — kept while posted. If you close your account you can ask us to
+            remove your comments as well; say so when you write to us.</li>
+        <li><strong>Newsletter subscriptions</strong> — held by MailerLite until you unsubscribe or ask
+            for deletion.</li>
+        <li><strong>Published contributor articles</strong> — kept in the archive indefinitely, as any
+            publication keeps what it has published.</li>
     </ul>
 
-    <h2>Data Sharing</h2>
+    <h2>4. Who can see it</h2>
     <p>
-        We do not sell your personal information. Information may be shared only with the third-party
-        service providers described above (advertising, analytics, payment, and newsletter platforms),
-        and only to the extent necessary for those services to function. These providers include
-        Google (AdSense, Analytics, Firebase), Buy Me a Coffee, and MailerLite.
+        Internally: only the site's administrators. The analytics collections are written by our servers
+        rather than by your browser, and the security rules that govern them permit reading only by an
+        administrator account. Cricket Times is a very small operation, and in practice that means the
+        people who run it.
+    </p>
+    <p>
+        Externally: <strong>we do not sell personal information, and we do not share it for advertising.</strong>
+        The only third parties that handle your data are the service providers we need in order to
+        operate — <strong>Google Firebase and Google Cloud</strong> (hosting, authentication, database, and
+        email delivery for account messages), <strong>Stripe</strong> (subscription payments),
+        <strong>MailerLite</strong> (the newsletter), and <strong>Buy Me a Coffee</strong> (voluntary
+        contributions, where offered) — and each only to the extent needed to provide that service. We may also disclose information where we are legally
+        required to, or where it is necessary to establish or defend a legal claim.
+    </p>
+    <p>
+        Cricket Times is operated from the United States and the data described here is processed there.
+        If you are in the UK or EU, that is a transfer outside your jurisdiction; our providers operate
+        under standard contractual clauses and their own transfer frameworks.
     </p>
 
-    <h2>Children's Privacy</h2>
+    <h2>5. Cookies and local storage</h2>
     <p>
-        Cricket Times is not directed at children under the age of 13. We do not knowingly collect
-        personal information from children. If you believe a child has provided us with personal data,
-        please contact us and we will take steps to remove it.
+        <strong>There are no advertising cookies and no third-party tracking cookies on this site</strong>,
+        which is why you have not been asked to dismiss a cookie banner. What we do use is strictly
+        functional: a session cookie and a token that keep you signed in, and a small amount of browser
+        storage that remembers things like whether you have already reacted to a comment and whether this
+        visit has already been counted as a sign-in. Clearing your browser storage signs you out; it does
+        not delete anything we hold.
     </p>
 
-    <h2>Your Choices</h2>
+    <h2>6. Your rights</h2>
+    <p>You can ask us to:</p>
+    <ul>
+        <li>tell you what we hold about you, and give you a copy;</li>
+        <li>correct anything that is wrong;</li>
+        <li>delete your account and the records attached to it;</li>
+        <li>stop measuring your reading, while leaving your account and subscription in place;</li>
+        <li>stop sending you email.</li>
+    </ul>
     <p>
-        Most web browsers allow you to manage cookie preferences through their settings. You may also
-        use the opt-out links provided above to control personalised advertising. Please note that
-        disabling cookies may affect certain features of the site.
+        Write to <a href="mailto:contact@cricketimes.com">contact@cricketimes.com</a>. We will action
+        requests promptly and will not charge you or make you give a reason. Depending on where you live
+        you may also have a right to complain to a data-protection authority — in the UK, the Information
+        Commissioner's Office — and we would rather you came to us first, but that is your right either way.
+    </p>
+    <p>
+        We do not discriminate against anyone for exercising these rights: your subscription, price, and
+        access stay exactly the same.
     </p>
 
-    <h2>Changes to This Policy</h2>
+    <h2>7. Children</h2>
     <p>
-        We may update this Privacy Policy from time to time. Any changes will be posted on this page
-        with an updated effective date. We encourage you to review this page periodically.
+        Cricket Times is not directed at children under 13, and we do not knowingly collect personal
+        information from them. If you believe a child has given us personal data, contact us and we will
+        delete it.
     </p>
 
-    <h2>Contact</h2>
+    <h2>8. Changes to this policy</h2>
+    <p>
+        We may update this policy. The version on this page is the one in force, and the effective date at
+        the top changes when it does. Where a change materially affects how we handle your data, we will
+        make reasonable efforts to tell account holders rather than relying on you to re-read the page.
+    </p>
+    <p>
+        This policy describes what Cricket Times does today. We currently run no advertising and no
+        third-party analytics service. If that changes — if we introduce advertising on the freely
+        available pages, or bring in an outside analytics provider — we will update this page and say so
+        before it starts, and we will put in place whatever consent mechanism the law where you live
+        requires. We will not quietly begin doing something this page says we do not do.
+    </p>
+
+    <h2>9. Contact</h2>
     <div class="contact-box">
-        <p>If you have any questions about this Privacy Policy, you may reach us at:</p>
+        <p>Questions about this policy, or any request under section 6:</p>
         <p><strong>Email:</strong> <a href="mailto:contact@cricketimes.com">contact@cricketimes.com</a></p>
+        <p><strong>Operated by:</strong> Dreamers LLC, Washington State, USA</p>
     </div>
 </main>
 
