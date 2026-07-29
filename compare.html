@@ -227,6 +227,9 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
 .phase-ms-custom .phase-sep{font-size:11px;color:var(--text3)}
 .phase-ms-custom .phase-add-btn{background:var(--accent);color:#fff;border:none;border-radius:5px;padding:5px 10px;font-family:'Outfit',sans-serif;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap}
 .phase-ms-custom .phase-add-btn:hover{background:var(--accent-hover)}
+.phase-ms-custom .phase-add-btn:disabled{background:var(--border);color:var(--text3);cursor:not-allowed}
+.phase-ms-hint{padding:0 12px 9px;font-size:10.5px;font-weight:500;color:var(--text3);line-height:1.4}
+.phase-ms-hint.warn{color:var(--red,#c0392b);font-weight:600}
 .fp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px 18px}
 .fp-group label{font-size:11px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:var(--text3);display:block;margin-bottom:6px}
 .fp-select-lg{
@@ -922,6 +925,7 @@ header.header{display:none !important}
             <div class="phase-ms-item" data-val="peak" onclick="togglePhaseItem(this)"><span class="ms-cb"></span><span>Peak</span></div>
             <div class="phase-ms-item" data-val="bestphase" onclick="togglePhaseItem(this)"><span class="ms-cb"></span><span>Best Phase</span></div>
             <div class="phase-ms-divider">Custom range</div>
+            <div id="phaseCustomList"></div>
             <div class="phase-ms-custom">
               <span class="phase-sep">Test #</span>
               <input type="number" id="phaseCustomFrom" min="1" placeholder="1">
@@ -929,6 +933,14 @@ header.header{display:none !important}
               <input type="number" id="phaseCustomTo" min="1" placeholder="end">
               <button class="phase-add-btn" onclick="addCustomPhase()">+ Add</button>
             </div>
+            <div class="phase-ms-custom">
+              <span class="phase-sep">Years</span>
+              <input type="number" id="phaseYearFrom" min="1877" max="2100" placeholder="1990">
+              <span class="phase-sep">to</span>
+              <input type="number" id="phaseYearTo" min="1877" max="2100" placeholder="1999">
+              <button class="phase-add-btn" id="phaseYearAdd" onclick="addYearPhase()">+ Add</button>
+            </div>
+            <div class="phase-ms-hint" id="phaseYearHint">Up to 3 year periods</div>
           </div>
         </div>
       </div>
@@ -1383,16 +1395,81 @@ function addCustomPhase(){
   const val=`custom_${from}_${to||'end'}`;
   if(!selectedPhases.find(p=>p.val===val)){
     selectedPhases.push({val,label,from,to});
-    // Add a removable item to the dropdown
-    const dd=document.getElementById('phaseMsDD');
-    const div=document.createElement('div');
-    div.className='phase-ms-item checked';div.dataset.val=val;
-    div.innerHTML=`<span class="ms-cb"></span><span>${label}</span>`;
-    div.onclick=function(){togglePhaseItem(this);this.remove();};
-    dd.insertBefore(div,dd.querySelector('.phase-ms-custom').parentNode||dd.lastChild);
+    addPhaseChip(val,label);
   }
   fromEl.value='';toEl.value='';
   updatePhaseMsToggleLabel();applyFilters();
+}
+
+// ---- Year periods (max 3) ----
+// A year phase carries {kind:'year', yearFrom, yearTo} instead of career test
+// numbers; getRowsForPhase filters on the match year (TESTS[mid][7]) for these.
+// Lets you put the same player up against himself across eras — e.g.
+// 1990–1999 vs 2000–2009.
+const MAX_YEAR_PHASES = 3;
+function countYearPhases(){ return selectedPhases.filter(p=>p.kind==='year').length; }
+
+function addPhaseChip(val,label){
+  const list=document.getElementById('phaseCustomList');
+  if(!list) return;
+  const div=document.createElement('div');
+  div.className='phase-ms-item checked';
+  div.dataset.val=val;
+  div.innerHTML=`<span class="ms-cb"></span><span>${label}</span>`;
+  div.onclick=function(e){ if(e) e.stopPropagation(); removePhaseByVal(val); this.remove(); };
+  list.appendChild(div);
+}
+
+function removePhaseByVal(val){
+  selectedPhases=selectedPhases.filter(p=>p.val!==val);
+  updatePhaseMsToggleLabel();updateYearHint();applyFilters();
+}
+
+function updateYearHint(msg,warn){
+  const hint=document.getElementById('phaseYearHint');
+  const btn=document.getElementById('phaseYearAdd');
+  const n=countYearPhases();
+  if(btn) btn.disabled = n>=MAX_YEAR_PHASES;
+  if(!hint) return;
+  if(msg){
+    hint.textContent=msg;
+    hint.classList.toggle('warn',!!warn);
+    clearTimeout(updateYearHint._t);
+    updateYearHint._t=setTimeout(()=>updateYearHint(),2600);
+    return;
+  }
+  hint.classList.remove('warn');
+  hint.textContent = n===0 ? 'Up to 3 year periods'
+                   : n>=MAX_YEAR_PHASES ? '3 of 3 year periods used — remove one to add another'
+                   : n+' of 3 year periods used';
+}
+
+function addYearPhase(){
+  const fromEl=document.getElementById('phaseYearFrom');
+  const toEl=document.getElementById('phaseYearTo');
+  let from=parseInt(fromEl.value,10); if(isNaN(from)) from=null;
+  let to=parseInt(toEl.value,10);     if(isNaN(to))   to=null;
+  if(from===null&&to===null){ updateYearHint('Enter a from year, a to year, or both',true); return; }
+  if(from!==null&&to!==null&&from>to){ const t=from; from=to; to=t; }
+  if(countYearPhases()>=MAX_YEAR_PHASES){ updateYearHint('Maximum of 3 year periods',true); return; }
+  const label = (from!==null&&to!==null) ? (from===to?String(from):from+'–'+to)
+              : (from!==null ? from+' onwards' : 'up to '+to);
+  const val = 'years_'+(from===null?'start':from)+'_'+(to===null?'end':to);
+  if(selectedPhases.find(p=>p.val===val)){ updateYearHint('That period is already added',true); return; }
+  selectedPhases.push({val,label,kind:'year',yearFrom:from,yearTo:to,from:null,to:null});
+  addPhaseChip(val,label);
+  fromEl.value='';toEl.value='';
+  updatePhaseMsToggleLabel();updateYearHint();applyFilters();
+}
+
+// Drop every phase and clear the added-range chips (used by Reset and by the
+// active-filter tag's × button).
+function clearAllPhases(){
+  selectedPhases=[];
+  const list=document.getElementById('phaseCustomList');
+  if(list) list.innerHTML='';
+  document.querySelectorAll('#phaseMsDD .phase-ms-item').forEach(el=>el.classList.remove('checked'));
+  updatePhaseMsToggleLabel();updateYearHint();
 }
 function updatePhaseMsToggleLabel(){
   const btn=document.getElementById('phaseMsToggle');
@@ -1429,9 +1506,20 @@ function getRowsForPhase(player, phaseEntry){
     return true;
   });
   if(phaseEntry){
-    const {order,total}=getPlayerMatchOrder(player.id);
-    const {from,to}=resolvePhaseObj(phaseEntry,total);
-    rows=rows.filter(i=>{const n=order[SCD[i][0]];return n>=from&&n<=to;});
+    if(phaseEntry.kind==='year'){
+      // Year period — filter on the match year rather than career Test number
+      const yf=(phaseEntry.yearFrom===undefined)?null:phaseEntry.yearFrom;
+      const yt=(phaseEntry.yearTo===undefined)?null:phaseEntry.yearTo;
+      rows=rows.filter(i=>{
+        const meta=TESTS[SCD[i][0]];if(!meta)return false;
+        const y=meta[7];if(typeof y!=='number')return false;
+        return (yf===null||y>=yf)&&(yt===null||y<=yt);
+      });
+    } else {
+      const {order,total}=getPlayerMatchOrder(player.id);
+      const {from,to}=resolvePhaseObj(phaseEntry,total);
+      rows=rows.filter(i=>{const n=order[SCD[i][0]];return n>=from&&n<=to;});
+    }
   }
   return rows;
 }
@@ -1577,14 +1665,15 @@ function applyFilters(){
   showTags();
 }
 function resetFilters(){
-  selectedOpps=[];selectedPhases=[];selectedTeamCapts=[];selectedOppCapts=[];
+  selectedOpps=[];selectedTeamCapts=[];selectedOppCapts=[];
   ['fCity','fGnd','fHA','fInn','fRes','fToss','fTogether'].forEach(id=>{document.getElementById(id).value=''});
   document.getElementById('activeFilt').innerHTML='';
   document.getElementById('phaseCustomFrom').value='';
   document.getElementById('phaseCustomTo').value='';
+  document.getElementById('phaseYearFrom').value='';
+  document.getElementById('phaseYearTo').value='';
+  clearAllPhases();
   updateOppToggleLabel();updateTeamCaptToggleLabel();updateOppCaptToggleLabel();
-  updatePhaseMsToggleLabel();
-  document.querySelectorAll('#phaseMsDD .phase-ms-item').forEach(el=>el.classList.remove('checked'));
   document.querySelectorAll('#fOppDD .ms-dd-item').forEach(el=>el.classList.remove('checked'));
   document.querySelectorAll('#fTeamCaptDD .ms-dd-item').forEach(el=>el.classList.remove('checked'));
   document.querySelectorAll('#fOppCaptDD .ms-dd-item').forEach(el=>el.classList.remove('checked'));
@@ -1608,7 +1697,7 @@ function showTags(){
     if(t.k.startsWith('opp_')){const ov=t.k.split('_')[1];return`<span class="af-tag">${t.l}<button onclick="removeOpp(${ov})">&times;</button></span>`;}
     if(t.k.startsWith('teamCapt_')){const pv=+t.k.split('_')[1];return`<span class="af-tag">${t.l}<button onclick="removeTeamCapt(${pv})">&times;</button></span>`;}
     if(t.k.startsWith('oppCapt_')){const pv=+t.k.split('_')[1];return`<span class="af-tag">${t.l}<button onclick="removeOppCapt(${pv})">&times;</button></span>`;}
-    if(t.k==='phases'){return`<span class="af-tag">${t.l}<button onclick="selectedPhases=[];updatePhaseMsToggleLabel();document.querySelectorAll('#phaseMsDD .phase-ms-item').forEach(el=>el.classList.remove('checked'));applyFilters()">&times;</button></span>`;}
+    if(t.k==='phases'){return`<span class="af-tag">${t.l}<button onclick="clearAllPhases();applyFilters()">&times;</button></span>`;}
     return`<span class="af-tag">${t.l}<button onclick="document.getElementById('${t.k}').value='';applyFilters()">&times;</button></span>`;
   }).join('');
 }
@@ -2038,7 +2127,10 @@ function render(){
     const ROW_CLASSES = ['phase-a-row','phase-b-row','phase-c-row'];
     const defs = [{label:'Full Career', phaseObj:null, rowClass:'phase-career-row'}];
     selectedPhases.forEach((ph, i) => {
-      defs.push({label:ph.label, phaseObj:{from:ph.from, to:ph.to}, rowClass: ROW_CLASSES[i] || 'phase-a-row', computed: ph.computed || null});
+      const phaseObj = ph.kind === 'year'
+        ? {kind:'year', yearFrom: ph.yearFrom, yearTo: ph.yearTo}
+        : {from: ph.from, to: ph.to};
+      defs.push({label:ph.label, phaseObj, rowClass: ROW_CLASSES[i] || 'phase-a-row', computed: ph.computed || null});
     });
     return defs;
   }
