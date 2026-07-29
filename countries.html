@@ -446,6 +446,15 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
 .result-badge.draw{background:var(--accent-dim);color:var(--accent)}
 
 /* Period inputs + comparison */
+.sb-head{
+  display:flex;align-items:baseline;justify-content:space-between;
+  gap:12px;padding:13px 18px 12px;
+}
+.sb-head-tag{
+  font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;
+  color:var(--text3);white-space:nowrap;
+}
+.sb-head-range{font-family:'DM Serif Display',serif;font-size:18px;letter-spacing:-0.3px}
 .filters-row .sel-group.period{min-width:auto}
 .period-inputs{display:flex;align-items:center;gap:6px}
 .period-inputs .team-select{width:86px;padding:10px 12px;background-image:none;text-align:center}
@@ -769,8 +778,11 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
       </div>
     </div>
 
+    <!-- Per-period scoreboards (replace the single scoreboard when Period B is set) -->
+    <div id="scoreboardPeriods" style="display:none"></div>
+
     <!-- Bar Chart -->
-    <div class="bar-section">
+    <div class="bar-section" id="barSection">
       <div class="bar-title">Win Distribution</div>
       <div class="bar-row">
         <div class="bar-label-row">
@@ -1442,6 +1454,61 @@ function normalizeMargin(margin) {
 }
 
 // ─────────────────────────────────────────────────────────────
+// Per-period scoreboards. Pass an empty period list to fall back to the
+// single combined scoreboard + win-distribution bars.
+// ─────────────────────────────────────────────────────────────
+function renderPeriodScoreboards(periods, matches, lab1, lab2) {
+  const wrap = document.getElementById('scoreboardPeriods');
+  const single = document.getElementById('scoreboard');
+  const bars = document.getElementById('barSection');
+  if (!wrap) return;
+
+  if (periods.length < 2) {
+    wrap.style.display = 'none';
+    wrap.innerHTML = '';
+    if (single) single.style.display = '';
+    if (bars) bars.style.display = '';
+    return;
+  }
+
+  wrap.innerHTML = periods.map(p => {
+    const ms = matches.filter(m => inPeriod(m, p));
+    const w = ms.filter(m => m.result === 'Won').length;
+    const l = ms.filter(m => m.result === 'Lost').length;
+    const dr = ms.filter(m => m.result === 'Draw').length;
+    return `
+      <div class="scoreboard">
+        <div class="sb-head">
+          <span class="sb-head-range">${periodLabel(p)}</span>
+          <span class="sb-head-tag">Period ${p.key}</span>
+        </div>
+        <div class="sb-body">
+          <div class="sb-stat">
+            <div class="sb-stat-label">${lab1}</div>
+            <div class="sb-stat-values"><div class="sb-val">${w}</div></div>
+          </div>
+          <div class="sb-stat">
+            <div class="sb-stat-label">${lab2}</div>
+            <div class="sb-stat-values"><div class="sb-val">${l}</div></div>
+          </div>
+          <div class="sb-stat">
+            <div class="sb-stat-label">Draws</div>
+            <div class="sb-stat-values"><div class="sb-val neutral">${dr}</div></div>
+          </div>
+          <div class="sb-stat">
+            <div class="sb-stat-label">Total</div>
+            <div class="sb-stat-values"><div class="sb-val neutral">${ms.length}</div></div>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+
+  wrap.style.display = '';
+  if (single) single.style.display = 'none';
+  if (bars) bars.style.display = 'none';
+}
+
+// ─────────────────────────────────────────────────────────────
 // Period comparison cards. Shown only when both periods are active.
 // Stats are taken from the year+venue-filtered set but NOT the result
 // filter — filtering to "draws only" and then comparing W/L/D would be
@@ -1545,9 +1612,11 @@ function renderTable() {
   haEl.options[2].disabled = allVsAll;
 
   // Scoreboard stat labels
+  const lab1 = allVsAll ? 'Home wins' : 'Wins';
+  const lab2 = allVsAll ? 'Away wins' : 'Losses';
   const sbLab1 = document.getElementById('sbLab1'), sbLab2 = document.getElementById('sbLab2');
-  if (sbLab1) sbLab1.textContent = allVsAll ? 'Home wins' : 'Wins';
-  if (sbLab2) sbLab2.textContent = allVsAll ? 'Away wins' : 'Losses';
+  if (sbLab1) sbLab1.textContent = lab1;
+  if (sbLab2) sbLab2.textContent = lab2;
 
   // Matchup column only earns its place when the pairing isn't obvious
   const thMatch = document.getElementById('thMatch');
@@ -1578,6 +1647,11 @@ function renderTable() {
   document.getElementById('sbL1').className = 'sb-val';
   document.getElementById('sbD').textContent = d;
   document.getElementById('sbTotal').textContent = tot;
+
+  // With two periods active the combined totals aren't the story — swap the
+  // single scoreboard (and the combined win bars, which the comparison cards
+  // already show per period) for one scoreboard per period, A then B.
+  renderPeriodScoreboards(twoPeriods ? periods : [], yearFiltered, lab1, lab2);
 
   // Bars
   setTimeout(() => {
