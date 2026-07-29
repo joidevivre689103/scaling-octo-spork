@@ -1976,6 +1976,13 @@ function render(){
     return;
   }
 
+  // Selecting Career Phases splits the table into one row per phase. The
+  // picker sits in the normal filter panel, so it has to work from the plain
+  // "1 Player" / "2+ Players" record types too — not only from the explicit
+  // Phase Comparison record types.
+  const phaseView = phaseMode
+    || (selectedPhases.length ? (displayPlayers.length > 1 ? 'multi' : 'single') : false);
+
   const stats=displayPlayers.map((p,i)=>agg(p,rowSets[i],any));
 
   // Filter summary
@@ -1990,9 +1997,13 @@ function render(){
     if(f.teamCapts.length){parts.push('capt: '+f.teamCapts.map(p=>PID_NAME[p]||'?').join('/'))}
     if(f.oppCapts.length){parts.push('opp capt: '+f.oppCapts.map(p=>PID_NAME[p]||'?').join('/'))}
     if(f.together)parts.push('played together');
-    if(selectedPhases.length)parts.push(selectedPhases.map(p=>p.label).join(' · '));
+    if(selectedPhases.length && !phaseView)parts.push(selectedPhases.map(p=>p.label).join(' · '));
     const pParts=stats.map((s,i)=>`${s.name}: ${s.inns} inn`);
-    let summaryHTML = `<div class="filt-sum">Filtered: ${parts.join(' · ')} — ${pParts.join(' · ')}</div>`;
+    // With phases showing as rows, an unqualified "329 inn" next to them reads
+    // as if the phases were applied — only print the line for real filters.
+    let summaryHTML = parts.length
+      ? `<div class="filt-sum">Filtered: ${parts.join(' · ')} — ${pParts.join(' · ')}</div>`
+      : '';
     if(f.together === 'yes' && displayPlayers.length < players.length){
       const excludedCount = players.length - displayPlayers.length;
       const excludedNames = players.filter(p => !displayPlayers.includes(p)).map(p => p.fullName || p.name).join(', ');
@@ -2244,7 +2255,7 @@ function render(){
       return rows;
     }
 
-    if(phaseMode === 'single'){
+    if(phaseView === 'single'){
       rowsHTML = renderPhaseRows(players[0], 0, phaseDefs);
     } else {
       // phase-multi: separator row per player, then phase rows under each
@@ -2349,28 +2360,28 @@ function render(){
   }
 
   // ---- Render each tab ----
-  const buildTab = (cols, opts) => phaseMode ? buildPhaseRowTable(cols, opts) : buildDualOrSingle(cols, opts);
+  const buildTab = (cols, opts) => phaseView ? buildPhaseRowTable(cols, opts) : buildDualOrSingle(cols, opts);
 
   if(st === 'both'){
-    document.getElementById('tblOverview').innerHTML = buildTab(ovCols, { showVerdict: !phaseMode, footNote: '* Career fielding totals — not affected by filters' });
+    document.getElementById('tblOverview').innerHTML = buildTab(ovCols, { showVerdict: !phaseView, footNote: '* Career fielding totals — not affected by filters' });
   } else {
     document.getElementById('tblOverview').innerHTML = '';
   }
 
   if(st === 'both' || st === 'batting'){
-    document.getElementById('tblBatting').innerHTML = buildTab(batCols, { showVerdict: st === 'batting' && !phaseMode });
+    document.getElementById('tblBatting').innerHTML = buildTab(batCols, { showVerdict: st === 'batting' && !phaseView });
   } else {
     document.getElementById('tblBatting').innerHTML = '';
   }
 
   if(st === 'both' || st === 'bowling'){
-    document.getElementById('tblBowling').innerHTML = buildTab(bowlCols, { isBowling: true, showVerdict: st === 'bowling' && !phaseMode });
+    document.getElementById('tblBowling').innerHTML = buildTab(bowlCols, { isBowling: true, showVerdict: st === 'bowling' && !phaseView });
   } else {
     document.getElementById('tblBowling').innerHTML = '';
   }
 
   if(st === 'both'){
-    document.getElementById('tblAll').innerHTML = buildTab(allCols, { showVerdict: !phaseMode, footNote: '* Career fielding totals — not affected by filters' });
+    document.getElementById('tblAll').innerHTML = buildTab(allCols, { showVerdict: !phaseView, footNote: '* Career fielding totals — not affected by filters' });
   } else {
     document.getElementById('tblAll').innerHTML = '';
   }
@@ -2685,7 +2696,7 @@ function toggleDualView(){
 
 function updateExportButton(){
   const players = cohortMode ? cohortGroups.flat().filter(Boolean) : activeSel();
-  const show = players.length >= 2 && !singleMode && !phaseMode;
+  const show = players.length >= 2 && !singleMode && !phaseMode && !selectedPhases.length;
   document.getElementById('exportBtn').style.display = show ? 'flex' : 'none';
   const toggle = document.getElementById('dualToggle');
   toggle.classList.toggle('show', show);
