@@ -699,13 +699,13 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
     <div class="scoreboard" id="scoreboard">
       <div class="sb-body">
         <div class="sb-stat">
-          <div class="sb-stat-label">Wins</div>
+          <div class="sb-stat-label" id="sbLab1">Wins</div>
           <div class="sb-stat-values">
             <div class="sb-val" id="sbW1">—</div>
           </div>
         </div>
         <div class="sb-stat">
-          <div class="sb-stat-label">Losses</div>
+          <div class="sb-stat-label" id="sbLab2">Losses</div>
           <div class="sb-stat-values">
             <div class="sb-val" id="sbL1">—</div>
           </div>
@@ -770,6 +770,7 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
           <tr>
             <th>Test #</th>
             <th>Year</th>
+            <th class="left" id="thMatch" style="display:none">Match</th>
             <th class="left">Venue</th>
             <th>H/A</th>
             <th>Result</th>
@@ -877,11 +878,24 @@ function createMultiSelect(id, options, allLabel, onChange, {singleOnly=false} =
   const trigger = document.getElementById(id + '-trigger');
   const panel = document.getElementById(id + '-panel');
   const sel = new Set();
+  // allMode: sticky "this side means EVERYONE" flag, set by the Select All
+  // button. It survives the automatic de-selection of countries picked on the
+  // opposite side (see syncGroups), so "All" keeps meaning "all others" even
+  // after the set shrinks to 11 teams.
+  let allMode = false;
   const api = {
-    set(codes){ sel.clear(); codes.forEach(c => sel.add(c)); render(); },
+    set(codes, opts){ sel.clear(); codes.forEach(c => sel.add(c)); allMode = !!(opts && opts.all); render(); },
     get(){ return Array.from(sel); },
     size(){ return sel.size; },
     has(c){ return sel.has(c); },
+    // True when this side represents "everyone" — either flagged via Select All
+    // or because every option happens to be ticked manually.
+    isAll(){ return !singleOnly && (allMode || (options.length > 0 && sel.size === options.length)); },
+    // Select every option except the given codes, keeping the All flag on.
+    setAllExcept(codes){
+      const skip = new Set(codes || []);
+      api.set(options.filter(o => !skip.has(o.code)).map(o => o.code), {all:true});
+    },
   };
 
   function buildPanel(){
@@ -915,6 +929,7 @@ function createMultiSelect(id, options, allLabel, onChange, {singleOnly=false} =
           closePanel();
         } else {
           if (sel.has(code)) sel.delete(code); else sel.add(code);
+          allMode = false;   // an explicit tick means "these countries", not "everyone"
         }
         render();
         onChange();
@@ -925,12 +940,14 @@ function createMultiSelect(id, options, allLabel, onChange, {singleOnly=false} =
       headBtns[0].addEventListener('click', (e)=>{
         e.preventDefault();
         options.forEach(o => sel.add(o.code));
+        allMode = true;
         render();
         onChange();
       });
       headBtns[1].addEventListener('click', (e)=>{
         e.preventDefault();
         sel.clear();
+        allMode = false;
         render();
         onChange();
       });
@@ -948,6 +965,12 @@ function createMultiSelect(id, options, allLabel, onChange, {singleOnly=false} =
       trigger.innerHTML = '<span class="ms-placeholder">— Select —</span>';
     } else if (!singleOnly && sel.size === options.length) {
       trigger.textContent = allLabel || 'All';
+    } else if (!singleOnly && allMode) {
+      // "All" minus whatever the opposite side is using
+      const missing = options.filter(o => !sel.has(o.code));
+      trigger.textContent = missing.length === 1
+        ? 'All except ' + missing[0].label
+        : 'All others (' + sel.size + ')';
     } else if (sel.size === 1) {
       const c = Array.from(sel)[0];
       const match = options.find(o => o.code === c);
@@ -986,8 +1009,28 @@ document.addEventListener('click', (e) => {
 const TEAM_OPTIONS = TEAMS.map(c => ({ code: c, label: TEAM_NAMES[c] || c }));
 
 // Country vs Country pickers
-const ms1 = createMultiSelect('ms1', TEAM_OPTIONS, 'All countries', () => updateResults());
-const ms2 = createMultiSelect('ms2', TEAM_OPTIONS, 'All countries', () => updateResults());
+const ms1 = createMultiSelect('ms1', TEAM_OPTIONS, 'All countries', () => { syncGroups(); updateResults(); });
+const ms2 = createMultiSelect('ms2', TEAM_OPTIONS, 'All countries', () => { syncGroups(); updateResults(); });
+
+// ─────────────────────────────────────────────────────────────
+// Keep the two sides from overlapping.
+// A side flagged "All" means "everyone", so whatever the other side has
+// picked is removed from it automatically — All vs England becomes
+// (the other 11) vs England. The one exception is All vs All, which is
+// left whole: that's the "every Test ever played" view.
+// set() never fires onChange, so this can't recurse.
+// ─────────────────────────────────────────────────────────────
+function syncGroups() {
+  const a1 = ms1.isAll(), a2 = ms2.isAll();
+  if (a1 && a2) {                      // All vs All → both stay complete
+    ms1.setAllExcept([]);
+    ms2.setAllExcept([]);
+  } else if (a1) {
+    ms1.setAllExcept(ms2.get());
+  } else if (a2) {
+    ms2.setAllExcept(ms1.get());
+  }
+}
 
 // Set defaults
 ms1.set(['AUS']);
@@ -1119,14 +1162,64 @@ buildImpactDropdowns();
 
 function swapTeams() {
   const a = ms1.get(), b = ms2.get();
-  ms1.set(b);
-  ms2.set(a);
+  const aAll = ms1.isAll(), bAll = ms2.isAll();
+  ms1.set(b, {all: bAll});
+  ms2.set(a, {all: aAll});
   updateResults();
 }
 
 function pct(n, total) {
   if (!total) return '0%';
   return Math.round(n / total * 100) + '%';
+}
+
+// True when both sides mean "everyone" — the every-Test-ever view.
+function isAllVsAll() { return ms1.isAll() && ms2.isAll(); }
+
+// Human label for one side of the comparison.
+function sideName(ms, set, short) {
+  const n = set.length;
+  if (n === 0) return '—';
+  if (n === 1) return TEAM_NAMES[set[0]] || set[0];
+  if (n === TEAMS.length) return short ? 'All' : 'All countries';
+  if (ms.isAll()) {
+    const missing = TEAMS.filter(c => set.indexOf(c) === -1);
+    if (missing.length === 1) return 'All except ' + (TEAM_NAMES[missing[0]] || missing[0]);
+    return short ? 'All others' : 'All others (' + n + ')';
+  }
+  return n + ' teams';
+}
+
+// ─────────────────────────────────────────────────────────────
+// All vs All: every Test ever played, each one listed once.
+// With both sides holding all 12 countries there is no "us" and "them",
+// so results are framed by venue instead: 'Won' = the host country won,
+// 'Lost' = the side playing away from home won (which includes every
+// decisive result at a neutral venue, since neither team is home there).
+// ─────────────────────────────────────────────────────────────
+function buildAllVsAllMatches() {
+  const seen = new Set();
+  const out = [];
+  Object.keys(H2H).forEach(me => {
+    Object.keys(H2H[me]).forEach(opp => {
+      H2H[me][opp].matches.forEach(m => {
+        if (seen.has(m.test)) return;
+        seen.add(m.test);
+        let c1 = me, c2 = opp;
+        const winner = m.result === 'Won' ? me : m.result === 'Lost' ? opp : null;
+        const vc = VENUE_COUNTRY[m.venue];
+        const home = (vc === c1 || vc === c2) ? vc : null;
+        if (home === c2) { c1 = opp; c2 = me; }   // list the host first
+        out.push({
+          test: m.test, year: m.year, venue: m.venue, margin: m.margin,
+          c1: c1, c2: c2, winner: winner,
+          ha: home ? 'home' : 'neutral',
+          result: !winner ? 'Draw' : (winner === home ? 'Won' : 'Lost')
+        });
+      });
+    });
+  });
+  return out;
 }
 
 function updateResults() {
@@ -1150,26 +1243,36 @@ function updateResults() {
     return;
   }
 
+  const allVsAll = isAllVsAll();
+
   // Build union of all (t1, t2) pair match arrays, dedupe by test#
   // Perspective: t1Set = "our side" (wins = Won), t2Set = "their side" (wins = Lost)
-  const seen = new Set();
-  const unioned = [];
-  t1Set.forEach(t1 => {
-    if (t2Set.includes(t1)) return; // skip same-country pairs (no H2H vs self)
-    t2Set.forEach(t2 => {
-      if (t1 === t2) return;
-      const pair = H2H[t1] && H2H[t1][t2];
-      if (!pair || !pair.matches || !pair.matches.length) return;
-      pair.matches.forEach(m => {
-        if (seen.has(m.test)) return;
-        seen.add(m.test);
-        // Derive home/away from venue relative to this pair's perspective
-        const vc = VENUE_COUNTRY[m.venue];
-        const ha = (vc && t1Set.includes(vc)) ? 'home' : (vc && t2Set.includes(vc)) ? 'away' : '';
-        unioned.push({ ...m, ha });
+  let unioned;
+  if (allVsAll) {
+    // Both sides are everyone — the pairwise loop below would skip every
+    // country as "same-country" and return nothing, so list every Test instead.
+    unioned = buildAllVsAllMatches();
+  } else {
+    const seen = new Set();
+    unioned = [];
+    t1Set.forEach(t1 => {
+      if (t2Set.includes(t1)) return; // skip same-country pairs (no H2H vs self)
+      t2Set.forEach(t2 => {
+        if (t1 === t2) return;
+        const pair = H2H[t1] && H2H[t1][t2];
+        if (!pair || !pair.matches || !pair.matches.length) return;
+        pair.matches.forEach(m => {
+          if (seen.has(m.test)) return;
+          seen.add(m.test);
+          // Derive home/away from venue relative to this pair's perspective
+          const vc = VENUE_COUNTRY[m.venue];
+          const ha = (vc && t1Set.includes(vc)) ? 'home' : (vc && t2Set.includes(vc)) ? 'away' : 'neutral';
+          const winner = m.result === 'Won' ? t1 : m.result === 'Lost' ? t2 : null;
+          unioned.push({ ...m, ha, c1: t1, c2: t2, winner });
+        });
       });
     });
-  });
+  }
 
   if (unioned.length === 0) {
     noData.innerHTML = '<div class="nd-icon">🏏</div><div>No Test matches played between the selected sides yet.</div>';
@@ -1182,21 +1285,29 @@ function updateResults() {
   results.classList.add('visible');
 
   // Label strings — pick single-country name if set is size 1, else generic
-  const t1Label = t1Set.length === 1 ? (TEAM_NAMES[t1Set[0]] || t1Set[0])
-                : t1Set.length === TEAMS.length ? 'All countries'
-                : t1Set.length + ' teams';
-  const t2Label = t2Set.length === 1 ? (TEAM_NAMES[t2Set[0]] || t2Set[0])
-                : t2Set.length === TEAMS.length ? 'All countries'
-                : t2Set.length + ' teams';
+  const t1Label = sideName(ms1, t1Set);
+  const t2Label = sideName(ms2, t2Set);
 
   // Scoreboard
-  document.getElementById('barLabel1').textContent = t1Label + ' Wins';
-  document.getElementById('barLabel2').textContent = t2Label + ' Wins';
+  document.getElementById('barLabel1').textContent = allVsAll ? 'Home team wins' : t1Label + ' Wins';
+  document.getElementById('barLabel2').textContent = allVsAll ? 'Away team wins' : t2Label + ' Wins';
 
   // Groups caption — shows the actual teams selected when either side has 2+ countries.
   // Hidden for single-country-on-each-side since the scoreboard labels cover that case.
   const capEl = document.getElementById('groupsCaption');
-  if (t1Set.length >= 2 || t2Set.length >= 2) {
+  if (allVsAll) {
+    capEl.innerHTML = `
+      <div class="gc-side" style="flex:1 1 100%;max-width:none;align-items:center;text-align:center">
+        <div class="gc-side-label">Every Test ever played</div>
+        <div class="gc-side-teams"><span class="gc-code">All 12 countries · all opponents</span></div>
+        <div class="gc-side-teams" style="font-size:12px;color:var(--text3);font-weight:400">
+          With every country on both sides there is no "us" and "them", so results are split by venue:
+          a win for the host country counts as a home win, and anything else — including every result
+          on neutral soil — counts as an away win.
+        </div>
+      </div>`;
+    capEl.style.display = 'flex';
+  } else if (t1Set.length >= 2 || t2Set.length >= 2) {
     const nameChip = c => `<span class="gc-code" title="${TEAM_NAMES[c] || c}">${TEAM_NAMES[c] || c} (${c})</span>`;
     const sideLabel = (codes) => {
       if (codes.length === TEAMS.length) return '<span class="gc-code">All 12 countries</span>';
@@ -1250,23 +1361,36 @@ function renderTable() {
   const filter = document.getElementById('filterResult').value;
   const fromYear = parseInt(document.getElementById('filterFrom').value) || null;
   const toYear = parseInt(document.getElementById('filterTo').value) || null;
-  const haFilter = (document.getElementById('filterHA') || {value:'all'}).value;
-  const t1Name = t1Set.length === 1 ? (TEAM_NAMES[t1Set[0]] || t1Set[0])
-               : t1Set.length === TEAMS.length ? 'All'
-               : t1Set.length + ' teams';
-  const t2Name = t2Set.length === 1 ? (TEAM_NAMES[t2Set[0]] || t2Set[0])
-               : t2Set.length === TEAMS.length ? 'All'
-               : t2Set.length + ' teams';
+  const allVsAll = isAllVsAll();
+  const haSel = document.getElementById('filterHA');
+  // No fixed "away" side when everyone is on both sides — drop a stale selection
+  if (allVsAll && haSel && haSel.value === 'away') haSel.value = 'all';
+  const haFilter = (haSel || {value:'all'}).value;
+  // When a side holds more than one country, "Group 1 won" is meaningless —
+  // the table names the actual winner and shows the matchup column instead.
+  const multiSide = allVsAll || t1Set.length > 1 || t2Set.length > 1;
+  const t1Name = sideName(ms1, t1Set, true);
+  const t2Name = sideName(ms2, t2Set, true);
 
   // Update filter label
   const filterSel = document.getElementById('filterResult');
-  filterSel.options[1].textContent = 'Wins for ' + t1Name;
-  filterSel.options[2].textContent = 'Wins for ' + t2Name;
+  filterSel.options[1].textContent = allVsAll ? 'Home team wins' : 'Wins for ' + t1Name;
+  filterSel.options[2].textContent = allVsAll ? 'Away team wins' : 'Wins for ' + t2Name;
 
   // Update HA dropdown labels with team name context
-  const haEl = document.getElementById('filterHA');
-  haEl.options[1].textContent = t1Name + ' Home';
-  haEl.options[2].textContent = t1Name + ' Away';
+  const haEl = haSel;
+  haEl.options[1].textContent = allVsAll ? 'In a team\u2019s home country' : t1Name + ' Home';
+  haEl.options[2].textContent = allVsAll ? 'Away (n/a)' : t1Name + ' Away';
+  haEl.options[2].disabled = allVsAll;
+
+  // Scoreboard stat labels
+  const sbLab1 = document.getElementById('sbLab1'), sbLab2 = document.getElementById('sbLab2');
+  if (sbLab1) sbLab1.textContent = allVsAll ? 'Home wins' : 'Wins';
+  if (sbLab2) sbLab2.textContent = allVsAll ? 'Away wins' : 'Losses';
+
+  // Matchup column only earns its place when the pairing isn't obvious
+  const thMatch = document.getElementById('thMatch');
+  if (thMatch) thMatch.style.display = multiSide ? '' : 'none';
 
   // Apply year filter to base set first (for scoreboard/bars/decades)
   let yearFiltered = currentMatches;
@@ -1347,12 +1471,18 @@ function renderTable() {
   tbody.innerHTML = pageData.map(m => {
     const haLabel = m.ha === 'home' ? 'H' : m.ha === 'away' ? 'A' : 'N';
     const haColor = m.ha === 'home' ? 'var(--green)' : m.ha === 'away' ? 'var(--red)' : 'var(--text3)';
+    const matchup = m.c1 && m.c2 ? `${m.c1} v ${m.c2}` : '—';
+    const winnerName = m.winner ? (TEAM_NAMES[m.winner] || m.winner) : '';
+    const resultText = m.result === 'Draw' ? 'Draw'
+                     : (multiSide && winnerName) ? winnerName + ' won'
+                     : (m.result === 'Won' ? t1Name + ' won' : t2Name + ' won');
     return `<tr>
       <td>${m.test}</td>
       <td>${m.year}</td>
+      <td class="left"${multiSide ? '' : ' style="display:none"'}>${matchup}</td>
       <td class="left">${m.venue || '—'}</td>
       <td style="font-weight:700;color:${haColor}">${haLabel}</td>
-      <td><span class="result-badge ${m.result === 'Won' ? 'won' : m.result === 'Lost' ? 'lost' : 'draw'}">${m.result === 'Won' ? t1Name + ' won' : m.result === 'Lost' ? t2Name + ' won' : 'Draw'}</span></td>
+      <td><span class="result-badge ${m.result === 'Won' ? 'won' : m.result === 'Lost' ? 'lost' : 'draw'}">${resultText}</span></td>
       <td style="color:var(--text2)">${normalizeMargin(m.margin) || '—'}</td>
     </tr>`;
   }).join('');
@@ -1399,10 +1529,13 @@ function exportToExcel(){
   const t1Set = ms1.get(), t2Set = ms2.get();
   if(t1Set.length === 0 || t2Set.length === 0 || !currentMatches || currentMatches.length === 0){alert('No matches to export');return;}
 
-  const t1Name = t1Set.length === 1 ? (TEAM_NAMES[t1Set[0]] || t1Set[0])
+  const allVsAll = isAllVsAll();
+  const t1Name = allVsAll ? 'All countries'
+               : t1Set.length === 1 ? (TEAM_NAMES[t1Set[0]] || t1Set[0])
                : t1Set.length === TEAMS.length ? 'All countries'
                : t1Set.map(c => TEAM_NAMES[c] || c).join(', ');
-  const t2Name = t2Set.length === 1 ? (TEAM_NAMES[t2Set[0]] || t2Set[0])
+  const t2Name = allVsAll ? 'All countries'
+               : t2Set.length === 1 ? (TEAM_NAMES[t2Set[0]] || t2Set[0])
                : t2Set.length === TEAMS.length ? 'All countries'
                : t2Set.map(c => TEAM_NAMES[c] || c).join(', ');
 
@@ -1437,12 +1570,12 @@ function exportToExcel(){
     ['Side 2', t2Name],
     ['Total Matches', matches.length],
     ['', ''],
-    ['Side 1 Wins', w1],
-    ['Side 2 Wins', w2],
+    [allVsAll ? 'Home team wins' : 'Side 1 Wins', w1],
+    [allVsAll ? 'Away team wins' : 'Side 2 Wins', w2],
     ['Draws', d],
     ['', ''],
-    ['Side 1 Win %', matches.length > 0 ? ((w1/matches.length)*100).toFixed(1) + '%' : '—'],
-    ['Side 2 Win %', matches.length > 0 ? ((w2/matches.length)*100).toFixed(1) + '%' : '—']
+    [allVsAll ? 'Home win %' : 'Side 1 Win %', matches.length > 0 ? ((w1/matches.length)*100).toFixed(1) + '%' : '—'],
+    [allVsAll ? 'Away win %' : 'Side 2 Win %', matches.length > 0 ? ((w2/matches.length)*100).toFixed(1) + '%' : '—']
   ];
   const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
   wsSummary['!cols'] = [{wch: 20}, {wch: 40}];
@@ -1452,13 +1585,14 @@ function exportToExcel(){
   const matchData = matches.map(m => ({
     'Test #': m.test,
     'Year': m.year,
+    'Match': m.c1 && m.c2 ? (TEAM_NAMES[m.c1] || m.c1) + ' v ' + (TEAM_NAMES[m.c2] || m.c2) : '—',
     'Venue': m.venue || '—',
     'Home/Away': m.ha === 'home' ? 'Home' : m.ha === 'away' ? 'Away' : 'Neutral',
-    'Result': m.result === 'Won' ? 'Side 1 won' : m.result === 'Lost' ? 'Side 2 won' : 'Draw',
+    'Result': m.winner ? (TEAM_NAMES[m.winner] || m.winner) + ' won' : 'Draw',
     'Margin': normalizeMargin(m.margin) || '—'
   }));
   const wsMatches = XLSX.utils.json_to_sheet(matchData);
-  wsMatches['!cols'] = [{wch: 8}, {wch: 6}, {wch: 30}, {wch: 10}, {wch: 20}, {wch: 20}];
+  wsMatches['!cols'] = [{wch: 8}, {wch: 6}, {wch: 28}, {wch: 30}, {wch: 10}, {wch: 20}, {wch: 20}];
   XLSX.utils.book_append_sheet(wb, wsMatches, 'Matches');
 
   // Generate filename
