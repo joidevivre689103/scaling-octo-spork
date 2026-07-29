@@ -445,6 +445,42 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
 .result-badge.lost{background:var(--red-dim);color:var(--red)}
 .result-badge.draw{background:var(--accent-dim);color:var(--accent)}
 
+/* Period inputs + comparison */
+.filters-row .sel-group.period{min-width:auto}
+.period-inputs{display:flex;align-items:center;gap:6px}
+.period-inputs .team-select{width:86px;padding:10px 12px;background-image:none;text-align:center}
+.period-dash{color:var(--text3);font-weight:700;font-size:13px}
+.period-hint{
+  font-weight:600;letter-spacing:0.4px;text-transform:none;
+  color:var(--text3);font-size:9px;opacity:0.85;
+}
+.period-compare{display:flex;gap:12px;margin-bottom:24px;flex-wrap:wrap}
+.pc-card{
+  flex:1 1 240px;background:var(--surface);border:1px solid var(--border);
+  border-radius:10px;padding:14px 16px;min-width:0;
+}
+.pc-card.delta{background:var(--surface2)}
+.pc-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:9px}
+.pc-tag{
+  font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;
+  color:var(--text3);white-space:nowrap;
+}
+.pc-range{font-family:'DM Serif Display',serif;font-size:17px;letter-spacing:-0.3px}
+.pc-bar{display:flex;height:8px;border-radius:4px;overflow:hidden;margin-bottom:10px;gap:1px}
+.pc-bar-w{background:var(--green);border-radius:2px}
+.pc-bar-l{background:var(--red);border-radius:2px}
+.pc-bar-d{background:#c8cdd6;border-radius:2px}
+.pc-row{
+  display:flex;justify-content:space-between;gap:10px;
+  font-size:12px;font-weight:600;padding:3px 0;
+}
+.pc-row .pc-k{color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pc-row .pc-v{font-variant-numeric:tabular-nums;white-space:nowrap}
+.pc-up{color:var(--green)}
+.pc-down{color:var(--red)}
+.pc-flat{color:var(--text3)}
+.pc-note{font-size:11px;color:var(--text3);margin-top:8px;line-height:1.5}
+
 /* Decade summary */
 .decade-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:24px}
 .decade-card{
@@ -656,13 +692,21 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
           </div>
         </div>
         <div class="filters-row">
-          <div class="sel-group year">
-            <label>From Year</label>
-            <input type="number" id="filterFrom" placeholder="Year" oninput="renderTable()" class="team-select" style="width:110px">
+          <div class="sel-group period">
+            <label>Period A</label>
+            <div class="period-inputs">
+              <input type="number" id="filterFrom" placeholder="From" oninput="renderTable()" class="team-select">
+              <span class="period-dash">&ndash;</span>
+              <input type="number" id="filterTo" placeholder="To" oninput="renderTable()" class="team-select">
+            </div>
           </div>
-          <div class="sel-group year">
-            <label>To Year</label>
-            <input type="number" id="filterTo" placeholder="Year" oninput="renderTable()" class="team-select" style="width:110px">
+          <div class="sel-group period">
+            <label>Period B <span class="period-hint">optional &middot; compare</span></label>
+            <div class="period-inputs">
+              <input type="number" id="filterFrom2" placeholder="From" oninput="renderTable()" class="team-select">
+              <span class="period-dash">&ndash;</span>
+              <input type="number" id="filterTo2" placeholder="To" oninput="renderTable()" class="team-select">
+            </div>
           </div>
           <button class="swap-btn" onclick="swapTeams()" title="Swap Group 1 and Group 2">
             <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -751,6 +795,10 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
       </div>
     </div>
 
+    <!-- Period comparison (shown when Period B is filled in) -->
+    <div class="section-title" id="periodCompareTitle" style="display:none">Period Comparison</div>
+    <div class="period-compare" id="periodCompare" style="display:none"></div>
+
     <!-- By Decade -->
     <div class="section-title">Records by Era</div>
     <div class="decade-grid" id="decadeGrid"></div>
@@ -770,6 +818,7 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
           <tr>
             <th>Test #</th>
             <th>Year</th>
+            <th id="thPeriod" style="display:none">Period</th>
             <th class="left" id="thMatch" style="display:none">Match</th>
             <th class="left">Venue</th>
             <th>H/A</th>
@@ -1176,6 +1225,40 @@ function pct(n, total) {
 // True when both sides mean "everyone" — the every-Test-ever view.
 function isAllVsAll() { return ms1.isAll() && ms2.isAll(); }
 
+// ─────────────────────────────────────────────────────────────
+// Year periods. Period A is the original From/To pair; Period B is
+// optional and only exists to be compared against A. A period counts as
+// "active" once either of its boxes has a year in it; the working set is
+// the union of the active periods, so with B empty nothing changes.
+// ─────────────────────────────────────────────────────────────
+function yearVal(id) {
+  const el = document.getElementById(id);
+  const n = el ? parseInt(el.value, 10) : NaN;
+  return isNaN(n) ? null : n;
+}
+
+function activePeriods() {
+  const out = [];
+  [['A','filterFrom','filterTo'], ['B','filterFrom2','filterTo2']].forEach(([key, fromId, toId]) => {
+    let from = yearVal(fromId), to = yearVal(toId);
+    if (from === null && to === null) return;
+    if (from !== null && to !== null && from > to) { const t = from; from = to; to = t; }
+    out.push({ key, from, to });
+  });
+  return out;
+}
+
+function periodLabel(p) {
+  if (p.from !== null && p.to !== null) return p.from === p.to ? String(p.from) : p.from + '\u2013' + p.to;
+  if (p.from !== null) return p.from + ' onwards';
+  if (p.to !== null) return 'up to ' + p.to;
+  return 'All years';
+}
+
+function inPeriod(m, p) {
+  return (p.from === null || m.year >= p.from) && (p.to === null || m.year <= p.to);
+}
+
 // Human label for one side of the comparison.
 function sideName(ms, set, short) {
   const n = set.length;
@@ -1335,6 +1418,8 @@ function updateResults() {
   document.getElementById('filterResult').value = '';
   document.getElementById('filterFrom').value = '';
   document.getElementById('filterTo').value = '';
+  document.getElementById('filterFrom2').value = '';
+  document.getElementById('filterTo2').value = '';
   document.getElementById('filterHA').value = 'all';
   renderTable();
 }
@@ -1342,6 +1427,8 @@ function updateResults() {
 function clearYearFilters() {
   document.getElementById('filterFrom').value = '';
   document.getElementById('filterTo').value = '';
+  document.getElementById('filterFrom2').value = '';
+  document.getElementById('filterTo2').value = '';
   document.getElementById('filterHA').value = 'all';
   renderTable();
 }
@@ -1354,13 +1441,87 @@ function normalizeMargin(margin) {
   return margin;
 }
 
+// ─────────────────────────────────────────────────────────────
+// Period comparison cards. Shown only when both periods are active.
+// Stats are taken from the year+venue-filtered set but NOT the result
+// filter — filtering to "draws only" and then comparing W/L/D would be
+// meaningless. Overlapping periods are allowed; a Test that falls in
+// both simply counts in both columns (and is tagged A·B in the table).
+// ─────────────────────────────────────────────────────────────
+function renderPeriodCompare(periods, matches, label1, label2) {
+  const wrap = document.getElementById('periodCompare');
+  const title = document.getElementById('periodCompareTitle');
+  if (!wrap || !title) return;
+
+  if (periods.length < 2) {
+    wrap.style.display = 'none';
+    title.style.display = 'none';
+    wrap.innerHTML = '';
+    return;
+  }
+
+  const stats = periods.map(p => {
+    const ms = matches.filter(m => inPeriod(m, p));
+    const w = ms.filter(m => m.result === 'Won').length;
+    const l = ms.filter(m => m.result === 'Lost').length;
+    const d = ms.filter(m => m.result === 'Draw').length;
+    return { p, label: periodLabel(p), tot: ms.length, w, l, d };
+  });
+
+  const share = (n, t) => t ? (n / t * 100) : null;
+  const fmtPct = v => v === null ? '—' : v.toFixed(1) + '%';
+
+  const card = s => `
+    <div class="pc-card">
+      <div class="pc-head">
+        <span class="pc-range">${s.label}</span>
+        <span class="pc-tag">Period ${s.p.key}</span>
+      </div>
+      <div class="pc-bar">
+        <div class="pc-bar-w" style="flex:${s.w}"></div>
+        <div class="pc-bar-l" style="flex:${s.l}"></div>
+        <div class="pc-bar-d" style="flex:${s.d}"></div>
+      </div>
+      <div class="pc-row"><span class="pc-k">Tests</span><span class="pc-v">${s.tot}</span></div>
+      <div class="pc-row"><span class="pc-k">${label1}</span><span class="pc-v pc-up">${s.w} &middot; ${fmtPct(share(s.w, s.tot))}</span></div>
+      <div class="pc-row"><span class="pc-k">${label2}</span><span class="pc-v pc-down">${s.l} &middot; ${fmtPct(share(s.l, s.tot))}</span></div>
+      <div class="pc-row"><span class="pc-k">Draws</span><span class="pc-v pc-flat">${s.d} &middot; ${fmtPct(share(s.d, s.tot))}</span></div>
+    </div>`;
+
+  // Shift card: B minus A, in percentage points
+  const A = stats[0], B = stats[1];
+  const shift = (key) => {
+    const a = share(A[key], A.tot), b = share(B[key], B.tot);
+    if (a === null || b === null) return { txt: '—', cls: 'pc-flat' };
+    const diff = b - a;
+    const cls = Math.abs(diff) < 0.05 ? 'pc-flat' : (diff > 0 ? 'pc-up' : 'pc-down');
+    const sign = diff > 0 ? '+' : diff < 0 ? '\u2212' : '';
+    return { txt: sign + Math.abs(diff).toFixed(1) + ' pts', cls };
+  };
+  const sw = shift('w'), sl = shift('l'), sd = shift('d');
+  const deltaCard = `
+    <div class="pc-card delta">
+      <div class="pc-head">
+        <span class="pc-range">Shift</span>
+        <span class="pc-tag">B vs A</span>
+      </div>
+      <div class="pc-row"><span class="pc-k">Tests</span><span class="pc-v">${A.tot} &rarr; ${B.tot}</span></div>
+      <div class="pc-row"><span class="pc-k">${label1}</span><span class="pc-v ${sw.cls}">${sw.txt}</span></div>
+      <div class="pc-row"><span class="pc-k">${label2}</span><span class="pc-v ${sl.cls}">${sl.txt}</span></div>
+      <div class="pc-row"><span class="pc-k">Draws</span><span class="pc-v ${sd.cls}">${sd.txt}</span></div>
+      <div class="pc-note">Change in share of results, ${A.label} &rarr; ${B.label}.</div>
+    </div>`;
+
+  wrap.innerHTML = stats.map(card).join('') + deltaCard;
+  wrap.style.display = 'flex';
+  title.style.display = '';
+}
+
 function renderTable() {
   const t1Set = ms1.get(), t2Set = ms2.get();
   if (t1Set.length === 0 || t2Set.length === 0 || !currentMatches) return;
 
   const filter = document.getElementById('filterResult').value;
-  const fromYear = parseInt(document.getElementById('filterFrom').value) || null;
-  const toYear = parseInt(document.getElementById('filterTo').value) || null;
   const allVsAll = isAllVsAll();
   const haSel = document.getElementById('filterHA');
   // No fixed "away" side when everyone is on both sides — drop a stale selection
@@ -1392,10 +1553,16 @@ function renderTable() {
   const thMatch = document.getElementById('thMatch');
   if (thMatch) thMatch.style.display = multiSide ? '' : 'none';
 
+  // Period column only when there are two periods to tell apart
+  const twoPeriods = activePeriods().length === 2;
+  const thPeriod = document.getElementById('thPeriod');
+  if (thPeriod) thPeriod.style.display = twoPeriods ? '' : 'none';
+
   // Apply year filter to base set first (for scoreboard/bars/decades)
-  let yearFiltered = currentMatches;
-  if (fromYear) yearFiltered = yearFiltered.filter(m => m.year >= fromYear);
-  if (toYear) yearFiltered = yearFiltered.filter(m => m.year <= toYear);
+  const periods = activePeriods();
+  let yearFiltered = periods.length
+    ? currentMatches.filter(m => periods.some(p => inPeriod(m, p)))
+    : currentMatches;
   if (haFilter !== 'all') yearFiltered = yearFiltered.filter(m => m.ha === haFilter);
 
   // Recalculate summary stats from year-filtered matches
@@ -1453,6 +1620,10 @@ function renderTable() {
       </div>`;
   });
 
+  // Period comparison — only meaningful once Period B has something in it
+  renderPeriodCompare(periods, yearFiltered, allVsAll ? 'Home team wins' : t1Name + ' wins',
+                      allVsAll ? 'Away team wins' : t2Name + ' wins');
+
   // Apply result filter on top of year filter for table
   let filtered = yearFiltered;
   if (filter === 'Won') filtered = filtered.filter(m => m.result === 'Won');
@@ -1472,6 +1643,9 @@ function renderTable() {
     const haLabel = m.ha === 'home' ? 'H' : m.ha === 'away' ? 'A' : 'N';
     const haColor = m.ha === 'home' ? 'var(--green)' : m.ha === 'away' ? 'var(--red)' : 'var(--text3)';
     const matchup = m.c1 && m.c2 ? `${m.c1} v ${m.c2}` : '—';
+    const periodTag = twoPeriods
+      ? periods.filter(p => inPeriod(m, p)).map(p => p.key).join('\u00b7')
+      : '';
     const winnerName = m.winner ? (TEAM_NAMES[m.winner] || m.winner) : '';
     const resultText = m.result === 'Draw' ? 'Draw'
                      : (multiSide && winnerName) ? winnerName + ' won'
@@ -1479,6 +1653,7 @@ function renderTable() {
     return `<tr>
       <td>${m.test}</td>
       <td>${m.year}</td>
+      <td${twoPeriods ? ' style="font-weight:700;color:var(--text3)"' : ' style="display:none"'}>${periodTag}</td>
       <td class="left"${multiSide ? '' : ' style="display:none"'}>${matchup}</td>
       <td class="left">${m.venue || '—'}</td>
       <td style="font-weight:700;color:${haColor}">${haLabel}</td>
@@ -1541,13 +1716,12 @@ function exportToExcel(){
 
   // Apply same filters as renderTable
   const filter = document.getElementById('filterResult').value;
-  const fromYear = parseInt(document.getElementById('filterFrom').value) || null;
-  const toYear = parseInt(document.getElementById('filterTo').value) || null;
+  const periods = activePeriods();
   const haFilter = (document.getElementById('filterHA') || {value:'all'}).value;
 
   let matches = currentMatches;
-  if (fromYear) matches = matches.filter(m => m.year >= fromYear);
-  if (toYear) matches = matches.filter(m => m.year <= toYear);
+  if (periods.length) matches = matches.filter(m => periods.some(p => inPeriod(m, p)));
+  if (haFilter !== 'all') matches = matches.filter(m => m.ha === haFilter);
   if (haFilter !== 'all') matches = matches.filter(m => m.ha === haFilter);
   if (filter === 'Won') matches = matches.filter(m => m.result === 'Won');
   else if (filter === 'Lost') matches = matches.filter(m => m.result === 'Lost');
@@ -1577,22 +1751,45 @@ function exportToExcel(){
     [allVsAll ? 'Home win %' : 'Side 1 Win %', matches.length > 0 ? ((w1/matches.length)*100).toFixed(1) + '%' : '—'],
     [allVsAll ? 'Away win %' : 'Side 2 Win %', matches.length > 0 ? ((w2/matches.length)*100).toFixed(1) + '%' : '—']
   ];
+
+  // Period breakdown, when two periods are being compared
+  if (periods.length === 2) {
+    const head1 = allVsAll ? 'Home team wins' : 'Side 1 wins';
+    const head2 = allVsAll ? 'Away team wins' : 'Side 2 wins';
+    summaryData.push(['', ''], ['Period Comparison', '']);
+    summaryData.push(['Period', 'Tests', head1, head2, 'Draws', head1 + ' %']);
+    periods.forEach(p => {
+      const ms = matches.filter(m => inPeriod(m, p));
+      const pw = ms.filter(m => m.result === 'Won').length;
+      const pl = ms.filter(m => m.result === 'Lost').length;
+      const pd = ms.filter(m => m.result === 'Draw').length;
+      summaryData.push([
+        p.key + ': ' + periodLabel(p), ms.length, pw, pl, pd,
+        ms.length ? ((pw/ms.length)*100).toFixed(1) + '%' : '—'
+      ]);
+    });
+  }
   const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
-  wsSummary['!cols'] = [{wch: 20}, {wch: 40}];
+  wsSummary['!cols'] = [{wch: 22}, {wch: 40}, {wch: 16}, {wch: 16}, {wch: 10}, {wch: 14}];
   XLSX.utils.book_append_sheet(wb, wsSummary, 'Summary');
 
   // Match history sheet
-  const matchData = matches.map(m => ({
-    'Test #': m.test,
-    'Year': m.year,
-    'Match': m.c1 && m.c2 ? (TEAM_NAMES[m.c1] || m.c1) + ' v ' + (TEAM_NAMES[m.c2] || m.c2) : '—',
-    'Venue': m.venue || '—',
-    'Home/Away': m.ha === 'home' ? 'Home' : m.ha === 'away' ? 'Away' : 'Neutral',
-    'Result': m.winner ? (TEAM_NAMES[m.winner] || m.winner) + ' won' : 'Draw',
-    'Margin': normalizeMargin(m.margin) || '—'
-  }));
+  const twoPeriods = periods.length === 2;
+  const matchData = matches.map(m => {
+    const row = {
+      'Test #': m.test,
+      'Year': m.year,
+      'Match': m.c1 && m.c2 ? (TEAM_NAMES[m.c1] || m.c1) + ' v ' + (TEAM_NAMES[m.c2] || m.c2) : '—',
+      'Venue': m.venue || '—',
+      'Home/Away': m.ha === 'home' ? 'Home' : m.ha === 'away' ? 'Away' : 'Neutral',
+      'Result': m.winner ? (TEAM_NAMES[m.winner] || m.winner) + ' won' : 'Draw',
+      'Margin': normalizeMargin(m.margin) || '—'
+    };
+    if (twoPeriods) row['Period'] = periods.filter(p => inPeriod(m, p)).map(p => p.key).join('\u00b7');
+    return row;
+  });
   const wsMatches = XLSX.utils.json_to_sheet(matchData);
-  wsMatches['!cols'] = [{wch: 8}, {wch: 6}, {wch: 28}, {wch: 30}, {wch: 10}, {wch: 20}, {wch: 20}];
+  wsMatches['!cols'] = [{wch: 8}, {wch: 6}, {wch: 28}, {wch: 30}, {wch: 10}, {wch: 20}, {wch: 20}, {wch: 8}];
   XLSX.utils.book_append_sheet(wb, wsMatches, 'Matches');
 
   // Generate filename
