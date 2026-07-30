@@ -918,10 +918,28 @@ function applyInningsDerivedSR() {
     if (!a) { a = { balls: 0, runs: 0, inns: 0 }; acc.set(r.pid, a); }
     a.balls += r.balls; a.runs += r.runs; a.inns++;
   });
-  let changed = 0, noData = 0;
+  // Career span from appearances. D.P's from/to is demonstrably stale for
+  // recent debutants — a player with 2026 Tests carrying to = 2025 — and the
+  // appearance index knows every match he actually played.
+  const span = new Map();
+  APPEAR.forEach(r => {
+    let sp = span.get(r.pid);
+    if (!sp) { sp = { from: r.year, to: r.year }; span.set(r.pid, sp); }
+    if (r.year < sp.from) sp.from = r.year;
+    if (r.year > sp.to) sp.to = r.year;
+  });
+
+  let changed = 0, noData = 0, spanFixed = 0;
   PLAYERS.forEach(p => {
     p.srFromDP = p.sr;
     p.ballsFromDP = p.balls;
+    p.fromFromDP = p.from;
+    p.toFromDP = p.to;
+    const sp = span.get(p.id);
+    if (sp) {
+      if (sp.from !== p.from || sp.to !== p.to) spanFixed++;
+      p.from = sp.from; p.to = sp.to;
+    }
     const a = acc.get(p.id);
     if (!a) {
       p.balls = 0; p.ballsRuns = 0; p.ballsInns = 0; p.sr = 0;
@@ -932,9 +950,49 @@ function applyInningsDerivedSR() {
     p.sr = a.balls > 0 ? (a.runs / a.balls) * 100 : 0;
     if (Math.abs(p.sr - (p.srFromDP || 0)) >= 0.01) changed++;
   });
-  console.info(`[batting] strike rate recomputed from the innings index: ` +
-    `${changed} of ${PLAYERS.length} players differ from D.P, ${noData} have no ball data. ` +
-    `Run srAudit() for the breakdown.`);
+  console.info(`[batting] rebuilt from the innings index: ` +
+    `${changed} of ${PLAYERS.length} players differ from D.P on strike rate, ` +
+    `${noData} have no ball data, ${spanFixed} had a wrong career span. ` +
+    `Run srAudit() or staleAudit() for the breakdown.`);
+}
+
+/* Console helper: players whose D.P career row has stopped keeping up with the
+   match data. Reports, per player, the last year D.P still agrees with the
+   innings index — if those cluster on one date, that is when the upstream
+   field stopped refreshing. */
+function staleAudit(limit = 30) {
+  const byPid = new Map();
+  BAT_INNS.forEach(r => {
+    if (!byPid.has(r.pid)) byPid.set(r.pid, []);
+    byPid.get(r.pid).push(r);
+  });
+  const rows = [];
+  PLAYERS.forEach(p => {
+    const inn = (byPid.get(p.id) || []).slice().sort((a, b) => a.year - b.year || a.mid - b.mid);
+    if (!inn.length) return;
+    const dpBalls = p.ballsFromDP || 0;
+    const idxBalls = inn.reduce((s, r) => s + r.balls, 0);
+    if (dpBalls === idxBalls && p.toFromDP === p.to) return;
+    // walk forward and find where the running ball total last matched D.P
+    let run = 0, agreeYear = null;
+    for (const r of inn) { run += r.balls; if (run === dpBalls) agreeYear = r.year; }
+    rows.push({
+      player: p.fullName || p.name,
+      span: p.from + '-' + p.to,
+      dpSpan: p.fromFromDP + '-' + p.toFromDP,
+      dpBalls, idxBalls,
+      lastAgreement: agreeYear === null ? '(never)' : agreeYear,
+      runsAgree: p.runs === inn.reduce((s, r) => s + r.runs, 0)
+    });
+  });
+  rows.sort((a, b) => (b.idxBalls - b.dpBalls) - (a.idxBalls - a.dpBalls));
+  console.table(rows.slice(0, limit));
+  const years = {};
+  rows.forEach(r => { const k = r.lastAgreement; years[k] = (years[k] || 0) + 1; });
+  console.log('last year D.P agreed, by count:', years);
+  console.log(`${rows.length} players with a stale career row; ` +
+    `${rows.filter(r => !r.runsAgree).length} of them also disagree on RUNS.`);
+  return rows;
 }
 
 /* Console helper: the Tests a player appeared in but never batted in.
