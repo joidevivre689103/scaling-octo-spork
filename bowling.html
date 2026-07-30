@@ -47,6 +47,8 @@ body{font-family:'Source Serif 4',Georgia,serif;background:var(--bg);color:var(-
 
 /* ── Filter Panel ── */
 .fp{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:20px;overflow:hidden}
+/* an open multi-select must escape the panel's overflow clip */
+.fp.ms-open{overflow:visible}
 .fp-head{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;cursor:pointer;user-select:none}
 .fp-head h3{font-family:'Playfair Display',serif;font-size:15px;font-weight:600;color:var(--text2)}
 .fp-toggle{font-size:11px;color:var(--text4);display:flex;align-items:center;gap:4px}
@@ -71,11 +73,12 @@ body{font-family:'Source Serif 4',Georgia,serif;background:var(--bg);color:var(-
 .ms-wrap{position:relative}
 .ms-btn{font-family:'Source Serif 4',serif;font-size:13px;padding:8px 10px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text1);cursor:pointer;text-align:left;width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ms-btn:hover{border-color:var(--accent)}
-.ms-drop{display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:60;max-height:260px;overflow-y:auto;background:var(--surface);border:1px solid var(--border);border-radius:6px;box-shadow:0 6px 20px rgba(0,0,0,0.12);padding:4px}
+.ms-drop{display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:60;max-height:300px;overflow-y:auto;background:var(--surface);border:1px solid var(--border);border-radius:6px;box-shadow:0 6px 20px rgba(0,0,0,0.12);padding:4px}
 .ms-drop.open{display:block}
 .ms-opt{display:flex;align-items:center;gap:7px;padding:6px 8px;border-radius:4px;font-size:12.5px;cursor:pointer}
 .ms-opt:hover{background:var(--accent-dim)}
 .ms-opt input{margin:0;cursor:pointer}
+.ms-sep{padding:7px 8px 4px;margin-top:3px;border-top:1px solid var(--border);font-size:9.5px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:var(--text3)}
 
 /* ── Aggregate mode ── */
 .fg.dim,.tabs.dim{opacity:0.4;pointer-events:none;filter:grayscale(1)}
@@ -265,6 +268,7 @@ td.num.highlight{color:var(--accent);font-weight:700}
               <div class="ms-opt"><input type="checkbox" value="2000" onchange="applyFilters()"><span>2000s</span></div>
               <div class="ms-opt"><input type="checkbox" value="2010" onchange="applyFilters()"><span>2010s</span></div>
               <div class="ms-opt"><input type="checkbox" value="2020" onchange="applyFilters()"><span>2020s</span></div>
+              <div class="ms-sep">Bazball window</div>
               <div class="ms-opt"><input type="checkbox" value="bazball" onchange="applyFilters()"><span>Bazball (England)</span></div>
               <div class="ms-opt"><input type="checkbox" value="bazballvs" onchange="applyFilters()"><span>Bazball (vs England)</span></div>
               <div class="ms-opt"><input type="checkbox" value="bazballall" onchange="applyFilters()"><span>Bazball (all countries)</span></div>
@@ -491,12 +495,21 @@ function populateCountryDropdown(){
 /* ── Multi-select helper ── */
 function toggleMS(id){
   document.getElementById(id+'-drop').classList.toggle('open');
+  syncPanelOverflow();
 }
 document.addEventListener('click',e=>{
   document.querySelectorAll('.ms-drop.open').forEach(d=>{
     if(!d.parentElement.contains(e.target)) d.classList.remove('open');
   });
+  syncPanelOverflow();
 });
+/* The filter panel is overflow:hidden for its rounded corners, which would
+   otherwise cut an open dropdown off at the panel edge. */
+function syncPanelOverflow(){
+  document.querySelectorAll('.fp').forEach(p=>{
+    p.classList.toggle('ms-open', !!p.querySelector('.ms-drop.open'));
+  });
+}
 function getMSValues(id){
   return [...document.querySelectorAll(`#${id}-drop input:checked`)].map(c=>c.value);
 }
