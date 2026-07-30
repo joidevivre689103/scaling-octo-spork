@@ -100,6 +100,30 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-he
 /* Multi-select dropdown */
 .ms-wrap{position:relative}
 .fp-group.dim,.tabs.dim{opacity:0.4;pointer-events:none;filter:grayscale(1)}
+/* Column-header info tooltip */
+.th-info{position:relative;display:inline-flex;align-items:center;gap:3px}
+.th-info .th-i{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:12px;height:12px;border-radius:50%;
+  border:1px solid currentColor;font-size:8.5px;line-height:1;
+  font-weight:700;opacity:0.6;font-family:var(--font-body);
+}
+.th-info .th-tip{
+  position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);
+  width:210px;padding:8px 10px;z-index:20;
+  background:var(--text,#1a1a1a);color:#fff;
+  border-radius:5px;font-family:var(--font-body);font-size:11px;font-weight:400;
+  line-height:1.45;text-align:left;text-transform:none;letter-spacing:0;
+  opacity:0;visibility:hidden;transition:opacity 0.15s;
+  box-shadow:0 4px 14px rgba(0,0,0,0.18);white-space:normal;
+}
+.th-info .th-tip::after{
+  content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);
+  border:5px solid transparent;border-top-color:var(--text,#1a1a1a);
+}
+.th-info:hover .th-tip{opacity:1;visibility:visible}
+th:first-child .th-info .th-tip{left:0;transform:none}
+th:last-child .th-info .th-tip{left:auto;right:0;transform:none}
 .fp-note{
   grid-column:1/-1;font-family:var(--font-body);font-size:11.5px;
   color:var(--text3);line-height:1.5;margin-top:-2px;
@@ -267,6 +291,7 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-he
               <div class="ms-opt"><input type="checkbox" value="2000" onchange="applyFilters()"><span>2000s</span></div>
               <div class="ms-opt"><input type="checkbox" value="2010" onchange="applyFilters()"><span>2010s</span></div>
               <div class="ms-opt"><input type="checkbox" value="2020" onchange="applyFilters()"><span>2020s</span></div>
+              <div class="ms-opt"><input type="checkbox" value="bazball" onchange="applyFilters()"><span>Bazball (England)</span></div>
             </div>
           </div>
         </div>
@@ -424,6 +449,7 @@ const IDX = {
 let D = null;        // dataset from the gated loader (replaces the old data.js global)
 let PLAYERS = [];
 let PID_NAME = {};   // playerId → short name, for the aggregate HS credit
+let PID_COUNTRY = {}; // playerId → country, for the Bazball window
 
 function buildPlayers() {
   if (typeof D === 'undefined' || !D.P) { console.error('data.js not loaded'); return; }
@@ -451,7 +477,8 @@ function buildPlayers() {
     bowlType:  p[IDX.BOWLTYPE] || ''
   })).filter(p => p.inns > 0);  // only players who actually batted
   PID_NAME = {};
-  PLAYERS.forEach(p => { PID_NAME[p.id] = p.name || p.fullName; });
+  PID_COUNTRY = {};
+  PLAYERS.forEach(p => { PID_NAME[p.id] = p.name || p.fullName; PID_COUNTRY[p.id] = p.country; });
 }
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -616,12 +643,25 @@ function syncModeUI(f) {
   const tabBar = document.getElementById('tabBar');
   if (tabBar) tabBar.classList.toggle('dim', aggregateMode);
   const note = document.getElementById('fpNote');  if (note) {
-    note.style.display = aggregateMode ? '' : 'none';
-    note.textContent = aggregateMode
-      ? (f.eras.length
-          ? 'Aggregate of every Test innings played in the selected era(s). Only the era picker applies in this view.'
-          : 'Aggregate of every Test innings ever played. Pick one or more eras for a row each. Only the era picker applies in this view.')
-      : '';
+    const bazOn = (f.eras || []).includes('bazball');
+    let txt = '';
+    if (aggregateMode) {
+      txt = f.eras.length
+        ? 'Aggregate of every Test innings played in the selected era(s). Only the era picker applies in this view.'
+        : 'Aggregate of every Test innings ever played. Pick one or more eras for a row each. Only the era picker applies in this view.';
+    }
+    if (bazOn && BAZBALL) {
+      txt += (txt ? '  ' : '') +
+        `Bazball = England batsmen in Tests #${BAZBALL.fromTest}\u2013#${BAZBALL.toTest} ` +
+        `(${BAZBALL.fromYear}\u2013${BAZBALL.toYear}, ${BAZBALL.tests} Tests) \u2014 the Lord's and Trent Bridge ` +
+        `NZ bookends of the Stokes\u2013McCullum era. It sits inside the 2020s, so picking both still counts ` +
+        `those innings once in the combined line.` +
+        (BAZBALL.toYear < 2026
+          ? `  \u26a0 The window ends in ${BAZBALL.toYear} \u2014 the June 2026 NZ series is not in this dataset yet.`
+          : '');
+    }
+    note.style.display = txt ? '' : 'none';
+    note.textContent = txt;
   }
 }
 let sortKey       = 'runs';
@@ -720,7 +760,10 @@ function updateCards() {
   }
 
   // Best Strike Rate (min 20 innings, must have balls faced)
-  const srQual = filtered.filter(p => p.inns >= 20 && p.balls > 0);
+  // Qualify on innings that actually carry ball data, not career innings —
+  // otherwise a long pre-1980 career with a handful of late recorded innings
+  // can top the card off a tiny sample.
+  const srQual = filtered.filter(p => (p.ballsInns || 0) >= 20 && p.balls > 0);
   if (srQual.length) {
     const bySR = [...srQual].sort((a,b) => b.sr - a.sr)[0];
     document.getElementById('scSR').textContent = Number(bySR.sr).toFixed(2);
@@ -737,20 +780,77 @@ function updateCards() {
 function eraMatch(p, eras) {
   if (!eras || !eras.length) return true;
   return eras.some(era => {
+    if (era === 'bazball') return BAZ_PIDS.has(p.id);
     if (era === 'pre1950') return p.from < 1950;
     const d = parseInt(era);
     return p.from <= d + 9 && p.to >= d;
   });
 }
 
-const ERA_LIST = ['pre1950','1950','1960','1970','1980','1990','2000','2010','2020'];
+// Players with at least one Bazball innings — career from/to years can't
+// answer this, since the window is a slice of a decade.
+let BAZ_PIDS = new Set();
+
+const ERA_LIST = ['pre1950','1950','1960','1970','1980','1990','2000','2010','2020','bazball'];
 const ERA_LABEL = {pre1950:'Pre-1950','1950':'1950s','1960':'1960s','1970':'1970s','1980':'1980s',
-                   '1990':'1990s','2000':'2000s','2010':'2010s','2020':'2020s'};
+                   '1990':'1990s','2000':'2000s','2010':'2010s','2020':'2020s',
+                   bazball:'Bazball (England)'};
 
 function eraKeyForYear(y) {
   if (y < 1950) return 'pre1950';
   const d = Math.floor(y / 10) * 10;
   return d >= 2020 ? '2020' : String(d);
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Bazball window.
+   Defined by its two NZ bookends: the Lord's Test of 2 June 2022 that began
+   the Stokes–McCullum era, through the Trent Bridge Test of June 2026 that
+   ended it with Stokes's retirement. D.M stores only the year (m[7]), so the
+   boundary years can't be resolved by year alone — England played three
+   pre-Bazball Tests in March 2022, and any England Test after Trent Bridge in
+   2026 falls outside. So the window is resolved to a TEST-NUMBER range from
+   the data itself: first ENG–NZ Test of 2022 → last ENG–NZ Test since. Test
+   numbers are globally sequential, which makes that range exact at both ends.
+   Only England batsmen's innings inside it count — Bazball is England's era,
+   not a period of world cricket.
+   ────────────────────────────────────────────────────────────────────────── */
+let BAZBALL = null;   // { fromTest, toTest, fromYear, toYear, tests } | null
+
+function teamIndex(names) {
+  if (!D.T) return -1;
+  const want = names.map(n => n.toLowerCase());
+  for (let i = 0; i < D.T.length; i++) {
+    const v = String(D.T[i] || '').toLowerCase();
+    if (want.includes(v)) return i;
+  }
+  return -1;
+}
+
+function resolveBazball() {
+  BAZBALL = null;
+  if (!D.M || !D.T) return;
+  const ENG = teamIndex(['england','eng']);
+  const NZ  = teamIndex(['new zealand','nz','newzealand']);
+  if (ENG < 0 || NZ < 0) return;
+
+  let first = null, last = null;
+  Object.keys(D.M).forEach(k => {
+    const m = D.M[k]; if (!m) return;
+    const y = m[7]; if (typeof y !== 'number' || y < 2022) return;
+    const a = m[2], b = m[3];
+    const engNz = (a === ENG && b === NZ) || (a === NZ && b === ENG);
+    if (!engNz) return;
+    const n = +k;
+    if (y === 2022 && (first === null || n < first)) first = n;
+    if (last === null || n > last) last = n;
+  });
+  if (first === null || last === null || last < first) return;
+
+  BAZBALL = {
+    ENG, fromTest: first, toTest: last,
+    fromYear: D.M[first][7], toYear: D.M[last][7], tests: 0
+  };
 }
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -781,45 +881,161 @@ function buildBatInnings() {
     if (!m) continue;
     const y = m[7];
     if (typeof y !== 'number' || !y) continue;
+    // Bazball: an England batsman, in a Test inside the window
+    const baz = !!(BAZBALL && mid >= BAZBALL.fromTest && mid <= BAZBALL.toTest &&
+                   (m[2] === BAZBALL.ENG || m[3] === BAZBALL.ENG) &&
+                   PID_COUNTRY[pid] === 'England');
     BAT_INNS.push({
-      era: eraKeyForYear(y), pid, mid, runs,
+      era: eraKeyForYear(y), pid, mid, runs, year: y, baz,
       no: notOut ? 1 : 0,
       balls: typeof s[5] === 'number' ? s[5] : 0
     });
   }
 }
 
+/* ──────────────────────────────────────────────────────────────────────────
+   Per-player BF and SR from the innings index.
+   D.P holds career runs and career balls and derives SR as one over the other.
+   For anyone who batted before 1980 that pairs a COMPLETE runs total with a
+   PARTIAL balls total, inflating the figure — every career straddling the
+   boundary is affected. Recomputed here exactly as the aggregate does it:
+   balls, and the runs scored off them, taken only from innings that carry
+   ball data. Originals are kept as srFromDP / ballsFromDP so the two remain
+   comparable — see srAudit() in the console.
+   ────────────────────────────────────────────────────────────────────────── */
+function applyInningsDerivedSR() {
+  if (!BAT_INNS.length) return;
+  const acc = new Map();                    // pid → {balls, runs, inns}
+  BAT_INNS.forEach(r => {
+    if (!(r.balls > 0)) return;
+    let a = acc.get(r.pid);
+    if (!a) { a = { balls: 0, runs: 0, inns: 0 }; acc.set(r.pid, a); }
+    a.balls += r.balls; a.runs += r.runs; a.inns++;
+  });
+  let changed = 0, noData = 0;
+  PLAYERS.forEach(p => {
+    p.srFromDP = p.sr;
+    p.ballsFromDP = p.balls;
+    const a = acc.get(p.id);
+    if (!a) {
+      p.balls = 0; p.ballsRuns = 0; p.ballsInns = 0; p.sr = 0;
+      noData++;
+      return;
+    }
+    p.balls = a.balls; p.ballsRuns = a.runs; p.ballsInns = a.inns;
+    p.sr = a.balls > 0 ? (a.runs / a.balls) * 100 : 0;
+    if (Math.abs(p.sr - (p.srFromDP || 0)) >= 0.01) changed++;
+  });
+  console.info(`[batting] strike rate recomputed from the innings index: ` +
+    `${changed} of ${PLAYERS.length} players differ from D.P, ${noData} have no ball data. ` +
+    `Run srAudit() for the breakdown.`);
+}
+
+/* Console helper: where the recomputed SR parts company with D.P's, worst first. */
+function srAudit(limit = 25) {
+  const rows = PLAYERS
+    .map(p => ({
+      player: p.fullName || p.name,
+      span: p.from + '-' + p.to,
+      inns: p.inns,
+      innsWithBalls: p.ballsInns || 0,
+      ballsDP: p.ballsFromDP || 0,
+      ballsIndex: p.balls,
+      srDP: +(p.srFromDP || 0).toFixed(2),
+      srIndex: +p.sr.toFixed(2),
+      delta: +(p.sr - (p.srFromDP || 0)).toFixed(2)
+    }))
+    .filter(r => Math.abs(r.delta) >= 0.01)
+    .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta));
+  console.table(rows.slice(0, limit));
+  console.info(`${rows.length} players differ by ≥0.01; showing ${Math.min(limit, rows.length)}.`);
+  return rows;
+}
+
+function buildBazballSet() {
+  BAZ_PIDS = new Set();
+  const tests = new Set();
+  BAT_INNS.forEach(r => { if (r.baz) { BAZ_PIDS.add(r.pid); tests.add(r.mid); } });
+  if (BAZBALL) BAZBALL.tests = tests.size;
+  const opt = document.querySelector('#msEra-drop input[value="bazball"]');
+  if (opt) {
+    const ok = !!(BAZBALL && tests.size);
+    opt.disabled = !ok;
+    if (!ok) {
+      opt.checked = false;
+      opt.parentElement.style.opacity = '0.45';
+      opt.parentElement.title = 'The England–New Zealand bookend Tests are not in this dataset.';
+    } else {
+      opt.parentElement.title =
+        `Tests #${BAZBALL.fromTest}–#${BAZBALL.toTest} (${BAZBALL.fromYear}–${BAZBALL.toYear}), ` +
+        `${tests.size} England Tests`;
+    }
+  }
+  if (BAZBALL) {
+    console.info(`[batting] Bazball window resolved: Tests #${BAZBALL.fromTest}–#${BAZBALL.toTest} ` +
+      `(${BAZBALL.fromYear}–${BAZBALL.toYear}), ${tests.size} England Tests, ${BAZ_PIDS.size} batsmen.` +
+      (BAZBALL.toYear < 2026 ? '  ⚠ Ends before 2026 — the June 2026 NZ series is not in this dataset.' : ''));
+  } else {
+    console.warn('[batting] Bazball window could not be resolved — no ENG–NZ Test found from 2022 onwards.');
+  }
+}
+
 /* Aggregate one bucket of innings into a summary row. */
+/* Innings before 1980 have no balls-faced recorded, so any row drawn only from
+   them shows no BF or SR at all. Rows that span the boundary compute SR from
+   the innings that DO carry ball data (ballsRuns / balls) — pairing all-time
+   runs with partial balls would inflate the figure badly. */
+const BALLS_FROM_YEAR = 1980;
+
 function aggregateInnings(list, label) {
   const players = new Set(), tests = new Set();
   let inns = 0, no = 0, runs = 0, balls = 0, fifties = 0, hundreds = 0, hs = 0, hsPid = null;
+  let ballsRuns = 0, ballsInns = 0, modernInns = 0;
   list.forEach(r => {
     players.add(r.pid); tests.add(r.mid);
-    inns++; no += r.no; runs += r.runs; balls += r.balls;
+    inns++; no += r.no; runs += r.runs;
+    if (r.year >= BALLS_FROM_YEAR) modernInns++;
+    if (r.balls > 0) { balls += r.balls; ballsRuns += r.runs; ballsInns++; }
     if (r.runs >= 100) hundreds++; else if (r.runs >= 50) fifties++;
     if (r.runs > hs) { hs = r.runs; hsPid = r.pid; }
   });
   const outs = inns - no;
   return {
     label, players: players.size, tests: tests.size,
-    inns, no, runs, balls,
+    inns, no, runs, balls, ballsRuns, ballsInns,
+    noBalls: modernInns === 0,               // wholly pre-1980 → leave BF and SR empty
     avg: outs > 0 ? runs / outs : 0,
-    sr: balls > 0 ? (runs / balls) * 100 : 0,
+    sr: balls > 0 ? (ballsRuns / balls) * 100 : 0,
     hs, hsName: hsPid !== null ? (PID_NAME[hsPid] || '') : '',
     fifties, hundreds
   };
 }
 
+/* Innings belonging to one era key. Bazball is a flag, not a decade bucket. */
+function inningsForEra(key) {
+  return key === 'bazball' ? BAT_INNS.filter(r => r.baz) : BAT_INNS.filter(r => r.era === key);
+}
+
 /* One row per selected era, or a single all-time row when none are picked. */
 function buildAggregateRows(eras) {
   if (!eras.length) return [aggregateInnings(BAT_INNS, 'All Players')];
-  const byEra = new Map();
-  eras.forEach(e => byEra.set(e, []));
-  BAT_INNS.forEach(r => { const b = byEra.get(r.era); if (b) b.push(r); });
   return eras
     .slice()
     .sort((a, b) => ERA_LIST.indexOf(a) - ERA_LIST.indexOf(b))
-    .map(e => aggregateInnings(byEra.get(e), ERA_LABEL[e] || e));
+    .map(e => aggregateInnings(inningsForEra(e), ERA_LABEL[e] || e));
+}
+
+/* Union of the selected eras, each innings counted once. Bazball sits inside
+   the 2020s, so selecting both would double-count if the combined line simply
+   summed the rows — it's built from the deduped union instead. */
+function buildCombinedRow(eras) {
+  const seen = new Set();
+  const union = [];
+  eras.forEach(e => inningsForEra(e).forEach(r => {
+    if (seen.has(r)) return;
+    seen.add(r); union.push(r);
+  }));
+  return aggregateInnings(union, 'All selected eras');
 }
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -965,7 +1181,7 @@ function getCols() {
       { key:'runs',       label:'Runs',    cls:'num highlight' },
       { key:'hs',         label:'HS',      cls:'num' },
       { key:'avg',        label:'Avg',     cls:'num' },
-      { key:'sr',         label:'SR',      cls:'num' },
+      { key:'sr',         label:'SR',      cls:'num', tip:PLAYER_BF_TIP },
       { key:'hundreds',   label:'100s',    cls:'num' },
       { key:'twoX100',    label:'2X100S',  cls:'num-center' },
       { key:'fifties',    label:'50s',     cls:'num' },
@@ -977,7 +1193,7 @@ function getCols() {
       { key:'no',         label:'NO',      cls:'num' },
       { key:'runs',       label:'Runs',    cls:'num' },
       { key:'avg',        label:'Avg',     cls:'num highlight' },
-      { key:'sr',         label:'SR',      cls:'num' },
+      { key:'sr',         label:'SR',      cls:'num', tip:PLAYER_BF_TIP },
       { key:'hundreds',   label:'100s',    cls:'num' },
       { key:'contribPct', label:'%Ct/Inn',  cls:'num-center' }
     ];
@@ -985,8 +1201,8 @@ function getCols() {
       { key:'tests',      label:'Tests',   cls:'num' },
       { key:'inns',       label:'Inns',    cls:'num' },
       { key:'runs',       label:'Runs',    cls:'num' },
-      { key:'balls',      label:'BF',      cls:'num' },
-      { key:'sr',         label:'SR',      cls:'num highlight' },
+      { key:'balls',      label:'BF',      cls:'num', tip:PLAYER_BF_TIP },
+      { key:'sr',         label:'SR',      cls:'num highlight', tip:PLAYER_BF_TIP },
       { key:'avg',        label:'Avg',     cls:'num' },
       { key:'hundreds',   label:'100s',    cls:'num' },
       { key:'contribPct', label:'%Ct/Inn',  cls:'num-center' }
@@ -1025,7 +1241,7 @@ function render() {
   thead.innerHTML = '<tr>' + cols.map(c => {
     if (c.key === '_rank') return `<th class="${c.cls}">${c.label}</th>`;
     const sc = sortKey === c.key ? (sortDir === 'asc' ? 'sorted-asc' : 'sorted-desc') : '';
-    return `<th class="${c.cls} ${sc}" onclick="toggleSort('${c.key}')">${c.label}</th>`;
+    return `<th class="${c.cls} ${sc}" onclick="toggleSort('${c.key}')">${thLabel(c)}</th>`;
   }).join('') + '</tr>';
 
   // Body
@@ -1037,9 +1253,13 @@ function render() {
       if (c.key === '_rank') return `<td class="${c.cls}">${start + i + 1}</td>`;
       let val = p[c.key];
       if (c.key === 'name') return `<td class="${c.cls}" title="${p.fullName}">${val}</td>`;
-      if (c.key === 'avg' || c.key === 'sr') val = (typeof val === 'number' && val > 0) ? val.toFixed(2) : '—';
+      // No recorded balls (a wholly pre-1980 career) → leave BF and SR empty
+      if (c.key === 'balls' || c.key === 'sr') {
+        if (!p.balls) return `<td class="${c.cls}"></td>`;
+        return `<td class="${c.cls}">${c.key === 'sr' ? p.sr.toFixed(2) : p.balls.toLocaleString()}</td>`;
+      }
+      if (c.key === 'avg') val = (typeof val === 'number' && val > 0) ? val.toFixed(2) : '—';
       if (c.key === 'runs' && typeof val === 'number') val = val.toLocaleString();
-      if (c.key === 'balls' && typeof val === 'number') val = val > 0 ? val.toLocaleString() : '—';
       if (c.key === 'contribPct') {
         const threshold = +document.getElementById('fContrib').value || 0;
         val = getContribCount(p, threshold);
@@ -1056,6 +1276,15 @@ function render() {
 /* ──────────────────────────────────────────────────────────────────────────
    All Players view — one summary row, or one row per selected era
    ────────────────────────────────────────────────────────────────────────── */
+const BF_TIP = 'Balls faced was not recorded before 1980 — the data is too thin. ' +
+               'Pre-1980 eras show no BF or SR, and where a row spans 1980 the strike rate ' +
+               'uses only the innings that carry ball data.';
+
+const PLAYER_BF_TIP = 'Balls faced was not recorded before 1980 — the data is too thin. ' +
+              'Batsmen who played wholly before then show no BF or SR; for careers spanning 1980, ' +
+              'BF and SR count only the innings that carry ball data, so SR is not diluted by ' +
+              'innings whose deliveries were never recorded.';
+
 const AGG_COLS = [
   { key:'label',    label:'Era',     cls:'player-name' },
   { key:'players',  label:'Players', cls:'num' },
@@ -1063,18 +1292,25 @@ const AGG_COLS = [
   { key:'inns',     label:'Inns',    cls:'num' },
   { key:'no',       label:'NO',      cls:'num' },
   { key:'runs',     label:'Runs',    cls:'num highlight' },
-  { key:'balls',    label:'BF',      cls:'num' },
+  { key:'balls',    label:'BF',      cls:'num', tip: BF_TIP },
   { key:'avg',      label:'Avg',     cls:'num' },
-  { key:'sr',       label:'SR',      cls:'num' },
+  { key:'sr',       label:'SR',      cls:'num', tip: BF_TIP },
   { key:'hs',       label:'HS',      cls:'num' },
   { key:'hundreds', label:'100s',    cls:'num' },
   { key:'fifties',  label:'50s',     cls:'num' }
 ];
 
+/* Header label, with a hover tooltip when the column carries a caveat. */
+function thLabel(c) {
+  if (!c.tip) return c.label;
+  return `<span class="th-info">${c.label}<span class="th-i">i</span>` +
+         `<span class="th-tip">${c.tip}</span></span>`;
+}
+
 function renderAggregate() {
   const rows = aggRows || [];
   document.getElementById('tHead').innerHTML =
-    '<tr>' + AGG_COLS.map(c => `<th class="${c.cls}">${c.label}</th>`).join('') + '</tr>';
+    '<tr>' + AGG_COLS.map(c => `<th class="${c.cls}">${thLabel(c)}</th>`).join('') + '</tr>';
 
   const tbody = document.getElementById('tBody');
   if (!rows.length) {
@@ -1086,8 +1322,11 @@ function renderAggregate() {
   const cell = (r, c) => {
     const v = r[c.key];
     if (c.key === 'label') return `<td class="${c.cls}">${v}</td>`;
-    if (c.key === 'avg' || c.key === 'sr') return `<td class="${c.cls}">${v > 0 ? v.toFixed(2) : '—'}</td>`;
-    if (c.key === 'balls') return `<td class="${c.cls}">${v > 0 ? v.toLocaleString() : '—'}</td>`;
+    if (c.key === 'balls' || c.key === 'sr') {
+      if (r.noBalls || !r.balls) return `<td class="${c.cls}"></td>`;
+      return `<td class="${c.cls}">${c.key === 'sr' ? v.toFixed(2) : v.toLocaleString()}</td>`;
+    }
+    if (c.key === 'avg') return `<td class="${c.cls}">${v > 0 ? v.toFixed(2) : '—'}</td>`;
     if (c.key === 'hs') {
       const credit = r.hsName ? `<span style="display:block;font-size:10px;color:var(--text3);font-weight:400">${r.hsName}</span>` : '';
       return `<td class="${c.cls}">${v || '—'}${credit}</td>`;
@@ -1100,18 +1339,8 @@ function renderAggregate() {
 
   // Combined line when more than one era is on show
   if (rows.length > 1) {
-    const t = {
-      label: 'All selected eras',
-      players: null, tests: 0, inns: 0, no: 0, runs: 0, balls: 0,
-      fifties: 0, hundreds: 0, hs: 0, hsName: ''
-    };
-    rows.forEach(r => {
-      ['tests','inns','no','runs','balls','fifties','hundreds'].forEach(k => { t[k] += r[k]; });
-      if (r.hs > t.hs) { t.hs = r.hs; t.hsName = r.hsName; }
-    });
-    const outs = t.inns - t.no;
-    t.avg = outs > 0 ? t.runs / outs : 0;
-    t.sr = t.balls > 0 ? (t.runs / t.balls) * 100 : 0;
+    const t = buildCombinedRow(getMSValues('msEra'));
+    t.players = null;
     html += '<tr style="font-weight:700;border-top:2px solid var(--border)">' +
       AGG_COLS.map(c => c.key === 'players'
         ? '<td class="num" style="color:var(--text3)">—</td>'
@@ -1343,7 +1572,10 @@ function exportToExcel() {
   buildPlayers();
   buildTwoX100();
   buildContribPct();
+  resolveBazball();
   buildBatInnings();
+  buildBazballSet();
+  applyInningsDerivedSR();
   buildOpponentLookup();
   populateCountries();
   applyFilters();
