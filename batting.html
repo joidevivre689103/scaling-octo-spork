@@ -947,7 +947,8 @@ function applyInningsDerivedSR() {
       return;
     }
     p.balls = a.balls; p.ballsRuns = a.runs; p.ballsInns = a.inns;
-    p.sr = a.balls > 0 ? (a.runs / a.balls) * 100 : 0;
+    p.srRaw = a.balls > 0 ? (a.runs / a.balls) * 100 : 0;
+    p.sr = a.balls >= MIN_BALLS_FOR_SR ? p.srRaw : 0;
     if (Math.abs(p.sr - (p.srFromDP || 0)) >= 0.01) changed++;
   });
   console.info(`[batting] rebuilt from the innings index: ` +
@@ -1156,7 +1157,7 @@ function slicedPlayers(f) {
         hs: a.hs, fifties: a.fifties, hundreds: a.hundreds, doubles: a.doubles, twoX100: twoX,
         from: a.from, to: a.to,
         avg: outs > 0 ? a.runs / outs : 0,
-        sr: a.balls > 0 ? (a.ballsRuns / a.balls) * 100 : 0,
+        sr: a.balls >= MIN_BALLS_FOR_SR ? (a.ballsRuns / a.balls) * 100 : 0,
         mom: null, _sliced: true,
         _eraLabel: eraKey ? (ERA_LABEL[eraKey] || eraKey) : null
       }));
@@ -1174,6 +1175,15 @@ function eraSplit() { return sliced && getMSValues('msEra').length >= 2; }
    the innings that DO carry ball data (ballsRuns / balls) — pairing all-time
    runs with partial balls would inflate the figure badly. */
 const BALLS_FROM_YEAR = 1980;
+
+/* A career strike rate needs a sample. Ananth's original P rows carry stray
+   balls-faced values for players from eras when the figure was never recorded —
+   1 or 2 or 21 deliveries against a whole career — and 21 balls produces a
+   perfectly plausible-looking 66.67 that means nothing. Below this many
+   RECORDED balls, BF and SR are left blank rather than printed. Same floor is
+   applied to sr itself so those players sort last rather than sorting on a
+   figure that is not shown. */
+const MIN_BALLS_FOR_SR = 20;
 
 function aggregateInnings(list, label) {
   const players = new Set(), tests = new Set();
@@ -1453,8 +1463,9 @@ function render() {
       if (c.key === 'name') return `<td class="${c.cls}" title="${p.fullName}">${val}</td>`;
       // No recorded balls (a wholly pre-1980 career) → leave BF and SR empty
       if (c.key === 'balls' || c.key === 'sr') {
-        if (!p.balls) return `<td class="${c.cls}"></td>`;
-        return `<td class="${c.cls}">${c.key === 'sr' ? p.sr.toFixed(2) : p.balls.toLocaleString()}</td>`;
+        // too small a sample to mean anything — see MIN_BALLS_FOR_SR
+        if (!p.balls || p.balls < MIN_BALLS_FOR_SR) return `<td class="${c.cls}"></td>`;
+        return `<td class="${c.cls}">${p.sr ? (c.key === 'sr' ? p.sr.toFixed(2) : p.balls.toLocaleString()) : ''}</td>`;
       }
       if (c.key === 'avg') val = (typeof val === 'number' && val > 0) ? val.toFixed(2) : '—';
       if (c.key === 'runs' && typeof val === 'number') val = val.toLocaleString();
@@ -1475,7 +1486,7 @@ const BF_TIP = 'Balls faced was not recorded before 1980 — the data is too thi
                'uses only the innings that carry ball data.';
 
 const PLAYER_BF_TIP = 'Balls faced was not recorded before 1980 — the data is too thin. ' +
-              'Batsmen who played wholly before then show no BF or SR; for careers spanning 1980, ' +
+              'Batsmen who played wholly before then show no BF or SR; nor does anyone with fewer than ' + MIN_BALLS_FOR_SR + ' recorded balls, which is too small a sample to rate. For careers spanning 1980, ' +
               'BF and SR count only the innings that carry ball data, so SR is not diluted by ' +
               'innings whose deliveries were never recorded.';
 

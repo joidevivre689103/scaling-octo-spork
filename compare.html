@@ -1725,6 +1725,10 @@ function getRows(player){
   return rows;
 }
 
+/* Fewer than this many recorded balls is not a sample worth rating — see the
+   batting page's MIN_BALLS_FOR_SR for the full reasoning. */
+const MIN_BALLS_FOR_SR = 20;
+
 function agg(player,idxs,isFiltered){
   let inns=0,no=0,runs=0,balls=0,hs=0,fifties=0,hundreds=0;
   let overs=0,mdns=0,bR=0,wkts=0,bestW=0,bestR=9999,bowlInns=0;
@@ -1746,13 +1750,16 @@ function agg(player,idxs,isFiltered){
     if(bw>bestW||(bw===bestW&&brn<bestR)){bestW=bw;bestR=brn}
   });
   let sr;
+  // A strike rate needs a sample. P carries stray balls-faced values for eras
+  // when the figure was never recorded (1, 2, 21 deliveries for a whole
+  // career), which divide out to plausible-looking rates that mean nothing.
+  // Below MIN_BALLS_FOR_SR, report no strike rate at all.
   if(!isFiltered){
     // No filters: use career totals from player data
-    sr = player.batBalls>0 ? (player.batRuns/player.batBalls)*100 : null;
+    sr = player.batBalls>=MIN_BALLS_FOR_SR ? (player.batRuns/player.batBalls)*100 : null;
   } else {
-    // Filters active: use balls from filtered innings if available
-    // If no balls data exists for these innings, sr will naturally be null
-    sr = balls>0 ? (runs/balls)*100 : null;
+    // Filters active: use balls from the filtered innings
+    sr = balls>=MIN_BALLS_FOR_SR ? (runs/balls)*100 : null;
   }
   return{
     tests:tests.size, inns, no, runs, balls,
