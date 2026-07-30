@@ -99,6 +99,11 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-he
 
 /* Multi-select dropdown */
 .ms-wrap{position:relative}
+.fp-group.dim,.tabs.dim{opacity:0.4;pointer-events:none;filter:grayscale(1)}
+.fp-note{
+  grid-column:1/-1;font-family:var(--font-body);font-size:11.5px;
+  color:var(--text3);line-height:1.5;margin-top:-2px;
+}
 .ms-btn{width:100%;padding:7px 10px;font-family:var(--font-body);font-size:13px;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text);cursor:pointer;text-align:left;outline:none;display:flex;justify-content:space-between;align-items:center}
 .ms-btn:focus{border-color:var(--accent)}
 .ms-btn::after{content:'▾';font-size:10px;color:var(--text3)}
@@ -235,6 +240,14 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-he
     <div class="fp-body">
       <div class="fp-grid">
         <div class="fp-group">
+          <label>Players</label>
+          <select class="fp-select" id="fMode" onchange="applyFilters()">
+            <option value="players">Individual players</option>
+            <option value="all">All players (aggregate)</option>
+          </select>
+        </div>
+        <div class="fp-note" id="fpNote" style="display:none"></div>
+        <div class="fp-group" data-dim="1">
           <label>Country</label>
           <select class="fp-select" id="fCountry" onchange="applyFilters()">
             <option value="">All countries</option>
@@ -242,20 +255,22 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-he
         </div>
         <div class="fp-group">
           <label>Era</label>
-          <select class="fp-select" id="fEra" onchange="applyFilters()">
-            <option value="">All eras</option>
-            <option value="pre1950">Pre-1950</option>
-            <option value="1950">1950s</option>
-            <option value="1960">1960s</option>
-            <option value="1970">1970s</option>
-            <option value="1980">1980s</option>
-            <option value="1990">1990s</option>
-            <option value="2000">2000s</option>
-            <option value="2010">2010s</option>
-            <option value="2020">2020s</option>
-          </select>
+          <div class="ms-wrap" id="msEra">
+            <button class="ms-btn" type="button" onclick="toggleMS('msEra')">All eras</button>
+            <div class="ms-drop" id="msEra-drop">
+              <div class="ms-opt"><input type="checkbox" value="pre1950" onchange="applyFilters()"><span>Pre-1950</span></div>
+              <div class="ms-opt"><input type="checkbox" value="1950" onchange="applyFilters()"><span>1950s</span></div>
+              <div class="ms-opt"><input type="checkbox" value="1960" onchange="applyFilters()"><span>1960s</span></div>
+              <div class="ms-opt"><input type="checkbox" value="1970" onchange="applyFilters()"><span>1970s</span></div>
+              <div class="ms-opt"><input type="checkbox" value="1980" onchange="applyFilters()"><span>1980s</span></div>
+              <div class="ms-opt"><input type="checkbox" value="1990" onchange="applyFilters()"><span>1990s</span></div>
+              <div class="ms-opt"><input type="checkbox" value="2000" onchange="applyFilters()"><span>2000s</span></div>
+              <div class="ms-opt"><input type="checkbox" value="2010" onchange="applyFilters()"><span>2010s</span></div>
+              <div class="ms-opt"><input type="checkbox" value="2020" onchange="applyFilters()"><span>2020s</span></div>
+            </div>
+          </div>
         </div>
-        <div class="fp-group">
+        <div class="fp-group" data-dim="1">
           <label>Batting Position</label>
           <select class="fp-select" id="fPos" onchange="applyFilters()">
             <option value="">All positions</option>
@@ -265,7 +280,7 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-he
             <option value="8-11">Tail (8–11)</option>
           </select>
         </div>
-        <div class="fp-group">
+        <div class="fp-group" data-dim="1">
           <label>Min Tests</label>
           <select class="fp-select" id="fTests" onchange="applyFilters()">
             <option value="0" selected>No minimum</option>
@@ -277,7 +292,7 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-he
             <option value="100">100+</option>
           </select>
         </div>
-        <div class="fp-group">
+        <div class="fp-group" data-dim="1">
           <label>Min Innings</label>
           <select class="fp-select" id="fInns" onchange="applyFilters()">
             <option value="0">No minimum</option>
@@ -288,7 +303,7 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-he
             <option value="100">100+</option>
           </select>
         </div>
-        <div class="fp-group">
+        <div class="fp-group" data-dim="1">
           <label>Min Runs</label>
           <select class="fp-select" id="fRuns" onchange="applyFilters()">
             <option value="0">No minimum</option>
@@ -300,7 +315,7 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-he
             <option value="10000">10,000+</option>
           </select>
         </div>
-        <div class="fp-group">
+        <div class="fp-group" data-dim="1">
           <label>Min Average</label>
           <select class="fp-select" id="fAvg" onchange="applyFilters()">
             <option value="0">No minimum</option>
@@ -312,7 +327,7 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-he
             <option value="50">50+</option>
           </select>
         </div>
-        <div class="fp-group">
+        <div class="fp-group" data-dim="1">
           <label>Min Strike Rate</label>
           <select class="fp-select" id="fSR" onchange="applyFilters()">
             <option value="0">No minimum</option>
@@ -322,14 +337,14 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-he
             <option value="70">70+</option>
           </select>
         </div>
-        <div class="fp-group">
+        <div class="fp-group" data-dim="1">
           <label>Opponents</label>
           <div class="ms-wrap" id="msOpp">
             <button class="ms-btn" type="button" onclick="toggleMS('msOpp')">All opponents</button>
             <div class="ms-drop" id="msOpp-drop"></div>
           </div>
         </div>
-        <div class="fp-group">
+        <div class="fp-group" data-dim="1">
           <label>Min % Contribution/Inn</label>
           <select class="fp-select" id="fContrib" onchange="applyFilters()">
             <option value="0" selected>No minimum (≥ 0%)</option>
@@ -346,7 +361,7 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-he
             <option value="75">≥ 75%</option>
           </select>
         </div>
-        <div class="fp-group" style="grid-column:span 2">
+        <div class="fp-group" data-dim="1" style="grid-column:span 2">
           <label>Search player</label>
           <input class="fp-input" id="fSearch" placeholder="Name or country…" oninput="applyFilters()">
         </div>
@@ -408,6 +423,7 @@ const IDX = {
    ────────────────────────────────────────────────────────────────────────── */
 let D = null;        // dataset from the gated loader (replaces the old data.js global)
 let PLAYERS = [];
+let PID_NAME = {};   // playerId → short name, for the aggregate HS credit
 
 function buildPlayers() {
   if (typeof D === 'undefined' || !D.P) { console.error('data.js not loaded'); return; }
@@ -434,6 +450,8 @@ function buildPlayers() {
     batHand:   p[IDX.BATHAND]  || '',
     bowlType:  p[IDX.BOWLTYPE] || ''
   })).filter(p => p.inns > 0);  // only players who actually batted
+  PID_NAME = {};
+  PLAYERS.forEach(p => { PID_NAME[p.id] = p.name || p.fullName; });
 }
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -586,6 +604,26 @@ function buildOpponentLookup() {
    ────────────────────────────────────────────────────────────────────────── */
 let currentTab   = 'runs';
 let filtered     = [];
+let aggregateMode = false;   // "All players" — one aggregate row per era
+let aggRows       = null;    // rows for that view
+
+/* Grey out everything the aggregate view can't honour, and say why. */
+function syncModeUI(f) {
+  document.querySelectorAll('.fp-grid .fp-group[data-dim]').forEach(g => {
+    g.classList.toggle('dim', aggregateMode);
+    g.querySelectorAll('select,input,button').forEach(el => { el.disabled = aggregateMode; });
+  });
+  const tabBar = document.getElementById('tabBar');
+  if (tabBar) tabBar.classList.toggle('dim', aggregateMode);
+  const note = document.getElementById('fpNote');  if (note) {
+    note.style.display = aggregateMode ? '' : 'none';
+    note.textContent = aggregateMode
+      ? (f.eras.length
+          ? 'Aggregate of every Test innings played in the selected era(s). Only the era picker applies in this view.'
+          : 'Aggregate of every Test innings ever played. Pick one or more eras for a row each. Only the era picker applies in this view.')
+      : '';
+  }
+}
 let sortKey       = 'runs';
 let sortDir       = 'desc';
 let page          = 1;
@@ -625,10 +663,14 @@ function getMSValues(id) {
   const checks = document.querySelectorAll(`#${id}-drop input:checked`);
   return [...checks].map(c => c.value);
 }
+const MS_EMPTY = { msOpp: 'All opponents', msEra: 'All eras' };
 function updateMSLabel(id) {
-  const vals = getMSValues(id);
+  const checks = [...document.querySelectorAll(`#${id}-drop input:checked`)];
   const btn = document.querySelector(`#${id} .ms-btn`);
-  btn.textContent = vals.length === 0 ? 'All opponents' : vals.join(', ');
+  if (!btn) return;
+  btn.textContent = checks.length === 0
+    ? (MS_EMPTY[id] || 'All')
+    : checks.map(c => c.parentElement.textContent.trim()).join(', ');
 }
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -692,11 +734,92 @@ function updateCards() {
 /* ──────────────────────────────────────────────────────────────────────────
    Era matching
    ────────────────────────────────────────────────────────────────────────── */
-function eraMatch(p, era) {
-  if (!era) return true;
-  if (era === 'pre1950') return p.from < 1950;
-  const d = parseInt(era);
-  return p.from <= d + 9 && p.to >= d;
+function eraMatch(p, eras) {
+  if (!eras || !eras.length) return true;
+  return eras.some(era => {
+    if (era === 'pre1950') return p.from < 1950;
+    const d = parseInt(era);
+    return p.from <= d + 9 && p.to >= d;
+  });
+}
+
+const ERA_LIST = ['pre1950','1950','1960','1970','1980','1990','2000','2010','2020'];
+const ERA_LABEL = {pre1950:'Pre-1950','1950':'1950s','1960':'1960s','1970':'1970s','1980':'1980s',
+                   '1990':'1990s','2000':'2000s','2010':'2010s','2020':'2020s'};
+
+function eraKeyForYear(y) {
+  if (y < 1950) return 'pre1950';
+  const d = Math.floor(y / 10) * 10;
+  return d >= 2020 ? '2020' : String(d);
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Innings-level index for the All Players aggregate.
+   Career totals in D.P can't be split by era — a player active across three
+   decades would have his whole career counted into each one. So the aggregate
+   is built from D.S instead: one entry per batting innings, bucketed by the
+   YEAR THE INNINGS WAS PLAYED. Era rows therefore partition the record —
+   they sum to the all-time totals rather than overlapping.
+   Dedupes (matchId, slot) per player, as buildContribPct does, because D.S
+   carries separate batting and bowling rows for the same innings.
+   ────────────────────────────────────────────────────────────────────────── */
+let BAT_INNS = [];
+
+function buildBatInnings() {
+  BAT_INNS = [];
+  if (!D.S || !D.M) return;
+  const seen = new Set();
+  for (const s of D.S) {
+    const mid = s[0], pid = s[1], slot = s[2], runs = s[3], notOut = s[4];
+    if (!mid || !pid || slot == null || slot < 1 || slot > 4) continue;
+    if (notOut === null || notOut === undefined) continue;   // did not bat
+    if (typeof runs !== 'number') continue;
+    const key = pid + '_' + mid + '_' + slot;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    const m = D.M[mid];
+    if (!m) continue;
+    const y = m[7];
+    if (typeof y !== 'number' || !y) continue;
+    BAT_INNS.push({
+      era: eraKeyForYear(y), pid, mid, runs,
+      no: notOut ? 1 : 0,
+      balls: typeof s[5] === 'number' ? s[5] : 0
+    });
+  }
+}
+
+/* Aggregate one bucket of innings into a summary row. */
+function aggregateInnings(list, label) {
+  const players = new Set(), tests = new Set();
+  let inns = 0, no = 0, runs = 0, balls = 0, fifties = 0, hundreds = 0, hs = 0, hsPid = null;
+  list.forEach(r => {
+    players.add(r.pid); tests.add(r.mid);
+    inns++; no += r.no; runs += r.runs; balls += r.balls;
+    if (r.runs >= 100) hundreds++; else if (r.runs >= 50) fifties++;
+    if (r.runs > hs) { hs = r.runs; hsPid = r.pid; }
+  });
+  const outs = inns - no;
+  return {
+    label, players: players.size, tests: tests.size,
+    inns, no, runs, balls,
+    avg: outs > 0 ? runs / outs : 0,
+    sr: balls > 0 ? (runs / balls) * 100 : 0,
+    hs, hsName: hsPid !== null ? (PID_NAME[hsPid] || '') : '',
+    fifties, hundreds
+  };
+}
+
+/* One row per selected era, or a single all-time row when none are picked. */
+function buildAggregateRows(eras) {
+  if (!eras.length) return [aggregateInnings(BAT_INNS, 'All Players')];
+  const byEra = new Map();
+  eras.forEach(e => byEra.set(e, []));
+  BAT_INNS.forEach(r => { const b = byEra.get(r.era); if (b) b.push(r); });
+  return eras
+    .slice()
+    .sort((a, b) => ERA_LIST.indexOf(a) - ERA_LIST.indexOf(b))
+    .map(e => aggregateInnings(byEra.get(e), ERA_LABEL[e] || e));
 }
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -713,8 +836,9 @@ function posMatch(p, pos) {
    ────────────────────────────────────────────────────────────────────────── */
 function getFilters() {
   return {
+    mode:     document.getElementById('fMode').value,
     country:  document.getElementById('fCountry').value,
-    era:      document.getElementById('fEra').value,
+    eras:     getMSValues('msEra'),
     pos:      document.getElementById('fPos').value,
     tests:    +document.getElementById('fTests').value,
     inns:     +document.getElementById('fInns').value,
@@ -729,11 +853,28 @@ function getFilters() {
 
 function applyFilters() {
   updateMSLabel('msOpp');
+  updateMSLabel('msEra');
   const f = getFilters();
+  aggregateMode = (f.mode === 'all');
+  syncModeUI(f);
+
+  if (aggregateMode) {
+    // Only the era picker applies. `filtered` still drives the stat cards, so
+    // keep it to the players active in the selected eras.
+    filtered = PLAYERS.filter(p => eraMatch(p, f.eras));
+    aggRows = buildAggregateRows(f.eras);
+    page = 1;
+    updateCards();
+    renderTags();
+    render();
+    return;
+  }
+
+  aggRows = null;
   const hasContribData = PLAYERS.some(p => p.contribInns && p.contribInns.length > 0);
   filtered = PLAYERS.filter(p => {
     if (f.country && p.country !== f.country) return false;
-    if (!eraMatch(p, f.era)) return false;
+    if (!eraMatch(p, f.eras)) return false;
     if (!posMatch(p, f.pos)) return false;
     if (f.tests && p.tests < f.tests) return false;
     if (f.inns  && p.inns  < f.inns)  return false;
@@ -876,6 +1017,7 @@ function getCols() {
    Render
    ────────────────────────────────────────────────────────────────────────── */
 function render() {
+  if (aggregateMode) { renderAggregate(); return; }
   const cols = getCols();
 
   // Header
@@ -909,6 +1051,75 @@ function render() {
   }).join('');
 
   renderPag();
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   All Players view — one summary row, or one row per selected era
+   ────────────────────────────────────────────────────────────────────────── */
+const AGG_COLS = [
+  { key:'label',    label:'Era',     cls:'player-name' },
+  { key:'players',  label:'Players', cls:'num' },
+  { key:'tests',    label:'Tests',   cls:'num' },
+  { key:'inns',     label:'Inns',    cls:'num' },
+  { key:'no',       label:'NO',      cls:'num' },
+  { key:'runs',     label:'Runs',    cls:'num highlight' },
+  { key:'balls',    label:'BF',      cls:'num' },
+  { key:'avg',      label:'Avg',     cls:'num' },
+  { key:'sr',       label:'SR',      cls:'num' },
+  { key:'hs',       label:'HS',      cls:'num' },
+  { key:'hundreds', label:'100s',    cls:'num' },
+  { key:'fifties',  label:'50s',     cls:'num' }
+];
+
+function renderAggregate() {
+  const rows = aggRows || [];
+  document.getElementById('tHead').innerHTML =
+    '<tr>' + AGG_COLS.map(c => `<th class="${c.cls}">${c.label}</th>`).join('') + '</tr>';
+
+  const tbody = document.getElementById('tBody');
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="${AGG_COLS.length}" style="padding:20px;text-align:center;color:var(--text3)">No innings found for the selected era(s).</td></tr>`;
+    document.getElementById('pag').innerHTML = '';
+    return;
+  }
+
+  const cell = (r, c) => {
+    const v = r[c.key];
+    if (c.key === 'label') return `<td class="${c.cls}">${v}</td>`;
+    if (c.key === 'avg' || c.key === 'sr') return `<td class="${c.cls}">${v > 0 ? v.toFixed(2) : '—'}</td>`;
+    if (c.key === 'balls') return `<td class="${c.cls}">${v > 0 ? v.toLocaleString() : '—'}</td>`;
+    if (c.key === 'hs') {
+      const credit = r.hsName ? `<span style="display:block;font-size:10px;color:var(--text3);font-weight:400">${r.hsName}</span>` : '';
+      return `<td class="${c.cls}">${v || '—'}${credit}</td>`;
+    }
+    const hl = c.cls.includes('highlight') ? ' highlight' : '';
+    return `<td class="${c.cls}${hl}">${typeof v === 'number' ? v.toLocaleString() : (v ?? '—')}</td>`;
+  };
+
+  let html = rows.map(r => '<tr>' + AGG_COLS.map(c => cell(r, c)).join('') + '</tr>').join('');
+
+  // Combined line when more than one era is on show
+  if (rows.length > 1) {
+    const t = {
+      label: 'All selected eras',
+      players: null, tests: 0, inns: 0, no: 0, runs: 0, balls: 0,
+      fifties: 0, hundreds: 0, hs: 0, hsName: ''
+    };
+    rows.forEach(r => {
+      ['tests','inns','no','runs','balls','fifties','hundreds'].forEach(k => { t[k] += r[k]; });
+      if (r.hs > t.hs) { t.hs = r.hs; t.hsName = r.hsName; }
+    });
+    const outs = t.inns - t.no;
+    t.avg = outs > 0 ? t.runs / outs : 0;
+    t.sr = t.balls > 0 ? (t.runs / t.balls) * 100 : 0;
+    html += '<tr style="font-weight:700;border-top:2px solid var(--border)">' +
+      AGG_COLS.map(c => c.key === 'players'
+        ? '<td class="num" style="color:var(--text3)">—</td>'
+        : cell(t, c)).join('') + '</tr>';
+  }
+
+  tbody.innerHTML = html;
+  document.getElementById('pag').innerHTML = '';
 }
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -951,11 +1162,12 @@ function renderTags() {
   const tags = [];
   const x = '<svg viewBox="0 0 24 24" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
 
+  if (aggregateMode) tags.push(`<span class="fp-tag" onclick="document.getElementById('fMode').value='players';applyFilters()">All players ${x}</span>`);
+  f.eras.forEach(e => {
+    tags.push(`<span class="fp-tag" onclick="document.querySelector('#msEra-drop input[value=\\'${e}\\']').checked=false;applyFilters()">${ERA_LABEL[e] || e} ${x}</span>`);
+  });
+  if (!aggregateMode) {
   if (f.country)  tags.push(`<span class="fp-tag" onclick="document.getElementById('fCountry').value='';applyFilters()">${f.country} ${x}</span>`);
-  if (f.era) {
-    const label = f.era === 'pre1950' ? 'Pre-1950' : f.era + 's';
-    tags.push(`<span class="fp-tag" onclick="document.getElementById('fEra').value='';applyFilters()">${label} ${x}</span>`);
-  }
   if (f.pos) {
     const posLabels = {'1-3':'Top order','4-5':'Middle order','6-7':'Lower middle','8-11':'Tail'};
     tags.push(`<span class="fp-tag" onclick="document.getElementById('fPos').value='';applyFilters()">${posLabels[f.pos]||f.pos} ${x}</span>`);
@@ -969,6 +1181,7 @@ function renderTags() {
   f.opponents.forEach(o => {
     tags.push(`<span class="fp-tag" onclick="document.querySelector('#msOpp-drop input[value=\\'${o}\\']').checked=false;applyFilters()">vs ${o} ${x}</span>`);
   });
+  }
 
   const box = document.getElementById('tagBox');
   box.innerHTML = tags.join('');
@@ -1003,8 +1216,9 @@ function updateExportButton(activeCount) {
 }
 
 function resetFilters() {
+  document.getElementById('fMode').value = 'players';
   document.getElementById('fCountry').value = '';
-  document.getElementById('fEra').value = '';
+  document.querySelectorAll('#msEra-drop input').forEach(c => c.checked = false);
   document.getElementById('fPos').value = '';
   document.getElementById('fTests').value = '0';
   document.getElementById('fInns').value = '0';
@@ -1028,6 +1242,35 @@ function exportToExcel() {
     return;
   }
   if (!filtered.length) { alert('No data to export.'); return; }
+
+  // All Players view — export the aggregate rows, not the player list
+  if (aggregateMode) {
+    const AGG_EXPORT = [
+      { label:'Era',         fn:r => r.label },
+      { label:'Players',     fn:r => r.players },
+      { label:'Tests',       fn:r => r.tests },
+      { label:'Innings',     fn:r => r.inns },
+      { label:'Not Outs',    fn:r => r.no },
+      { label:'Runs',        fn:r => r.runs },
+      { label:'Balls Faced', fn:r => r.balls || '' },
+      { label:'Average',     fn:r => r.avg ? r.avg.toFixed(2) : '' },
+      { label:'Strike Rate', fn:r => r.sr ? r.sr.toFixed(2) : '' },
+      { label:'HS',          fn:r => r.hs || '' },
+      { label:'HS By',       fn:r => r.hsName || '' },
+      { label:'100s',        fn:r => r.hundreds },
+      { label:'50s',         fn:r => r.fifties }
+    ];
+    const aHeaders = AGG_EXPORT.map(c => c.label);
+    const aRows = (aggRows || []).map(r => AGG_EXPORT.map(c => c.fn(r)));
+    const aws = XLSX.utils.aoa_to_sheet([aHeaders, ...aRows]);
+    aws['!cols'] = AGG_EXPORT.map((c, i) => ({
+      wch: Math.max(c.label.length, ...aRows.map(r => String(r[i]).length)) + 2
+    }));
+    const awb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(awb, aws, 'All Players');
+    XLSX.writeFile(awb, 'cricket-times-batting-all-players.xlsx');
+    return;
+  }
 
   const threshold = +document.getElementById('fContrib').value || 0;
 
@@ -1100,6 +1343,7 @@ function exportToExcel() {
   buildPlayers();
   buildTwoX100();
   buildContribPct();
+  buildBatInnings();
   buildOpponentLookup();
   populateCountries();
   applyFilters();
