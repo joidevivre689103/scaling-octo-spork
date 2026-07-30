@@ -43,14 +43,14 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-he
 
 /* ── CT Nav ── */
 .ct-nav-bar{border-bottom:1px solid var(--border);background:var(--bg);position:sticky;top:0;z-index:100}
-.ct-nav-inner{max-width:1100px;margin:0 auto;display:flex;justify-content:center;gap:0;overflow-x:auto}
+.ct-nav-inner{max-width:1340px;margin:0 auto;display:flex;justify-content:center;gap:0;overflow-x:auto}
 .ct-nav-link{padding:10px 18px;font-family:var(--font-body);font-size:12.5px;letter-spacing:0.8px;text-transform:uppercase;color:var(--text2);text-decoration:none;white-space:nowrap;transition:color 0.2s,border-color 0.2s;border-bottom:2px solid transparent}
 .ct-nav-link:hover{color:var(--accent)}
 .ct-nav-link.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
 
 /* ── Header ── */
 .header{background:var(--surface);padding:22px 32px 18px;border-bottom:1px solid var(--border)}
-.hdr-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between}
+.hdr-inner{max-width:1340px;margin:0 auto;display:flex;align-items:center;justify-content:space-between}
 .brand{display:flex;align-items:center;gap:12px}
 .brand-icon{width:38px;height:38px;background:var(--accent);color:#fff;border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:700;font-size:14px}
 .brand h1{font-family:var(--font-display);font-size:1.25rem;font-weight:600;letter-spacing:-0.3px}
@@ -63,7 +63,7 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-he
 .nav-link.active svg{stroke:#fff}
 
 /* ── Main ── */
-.main{max-width:1100px;margin:0 auto;padding:28px 32px 60px}
+.main{max-width:1340px;margin:0 auto;padding:28px 32px 60px}
 .page-head{margin-bottom:22px}
 .page-title{font-family:var(--font-display);font-size:1.6rem;font-weight:700;letter-spacing:-0.3px}
 .page-desc{font-size:13px;color:var(--text2);margin-top:4px}
@@ -118,7 +118,7 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-he
   line-height:1.5;text-align:left;text-transform:none;letter-spacing:0;white-space:normal;
   box-shadow:0 6px 18px rgba(0,0,0,0.2);pointer-events:none;
 }
-th:first-child th:last-child .fp-note{
+.fp-note{
   grid-column:1/-1;font-family:var(--font-body);font-size:11.5px;
   color:var(--text3);line-height:1.5;margin-top:-2px;
 }
@@ -139,13 +139,15 @@ th:first-child th:last-child .fp-note{
 .tab.on{color:var(--accent);border-bottom-color:var(--accent)}
 
 /* ── Table ── */
+.rec-table thead th:nth-child(2),.rec-table tbody td:nth-child(2){padding-left:12px}
+.rec-table thead th:last-child,.rec-table tbody td:last-child{padding-right:14px}
 .tbl-wrap{overflow-x:auto;background:var(--surface);border:1px solid var(--border);border-top:none;border-radius:0 0 var(--radius) var(--radius)}
 .rec-table{width:100%;border-collapse:collapse;font-size:13px}
-.rec-table thead th{padding:9px 12px;text-align:left;font-size:9.5px;text-transform:uppercase;letter-spacing:0.8px;color:var(--text3);border-bottom:1px solid var(--border);cursor:pointer;white-space:nowrap;user-select:none;background:var(--surface2);position:sticky;top:0}
+.rec-table thead th{padding:9px 8px;text-align:left;font-size:9.5px;text-transform:uppercase;letter-spacing:0.8px;color:var(--text3);border-bottom:1px solid var(--border);cursor:pointer;white-space:nowrap;user-select:none;background:var(--surface2);position:sticky;top:0}
 .rec-table thead th:hover{color:var(--accent)}
 .rec-table thead th.sorted-asc::after{content:' ▲';font-size:8px}
 .rec-table thead th.sorted-desc::after{content:' ▼';font-size:8px}
-.rec-table tbody td{padding:9px 12px;border-bottom:1px solid var(--surface2);vertical-align:middle}
+.rec-table tbody td{padding:9px 8px;border-bottom:1px solid var(--surface2);vertical-align:middle}
 .rec-table tbody tr:hover{background:var(--accent-dim)}
 .rec-table tbody tr:nth-child(even){background:rgba(0,0,0,0.015)}
 .rec-table .rank{color:var(--text3);font-family:var(--font-mono);font-size:11px;width:32px}
@@ -265,7 +267,6 @@ th:first-child th:last-child .fp-note{
             <option value="all">All players (aggregate)</option>
           </select>
         </div>
-        <div class="fp-note" id="fpNote" style="display:none"></div>
         <div class="fp-group" data-dim="1">
           <label>Country</label>
           <div class="ms-wrap" id="msCountry">
@@ -397,6 +398,7 @@ th:first-child th:last-child .fp-note{
           <label>Search player</label>
           <input class="fp-input" id="fSearch" placeholder="Name or country…" oninput="applyFilters()">
         </div>
+        <div class="fp-note" id="fpNote" style="display:none"></div>
         <div class="fp-group" style="display:flex;align-items:flex-end;gap:10px">
           <span class="fp-reset" onclick="resetFilters()">Reset all</span>
           <button id="exportBtn" onclick="exportToExcel()" title="Select at least 2 filters to enable export" style="margin-left:auto;display:inline-flex;align-items:center;gap:6px;padding:7px 14px;font-family:var(--font-body);font-size:12px;font-weight:600;border:1px solid var(--border);border-radius:4px;background:var(--surface);color:var(--text2);cursor:pointer;transition:all 0.15s;" onmouseover="if(!this.disabled){this.style.background='var(--accent-dim)';this.style.color='var(--accent)';this.style.borderColor='var(--accent)'}" onmouseout="if(!this.disabled){this.style.background='var(--surface)';this.style.color='var(--text2)';this.style.borderColor='var(--border)'}">
@@ -1295,11 +1297,14 @@ function applyFilters() {
 function sortFiltered() {
   const ctThreshold = +document.getElementById('fContrib').value || 25;
   filtered.sort((a, b) => {
-    if (sortKey === 'contribPct') {
-      const av = getContribCount(a, ctThreshold), bv = getContribCount(b, ctThreshold);
-      return sortDir === 'asc' ? av - bv : bv - av;
-    }
     let av, bv;
+    if (sortKey === 'contribPct') {
+      av = getContribCount(a, ctThreshold);
+      bv = getContribCount(b, ctThreshold);
+    } else {
+      av = a[sortKey] ?? 0;
+      bv = b[sortKey] ?? 0;
+    }
     if (typeof av === 'string') return sortDir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av);
     return sortDir === 'asc' ? av - bv : bv - av;
   });
