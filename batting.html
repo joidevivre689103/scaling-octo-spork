@@ -846,37 +846,56 @@ function resolveBazball() {
    carries separate batting and bowling rows for the same innings.
    ────────────────────────────────────────────────────────────────────────── */
 let BAT_INNS = [];
+let APPEAR = [];   // one entry per (player, match) — matches PLAYED, not batted
 
-function buildBatInnings() {
-  BAT_INNS = [];
-  if (!D.S || !D.M) return;
-  const seen = new Set();
-  for (const s of D.S) {
-    const mid = s[0], pid = s[1], slot = s[2], runs = s[3], notOut = s[4];
-    if (!mid || !pid || slot == null || slot < 1 || slot > 4) continue;
-    if (notOut === null || notOut === undefined) continue;   // did not bat
-    if (typeof runs !== 'number') continue;
-    const key = pid + '_' + mid + '_' + slot;
-    if (seen.has(key)) continue;
-    seen.add(key);
-    const m = D.M[mid];
-    if (!m) continue;
-    const y = m[7];
-    if (typeof y !== 'number' || !y) continue;
+/* Which era / venue / Bazball buckets one (player, match) pairing falls into.
+   Shared by the innings index and the appearance index so they can never
+   disagree about where a match belongs. */
+function bucketsFor(pid, mid, m) {
+  const inWindow = !!(BAZBALL && mid >= BAZBALL.fromTest && mid <= BAZBALL.toTest);
+  const engTest = inWindow && (m[2] === BAZBALL.ENG || m[3] === BAZBALL.ENG);
+  const isEng = PID_COUNTRY[pid] === 'England';
+  return {
+    era: eraKeyForYear(m[7]), year: m[7], ha: haFor(pid, m),
     // Three Bazball views of the same window:
     //   baz    — England's own batsmen in England's Tests
     //   bazVs  — their opponents in those same Tests
     //   bazAll — every Test played anywhere in the window (the control group)
-    const inWindow = !!(BAZBALL && mid >= BAZBALL.fromTest && mid <= BAZBALL.toTest);
-    const engTest = inWindow && (m[2] === BAZBALL.ENG || m[3] === BAZBALL.ENG);
-    const isEng = PID_COUNTRY[pid] === 'England';
-    const baz = engTest && isEng, bazVs = engTest && !isEng, bazAll = inWindow;
-    BAT_INNS.push({
-      era: eraKeyForYear(y), pid, mid, runs, year: y, baz, bazVs, bazAll,
-      ha: haFor(pid, m),
-      no: notOut ? 1 : 0,
-      balls: typeof s[5] === 'number' ? s[5] : 0
-    });
+    baz: engTest && isEng, bazVs: engTest && !isEng, bazAll: inWindow
+  };
+}
+
+function buildBatInnings() {
+  BAT_INNS = [];
+  APPEAR = [];
+  if (!D.S || !D.M) return;
+  const seen = new Set();
+  const played = new Set();
+  for (const s of D.S) {
+    const mid = s[0], pid = s[1], slot = s[2], runs = s[3], notOut = s[4];
+    if (!mid || !pid) continue;
+    const m = D.M[mid];
+    if (!m) continue;
+    const y = m[7];
+    if (typeof y !== 'number' || !y) continue;
+
+    // Appearance: one entry per (player, match), whatever he did in it. A Test
+    // can pass without a batsman being needed — Tendulkar played 200 but batted
+    // in 197 — so the Tests column has to count matches played, not innings.
+    const pkey = pid + '_' + mid;
+    if (!played.has(pkey)) {
+      played.add(pkey);
+      APPEAR.push(Object.assign({ pid, mid }, bucketsFor(pid, mid, m)));
+    }
+
+    if (slot == null || slot < 1 || slot > 4) continue;
+    if (notOut === null || notOut === undefined) continue;   // did not bat
+    if (typeof runs !== 'number') continue;
+    const key = pkey + '_' + slot;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    BAT_INNS.push(Object.assign({ pid, mid, runs, no: notOut ? 1 : 0,
+      balls: typeof s[5] === 'number' ? s[5] : 0 }, bucketsFor(pid, mid, m)));
   }
 }
 
@@ -916,6 +935,35 @@ function applyInningsDerivedSR() {
   console.info(`[batting] strike rate recomputed from the innings index: ` +
     `${changed} of ${PLAYERS.length} players differ from D.P, ${noData} have no ball data. ` +
     `Run srAudit() for the breakdown.`);
+}
+
+/* Console helper: the Tests a player appeared in but never batted in.
+   This is exactly the gap between the appearance index and the innings index —
+   the same diff that made era rows total 197 instead of 200. */
+function notBatted(nameFragment) {
+  const q = String(nameFragment || '').toLowerCase();
+  const p = PLAYERS.find(x => (x.fullName || '').toLowerCase().includes(q)
+                           || (x.name || '').toLowerCase().includes(q));
+  if (!p) { console.warn('No player matching "' + nameFragment + '"'); return []; }
+  const batted = new Set(BAT_INNS.filter(r => r.pid === p.id).map(r => r.mid));
+  const played = [...new Set(APPEAR.filter(r => r.pid === p.id).map(r => r.mid))];
+  const missing = played.filter(mid => !batted.has(mid)).sort((a, b) => a - b);
+  console.info(`${p.fullName || p.name}: ${played.length} Tests played, ` +
+    `${batted.size} with an innings, ${missing.length} without. ` +
+    `D.P career Tests = ${p.tests}.`);
+  const rows = missing.map(mid => {
+    const m = D.M[mid] || {};
+    return {
+      test: mid,
+      year: m[7],
+      match: (D.T && D.T[m[2]] ? D.T[m[2]] : '?') + ' v ' + (D.T && D.T[m[3]] ? D.T[m[3]] : '?'),
+      ground: (D.G && D.G[m[1]]) || '?',
+      city: (D.C && D.C[m[0]]) || '?',
+      result: (D.R && D.R[m[8]]) || '?'
+    };
+  });
+  console.table(rows);
+  return rows;
 }
 
 /* Console helper: where the recomputed SR parts company with D.P's, worst first. */
@@ -1010,6 +1058,14 @@ function slicedPlayers(f) {
   groups.forEach(eraKey => {
     const inEra = eraKey === null ? (() => true)
       : (BAZ_FLAG[eraKey] ? (r => r[BAZ_FLAG[eraKey]]) : (r => r.era === eraKey));
+    // Matches played in this bucket, counted from appearances rather than
+    // innings — a Test in which he never got to the crease still counts.
+    const played = new Map();
+    APPEAR.forEach(r => {
+      if (!inEra(r) || !haOk(r)) return;
+      if (!played.has(r.pid)) played.set(r.pid, new Set());
+      played.get(r.pid).add(r.mid);
+    });
     const acc = new Map();
     BAT_INNS.forEach(r => {
       if (!inEra(r) || !haOk(r)) return;
@@ -1034,8 +1090,10 @@ function slicedPlayers(f) {
       let twoX = 0;
       a.perMatch.forEach(v => { if (v >= 2) twoX++; });
       const outs = a.inns - a.no;
+      const playedSet = played.get(p.id);
       out.push(Object.assign({}, p, {
-        tests: a.tests.size, inns: a.inns, no: a.no, runs: a.runs,
+        tests: Math.max(a.tests.size, playedSet ? playedSet.size : 0),
+        inns: a.inns, no: a.no, runs: a.runs,
         balls: a.balls, ballsRuns: a.ballsRuns, ballsInns: 0,
         hs: a.hs, fifties: a.fifties, hundreds: a.hundreds, doubles: a.doubles, twoX100: twoX,
         from: a.from, to: a.to,

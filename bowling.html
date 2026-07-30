@@ -619,6 +619,7 @@ function resolveBazball(){
    37.0 rather than the correct 37.4.
    ─────────────────────────────────────────────────────────────────────── */
 let BOWL_INNS=[];
+let APPEAR=[];   // one entry per (player, match) — matches PLAYED, not bowled in
 
 function oversToBalls(o){
   if(typeof o!=='number'||!(o>0)) return 0;
@@ -629,39 +630,57 @@ function oversToBalls(o){
 function ballsToOvers(b){ return Math.floor(b/6)+(b%6)/10; }
 function fmtOvers(b){ return b>0 ? (Math.floor(b/6)+'.'+(b%6)) : '0'; }
 
+/* Which era / venue / Bazball buckets one (player, match) pairing falls into. */
+function bucketsFor(pid,mid,m){
+  const inWindow=!!(BAZBALL&&mid>=BAZBALL.fromTest&&mid<=BAZBALL.toTest);
+  const engTest=inWindow&&(m[2]===BAZBALL.ENG||m[3]===BAZBALL.ENG);
+  const isEng=PID_COUNTRY[pid]==='England';
+  return {
+    era:eraKeyForYear(m[7]), year:m[7], ha:haFor(pid,m),
+    //   baz    — England's own bowlers in England's Tests
+    //   bazVs  — their opponents in those same Tests
+    //   bazAll — every Test played anywhere in the window
+    baz:engTest&&isEng, bazVs:engTest&&!isEng, bazAll:inWindow
+  };
+}
+
 function buildBowlInnings(){
   BOWL_INNS=[];
+  APPEAR=[];
   if(!D.S||!D.M) return;
   const best=new Map();                      // pid_mid_slot → row with most overs
+  const played=new Set();
   for(const s of D.S){
     const mid=s[0],pid=s[1],slot=s[2];
-    if(!mid||!pid||slot==null||slot<1||slot>4) continue;
+    if(!mid||!pid) continue;
+    const m=D.M[mid]; if(!m) continue;
+    const y=m[7]; if(typeof y!=='number'||!y) continue;
+
+    // Appearance: one per (player, match). Tests played is not the same as
+    // Tests bowled in — a part-timer plays far more than he bowls.
+    const pkey=pid+'_'+mid;
+    if(!played.has(pkey)){
+      played.add(pkey);
+      APPEAR.push(Object.assign({pid,mid},bucketsFor(pid,mid,m)));
+    }
+
+    if(slot==null||slot<1||slot>4) continue;
     const o=typeof s[6]==='number'?s[6]:0;
     if(!(o>0)) continue;                     // did not bowl in this innings
-    const key=pid+'_'+mid+'_'+slot;
+    const key=pkey+'_'+slot;
     const prev=best.get(key);
     if(!prev||o>prev[6]) best.set(key,s);
   }
   best.forEach(s=>{
     const mid=s[0],pid=s[1];
     const m=D.M[mid]; if(!m) return;
-    const y=m[7]; if(typeof y!=='number'||!y) return;
-    // Three Bazball views of the same window:
-    //   baz    — England's own bowlers in England's Tests
-    //   bazVs  — their opponents in those same Tests
-    //   bazAll — every Test played anywhere in the window (the control group)
-    const inWindow=!!(BAZBALL&&mid>=BAZBALL.fromTest&&mid<=BAZBALL.toTest);
-    const engTest=inWindow&&(m[2]===BAZBALL.ENG||m[3]===BAZBALL.ENG);
-    const isEng=PID_COUNTRY[pid]==='England';
-    const baz=engTest&&isEng, bazVs=engTest&&!isEng, bazAll=inWindow;
-    BOWL_INNS.push({
-      era:eraKeyForYear(y), pid, mid, year:y, baz, bazVs, bazAll,
-      ha:haFor(pid,m),
+    BOWL_INNS.push(Object.assign({
+      pid, mid,
       balls:oversToBalls(s[6]),
       mdns:typeof s[7]==='number'?s[7]:0,
       runs:typeof s[8]==='number'?s[8]:0,
       wkts:typeof s[9]==='number'?s[9]:0
-    });
+    },bucketsFor(pid,mid,m)));
   });
 }
 
@@ -728,6 +747,13 @@ function slicedPlayers(f){
   groups.forEach(eraKey=>{
     const inEra = eraKey===null ? (()=>true)
       : (BAZ_FLAG[eraKey] ? (r=>r[BAZ_FLAG[eraKey]]) : (r=>r.era===eraKey));
+    // Matches played in this bucket, from appearances not bowling innings
+    const played=new Map();
+    APPEAR.forEach(r=>{
+      if(!inEra(r)||!haOk(r)) return;
+      if(!played.has(r.pid)) played.set(r.pid,new Set());
+      played.get(r.pid).add(r.mid);
+    });
     const acc=new Map();
     BOWL_INNS.forEach(r=>{
       if(!inEra(r)||!haOk(r)) return;
@@ -751,8 +777,10 @@ function slicedPlayers(f){
       if(!a||!a.inns) return;
       let ten=0,x4=0,x5=0;
       a.perMatch.forEach(v=>{ if(v.w>=10) ten++; if(v.i4>=2) x4++; if(v.i5>=2) x5++; });
+      const playedSet=played.get(p.id);
       out.push(Object.assign({},p,{
-        tests:a.tests.size, bowlTests:a.tests.size, innings:a.inns,
+        tests: Math.max(a.tests.size, playedSet?playedSet.size:0),
+        bowlTests:a.tests.size, innings:a.inns,
         overs:+(Math.floor(a.balls/6)+(a.balls%6)/10).toFixed(1),
         maidens:a.mdns, bowlRuns:a.runs, wkts:a.wkts,
         bowlAvg: a.wkts>0 ? a.runs/a.wkts : 0,
