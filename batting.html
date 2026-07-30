@@ -362,22 +362,6 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-he
           </select>
         </div>
         <div class="fp-group" data-dim="1">
-          <label>Min % Contribution/Inn</label>
-          <select class="fp-select" id="fContrib" onchange="applyFilters()">
-            <option value="25" selected>&ge; 25%</option>
-            <option value="30">&ge; 30%</option>
-            <option value="35">&ge; 35%</option>
-            <option value="40">&ge; 40%</option>
-            <option value="45">&ge; 45%</option>
-            <option value="50">&ge; 50%</option>
-            <option value="55">&ge; 55%</option>
-            <option value="60">&ge; 60%</option>
-            <option value="65">&ge; 65%</option>
-            <option value="70">&ge; 70%</option>
-            <option value="75">&ge; 75%</option>
-          </select>
-        </div>
-        <div class="fp-group" data-dim="1">
           <label>Min Strike Rate</label>
           <select class="fp-select" id="fSR" onchange="applyFilters()">
             <option value="0">No minimum</option>
@@ -522,61 +506,7 @@ function buildTwoX100() {
   PLAYERS.forEach(p => { if (p.twoX100 == null) p.twoX100 = 0; });
 }
 
-/* ──────────────────────────────────────────────────────────────────────────
-   Build per-player innings contribution data.
-   Stores contribInns: array of per-innings contribution % values (runs/teamTotal*100).
-   Deduplicates by (matchId, inningsSlot) per player — D.S can have multiple
-   rows per player per innings (batting + bowling entries).
-   D.S layout: s[0]=matchId, s[1]=playerId, s[2]=inningsSlot(1-4), s[3]=runs
-   D.M layout: m[17]=inn1 total, m[18]=inn2 total, m[19]=inn3 total, m[20]=inn4 total
-   ────────────────────────────────────────────────────────────────────────── */
-function buildContribPct() {
-  if (!D.S || !D.M) return;
 
-  // Per player: collect unique (mid, slot) → runs (take first occurrence)
-  const seen = new Map(); // key: pid → Map of "mid_slot" → runs
-
-  for (const s of D.S) {
-    const mid = s[0], pid = s[1], slot = s[2], runs = s[3], notOut = s[4];
-    if (!mid || !pid || slot == null || typeof runs !== 'number') continue;
-    if (slot < 1 || slot > 4) continue; // only valid innings slots
-    if (notOut === null || notOut === undefined) continue; // did not bat
-
-    if (!seen.has(pid)) seen.set(pid, new Map());
-    const innsMap = seen.get(pid);
-    const key = mid + '_' + slot;
-    if (innsMap.has(key)) continue; // already recorded this innings for this player
-    innsMap.set(key, { mid, slot, runs });
-  }
-
-  // Now compute contribution % for each unique innings
-  const contrib = new Map(); // pid → [pct, pct, ...]
-
-  for (const [pid, innsMap] of seen) {
-    for (const { mid, slot, runs } of innsMap.values()) {
-      const match = D.M[mid] || D.M[String(mid)];
-      if (!match) continue;
-      const teamTotal = match[16 + slot]; // m[17..20], slot is 1-based
-      if (!teamTotal || teamTotal <= 0) continue;
-      if (!contrib.has(pid)) contrib.set(pid, []);
-      contrib.get(pid).push((runs / teamTotal) * 100);
-    }
-  }
-
-  // Attach raw innings pct array to each player
-  const pidMap = new Map(PLAYERS.map(p => [p.id, p]));
-  for (const [pid, inns] of contrib) {
-    const p = pidMap.get(+pid) || pidMap.get(pid);
-    if (p) p.contribInns = inns;
-  }
-  PLAYERS.forEach(p => { if (!p.contribInns) p.contribInns = []; });
-}
-
-/* Return count of innings where contribution >= threshold % */
-function getContribCount(player, threshold) {
-  if (!player.contribInns || !player.contribInns.length) return 0;
-  return player.contribInns.filter(pct => pct >= threshold).length;
-}
 
 /* ──────────────────────────────────────────────────────────────────────────
    Build per-player opponent lookup from D.S + D.P
@@ -837,7 +767,6 @@ function haFor(pid, m) {
   return 'away';
 }
 
-const CT_TIP = 'Innings in which the batsman made at least the selected share of his team\u2019s total for that innings \u2014 a measure of how often he carried the innings. The threshold starts at 25%; lower it and the count simply approaches his innings played.';
 const DBL_TIP = 'Double centuries \u2014 innings of 200 or more. Triple hundreds and the one score of 400 are counted here too, so this is \u201creached 200\u201d rather than \u201cscored 200\u2013299\u201d.';
 
 /* Career double-hundred counts, taken from the deduped innings index so the
@@ -848,17 +777,6 @@ function applyDoubles() {
   PLAYERS.forEach(p => { p.doubles = c.get(p.id) || 0; });
 }
 
-/* Per-innings contribution percentages, from the same index — one source, so
-   the career column, the era rows and the venue slices can never disagree. */
-function applyContrib() {
-  const m = new Map();
-  BAT_INNS.forEach(r => {
-    if (r.contrib == null) return;
-    if (!m.has(r.pid)) m.set(r.pid, []);
-    m.get(r.pid).push(r.contrib);
-  });
-  PLAYERS.forEach(p => { p.contribInns = m.get(p.id) || []; });
-}
 
 function eraKeyForYear(y) {
   if (y < 1950) return 'pre1950';
@@ -924,7 +842,7 @@ function resolveBazball() {
    is built from D.S instead: one entry per batting innings, bucketed by the
    YEAR THE INNINGS WAS PLAYED. Era rows therefore partition the record —
    they sum to the all-time totals rather than overlapping.
-   Dedupes (matchId, slot) per player, as buildContribPct does, because D.S
+   Dedupes (matchId, slot) per player, because D.S
    carries separate batting and bowling rows for the same innings.
    ────────────────────────────────────────────────────────────────────────── */
 let BAT_INNS = [];
@@ -956,8 +874,6 @@ function buildBatInnings() {
     BAT_INNS.push({
       era: eraKeyForYear(y), pid, mid, runs, year: y, baz, bazVs, bazAll,
       ha: haFor(pid, m),
-      // share of the team's innings total, m[17..20] by slot (1-based)
-      contrib: (m[16 + slot] > 0) ? (runs / m[16 + slot]) * 100 : null,
       no: notOut ? 1 : 0,
       balls: typeof s[5] === 'number' ? s[5] : 0
     });
@@ -1100,15 +1016,13 @@ function slicedPlayers(f) {
       let a = acc.get(r.pid);
       if (!a) {
         a = { tests: new Set(), inns: 0, no: 0, runs: 0, balls: 0, ballsRuns: 0,
-              hs: 0, fifties: 0, hundreds: 0, doubles: 0, from: 9999, to: 0,
-              perMatch: new Map(), contrib: [] };
+              hs: 0, fifties: 0, hundreds: 0, doubles: 0, from: 9999, to: 0, perMatch: new Map() };
         acc.set(r.pid, a);
       }
       a.tests.add(r.mid); a.inns++; a.no += r.no; a.runs += r.runs;
       if (r.balls > 0) { a.balls += r.balls; a.ballsRuns += r.runs; }
       if (r.runs > a.hs) a.hs = r.runs;
       if (r.runs >= 200) a.doubles++;
-      if (r.contrib != null) a.contrib.push(r.contrib);
       if (r.runs >= 100) { a.hundreds++; a.perMatch.set(r.mid, (a.perMatch.get(r.mid) || 0) + 1); }
       else if (r.runs >= 50) a.fifties++;
       if (r.year < a.from) a.from = r.year;
@@ -1127,7 +1041,7 @@ function slicedPlayers(f) {
         from: a.from, to: a.to,
         avg: outs > 0 ? a.runs / outs : 0,
         sr: a.balls > 0 ? (a.ballsRuns / a.balls) * 100 : 0,
-        mom: null, contribInns: a.contrib, _sliced: true,
+        mom: null, _sliced: true,
         _eraLabel: eraKey ? (ERA_LABEL[eraKey] || eraKey) : null
       }));
     });
@@ -1219,7 +1133,6 @@ function getFilters() {
     eras:     getMSValues('msEra'),
     countries: getMSValues('msCountry'),
     ha:       document.getElementById('fHA').value,
-    contrib:  +document.getElementById('fContrib').value || 25,
     pos:      document.getElementById('fPos').value,
     tests:    +document.getElementById('fTests').value,
     inns:     +document.getElementById('fInns').value,
@@ -1265,10 +1178,6 @@ function applyFilters() {
     if (f.runs  && p.runs  < f.runs)  return false;
     if (f.avg   && p.avg   < f.avg)   return false;
     if (f.sr    && p.sr    < f.sr)    return false;
-    // Only exclude a player who HAS contribution data and misses the bar —
-    // absent innings totals (older matches) must not read as a failed threshold
-    if (f.contrib && p.contribInns && p.contribInns.length &&
-        getContribCount(p, f.contrib) < 1) return false;
     if (f.search) {
       const q = f.search;
       if (!p.name.toLowerCase().includes(q) && !p.fullName.toLowerCase().includes(q) && !p.country.toLowerCase().includes(q)) return false;
@@ -1295,16 +1204,10 @@ function applyFilters() {
    Sort
    ────────────────────────────────────────────────────────────────────────── */
 function sortFiltered() {
-  const ctThreshold = +document.getElementById('fContrib').value || 25;
   filtered.sort((a, b) => {
     let av, bv;
-    if (sortKey === 'contribPct') {
-      av = getContribCount(a, ctThreshold);
-      bv = getContribCount(b, ctThreshold);
-    } else {
-      av = a[sortKey] ?? 0;
-      bv = b[sortKey] ?? 0;
-    }
+    av = a[sortKey] ?? 0;
+    bv = b[sortKey] ?? 0;
     if (typeof av === 'string') return sortDir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av);
     return sortDir === 'asc' ? av - bv : bv - av;
   });
@@ -1367,8 +1270,7 @@ function getColsRaw() {
       { key:'hundreds',   label:'100s',    cls:'num' },
       { key:'doubles',    label:'200s',    cls:'num', tip:DBL_TIP },
       { key:'twoX100',    label:'2X100S',  cls:'num-center' },
-      { key:'fifties',    label:'50s',     cls:'num' },
-      { key:'contribPct', label:'%Ct/Inn',  cls:'num-center', tip:CT_TIP }
+      { key:'fifties',    label:'50s',     cls:'num' }
     ];
     case 'average': return [...base,
       { key:'tests',      label:'Tests',   cls:'num' },
@@ -1377,8 +1279,7 @@ function getColsRaw() {
       { key:'runs',       label:'Runs',    cls:'num' },
       { key:'avg',        label:'Avg',     cls:'num highlight' },
       { key:'sr',         label:'SR',      cls:'num', tip:PLAYER_BF_TIP },
-      { key:'hundreds',   label:'100s',    cls:'num' },
-      { key:'contribPct', label:'%Ct/Inn',  cls:'num-center', tip:CT_TIP }
+      { key:'hundreds',   label:'100s',    cls:'num' }
     ];
     case 'sr': return [...base,
       { key:'tests',      label:'Tests',   cls:'num' },
@@ -1387,8 +1288,7 @@ function getColsRaw() {
       { key:'balls',      label:'BF',      cls:'num', tip:PLAYER_BF_TIP },
       { key:'sr',         label:'SR',      cls:'num highlight', tip:PLAYER_BF_TIP },
       { key:'avg',        label:'Avg',     cls:'num' },
-      { key:'hundreds',   label:'100s',    cls:'num' },
-      { key:'contribPct', label:'%Ct/Inn',  cls:'num-center', tip:CT_TIP }
+      { key:'hundreds',   label:'100s',    cls:'num' }
     ];
     case 'milestones': return [...base,
       { key:'tests',      label:'Tests',   cls:'num' },
@@ -1399,16 +1299,14 @@ function getColsRaw() {
       { key:'doubles',    label:'200s',    cls:'num', tip:DBL_TIP },
       { key:'twoX100',    label:'2X100S',  cls:'num-center' },
       { key:'fifties',    label:'50s',     cls:'num' },
-      { key:'avg',        label:'Avg',     cls:'num' },
-      { key:'contribPct', label:'%Ct/Inn',  cls:'num-center', tip:CT_TIP }
+      { key:'avg',        label:'Avg',     cls:'num' }
     ];
     case 'mom': return [...base,
       { key:'tests',      label:'Tests',   cls:'num' },
       { key:'inns',       label:'Inns',    cls:'num' },
       { key:'runs',       label:'Runs',    cls:'num' },
       { key:'avg',        label:'Avg',     cls:'num' },
-      { key:'mom',        label:'MoM',     cls:'num highlight' },
-      { key:'contribPct', label:'%Ct/Inn',  cls:'num-center', tip:CT_TIP }
+      { key:'mom',        label:'MoM',     cls:'num highlight' }
     ];
   }
 }
@@ -1444,8 +1342,7 @@ function render() {
       }
       if (c.key === 'avg') val = (typeof val === 'number' && val > 0) ? val.toFixed(2) : '—';
       if (c.key === 'runs' && typeof val === 'number') val = val.toLocaleString();
-      if (c.key === 'contribPct') val = getContribCount(p, +document.getElementById('fContrib').value || 25);
-      if (val === 0 && (c.key === 'hundreds' || c.key === 'doubles' || c.key === 'twoX100' || c.key === 'fifties' || c.key === 'mom' || c.key === 'contribPct')) val = '0';
+      if (val === 0 && (c.key === 'hundreds' || c.key === 'doubles' || c.key === 'twoX100' || c.key === 'fifties' || c.key === 'mom')) val = '0';
       const hl = c.cls.includes('highlight') ? ' highlight' : '';
       return `<td class="${c.cls}${hl}">${val ?? '—'}</td>`;
     }).join('') + '</tr>';
@@ -1625,7 +1522,6 @@ function renderTags() {
   if (f.inns)   tags.push(`<span class="fp-tag" onclick="document.getElementById('fInns').value='0';applyFilters()">Inns ≥${f.inns} ${x}</span>`);
   if (f.runs)   tags.push(`<span class="fp-tag" onclick="document.getElementById('fRuns').value='0';applyFilters()">Runs ≥${f.runs.toLocaleString()} ${x}</span>`);
   if (f.avg)    tags.push(`<span class="fp-tag" onclick="document.getElementById('fAvg').value='0';applyFilters()">Avg ≥${f.avg} ${x}</span>`);
-  if (f.contrib && f.contrib !== 25) tags.push(`<span class="fp-tag" onclick="document.getElementById('fContrib').value='25';applyFilters()">%Ct/Inn \u2265${f.contrib}% ${x}</span>`);
   if (f.sr)     tags.push(`<span class="fp-tag" onclick="document.getElementById('fSR').value='0';applyFilters()">SR ≥${f.sr} ${x}</span>`);
   f.opponents.forEach(o => {
     tags.push(`<span class="fp-tag" onclick="document.querySelector('#msOpp-drop input[value=\\'${o}\\']').checked=false;applyFilters()">vs ${o} ${x}</span>`);
@@ -1675,7 +1571,6 @@ function resetFilters() {
   document.getElementById('fRuns').value = '0';
   document.getElementById('fAvg').value = '0';
   document.getElementById('fSR').value = '0';
-  document.getElementById('fContrib').value = '25';
   document.getElementById('fSearch').value = '';
   document.querySelectorAll('#msOpp-drop input').forEach(c => c.checked = false);
   applyFilters();
@@ -1742,8 +1637,6 @@ function exportToExcel() {
     { label:'100s',               fn:p => p.hundreds ?? '' },
     { label:'2x100s',             fn:p => p.twoX100 ?? '' },
     { label:'50s',                fn:p => p.fifties ?? '' },
-    { label:'%Ct/Inn (\u2265' + (+document.getElementById('fContrib').value || 25) + '%)',
-      fn:p => getContribCount(p, +document.getElementById('fContrib').value || 25) },
     { label:'MoM',                fn:p => p.mom ?? '' },
     { label:'Bowl Type',          fn:p => p.bowlType || '' },
     { label:'Bat Hand',           fn:p => p.batHand || '' }
@@ -1796,12 +1689,9 @@ function exportToExcel() {
   }
   buildPlayers();
   buildTwoX100();
-  // buildContribPct() not called — the %Ct/Inn column was removed (bad data).
-  // The function is left in place should the underlying figures be fixed.
   resolveBazball();
   buildBatInnings();
   applyDoubles();
-  applyContrib();
   buildBazballSet();
   applyInningsDerivedSR();
   buildOpponentLookup();
