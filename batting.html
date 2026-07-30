@@ -108,23 +108,17 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-he
   border:1px solid currentColor;font-size:8.5px;line-height:1;
   font-weight:700;opacity:0.6;font-family:var(--font-body);
 }
-.th-info .th-tip{
-  position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);
-  width:210px;padding:8px 10px;z-index:20;
-  background:var(--text,#1a1a1a);color:#fff;
-  border-radius:5px;font-family:var(--font-body);font-size:11px;font-weight:400;
-  line-height:1.45;text-align:left;text-transform:none;letter-spacing:0;
-  opacity:0;visibility:hidden;transition:opacity 0.15s;
-  box-shadow:0 4px 14px rgba(0,0,0,0.18);white-space:normal;
+/* Header tooltips are rendered into <body> as a fixed-position box: the table
+   lives inside .tbl-wrap{overflow-x:auto}, and a container that scrolls on one
+   axis clips the other, so an absolutely-positioned bubble gets cut off — above
+   the header always, and below it whenever the table is only a row or two tall. */
+.th-tipbox{
+  position:fixed;z-index:9999;display:none;width:240px;padding:9px 11px;
+  border-radius:5px;font-family:var(--font-body,inherit);font-size:11px;font-weight:400;
+  line-height:1.5;text-align:left;text-transform:none;letter-spacing:0;white-space:normal;
+  box-shadow:0 6px 18px rgba(0,0,0,0.2);pointer-events:none;
 }
-.th-info .th-tip::after{
-  content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);
-  border:5px solid transparent;border-top-color:var(--text,#1a1a1a);
-}
-.th-info:hover .th-tip{opacity:1;visibility:visible}
-th:first-child .th-info .th-tip{left:0;transform:none}
-th:last-child .th-info .th-tip{left:auto;right:0;transform:none}
-.fp-note{
+th:first-child th:last-child .fp-note{
   grid-column:1/-1;font-family:var(--font-body);font-size:11.5px;
   color:var(--text3);line-height:1.5;margin-top:-2px;
 }
@@ -274,8 +268,18 @@ th:last-child .th-info .th-tip{left:auto;right:0;transform:none}
         <div class="fp-note" id="fpNote" style="display:none"></div>
         <div class="fp-group" data-dim="1">
           <label>Country</label>
-          <select class="fp-select" id="fCountry" onchange="applyFilters()">
-            <option value="">All countries</option>
+          <div class="ms-wrap" id="msCountry">
+            <button class="ms-btn" type="button" onclick="toggleMS('msCountry')">All countries</button>
+            <div class="ms-drop" id="msCountry-drop"></div>
+          </div>
+        </div>
+        <div class="fp-group" data-dim="1">
+          <label>Home / Away</label>
+          <select class="fp-select" id="fHA" onchange="applyFilters()">
+            <option value="">All venues</option>
+            <option value="home">Home</option>
+            <option value="away">Away</option>
+            <option value="neutral">Neutral</option>
           </select>
         </div>
         <div class="fp-group">
@@ -357,6 +361,22 @@ th:last-child .th-info .th-tip{left:auto;right:0;transform:none}
           </select>
         </div>
         <div class="fp-group" data-dim="1">
+          <label>Min % Contribution/Inn</label>
+          <select class="fp-select" id="fContrib" onchange="applyFilters()">
+            <option value="25" selected>&ge; 25%</option>
+            <option value="30">&ge; 30%</option>
+            <option value="35">&ge; 35%</option>
+            <option value="40">&ge; 40%</option>
+            <option value="45">&ge; 45%</option>
+            <option value="50">&ge; 50%</option>
+            <option value="55">&ge; 55%</option>
+            <option value="60">&ge; 60%</option>
+            <option value="65">&ge; 65%</option>
+            <option value="70">&ge; 70%</option>
+            <option value="75">&ge; 75%</option>
+          </select>
+        </div>
+        <div class="fp-group" data-dim="1">
           <label>Min Strike Rate</label>
           <select class="fp-select" id="fSR" onchange="applyFilters()">
             <option value="0">No minimum</option>
@@ -372,23 +392,6 @@ th:last-child .th-info .th-tip{left:auto;right:0;transform:none}
             <button class="ms-btn" type="button" onclick="toggleMS('msOpp')">All opponents</button>
             <div class="ms-drop" id="msOpp-drop"></div>
           </div>
-        </div>
-        <div class="fp-group" data-dim="1">
-          <label>Min % Contribution/Inn</label>
-          <select class="fp-select" id="fContrib" onchange="applyFilters()">
-            <option value="0" selected>No minimum (≥ 0%)</option>
-            <option value="25">≥ 25%</option>
-            <option value="30">≥ 30%</option>
-            <option value="35">≥ 35%</option>
-            <option value="40">≥ 40%</option>
-            <option value="45">≥ 45%</option>
-            <option value="50">≥ 50%</option>
-            <option value="55">≥ 55%</option>
-            <option value="60">≥ 60%</option>
-            <option value="65">≥ 65%</option>
-            <option value="70">≥ 70%</option>
-            <option value="75">≥ 75%</option>
-          </select>
         </div>
         <div class="fp-group" data-dim="1" style="grid-column:span 2">
           <label>Search player</label>
@@ -637,6 +640,7 @@ let currentTab   = 'runs';
 let filtered     = [];
 let aggregateMode = false;   // "All players" — one aggregate row per era
 let aggRows       = null;    // rows for that view
+let sliced        = false;   // figures rebuilt from the innings index
 
 /* Grey out everything the aggregate view can't honour, and say why. */
 function syncModeUI(f) {
@@ -687,8 +691,13 @@ function populateCountries() {
   const set = new Set();
   PLAYERS.forEach(p => { if (p.country) set.add(p.country); });
   const arr = [...set].sort();
-  const sel = document.getElementById('fCountry');
-  arr.forEach(c => { const o = document.createElement('option'); o.value = c; o.textContent = c; sel.appendChild(o); });
+  const cdrop = document.getElementById('msCountry-drop');
+  arr.forEach(c => {
+    const d = document.createElement('div');
+    d.className = 'ms-opt';
+    d.innerHTML = `<input type="checkbox" value="${c}" onchange="applyFilters()"><span>${c}</span>`;
+    cdrop.appendChild(d);
+  });
 
   // Opponents multi-select
   const drop = document.getElementById('msOpp-drop');
@@ -713,7 +722,7 @@ function getMSValues(id) {
   const checks = document.querySelectorAll(`#${id}-drop input:checked`);
   return [...checks].map(c => c.value);
 }
-const MS_EMPTY = { msOpp: 'All opponents', msEra: 'All eras' };
+const MS_EMPTY = { msOpp: 'All opponents', msEra: 'All eras', msCountry: 'All countries' };
 function updateMSLabel(id) {
   const checks = [...document.querySelectorAll(`#${id}-drop input:checked`)];
   const btn = document.querySelector(`#${id} .ms-btn`);
@@ -726,8 +735,15 @@ function updateMSLabel(id) {
 /* ──────────────────────────────────────────────────────────────────────────
    Stat cards
    ────────────────────────────────────────────────────────────────────────── */
+function credit(p) { return (p.name || p.fullName) + (p._eraLabel ? ' · ' + p._eraLabel : ''); }
+
 function updateCards() {
-  document.getElementById('scTotal').textContent = filtered.length.toLocaleString();
+  const distinct = eraSplit() ? new Set(filtered.map(p => p.id)).size : filtered.length;
+  document.getElementById('scTotal').textContent = distinct.toLocaleString();
+  const subEl = document.querySelector('#scTotal + .scard-sub');
+  if (subEl) subEl.textContent = eraSplit()
+    ? `matching filters · ${filtered.length.toLocaleString()} era rows`
+    : 'matching filters';
 
   if (filtered.length === 0) {
     ['scAvg','scRuns','sc100','scHS','scSR'].forEach(id => document.getElementById(id).textContent = '—');
@@ -740,18 +756,18 @@ function updateCards() {
   if (qual.length) {
     const byAvg = [...qual].sort((a,b) => b.avg - a.avg)[0];
     document.getElementById('scAvg').textContent = byAvg.avg.toFixed(2);
-    document.getElementById('scAvgSub').textContent = byAvg.name;
+    document.getElementById('scAvgSub').textContent = credit(byAvg);
   }
 
   // Most Runs
   const byRuns = [...filtered].sort((a,b) => b.runs - a.runs)[0];
   document.getElementById('scRuns').textContent = byRuns.runs.toLocaleString();
-  document.getElementById('scRunsSub').textContent = byRuns.name;
+  document.getElementById('scRunsSub').textContent = credit(byRuns);
 
   // Most Centuries
   const by100 = [...filtered].sort((a,b) => b.hundreds - a.hundreds)[0];
   document.getElementById('sc100').textContent = by100.hundreds;
-  document.getElementById('sc100Sub').textContent = by100.name;
+  document.getElementById('sc100Sub').textContent = credit(by100);
 
   // Highest Score — need to parse HS from D.P; for now use runs in a single innings isn't available
   // HS isn't in our player object yet — we need to check if it's in D.P
@@ -763,7 +779,7 @@ function updateCards() {
   if (filtered[0].hs !== undefined) {
     const byHS = [...filtered].sort((a,b) => b.hs - a.hs)[0];
     document.getElementById('scHS').textContent = byHS.hs;
-    document.getElementById('scHSSub').textContent = byHS.name;
+    document.getElementById('scHSSub').textContent = credit(byHS);
   } else {
     document.getElementById('scHS').textContent = '—';
     document.getElementById('scHSSub').textContent = '';
@@ -777,7 +793,7 @@ function updateCards() {
   if (srQual.length) {
     const bySR = [...srQual].sort((a,b) => b.sr - a.sr)[0];
     document.getElementById('scSR').textContent = Number(bySR.sr).toFixed(2);
-    document.getElementById('scSRSub').textContent = bySR.name;
+    document.getElementById('scSRSub').textContent = credit(bySR);
   } else {
     document.getElementById('scSR').textContent = '—';
     document.getElementById('scSRSub').textContent = '';
@@ -805,6 +821,42 @@ const ERA_LIST = ['pre1950','1950','1960','1970','1980','1990','2000','2010','20
 const ERA_LABEL = {pre1950:'Pre-1950','1950':'1950s','1960':'1960s','1970':'1970s','1980':'1980s',
                    '1990':'1990s','2000':'2000s','2010':'2010s','2020':'2020s',
                    bazball:'Bazball (England)',bazballvs:'Bazball (vs England)',bazballall:'Bazball (all countries)'};
+
+/* Home / away / neutral for one innings, same rule as the compare page:
+   D.M[6] indexes D.L (host country). Playing in your own country is home, a
+   UAE venue is neutral (Pakistan's adopted home), anything else is away. */
+function haFor(pid, m) {
+  const li = m[6];
+  if (li == null || li < 0 || !D.L) return 'neutral';
+  const loc = D.L[li], ctry = PID_COUNTRY[pid];
+  if (!loc || !ctry) return 'neutral';
+  if (ctry === loc) return 'home';
+  if (loc === 'UAE') return 'neutral';
+  return 'away';
+}
+
+const CT_TIP = 'Innings in which the batsman made at least the selected share of his team\u2019s total for that innings \u2014 a measure of how often he carried the innings. The threshold starts at 25%; lower it and the count simply approaches his innings played.';
+const DBL_TIP = 'Double centuries \u2014 innings of 200 or more. Triple hundreds and the one score of 400 are counted here too, so this is \u201creached 200\u201d rather than \u201cscored 200\u2013299\u201d.';
+
+/* Career double-hundred counts, taken from the deduped innings index so the
+   definition matches the sliced and aggregate views exactly. */
+function applyDoubles() {
+  const c = new Map();
+  BAT_INNS.forEach(r => { if (r.runs >= 200) c.set(r.pid, (c.get(r.pid) || 0) + 1); });
+  PLAYERS.forEach(p => { p.doubles = c.get(p.id) || 0; });
+}
+
+/* Per-innings contribution percentages, from the same index — one source, so
+   the career column, the era rows and the venue slices can never disagree. */
+function applyContrib() {
+  const m = new Map();
+  BAT_INNS.forEach(r => {
+    if (r.contrib == null) return;
+    if (!m.has(r.pid)) m.set(r.pid, []);
+    m.get(r.pid).push(r.contrib);
+  });
+  PLAYERS.forEach(p => { p.contribInns = m.get(p.id) || []; });
+}
 
 function eraKeyForYear(y) {
   if (y < 1950) return 'pre1950';
@@ -901,6 +953,9 @@ function buildBatInnings() {
     const baz = engTest && isEng, bazVs = engTest && !isEng, bazAll = inWindow;
     BAT_INNS.push({
       era: eraKeyForYear(y), pid, mid, runs, year: y, baz, bazVs, bazAll,
+      ha: haFor(pid, m),
+      // share of the team's innings total, m[17..20] by slot (1-based)
+      contrib: (m[16 + slot] > 0) ? (runs / m[16 + slot]) * 100 : null,
       no: notOut ? 1 : 0,
       balls: typeof s[5] === 'number' ? s[5] : 0
     });
@@ -1007,6 +1062,80 @@ function buildBazballSet() {
   }
 }
 
+/* ──────────────────────────────────────────────────────────────────────────
+   Innings-level filters (era, home/away) can't be honoured against D.P career
+   totals — filtering to "Home" and then printing a career aggregate would be
+   plainly wrong. When either is active, each player's figures are rebuilt from
+   the matching innings instead. MoM and %Ct/Inn have no per-innings source, so
+   those two columns are hidden while a slice is in force.
+   ────────────────────────────────────────────────────────────────────────── */
+function inningsPredicate(f) {
+  const eras = f.eras || [];
+  const eraOk = eras.length
+    ? (r => eras.some(e => BAZ_FLAG[e] ? r[BAZ_FLAG[e]] : r.era === e))
+    : (() => true);
+  const haOk = f.ha ? (r => r.ha === f.ha) : (() => true);
+  return r => eraOk(r) && haOk(r);
+}
+
+function isSliced(f) { return !!((f.eras && f.eras.length) || f.ha); }
+
+function slicedPlayers(f) {
+  const eras = (f.eras || []).slice().sort((a, b) => ERA_LIST.indexOf(a) - ERA_LIST.indexOf(b));
+  // One pass per selected era → one row per (player, era). With no era ticked
+  // there's a single unnamed group, so the venue filter alone still gives one
+  // row per player.
+  const groups = eras.length ? eras : [null];
+  const haOk = f.ha ? (r => r.ha === f.ha) : (() => true);
+  const out = [];
+
+  groups.forEach(eraKey => {
+    const inEra = eraKey === null ? (() => true)
+      : (BAZ_FLAG[eraKey] ? (r => r[BAZ_FLAG[eraKey]]) : (r => r.era === eraKey));
+    const acc = new Map();
+    BAT_INNS.forEach(r => {
+      if (!inEra(r) || !haOk(r)) return;
+      let a = acc.get(r.pid);
+      if (!a) {
+        a = { tests: new Set(), inns: 0, no: 0, runs: 0, balls: 0, ballsRuns: 0,
+              hs: 0, fifties: 0, hundreds: 0, doubles: 0, from: 9999, to: 0,
+              perMatch: new Map(), contrib: [] };
+        acc.set(r.pid, a);
+      }
+      a.tests.add(r.mid); a.inns++; a.no += r.no; a.runs += r.runs;
+      if (r.balls > 0) { a.balls += r.balls; a.ballsRuns += r.runs; }
+      if (r.runs > a.hs) a.hs = r.runs;
+      if (r.runs >= 200) a.doubles++;
+      if (r.contrib != null) a.contrib.push(r.contrib);
+      if (r.runs >= 100) { a.hundreds++; a.perMatch.set(r.mid, (a.perMatch.get(r.mid) || 0) + 1); }
+      else if (r.runs >= 50) a.fifties++;
+      if (r.year < a.from) a.from = r.year;
+      if (r.year > a.to) a.to = r.year;
+    });
+    PLAYERS.forEach(p => {
+      const a = acc.get(p.id);
+      if (!a || !a.inns) return;
+      let twoX = 0;
+      a.perMatch.forEach(v => { if (v >= 2) twoX++; });
+      const outs = a.inns - a.no;
+      out.push(Object.assign({}, p, {
+        tests: a.tests.size, inns: a.inns, no: a.no, runs: a.runs,
+        balls: a.balls, ballsRuns: a.ballsRuns, ballsInns: 0,
+        hs: a.hs, fifties: a.fifties, hundreds: a.hundreds, doubles: a.doubles, twoX100: twoX,
+        from: a.from, to: a.to,
+        avg: outs > 0 ? a.runs / outs : 0,
+        sr: a.balls > 0 ? (a.ballsRuns / a.balls) * 100 : 0,
+        mom: null, contribInns: a.contrib, _sliced: true,
+        _eraLabel: eraKey ? (ERA_LABEL[eraKey] || eraKey) : null
+      }));
+    });
+  });
+  return out;
+}
+
+/* True when each player is split across more than one era row. */
+function eraSplit() { return sliced && getMSValues('msEra').length >= 2; }
+
 /* Aggregate one bucket of innings into a summary row. */
 /* Innings before 1980 have no balls-faced recorded, so any row drawn only from
    them shows no BF or SR at all. Rows that span the boundary compute SR from
@@ -1016,13 +1145,14 @@ const BALLS_FROM_YEAR = 1980;
 
 function aggregateInnings(list, label) {
   const players = new Set(), tests = new Set();
-  let inns = 0, no = 0, runs = 0, balls = 0, fifties = 0, hundreds = 0, hs = 0, hsPid = null;
+  let inns = 0, no = 0, runs = 0, balls = 0, fifties = 0, hundreds = 0, doubles = 0, hs = 0, hsPid = null;
   let ballsRuns = 0, ballsInns = 0, modernInns = 0;
   list.forEach(r => {
     players.add(r.pid); tests.add(r.mid);
     inns++; no += r.no; runs += r.runs;
     if (r.year >= BALLS_FROM_YEAR) modernInns++;
     if (r.balls > 0) { balls += r.balls; ballsRuns += r.runs; ballsInns++; }
+    if (r.runs >= 200) doubles++;
     if (r.runs >= 100) hundreds++; else if (r.runs >= 50) fifties++;
     if (r.runs > hs) { hs = r.runs; hsPid = r.pid; }
   });
@@ -1034,20 +1164,22 @@ function aggregateInnings(list, label) {
     avg: outs > 0 ? runs / outs : 0,
     sr: balls > 0 ? (ballsRuns / balls) * 100 : 0,
     hs, hsName: hsPid !== null ? (PID_NAME[hsPid] || '') : '',
-    fifties, hundreds
+    fifties, hundreds, doubles
   };
 }
 
 /* Innings belonging to one era key. Bazball is a flag, not a decade bucket. */
 const BAZ_FLAG = { bazball: 'baz', bazballvs: 'bazVs', bazballall: 'bazAll' };
+let _haPred = () => true;   // set by applyFilters; aggregate rows honour Home/Away too
 function inningsForEra(key) {
   const flag = BAZ_FLAG[key];
-  return flag ? BAT_INNS.filter(r => r[flag]) : BAT_INNS.filter(r => r.era === key);
+  return flag ? BAT_INNS.filter(r => r[flag] && _haPred(r))
+              : BAT_INNS.filter(r => r.era === key && _haPred(r));
 }
 
 /* One row per selected era, or a single all-time row when none are picked. */
 function buildAggregateRows(eras) {
-  if (!eras.length) return [aggregateInnings(BAT_INNS, 'All Players')];
+  if (!eras.length) return [aggregateInnings(BAT_INNS.filter(_haPred), 'All Players')];
   return eras
     .slice()
     .sort((a, b) => ERA_LIST.indexOf(a) - ERA_LIST.indexOf(b))
@@ -1082,15 +1214,16 @@ function posMatch(p, pos) {
 function getFilters() {
   return {
     mode:     document.getElementById('fMode').value,
-    country:  document.getElementById('fCountry').value,
     eras:     getMSValues('msEra'),
+    countries: getMSValues('msCountry'),
+    ha:       document.getElementById('fHA').value,
+    contrib:  +document.getElementById('fContrib').value || 25,
     pos:      document.getElementById('fPos').value,
     tests:    +document.getElementById('fTests').value,
     inns:     +document.getElementById('fInns').value,
     runs:     +document.getElementById('fRuns').value,
     avg:      +document.getElementById('fAvg').value,
     sr:       +document.getElementById('fSR').value,
-    contrib:  +document.getElementById('fContrib').value,
     opponents: getMSValues('msOpp'),
     search:   document.getElementById('fSearch').value.trim().toLowerCase()
   };
@@ -1099,8 +1232,11 @@ function getFilters() {
 function applyFilters() {
   updateMSLabel('msOpp');
   updateMSLabel('msEra');
+  updateMSLabel('msCountry');
   const f = getFilters();
   aggregateMode = (f.mode === 'all');
+  sliced = !aggregateMode && isSliced(f);
+  _haPred = f.ha ? (r => r.ha === f.ha) : (() => true);
   syncModeUI(f);
 
   if (aggregateMode) {
@@ -1116,17 +1252,21 @@ function applyFilters() {
   }
 
   aggRows = null;
-  const hasContribData = PLAYERS.some(p => p.contribInns && p.contribInns.length > 0);
-  filtered = PLAYERS.filter(p => {
-    if (f.country && p.country !== f.country) return false;
-    if (!eraMatch(p, f.eras)) return false;
+  // Sliced figures when era / home-away is active, career figures otherwise
+  const base = sliced ? slicedPlayers(f) : PLAYERS;
+  filtered = base.filter(p => {
+    if (f.countries.length && !f.countries.includes(p.country)) return false;
+    if (!sliced && !eraMatch(p, f.eras)) return false;
     if (!posMatch(p, f.pos)) return false;
     if (f.tests && p.tests < f.tests) return false;
     if (f.inns  && p.inns  < f.inns)  return false;
     if (f.runs  && p.runs  < f.runs)  return false;
     if (f.avg   && p.avg   < f.avg)   return false;
     if (f.sr    && p.sr    < f.sr)    return false;
-    if (f.contrib && hasContribData && getContribCount(p, f.contrib) < 1) return false;
+    // Only exclude a player who HAS contribution data and misses the bar —
+    // absent innings totals (older matches) must not read as a failed threshold
+    if (f.contrib && p.contribInns && p.contribInns.length &&
+        getContribCount(p, f.contrib) < 1) return false;
     if (f.search) {
       const q = f.search;
       if (!p.name.toLowerCase().includes(q) && !p.fullName.toLowerCase().includes(q) && !p.country.toLowerCase().includes(q)) return false;
@@ -1153,16 +1293,13 @@ function applyFilters() {
    Sort
    ────────────────────────────────────────────────────────────────────────── */
 function sortFiltered() {
-  const threshold = +document.getElementById('fContrib').value || 0;
+  const ctThreshold = +document.getElementById('fContrib').value || 25;
   filtered.sort((a, b) => {
-    let av, bv;
     if (sortKey === 'contribPct') {
-      av = getContribCount(a, threshold);
-      bv = getContribCount(b, threshold);
-    } else {
-      av = a[sortKey] ?? 0;
-      bv = b[sortKey] ?? 0;
+      const av = getContribCount(a, ctThreshold), bv = getContribCount(b, ctThreshold);
+      return sortDir === 'asc' ? av - bv : bv - av;
     }
+    let av, bv;
     if (typeof av === 'string') return sortDir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av);
     return sortDir === 'asc' ? av - bv : bv - av;
   });
@@ -1195,6 +1332,17 @@ function switchTab(tab) {
    Column definitions per tab
    ────────────────────────────────────────────────────────────────────────── */
 function getCols() {
+  if (!sliced) return getColsRaw();
+  // MoM has no per-innings source; %Ct/Inn does, so it survives a slice
+  const cols = getColsRaw().filter(c => c.key !== 'mom');
+  if (eraSplit()) {
+    const at = cols.findIndex(c => c.key === 'country');
+    cols.splice(at + 1, 0, { key: '_eraLabel', label: 'Era', cls: 'country' });
+  }
+  return cols;
+}
+
+function getColsRaw() {
   const base = [
     { key:'_rank', label:'#',       cls:'rank' },
     { key:'name',  label:'Player',  cls:'player-name' },
@@ -1212,9 +1360,10 @@ function getCols() {
       { key:'avg',        label:'Avg',     cls:'num' },
       { key:'sr',         label:'SR',      cls:'num', tip:PLAYER_BF_TIP },
       { key:'hundreds',   label:'100s',    cls:'num' },
+      { key:'doubles',    label:'200s',    cls:'num', tip:DBL_TIP },
       { key:'twoX100',    label:'2X100S',  cls:'num-center' },
       { key:'fifties',    label:'50s',     cls:'num' },
-      { key:'contribPct', label:'%Ct/Inn',  cls:'num-center' }
+      { key:'contribPct', label:'%Ct/Inn',  cls:'num-center', tip:CT_TIP }
     ];
     case 'average': return [...base,
       { key:'tests',      label:'Tests',   cls:'num' },
@@ -1224,7 +1373,7 @@ function getCols() {
       { key:'avg',        label:'Avg',     cls:'num highlight' },
       { key:'sr',         label:'SR',      cls:'num', tip:PLAYER_BF_TIP },
       { key:'hundreds',   label:'100s',    cls:'num' },
-      { key:'contribPct', label:'%Ct/Inn',  cls:'num-center' }
+      { key:'contribPct', label:'%Ct/Inn',  cls:'num-center', tip:CT_TIP }
     ];
     case 'sr': return [...base,
       { key:'tests',      label:'Tests',   cls:'num' },
@@ -1234,7 +1383,7 @@ function getCols() {
       { key:'sr',         label:'SR',      cls:'num highlight', tip:PLAYER_BF_TIP },
       { key:'avg',        label:'Avg',     cls:'num' },
       { key:'hundreds',   label:'100s',    cls:'num' },
-      { key:'contribPct', label:'%Ct/Inn',  cls:'num-center' }
+      { key:'contribPct', label:'%Ct/Inn',  cls:'num-center', tip:CT_TIP }
     ];
     case 'milestones': return [...base,
       { key:'tests',      label:'Tests',   cls:'num' },
@@ -1242,10 +1391,11 @@ function getCols() {
       { key:'runs',       label:'Runs',    cls:'num' },
       { key:'hs',         label:'HS',      cls:'num' },
       { key:'hundreds',   label:'100s',    cls:'num highlight' },
+      { key:'doubles',    label:'200s',    cls:'num', tip:DBL_TIP },
       { key:'twoX100',    label:'2X100S',  cls:'num-center' },
       { key:'fifties',    label:'50s',     cls:'num' },
       { key:'avg',        label:'Avg',     cls:'num' },
-      { key:'contribPct', label:'%Ct/Inn',  cls:'num-center' }
+      { key:'contribPct', label:'%Ct/Inn',  cls:'num-center', tip:CT_TIP }
     ];
     case 'mom': return [...base,
       { key:'tests',      label:'Tests',   cls:'num' },
@@ -1253,7 +1403,7 @@ function getCols() {
       { key:'runs',       label:'Runs',    cls:'num' },
       { key:'avg',        label:'Avg',     cls:'num' },
       { key:'mom',        label:'MoM',     cls:'num highlight' },
-      { key:'contribPct', label:'%Ct/Inn',  cls:'num-center' }
+      { key:'contribPct', label:'%Ct/Inn',  cls:'num-center', tip:CT_TIP }
     ];
   }
 }
@@ -1289,11 +1439,8 @@ function render() {
       }
       if (c.key === 'avg') val = (typeof val === 'number' && val > 0) ? val.toFixed(2) : '—';
       if (c.key === 'runs' && typeof val === 'number') val = val.toLocaleString();
-      if (c.key === 'contribPct') {
-        const threshold = +document.getElementById('fContrib').value || 0;
-        val = getContribCount(p, threshold);
-      }
-      if (val === 0 && (c.key === 'hundreds' || c.key === 'twoX100' || c.key === 'fifties' || c.key === 'mom' || c.key === 'contribPct')) val = '0';
+      if (c.key === 'contribPct') val = getContribCount(p, +document.getElementById('fContrib').value || 25);
+      if (val === 0 && (c.key === 'hundreds' || c.key === 'doubles' || c.key === 'twoX100' || c.key === 'fifties' || c.key === 'mom' || c.key === 'contribPct')) val = '0';
       const hl = c.cls.includes('highlight') ? ' highlight' : '';
       return `<td class="${c.cls}${hl}">${val ?? '—'}</td>`;
     }).join('') + '</tr>';
@@ -1325,16 +1472,54 @@ const AGG_COLS = [
   { key:'avg',      label:'Avg',     cls:'num' },
   { key:'sr',       label:'SR',      cls:'num', tip: BF_TIP },
   { key:'hs',       label:'HS',      cls:'num' },
+  { key:'doubles',  label:'200s',    cls:'num', tip: DBL_TIP },
   { key:'hundreds', label:'100s',    cls:'num' },
   { key:'fifties',  label:'50s',     cls:'num' }
 ];
 
 /* Header label, with a hover tooltip when the column carries a caveat. */
-function thLabel(c) {
-  if (!c.tip) return c.label;
-  return `<span class="th-info">${c.label}<span class="th-i">i</span>` +
-         `<span class="th-tip">${c.tip}</span></span>`;
+/* ── Header tooltips ── */
+function escTip(t){ return String(t).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+function thLabel(c){
+  if(!c.tip) return c.label;
+  return `<span class="th-info" data-tip="${escTip(c.tip)}">${c.label}<span class="th-i">i</span></span>`;
 }
+(function initHeaderTips(){
+  let box=null;
+  function getBox(){
+    if(!box){
+      box=document.createElement('div');
+      box.className='th-tipbox';
+      document.body.appendChild(box);
+    }
+    return box;
+  }
+  document.addEventListener('mouseover',e=>{
+    const t=e.target&&e.target.closest?e.target.closest('.th-info'):null;
+    if(!t||!t.dataset.tip) return;
+    const b=getBox();
+    b.textContent=t.dataset.tip;
+    b.style.display='block';
+    const cs=getComputedStyle(document.body);
+    b.style.background=cs.getPropertyValue('--text1').trim()||cs.getPropertyValue('--text').trim()||'#1a1a1a';
+    b.style.color=cs.getPropertyValue('--surface').trim()||'#fff';
+    const r=t.getBoundingClientRect();
+    const w=b.offsetWidth,h=b.offsetHeight;
+    let left=r.left+r.width/2-w/2;
+    left=Math.max(8,Math.min(left,window.innerWidth-w-8));
+    let top=r.bottom+8;
+    if(top+h>window.innerHeight-8) top=Math.max(8,r.top-h-8);   // flip up near the viewport floor
+    b.style.left=left+'px';
+    b.style.top=top+'px';
+  });
+  document.addEventListener('mouseout',e=>{
+    const t=e.target&&e.target.closest?e.target.closest('.th-info'):null;
+    if(!t) return;
+    if(e.relatedTarget&&t.contains(e.relatedTarget)) return;
+    if(box) box.style.display='none';
+  });
+  document.addEventListener('scroll',()=>{ if(box) box.style.display='none'; },true);
+})();
 
 function renderAggregate() {
   const rows = aggRows || [];
@@ -1401,7 +1586,7 @@ function renderPag() {
 
   html += `<button class="pag-btn" onclick="goPage(${page+1})" ${page===totalPages?'disabled':''}>›</button>`;
   html += `<button class="pag-btn" onclick="goPage(${totalPages})" ${page===totalPages?'disabled':''}>»</button>`;
-  html += `<span style="font-size:11px;color:var(--text3);margin-left:8px">${filtered.length.toLocaleString()} players</span>`;
+  html += `<span style="font-size:11px;color:var(--text3);margin-left:8px">${filtered.length.toLocaleString()} ${eraSplit() ? 'rows' : 'players'}</span>`;
   pag.innerHTML = html;
 }
 
@@ -1425,7 +1610,8 @@ function renderTags() {
     tags.push(`<span class="fp-tag" onclick="document.querySelector('#msEra-drop input[value=\\'${e}\\']').checked=false;applyFilters()">${ERA_LABEL[e] || e} ${x}</span>`);
   });
   if (!aggregateMode) {
-  if (f.country)  tags.push(`<span class="fp-tag" onclick="document.getElementById('fCountry').value='';applyFilters()">${f.country} ${x}</span>`);
+  f.countries.forEach(c => tags.push(`<span class="fp-tag" onclick="document.querySelector('#msCountry-drop input[value=\\'${c}\\']').checked=false;applyFilters()">${c} ${x}</span>`));
+  if (f.ha) tags.push(`<span class="fp-tag" onclick="document.getElementById('fHA').value='';applyFilters()">${f.ha[0].toUpperCase()+f.ha.slice(1)} ${x}</span>`);
   if (f.pos) {
     const posLabels = {'1-3':'Top order','4-5':'Middle order','6-7':'Lower middle','8-11':'Tail'};
     tags.push(`<span class="fp-tag" onclick="document.getElementById('fPos').value='';applyFilters()">${posLabels[f.pos]||f.pos} ${x}</span>`);
@@ -1434,8 +1620,8 @@ function renderTags() {
   if (f.inns)   tags.push(`<span class="fp-tag" onclick="document.getElementById('fInns').value='0';applyFilters()">Inns ≥${f.inns} ${x}</span>`);
   if (f.runs)   tags.push(`<span class="fp-tag" onclick="document.getElementById('fRuns').value='0';applyFilters()">Runs ≥${f.runs.toLocaleString()} ${x}</span>`);
   if (f.avg)    tags.push(`<span class="fp-tag" onclick="document.getElementById('fAvg').value='0';applyFilters()">Avg ≥${f.avg} ${x}</span>`);
+  if (f.contrib && f.contrib !== 25) tags.push(`<span class="fp-tag" onclick="document.getElementById('fContrib').value='25';applyFilters()">%Ct/Inn \u2265${f.contrib}% ${x}</span>`);
   if (f.sr)     tags.push(`<span class="fp-tag" onclick="document.getElementById('fSR').value='0';applyFilters()">SR ≥${f.sr} ${x}</span>`);
-  if (f.contrib) tags.push(`<span class="fp-tag" onclick="document.getElementById('fContrib').value='0';applyFilters()">%Ct/Inn ≥${f.contrib}% ${x}</span>`);
   f.opponents.forEach(o => {
     tags.push(`<span class="fp-tag" onclick="document.querySelector('#msOpp-drop input[value=\\'${o}\\']').checked=false;applyFilters()">vs ${o} ${x}</span>`);
   });
@@ -1475,7 +1661,8 @@ function updateExportButton(activeCount) {
 
 function resetFilters() {
   document.getElementById('fMode').value = 'players';
-  document.getElementById('fCountry').value = '';
+  document.querySelectorAll('#msCountry-drop input').forEach(c => c.checked = false);
+  document.getElementById('fHA').value = '';
   document.querySelectorAll('#msEra-drop input').forEach(c => c.checked = false);
   document.getElementById('fPos').value = '';
   document.getElementById('fTests').value = '0';
@@ -1483,7 +1670,7 @@ function resetFilters() {
   document.getElementById('fRuns').value = '0';
   document.getElementById('fAvg').value = '0';
   document.getElementById('fSR').value = '0';
-  document.getElementById('fContrib').value = '0';
+  document.getElementById('fContrib').value = '25';
   document.getElementById('fSearch').value = '';
   document.querySelectorAll('#msOpp-drop input').forEach(c => c.checked = false);
   applyFilters();
@@ -1515,6 +1702,7 @@ function exportToExcel() {
       { label:'Strike Rate', fn:r => r.sr ? r.sr.toFixed(2) : '' },
       { label:'HS',          fn:r => r.hs || '' },
       { label:'HS By',       fn:r => r.hsName || '' },
+      { label:'200s',        fn:r => r.doubles },
       { label:'100s',        fn:r => r.hundreds },
       { label:'50s',         fn:r => r.fifties }
     ];
@@ -1530,12 +1718,12 @@ function exportToExcel() {
     return;
   }
 
-  const threshold = +document.getElementById('fContrib').value || 0;
 
   const EXPORT_COLS = [
     { label:'#',                  fn:(p,i) => i + 1 },
     { label:'Player',             fn:p => p.fullName || p.name || '' },
     { label:'Country',            fn:p => p.country || '' },
+    { label:'Era',                fn:p => p._eraLabel || '' },
     { label:'From',               fn:p => p.from || '' },
     { label:'To',                 fn:p => p.to || '' },
     { label:'Tests',              fn:p => p.tests ?? '' },
@@ -1545,13 +1733,15 @@ function exportToExcel() {
     { label:'HS',                 fn:p => p.hs ?? '' },
     { label:'Average',            fn:p => p.avg ? Number(p.avg).toFixed(2) : '' },
     { label:'Strike Rate',        fn:p => p.sr ? Number(p.sr).toFixed(2) : '' },
+    { label:'200s',               fn:p => p.doubles ?? '' },
     { label:'100s',               fn:p => p.hundreds ?? '' },
     { label:'2x100s',             fn:p => p.twoX100 ?? '' },
     { label:'50s',                fn:p => p.fifties ?? '' },
-    { label:'%Ct/Inn (≥' + threshold + '%)', fn:p => getContribCount(p, threshold) },
+    { label:'%Ct/Inn (\u2265' + (+document.getElementById('fContrib').value || 25) + '%)',
+      fn:p => getContribCount(p, +document.getElementById('fContrib').value || 25) },
     { label:'MoM',                fn:p => p.mom ?? '' },
     { label:'Bowl Type',          fn:p => p.bowlType || '' },
-    { label:'Bat Hand',           fn:p => p.batHand || '' },
+    { label:'Bat Hand',           fn:p => p.batHand || '' }
   ];
 
   const headers = EXPORT_COLS.map(c => c.label);
@@ -1576,8 +1766,9 @@ function exportToExcel() {
   // Sheet name from active filters
   const f = getFilters();
   const parts = ['Batting'];
-  if (f.country) parts.push(f.country);
-  if (f.era) parts.push(f.era === 'pre1950' ? 'Pre1950' : f.era + 's');
+  if (f.countries.length) parts.push(f.countries.length === 1 ? f.countries[0] : f.countries.length + 'countries');
+  if (f.eras.length) parts.push(f.eras.length === 1 ? (ERA_LABEL[f.eras[0]] || f.eras[0]).replace(/[^A-Za-z0-9]/g, '') : f.eras.length + 'eras');
+  if (f.ha) parts.push(f.ha);
   if (f.runs) parts.push(f.runs + '+R');
   if (f.avg)  parts.push('Avg' + f.avg);
   const sheetName = parts.join('_').slice(0, 31);
@@ -1600,9 +1791,12 @@ function exportToExcel() {
   }
   buildPlayers();
   buildTwoX100();
-  buildContribPct();
+  // buildContribPct() not called — the %Ct/Inn column was removed (bad data).
+  // The function is left in place should the underlying figures be fixed.
   resolveBazball();
   buildBatInnings();
+  applyDoubles();
+  applyContrib();
   buildBazballSet();
   applyInningsDerivedSR();
   buildOpponentLookup();
