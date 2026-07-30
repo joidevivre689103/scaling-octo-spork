@@ -87,11 +87,17 @@ body{font-family:'Source Serif 4',Georgia,serif;background:var(--bg);color:var(-
 /* ── Column-header info tooltip ── */
 .th-info{position:relative;display:inline-flex;align-items:center;gap:3px}
 .th-info .th-i{display:inline-flex;align-items:center;justify-content:center;width:12px;height:12px;border-radius:50%;border:1px solid currentColor;font-size:8.5px;line-height:1;font-weight:700;opacity:0.6}
-.th-info .th-tip{position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);width:230px;padding:8px 10px;z-index:70;background:var(--text1);color:var(--surface);border-radius:5px;font-size:11px;font-weight:400;line-height:1.45;text-align:left;text-transform:none;letter-spacing:0;opacity:0;visibility:hidden;transition:opacity 0.15s;box-shadow:0 4px 14px rgba(0,0,0,0.18);white-space:normal}
-.th-info .th-tip::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:var(--text1)}
-.th-info:hover .th-tip{opacity:1;visibility:visible}
-th:last-child .th-info .th-tip{left:auto;right:0;transform:none}
-
+/* Header tooltips are rendered into <body> as a fixed-position box: the table
+   lives inside .tbl-wrap{overflow-x:auto}, and a container that scrolls on one
+   axis clips the other, so an absolutely-positioned bubble gets cut off — above
+   the header always, and below it whenever the table is only a row or two tall. */
+.th-tipbox{
+  position:fixed;z-index:9999;display:none;width:240px;padding:9px 11px;
+  border-radius:5px;font-family:var(--font-body,inherit);font-size:11px;font-weight:400;
+  line-height:1.5;text-align:left;text-transform:none;letter-spacing:0;white-space:normal;
+  box-shadow:0 6px 18px rgba(0,0,0,0.2);pointer-events:none;
+}
+th:last-child 
 /* ── Tags ── */
 .tags{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
 .tag{display:flex;align-items:center;gap:5px;background:var(--accent-dim);color:var(--accent);font-size:11.5px;font-weight:600;padding:5px 10px;border-radius:20px}
@@ -247,7 +253,19 @@ td.num.highlight{color:var(--accent);font-weight:700}
         <div class="fp-note" id="fpNote" style="display:none"></div>
         <div class="fg" data-dim="1">
           <label>Country</label>
-          <select id="fCountry" onchange="applyFilters()"><option value="">All Countries</option></select>
+          <div class="ms-wrap" id="msCountry">
+            <button class="ms-btn" type="button" onclick="toggleMS('msCountry')">All Countries</button>
+            <div class="ms-drop" id="msCountry-drop"></div>
+          </div>
+        </div>
+        <div class="fg" data-dim="1">
+          <label>Home / Away</label>
+          <select id="fHA" onchange="applyFilters()">
+            <option value="">All venues</option>
+            <option value="home">Home</option>
+            <option value="away">Away</option>
+            <option value="neutral">Neutral</option>
+          </select>
         </div>
         <div class="fg">
           <label>Era</label>
@@ -488,8 +506,13 @@ let filtered=[];
 /* ── Populate country dropdown ── */
 function populateCountryDropdown(){
   const countries=[...new Set(ALL_PLAYERS.map(p=>p.country))].filter(Boolean).sort();
-  const cSel=document.getElementById('fCountry');
-  countries.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;cSel.appendChild(o)});
+  const drop=document.getElementById('msCountry-drop');
+  countries.forEach(c=>{
+    const d=document.createElement('div');
+    d.className='ms-opt';
+    d.innerHTML=`<input type="checkbox" value="${c}" onchange="applyFilters()"><span>${c}</span>`;
+    drop.appendChild(d);
+  });
 }
 
 /* ── Multi-select helper ── */
@@ -513,7 +536,7 @@ function syncPanelOverflow(){
 function getMSValues(id){
   return [...document.querySelectorAll(`#${id}-drop input:checked`)].map(c=>c.value);
 }
-const MS_EMPTY={msEra:'All Eras'};
+const MS_EMPTY={msEra:'All Eras',msCountry:'All Countries'};
 function updateMSLabel(id){
   const checks=[...document.querySelectorAll(`#${id}-drop input:checked`)];
   const btn=document.querySelector(`#${id} .ms-btn`);
@@ -528,6 +551,17 @@ const ERA_LABEL={pre1900:'Pre-1900','1900':'1900s','1910':'1910s','1920':'1920s'
                  '1940':'1940s','1950':'1950s','1960':'1960s','1970':'1970s','1980':'1980s',
                  '1990':'1990s','2000':'2000s','2010':'2010s','2020':'2020s',
                  bazball:'Bazball (England)',bazballvs:'Bazball (vs England)',bazballall:'Bazball (all countries)'};
+
+/* Home / away / neutral for one innings, same rule as the compare page. */
+function haFor(pid,m){
+  const li=m[6];
+  if(li==null||li<0||!D.L) return 'neutral';
+  const loc=D.L[li], ctry=PID_COUNTRY[pid];
+  if(!loc||!ctry) return 'neutral';
+  if(ctry===loc) return 'home';
+  if(loc==='UAE') return 'neutral';
+  return 'away';
+}
 
 function eraKeyForYear(y){
   if(y<1900) return 'pre1900';
@@ -623,6 +657,7 @@ function buildBowlInnings(){
     const baz=engTest&&isEng, bazVs=engTest&&!isEng, bazAll=inWindow;
     BOWL_INNS.push({
       era:eraKeyForYear(y), pid, mid, year:y, baz, bazVs, bazAll,
+      ha:haFor(pid,m),
       balls:oversToBalls(s[6]),
       mdns:typeof s[7]==='number'?s[7]:0,
       runs:typeof s[8]==='number'?s[8]:0,
@@ -669,6 +704,74 @@ function buildBazballSet(){
   }
 }
 
+/* ──────────────────────────────────────────────────────────────────────────
+   Innings-level filters (era, home/away) can't be honoured against D.P career
+   totals, so when either is active each bowler's figures are rebuilt from the
+   matching innings. MoM has no per-innings source and is hidden while sliced.
+   ────────────────────────────────────────────────────────────────────────── */
+function inningsPredicate(f){
+  const eras=f.eras||[];
+  const eraOk=eras.length
+    ? (r=>eras.some(e=>BAZ_FLAG[e]?r[BAZ_FLAG[e]]:r.era===e))
+    : (()=>true);
+  const haOk=f.ha ? (r=>r.ha===f.ha) : (()=>true);
+  return r=>eraOk(r)&&haOk(r);
+}
+function isSliced(f){ return !!((f.eras&&f.eras.length)||f.ha); }
+
+function slicedPlayers(f){
+  const eras=(f.eras||[]).slice().sort((a,b)=>ERA_LIST.indexOf(a)-ERA_LIST.indexOf(b));
+  // One pass per selected era → one row per (bowler, era).
+  const groups=eras.length?eras:[null];
+  const haOk=f.ha ? (r=>r.ha===f.ha) : (()=>true);
+  const out=[];
+
+  groups.forEach(eraKey=>{
+    const inEra = eraKey===null ? (()=>true)
+      : (BAZ_FLAG[eraKey] ? (r=>r[BAZ_FLAG[eraKey]]) : (r=>r.era===eraKey));
+    const acc=new Map();
+    BOWL_INNS.forEach(r=>{
+      if(!inEra(r)||!haOk(r)) return;
+      let a=acc.get(r.pid);
+      if(!a){ a={tests:new Set(),inns:0,balls:0,mdns:0,runs:0,wkts:0,five:0,four:0,
+                 bestW:0,bestR:Infinity,from:9999,to:0,perMatch:new Map()};
+              acc.set(r.pid,a); }
+      a.tests.add(r.mid); a.inns++; a.balls+=r.balls; a.mdns+=r.mdns;
+      a.runs+=r.runs; a.wkts+=r.wkts;
+      if(r.wkts>=5) a.five++;
+      if(r.wkts>=4) a.four++;
+      if(r.wkts>a.bestW||(r.wkts===a.bestW&&r.runs<a.bestR)){ a.bestW=r.wkts; a.bestR=r.runs; }
+      if(r.year<a.from) a.from=r.year;
+      if(r.year>a.to) a.to=r.year;
+      const cur=a.perMatch.get(r.mid)||{w:0,i4:0,i5:0};
+      cur.w+=r.wkts; if(r.wkts>=4) cur.i4++; if(r.wkts>=5) cur.i5++;
+      a.perMatch.set(r.mid,cur);
+    });
+    ALL_PLAYERS.forEach(p=>{
+      const a=acc.get(p.id);
+      if(!a||!a.inns) return;
+      let ten=0,x4=0,x5=0;
+      a.perMatch.forEach(v=>{ if(v.w>=10) ten++; if(v.i4>=2) x4++; if(v.i5>=2) x5++; });
+      out.push(Object.assign({},p,{
+        tests:a.tests.size, bowlTests:a.tests.size, innings:a.inns,
+        overs:+(Math.floor(a.balls/6)+(a.balls%6)/10).toFixed(1),
+        maidens:a.mdns, bowlRuns:a.runs, wkts:a.wkts,
+        bowlAvg: a.wkts>0 ? a.runs/a.wkts : 0,
+        econ:    a.balls>0 ? a.runs/(a.balls/6) : 0,
+        bowlSR:  a.wkts>0 ? a.balls/a.wkts : 0,
+        fiveWkts:a.five, fourWI:a.four, tenWkts:ten, twoX4WI:x4, twoX5WI:x5,
+        bestBowl: a.bestW>0 ? a.bestW+'/'+a.bestR : '—',
+        fromYear:a.from, toYear:a.to, mom:null, _sliced:true,
+        _eraLabel: eraKey ? (ERA_LABEL[eraKey]||eraKey) : null
+      }));
+    });
+  });
+  return out;
+}
+
+/* True when each bowler is split across more than one era row. */
+function eraSplit(){ return sliced && getMSValues('msEra').length>=2; }
+
 /* Aggregate one bucket of bowling innings into a summary row. */
 function aggregateInnings(list,label){
   const bowlers=new Set(),tests=new Set();
@@ -699,13 +802,15 @@ function aggregateInnings(list,label){
 }
 
 const BAZ_FLAG={bazball:'baz',bazballvs:'bazVs',bazballall:'bazAll'};
+let _haPred=()=>true;   // set by applyFilters; aggregate rows honour Home/Away too
 function inningsForEra(key){
   const flag=BAZ_FLAG[key];
-  return flag ? BOWL_INNS.filter(r=>r[flag]) : BOWL_INNS.filter(r=>r.era===key);
+  return flag ? BOWL_INNS.filter(r=>r[flag]&&_haPred(r))
+              : BOWL_INNS.filter(r=>r.era===key&&_haPred(r));
 }
 
 function buildAggregateRows(eras){
-  if(!eras.length) return [aggregateInnings(BOWL_INNS,'All Bowlers')];
+  if(!eras.length) return [aggregateInnings(BOWL_INNS.filter(_haPred),'All Bowlers')];
   return eras.slice()
     .sort((a,b)=>ERA_LIST.indexOf(a)-ERA_LIST.indexOf(b))
     .map(e=>aggregateInnings(inningsForEra(e),ERA_LABEL[e]||e));
@@ -723,8 +828,9 @@ function buildCombinedRow(eras){
 function getFilters(){
   return{
     mode:document.getElementById('fMode').value,
-    country:document.getElementById('fCountry').value,
+    countries:getMSValues('msCountry'),
     eras:getMSValues('msEra'),
+    ha:document.getElementById('fHA').value,
     bowlType:document.getElementById('fBowlType').value,
     minWkts:+document.getElementById('fMinWkts').value||0,
     minTests:+document.getElementById('fMinTests').value||0,
@@ -791,10 +897,15 @@ function syncModeUI(f){
   }
 }
 
+let sliced=false;   // figures rebuilt from the innings index
+
 function applyFilters(){
   updateMSLabel('msEra');
+  updateMSLabel('msCountry');
   const f=getFilters();
   aggregateMode=(f.mode==='all');
+  sliced=!aggregateMode&&isSliced(f);
+  _haPred=f.ha ? (r=>r.ha===f.ha) : (()=>true);
   syncModeUI(f);
 
   if(aggregateMode){
@@ -808,10 +919,11 @@ function applyFilters(){
   }
 
   aggRows=null;
-  filtered=ALL_PLAYERS.filter(p=>{
+  const base = sliced ? slicedPlayers(f) : ALL_PLAYERS;
+  filtered=base.filter(p=>{
     if((p.wkts||0)<1 && f.minWkts>=1) return false; // must have bowled
-    if(f.country && p.country!==f.country) return false;
-    if(!eraMatch(p,f.eras)) return false;
+    if(f.countries.length && !f.countries.includes(p.country)) return false;
+    if(!sliced && !eraMatch(p,f.eras)) return false;
     if(!bowlTypeMatch(p,f.bowlType)) return false;
     if((p.wkts||0)<f.minWkts) return false;
     if(f.minTests && (p.tests||0)<f.minTests) return false;
@@ -829,7 +941,8 @@ function applyFilters(){
 function resetFilters(){
   document.getElementById('fMode').value='players';
   document.querySelectorAll('#msEra-drop input').forEach(c=>{ if(!c.disabled) c.checked=false; });
-  ['fCountry','fBowlType'].forEach(id=>document.getElementById(id).value='');
+  document.querySelectorAll('#msCountry-drop input').forEach(c=>c.checked=false);
+  ['fBowlType','fHA'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('fMinWkts').value='1';
   document.getElementById('fMinTests').value='0';
   document.getElementById('fMaxAvg').value='0';
@@ -859,6 +972,13 @@ function sortBy(key){
 }
 
 /* ── Tab definitions ── */
+const SR_TIP='Overs are converted at six balls per over. Test cricket also used 4-ball '+
+             '(to 1888), 5-ball (1889–1899) and 8-ball overs (Australia 1924–1979, New Zealand '+
+             '1968–1979, Pakistan 1974–1978), so strike rate for those eras understates the '+
+             'true balls per wicket. Average and economy are unaffected.';
+const MDN_TIP='Maidens are gap-filled from scorecard data for some older matches and may be '+
+              'incomplete in early eras.';
+
 const TAB_COLS={
   wickets:[
     {label:'#',key:'_rank',nosort:true},
@@ -867,12 +987,12 @@ const TAB_COLS={
     {label:'Span',key:'_span',nosort:true,align:'left'},
     {label:'Tests',key:'tests'},
     {label:'Overs',key:'overs',dec:1},
-    {label:'Mdns',key:'maidens'},
+    {label:'Mdns',key:'maidens',tip:MDN_TIP},
     {label:'Runs',key:'bowlRuns'},
     {label:'Wkts',key:'wkts'},
     {label:'Avg',key:'bowlAvg',dec:2,lower:true},
     {label:'Econ',key:'econ',dec:2,lower:true},
-    {label:'S/R',key:'bowlSR',dec:1,lower:true},
+    {label:'S/R',key:'bowlSR',dec:1,lower:true,tip:SR_TIP},
     {label:'Best',key:'bestBowl',nosort:true},
     {label:'4WI',key:'fourWI'},
     {label:'2X4WI',key:'twoX4WI'},
@@ -890,7 +1010,7 @@ const TAB_COLS={
     {label:'Wkts',key:'wkts'},
     {label:'Avg',key:'bowlAvg',dec:2,lower:true},
     {label:'Econ',key:'econ',dec:2,lower:true},
-    {label:'S/R',key:'bowlSR',dec:1,lower:true},
+    {label:'S/R',key:'bowlSR',dec:1,lower:true,tip:SR_TIP},
     {label:'Runs',key:'bowlRuns'},
     {label:'Overs',key:'overs',dec:1},
     {label:'Best',key:'bestBowl',nosort:true},
@@ -903,10 +1023,10 @@ const TAB_COLS={
     {label:'Span',key:'_span',nosort:true,align:'left'},
     {label:'Tests',key:'tests'},
     {label:'Overs',key:'overs',dec:1},
-    {label:'Mdns',key:'maidens'},
+    {label:'Mdns',key:'maidens',tip:MDN_TIP},
     {label:'Econ',key:'econ',dec:2,lower:true},
     {label:'Avg',key:'bowlAvg',dec:2,lower:true},
-    {label:'S/R',key:'bowlSR',dec:1,lower:true},
+    {label:'S/R',key:'bowlSR',dec:1,lower:true,tip:SR_TIP},
     {label:'Wkts',key:'wkts'},
     {label:'Best',key:'bestBowl',nosort:true},
     {label:'MoM',key:'mom'},
@@ -918,7 +1038,7 @@ const TAB_COLS={
     {label:'Span',key:'_span',nosort:true,align:'left'},
     {label:'Tests',key:'tests'},
     {label:'Wkts',key:'wkts'},
-    {label:'S/R',key:'bowlSR',dec:1,lower:true},
+    {label:'S/R',key:'bowlSR',dec:1,lower:true,tip:SR_TIP},
     {label:'Avg',key:'bowlAvg',dec:2,lower:true},
     {label:'Econ',key:'econ',dec:2,lower:true},
     {label:'Overs',key:'overs',dec:1},
@@ -987,8 +1107,15 @@ function renderAll(){
   renderTable();
 }
 
+function credit(p){ return (p.fullName||p.name)+(p._eraLabel?' \u00b7 '+p._eraLabel:''); }
+
 function renderSummary(){
-  document.getElementById('scTotal').textContent=filtered.length.toLocaleString();
+  const distinct = eraSplit() ? new Set(filtered.map(p=>p.id)).size : filtered.length;
+  document.getElementById('scTotal').textContent=distinct.toLocaleString();
+  const subEl=document.querySelector('#scTotal + .sc-sub');
+  if(subEl) subEl.textContent = eraSplit()
+    ? `with at least 1 wicket · ${filtered.length.toLocaleString()} era rows`
+    : 'with at least 1 wicket';
 
   const MIN_WKTS=20; // qualification threshold for rate stats
 
@@ -997,7 +1124,7 @@ function renderSummary(){
   if(qualified.length){
     qualified.sort((a,b)=>a.bowlAvg-b.bowlAvg);
     document.getElementById('scBestAvg').textContent=qualified[0].bowlAvg.toFixed(2);
-    document.getElementById('scBestAvgName').textContent=(qualified[0].fullName||qualified[0].name)+' (min '+MIN_WKTS+' wkts)';
+    document.getElementById('scBestAvgName').textContent=credit(qualified[0])+' (min '+MIN_WKTS+' wkts)';
   } else {
     document.getElementById('scBestAvg').textContent='—';
     document.getElementById('scBestAvgName').textContent='—';
@@ -1007,7 +1134,7 @@ function renderSummary(){
   const byWkts=[...filtered].sort((a,b)=>(b.wkts||0)-(a.wkts||0));
   if(byWkts.length && byWkts[0].wkts){
     document.getElementById('scMostWkts').textContent=byWkts[0].wkts;
-    document.getElementById('scMostWktsName').textContent=byWkts[0].fullName||byWkts[0].name;
+    document.getElementById('scMostWktsName').textContent=credit(byWkts[0]);
   } else {
     document.getElementById('scMostWkts').textContent='—';
     document.getElementById('scMostWktsName').textContent='—';
@@ -1104,7 +1231,8 @@ function renderTags(){
   if(aggregateMode) tags.push(['All bowlers','fMode']);
   f.eras.forEach(e=>tags.push([`Era: ${ERA_LABEL[e]||e}`,'era_'+e]));
   if(!aggregateMode){
-  if(f.country) tags.push([`Country: ${f.country}`,'fCountry']);
+  f.countries.forEach(c=>tags.push([`Country: ${c}`,'ctry_'+c]));
+  if(f.ha) tags.push([`Venue: ${f.ha[0].toUpperCase()+f.ha.slice(1)}`,'fHA']);
   if(f.bowlType) tags.push([`Type: ${f.bowlType.charAt(0).toUpperCase()+f.bowlType.slice(1)}`,'fBowlType']);
   if(f.minWkts>1) tags.push([`Min Wkts: ${f.minWkts}`,'fMinWkts']);
   if(f.minTests) tags.push([`Min Tests: ${f.minTests}`,'fMinTests']);
@@ -1140,6 +1268,11 @@ function updateExportButton(activeCount){
 
 function clearTag(id){
   if(id==='fMode'){ document.getElementById('fMode').value='players'; applyFilters(); return; }
+  if(id.startsWith('ctry_')){
+    const box=document.querySelector(`#msCountry-drop input[value="${id.slice(5)}"]`);
+    if(box) box.checked=false;
+    applyFilters(); return;
+  }
   if(id.startsWith('era_')){
     const box=document.querySelector(`#msEra-drop input[value="${id.slice(4)}"]`);
     if(box) box.checked=false;
@@ -1163,12 +1296,6 @@ function clearTag(id){
    5-ball (1889–99) and 8-ball overs (Australia 1924–79, NZ 1968–79, Pakistan
    1974–78) — see the S/R tooltip.
    ─────────────────────────────────────────────────────────────────────── */
-const SR_TIP='Overs are converted at six balls per over. Test cricket also used 4-ball '+
-             '(to 1888), 5-ball (1889–1899) and 8-ball overs (Australia 1924–1979, New Zealand '+
-             '1968–1979, Pakistan 1974–1978), so strike rate for those eras understates the '+
-             'true balls per wicket. Average and economy are unaffected.';
-const MDN_TIP='Maidens are gap-filled from scorecard data for some older matches and may be '+
-              'incomplete in early eras.';
 
 const AGG_COLS=[
   {key:'label',    label:'Era',     align:'left'},
@@ -1187,11 +1314,48 @@ const AGG_COLS=[
   {key:'best',     label:'Best'}
 ];
 
+/* ── Header tooltips ── */
+function escTip(t){ return String(t).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
 function thLabel(c){
   if(!c.tip) return c.label;
-  return `<span class="th-info">${c.label}<span class="th-i">i</span>`+
-         `<span class="th-tip">${c.tip}</span></span>`;
+  return `<span class="th-info" data-tip="${escTip(c.tip)}">${c.label}<span class="th-i">i</span></span>`;
 }
+(function initHeaderTips(){
+  let box=null;
+  function getBox(){
+    if(!box){
+      box=document.createElement('div');
+      box.className='th-tipbox';
+      document.body.appendChild(box);
+    }
+    return box;
+  }
+  document.addEventListener('mouseover',e=>{
+    const t=e.target&&e.target.closest?e.target.closest('.th-info'):null;
+    if(!t||!t.dataset.tip) return;
+    const b=getBox();
+    b.textContent=t.dataset.tip;
+    b.style.display='block';
+    const cs=getComputedStyle(document.body);
+    b.style.background=cs.getPropertyValue('--text1').trim()||cs.getPropertyValue('--text').trim()||'#1a1a1a';
+    b.style.color=cs.getPropertyValue('--surface').trim()||'#fff';
+    const r=t.getBoundingClientRect();
+    const w=b.offsetWidth,h=b.offsetHeight;
+    let left=r.left+r.width/2-w/2;
+    left=Math.max(8,Math.min(left,window.innerWidth-w-8));
+    let top=r.bottom+8;
+    if(top+h>window.innerHeight-8) top=Math.max(8,r.top-h-8);   // flip up near the viewport floor
+    b.style.left=left+'px';
+    b.style.top=top+'px';
+  });
+  document.addEventListener('mouseout',e=>{
+    const t=e.target&&e.target.closest?e.target.closest('.th-info'):null;
+    if(!t) return;
+    if(e.relatedTarget&&t.contains(e.relatedTarget)) return;
+    if(box) box.style.display='none';
+  });
+  document.addEventListener('scroll',()=>{ if(box) box.style.display='none'; },true);
+})();
 
 function renderAggregate(){
   const rows=aggRows||[];
@@ -1233,7 +1397,13 @@ function renderAggregate(){
 
 function renderTable(){
   if(aggregateMode){ renderAggregate(); return; }
-  const cols=TAB_COLS[currentTab];
+  // MoM has no per-innings source, so it can't be sliced
+  let cols=sliced ? TAB_COLS[currentTab].filter(c=>c.key!=='mom') : TAB_COLS[currentTab];
+  if(eraSplit()){
+    cols=cols.slice();
+    const at=cols.findIndex(c=>c.key==='country');
+    cols.splice(at+1,0,{label:'Era',key:'_eraLabel',nosort:true,align:'left'});
+  }
   // Header
   const thead=document.getElementById('tHead');
   thead.innerHTML='<tr>'+cols.map(c=>{
@@ -1241,7 +1411,7 @@ function renderTable(){
     if(c.key===currentSort) cls=currentDir==='desc'?'sort-desc':'sort-asc';
     const onclick=c.nosort?'':`onclick="sortBy('${c.key}')"`;
     const style=c.align==='left'?'':'text-align:right;';
-    return `<th class="${cls}" ${onclick} style="${style}">${c.label}</th>`;
+    return `<th class="${cls}" ${onclick} style="${style}">${thLabel(c)}</th>`;
   }).join('')+'</tr>';
 
   // Body
@@ -1277,6 +1447,7 @@ function renderTable(){
         return `<td><span class="bowl-type ${cls}">${lbl||'—'}</span></td>`;
       }
       if(c.key==='bestBowl') return `<td class="num">${p.bestBowl||'—'}</td>`;
+      if(c.key==='_eraLabel') return `<td class="country-cell">${p._eraLabel||'—'}</td>`;
       let v=p[c.key];
       if(v==null) return `<td class="num">—</td>`;
       const formatted=c.dec!=null?Number(v).toFixed(c.dec):v;
@@ -1288,7 +1459,7 @@ function renderTable(){
   // Pagination
   const total=filtered.length;
   const pages=Math.ceil(total/PAGE_SIZE);
-  document.getElementById('pagInfo').textContent=`Showing ${start+1}–${Math.min(start+PAGE_SIZE,total)} of ${total} bowlers`;
+  document.getElementById('pagInfo').textContent=`Showing ${start+1}–${Math.min(start+PAGE_SIZE,total)} of ${total} ${eraSplit()?'era rows':'bowlers'}`;
 
   let btns='';
   btns+=`<button class="pag-btn" onclick="goPage(${currentPage-1})" ${currentPage<=1?'disabled':''}>‹ Prev</button>`;
@@ -1345,6 +1516,7 @@ function exportToExcel(){
     {label:'#',         fn:(p,i)=>i+1},
     {label:'Player',    fn:p=>p.fullName||p.name||''},
     {label:'Country',   fn:p=>p.country||''},
+    {label:'Era',       fn:p=>p._eraLabel||''},
     {label:'From',      fn:p=>p.fromYear||''},
     {label:'To',        fn:p=>p.toYear||''},
     {label:'Tests',     fn:p=>p.tests??''},
