@@ -292,6 +292,8 @@ th:last-child .th-info .th-tip{left:auto;right:0;transform:none}
               <div class="ms-opt"><input type="checkbox" value="2010" onchange="applyFilters()"><span>2010s</span></div>
               <div class="ms-opt"><input type="checkbox" value="2020" onchange="applyFilters()"><span>2020s</span></div>
               <div class="ms-opt"><input type="checkbox" value="bazball" onchange="applyFilters()"><span>Bazball (England)</span></div>
+              <div class="ms-opt"><input type="checkbox" value="bazballvs" onchange="applyFilters()"><span>Bazball (vs England)</span></div>
+              <div class="ms-opt"><input type="checkbox" value="bazballall" onchange="applyFilters()"><span>Bazball (all countries)</span></div>
             </div>
           </div>
         </div>
@@ -643,19 +645,25 @@ function syncModeUI(f) {
   const tabBar = document.getElementById('tabBar');
   if (tabBar) tabBar.classList.toggle('dim', aggregateMode);
   const note = document.getElementById('fpNote');  if (note) {
-    const bazOn = (f.eras || []).includes('bazball');
     let txt = '';
     if (aggregateMode) {
       txt = f.eras.length
         ? 'Aggregate of every Test innings played in the selected era(s). Only the era picker applies in this view.'
         : 'Aggregate of every Test innings ever played. Pick one or more eras for a row each. Only the era picker applies in this view.';
     }
-    if (bazOn && BAZBALL) {
+    const bazKeys = (f.eras || []).filter(e => BAZ_FLAG[e]);
+    if (bazKeys.length && BAZBALL) {
+      const gloss = {
+        bazball: 'England = England\u2019s own batsmen in those Tests',
+        bazballvs: 'vs England = their opponents in the same Tests',
+        bazballall: 'all countries = every Test played anywhere in the window'
+      };
       txt += (txt ? '  ' : '') +
-        `Bazball = England batsmen in Tests #${BAZBALL.fromTest}\u2013#${BAZBALL.toTest} ` +
-        `(${BAZBALL.fromYear}\u2013${BAZBALL.toYear}, ${BAZBALL.tests} Tests) \u2014 the Lord's and Trent Bridge ` +
-        `NZ bookends of the Stokes\u2013McCullum era. It sits inside the 2020s, so picking both still counts ` +
-        `those innings once in the combined line.` +
+        `Bazball window = Tests #${BAZBALL.fromTest}\u2013#${BAZBALL.toTest} ` +
+        `(${BAZBALL.fromYear}\u2013${BAZBALL.toYear}; ${BAZBALL.tests} England Tests, ` +
+        `${BAZBALL.allTests} worldwide) \u2014 the Lord\u2019s and Trent Bridge NZ bookends of the ` +
+        `Stokes\u2013McCullum era.  ` + bazKeys.map(k => gloss[k]).join('; ') + '.  ' +
+        `These overlap each other and the 2020s, so the combined line counts each innings once.` +
         (BAZBALL.toYear < 2026
           ? `  \u26a0 The window ends in ${BAZBALL.toYear} \u2014 the June 2026 NZ series is not in this dataset yet.`
           : '');
@@ -780,21 +788,21 @@ function updateCards() {
 function eraMatch(p, eras) {
   if (!eras || !eras.length) return true;
   return eras.some(era => {
-    if (era === 'bazball') return BAZ_PIDS.has(p.id);
+    if (BAZ_SETS[era]) return BAZ_SETS[era].has(p.id);
     if (era === 'pre1950') return p.from < 1950;
     const d = parseInt(era);
     return p.from <= d + 9 && p.to >= d;
   });
 }
 
-// Players with at least one Bazball innings — career from/to years can't
-// answer this, since the window is a slice of a decade.
-let BAZ_PIDS = new Set();
+// Players with at least one innings in each Bazball view — career from/to
+// years can't answer this, since the window is a slice of a decade.
+let BAZ_SETS = { bazball: new Set(), bazballvs: new Set(), bazballall: new Set() };
 
-const ERA_LIST = ['pre1950','1950','1960','1970','1980','1990','2000','2010','2020','bazball'];
+const ERA_LIST = ['pre1950','1950','1960','1970','1980','1990','2000','2010','2020','bazball','bazballvs','bazballall'];
 const ERA_LABEL = {pre1950:'Pre-1950','1950':'1950s','1960':'1960s','1970':'1970s','1980':'1980s',
                    '1990':'1990s','2000':'2000s','2010':'2010s','2020':'2020s',
-                   bazball:'Bazball (England)'};
+                   bazball:'Bazball (England)',bazballvs:'Bazball (vs England)',bazballall:'Bazball (all countries)'};
 
 function eraKeyForYear(y) {
   if (y < 1950) return 'pre1950';
@@ -881,12 +889,16 @@ function buildBatInnings() {
     if (!m) continue;
     const y = m[7];
     if (typeof y !== 'number' || !y) continue;
-    // Bazball: an England batsman, in a Test inside the window
-    const baz = !!(BAZBALL && mid >= BAZBALL.fromTest && mid <= BAZBALL.toTest &&
-                   (m[2] === BAZBALL.ENG || m[3] === BAZBALL.ENG) &&
-                   PID_COUNTRY[pid] === 'England');
+    // Three Bazball views of the same window:
+    //   baz    — England's own batsmen in England's Tests
+    //   bazVs  — their opponents in those same Tests
+    //   bazAll — every Test played anywhere in the window (the control group)
+    const inWindow = !!(BAZBALL && mid >= BAZBALL.fromTest && mid <= BAZBALL.toTest);
+    const engTest = inWindow && (m[2] === BAZBALL.ENG || m[3] === BAZBALL.ENG);
+    const isEng = PID_COUNTRY[pid] === 'England';
+    const baz = engTest && isEng, bazVs = engTest && !isEng, bazAll = inWindow;
     BAT_INNS.push({
-      era: eraKeyForYear(y), pid, mid, runs, year: y, baz,
+      era: eraKeyForYear(y), pid, mid, runs, year: y, baz, bazVs, bazAll,
       no: notOut ? 1 : 0,
       balls: typeof s[5] === 'number' ? s[5] : 0
     });
@@ -953,27 +965,40 @@ function srAudit(limit = 25) {
 }
 
 function buildBazballSet() {
-  BAZ_PIDS = new Set();
+  BAZ_SETS = { bazball: new Set(), bazballvs: new Set(), bazballall: new Set() };
   const tests = new Set();
-  BAT_INNS.forEach(r => { if (r.baz) { BAZ_PIDS.add(r.pid); tests.add(r.mid); } });
-  if (BAZBALL) BAZBALL.tests = tests.size;
-  const opt = document.querySelector('#msEra-drop input[value="bazball"]');
-  if (opt) {
-    const ok = !!(BAZBALL && tests.size);
+  BAT_INNS.forEach(r => {
+    if (r.baz)    { BAZ_SETS.bazball.add(r.pid); tests.add(r.mid); }
+    if (r.bazVs)  BAZ_SETS.bazballvs.add(r.pid);
+    if (r.bazAll) BAZ_SETS.bazballall.add(r.pid);
+  });
+  const allTests = new Set();
+  BAT_INNS.forEach(r => { if (r.bazAll) allTests.add(r.mid); });
+  if (BAZBALL) { BAZBALL.tests = tests.size; BAZBALL.allTests = allTests.size; }
+
+  const ok = !!(BAZBALL && tests.size);
+  Object.keys(BAZ_FLAG).forEach(key => {
+    const opt = document.querySelector(`#msEra-drop input[value="${key}"]`);
+    if (!opt) return;
     opt.disabled = !ok;
     if (!ok) {
       opt.checked = false;
       opt.parentElement.style.opacity = '0.45';
       opt.parentElement.title = 'The England–New Zealand bookend Tests are not in this dataset.';
     } else {
+      const scope = key === 'bazballall'
+        ? `${BAZBALL.allTests} Tests worldwide`
+        : `${tests.size} England Tests`;
       opt.parentElement.title =
-        `Tests #${BAZBALL.fromTest}–#${BAZBALL.toTest} (${BAZBALL.fromYear}–${BAZBALL.toYear}), ` +
-        `${tests.size} England Tests`;
+        `Tests #${BAZBALL.fromTest}–#${BAZBALL.toTest} (${BAZBALL.fromYear}–${BAZBALL.toYear}), ${scope}`;
     }
-  }
+  });
+
   if (BAZBALL) {
     console.info(`[batting] Bazball window resolved: Tests #${BAZBALL.fromTest}–#${BAZBALL.toTest} ` +
-      `(${BAZBALL.fromYear}–${BAZBALL.toYear}), ${tests.size} England Tests, ${BAZ_PIDS.size} batsmen.` +
+      `(${BAZBALL.fromYear}–${BAZBALL.toYear}) — ${tests.size} England Tests, ` +
+      `${allTests.size} Tests worldwide; ${BAZ_SETS.bazball.size} England batsmen, ` +
+      `${BAZ_SETS.bazballvs.size} opponents.` +
       (BAZBALL.toYear < 2026 ? '  ⚠ Ends before 2026 — the June 2026 NZ series is not in this dataset.' : ''));
   } else {
     console.warn('[batting] Bazball window could not be resolved — no ENG–NZ Test found from 2022 onwards.');
@@ -1012,8 +1037,10 @@ function aggregateInnings(list, label) {
 }
 
 /* Innings belonging to one era key. Bazball is a flag, not a decade bucket. */
+const BAZ_FLAG = { bazball: 'baz', bazballvs: 'bazVs', bazballall: 'bazAll' };
 function inningsForEra(key) {
-  return key === 'bazball' ? BAT_INNS.filter(r => r.baz) : BAT_INNS.filter(r => r.era === key);
+  const flag = BAZ_FLAG[key];
+  return flag ? BAT_INNS.filter(r => r[flag]) : BAT_INNS.filter(r => r.era === key);
 }
 
 /* One row per selected era, or a single all-time row when none are picked. */
