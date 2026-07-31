@@ -722,7 +722,8 @@ function updateCards() {
   // Qualify on innings that actually carry ball data, not career innings —
   // otherwise a long pre-1980 career with a handful of late recorded innings
   // can top the card off a tiny sample.
-  const srQual = filtered.filter(p => (p.ballsInns || 0) >= 20 && p.balls > 0);
+  const srQual = filtered.filter(p => (p._sliced ? p.balls >= MIN_BALLS_FOR_SR
+                                               : p.srShown) && (p.ballsInns || 0) >= 20);
   if (srQual.length) {
     const bySR = [...srQual].sort((a,b) => b.sr - a.sr)[0];
     document.getElementById('scSR').textContent = Number(bySR.sr).toFixed(2);
@@ -910,6 +911,34 @@ function buildBatInnings() {
    ball data. Originals are kept as srFromDP / ballsFromDP so the two remain
    comparable — see srAudit() in the console.
    ────────────────────────────────────────────────────────────────────────── */
+/* ──────────────────────────────────────────────────────────────────────────
+   D.P is now the source of truth for balls faced and career span.
+
+   It wasn't always. Until the 2026-07 pipeline fix, extract_data.py never
+   recomputed cols 5, 10 or 17, so balls faced and to-year sat frozen at a
+   player's debut — GS Dinusha carried 186 runs off 16 balls, a career strike
+   rate of 1162.5 — and this page rebuilt both from the innings index to work
+   around it. The pipeline now recomputes them monotonically, max(stored,
+   computed), and Dinusha reads 312 balls and 2026 straight from the data.
+
+   Rebuilding from the rows is now WORSE than trusting D.P, not better. Ball
+   coverage was patchy into the 1980s, so some innings carry runs but no balls:
+   RJ Shastri has two, and summing the rows gives 9,193 deliveries against the
+   9,625 Ananth's counter holds. The pipeline preserves those; recomputing here
+   would throw them away and rate him over a subset of his career.
+
+   So the figures are taken as they come, and this pass only decides what may
+   be SHOWN. Two conditions, both required:
+
+     • the index must have at least one innings with recorded balls — evidence
+       the coverage is real, which the ~815 pre-1980 players carrying 1-59
+       stray deliveries in D.P do not have
+     • the total must clear MIN_BALLS_FOR_SR — a rate off a dozen balls is
+       arithmetic, not a strike rate
+
+   The index-derived figures are kept as ballsIndex / srIndex for srAudit(),
+   which now compares the two sources rather than driving the display.
+   ────────────────────────────────────────────────────────────────────────── */
 function applyInningsDerivedSR() {
   if (!BAT_INNS.length) return;
   const acc = new Map();                    // pid → {balls, runs, inns}
@@ -919,82 +948,39 @@ function applyInningsDerivedSR() {
     if (!a) { a = { balls: 0, runs: 0, inns: 0 }; acc.set(r.pid, a); }
     a.balls += r.balls; a.runs += r.runs; a.inns++;
   });
-  // Career span from appearances. D.P's from/to is demonstrably stale for
-  // recent debutants — a player with 2026 Tests carrying to = 2025 — and the
-  // appearance index knows every match he actually played.
-  const span = new Map();
-  APPEAR.forEach(r => {
-    let sp = span.get(r.pid);
-    if (!sp) { sp = { from: r.year, to: r.year }; span.set(r.pid, sp); }
-    if (r.year < sp.from) sp.from = r.year;
-    if (r.year > sp.to) sp.to = r.year;
-  });
 
-  let changed = 0, noData = 0, spanFixed = 0;
+  let noEvidence = 0, belowFloor = 0, differ = 0;
   PLAYERS.forEach(p => {
+    // snapshots kept under their old names so the audit helpers still read
     p.srFromDP = p.sr;
     p.ballsFromDP = p.balls;
     p.fromFromDP = p.from;
     p.toFromDP = p.to;
-    const sp = span.get(p.id);
-    if (sp) {
-      if (sp.from !== p.from || sp.to !== p.to) spanFixed++;
-      p.from = sp.from; p.to = sp.to;
-    }
-    const a = acc.get(p.id);
-    if (!a) {
-      p.balls = 0; p.ballsRuns = 0; p.ballsInns = 0; p.sr = 0;
-      noData++;
-      return;
-    }
-    p.balls = a.balls; p.ballsRuns = a.runs; p.ballsInns = a.inns;
-    p.srRaw = a.balls > 0 ? (a.runs / a.balls) * 100 : 0;
-    p.sr = a.balls >= MIN_BALLS_FOR_SR ? p.srRaw : 0;
-    if (Math.abs(p.sr - (p.srFromDP || 0)) >= 0.01) changed++;
-  });
-  console.info(`[batting] rebuilt from the innings index: ` +
-    `${changed} of ${PLAYERS.length} players differ from D.P on strike rate, ` +
-    `${noData} have no ball data, ${spanFixed} had a wrong career span. ` +
-    `Run srAudit() or staleAudit() for the breakdown.`);
-}
 
-/* Console helper: players whose D.P career row has stopped keeping up with the
-   match data. Reports, per player, the last year D.P still agrees with the
-   innings index — if those cluster on one date, that is when the upstream
-   field stopped refreshing. */
-function staleAudit(limit = 30) {
-  const byPid = new Map();
-  BAT_INNS.forEach(r => {
-    if (!byPid.has(r.pid)) byPid.set(r.pid, []);
-    byPid.get(r.pid).push(r);
+    const a = acc.get(p.id);
+    p.ballsIndex = a ? a.balls : 0;
+    p.ballsRuns  = a ? a.runs : 0;
+    p.ballsInns  = a ? a.inns : 0;
+    p.srIndex    = (a && a.balls) ? (a.runs / a.balls) * 100 : 0;
+    if (a && Math.abs(p.srIndex - (p.sr || 0)) >= 0.01) differ++;
+
+    p.srRaw = p.sr || 0;
+    if (!p.ballsInns) {
+      p.srShown = false; noEvidence++;
+    } else if ((p.balls || 0) < MIN_BALLS_FOR_SR) {
+      p.srShown = false; belowFloor++;
+    } else {
+      p.srShown = true;
+    }
+    // zeroed when not shown so a hidden figure cannot sort to the top
+    p.sr = p.srShown ? p.srRaw : 0;
   });
-  const rows = [];
-  PLAYERS.forEach(p => {
-    const inn = (byPid.get(p.id) || []).slice().sort((a, b) => a.year - b.year || a.mid - b.mid);
-    if (!inn.length) return;
-    const dpBalls = p.ballsFromDP || 0;
-    const idxBalls = inn.reduce((s, r) => s + r.balls, 0);
-    if (dpBalls === idxBalls && p.toFromDP === p.to) return;
-    // walk forward and find where the running ball total last matched D.P
-    let run = 0, agreeYear = null;
-    for (const r of inn) { run += r.balls; if (run === dpBalls) agreeYear = r.year; }
-    rows.push({
-      player: p.fullName || p.name,
-      span: p.from + '-' + p.to,
-      dpSpan: p.fromFromDP + '-' + p.toFromDP,
-      dpBalls, idxBalls,
-      lastAgreement: agreeYear === null ? '(never)' : agreeYear,
-      runsAgree: p.runs === inn.reduce((s, r) => s + r.runs, 0)
-    });
-  });
-  rows.sort((a, b) => (b.idxBalls - b.dpBalls) - (a.idxBalls - a.dpBalls));
-  console.table(rows.slice(0, limit));
-  const years = {};
-  rows.forEach(r => { const k = r.lastAgreement; years[k] = (years[k] || 0) + 1; });
-  console.log('last year D.P agreed, by count:', years);
-  console.log(`${rows.length} players with a stale career row; ` +
-    `${rows.filter(r => !r.runsAgree).length} of them also disagree on RUNS.`);
-  return rows;
+
+  console.info(`[batting] balls and strike rate taken from D.P; ` +
+    `${noEvidence} player(s) have no recorded ball data in the rows and ` +
+    `${belowFloor} fall under ${MIN_BALLS_FOR_SR} balls — both left blank. ` +
+    `${differ} differ from the row-derived figure (expected: rows are short ` +
+    `where early innings lack ball data). Run srAudit() or staleAudit().`);
 }
 
 /* Console helper: the Tests a player appeared in but never batted in.
@@ -1026,7 +1012,9 @@ function notBatted(nameFragment) {
   return rows;
 }
 
-/* Console helper: where the recomputed SR parts company with D.P's, worst first. */
+/* Console helper: where the row-derived figure parts company with D.P's.
+   A negative delta means the rows are SHORT — early innings without ball
+   data — and D.P is the number to trust. That is why the page shows D.P. */
 function srAudit(limit = 25) {
   const rows = PLAYERS
     .map(p => ({
@@ -1034,16 +1022,21 @@ function srAudit(limit = 25) {
       span: p.from + '-' + p.to,
       inns: p.inns,
       innsWithBalls: p.ballsInns || 0,
-      ballsDP: p.ballsFromDP || 0,
-      ballsIndex: p.balls,
-      srDP: +(p.srFromDP || 0).toFixed(2),
-      srIndex: +p.sr.toFixed(2),
-      delta: +(p.sr - (p.srFromDP || 0)).toFixed(2)
+      ballsDP: p.balls || 0,
+      ballsIndex: p.ballsIndex || 0,
+      srDP: +(p.srRaw || 0).toFixed(2),
+      srIndex: +(p.srIndex || 0).toFixed(2),
+      delta: +((p.srIndex || 0) - (p.srRaw || 0)).toFixed(2),
+      shown: !!p.srShown
     }))
     .filter(r => Math.abs(r.delta) >= 0.01)
     .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta));
   console.table(rows.slice(0, limit));
-  console.info(`${rows.length} players differ by ≥0.01; showing ${Math.min(limit, rows.length)}.`);
+  const short = rows.filter(r => r.ballsIndex < r.ballsDP).length;
+  console.info(`${rows.length} players where the rows disagree with D.P; ` +
+    `${short} of them have FEWER balls in the rows (early innings missing ball ` +
+    `data — D.P is the better figure and is what the page shows). ` +
+    `${rows.filter(r => !r.shown).length} are blanked anyway.`);
   return rows;
 }
 
@@ -1481,9 +1474,11 @@ function render() {
       if (c.key === 'name') return `<td class="${c.cls}" title="${p.fullName}">${val}</td>`;
       // No recorded balls (a wholly pre-1980 career) → leave BF and SR empty
       if (c.key === 'balls' || c.key === 'sr') {
-        // too small a sample to mean anything — see MIN_BALLS_FOR_SR
-        if (!p.balls || p.balls < MIN_BALLS_FOR_SR) return `<td class="${c.cls}"></td>`;
-        return `<td class="${c.cls}">${p.sr ? (c.key === 'sr' ? p.sr.toFixed(2) : p.balls.toLocaleString()) : ''}</td>`;
+        // p.srShown is false with no recorded ball data in the rows, or under
+        // MIN_BALLS_FOR_SR — either way there is nothing honest to print
+        if (p._sliced ? (!p.balls || p.balls < MIN_BALLS_FOR_SR) : !p.srShown)
+          return `<td class="${c.cls}"></td>`;
+        return `<td class="${c.cls}">${c.key === 'sr' ? (p.sr || 0).toFixed(2) : (p.balls || 0).toLocaleString()}</td>`;
       }
       if (c.key === 'avg') val = (typeof val === 'number' && val > 0) ? val.toFixed(2) : '—';
       if (c.key === 'runs' && typeof val === 'number') val = val.toLocaleString();
