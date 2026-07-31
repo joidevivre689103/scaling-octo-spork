@@ -601,7 +601,8 @@ function syncModeUI(f) {
         `(${BAZBALL.fromYear}\u2013${BAZBALL.toYear}; ${BAZBALL.tests} England Tests, ` +
         `${BAZBALL.allTests} worldwide) \u2014 the Lord\u2019s and Trent Bridge NZ bookends of the ` +
         `Stokes\u2013McCullum era.  ` + bazKeys.map(k => gloss[k]).join('; ') + '.  ' +
-        `These overlap each other and the 2020s, so the combined line counts each innings once.` +
+        `These overlap each other and the 2020s, so the combined line counts each innings once; ` +
+        `in the player table a row identical across two of them is shown once, under the more specific view.` +
         (BAZBALL.toYear < 2026
           ? `  \u26a0 The window ends in ${BAZBALL.toYear} \u2014 the June 2026 NZ series is not in this dataset yet.`
           : '');
@@ -1163,7 +1164,24 @@ function slicedPlayers(f) {
       }));
     });
   });
-  return out;
+  return dedupeIdenticalEraRows(out);
+}
+
+/* The three Bazball views overlap on purpose — England is a subset of all
+   countries, and for an England player they hold the SAME innings, so both
+   rows carry identical figures. Emitting both just repeats the player. Where
+   two selected eras produce an identical row for the same player, keep the
+   first (eras are walked most-specific first) and drop the rest. Genuinely
+   different rows — an Australian's "vs England" against his "all countries" —
+   are untouched. */
+function dedupeIdenticalEraRows(rows) {
+  const seen = new Set();
+  return rows.filter(r => {
+    const sig = [r.id, r.tests, r.inns, r.runs, r.balls, r.hs, r.hundreds].join('|');
+    if (seen.has(sig)) return false;
+    seen.add(sig);
+    return true;
+  });
 }
 
 /* True when each player is split across more than one era row. */
