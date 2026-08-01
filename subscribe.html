@@ -604,37 +604,6 @@ h1.title em {
   margin-left: 2px;
 }
 
-.price-option.founding {
-  border-color: var(--gold);
-}
-.price-option.founding::before {
-  content: 'Founding';
-  position: absolute;
-  top: -8px;
-  left: 14px;
-  background: var(--paper);
-  padding: 0 8px;
-  font-family: 'Special Elite', monospace;
-  font-size: 10px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--gold);
-}
-.price-option.founding:has(input:checked) {
-  border-color: var(--gold);
-}
-.price-option.founding .price-option-amount {
-  color: var(--gold);
-}
-.founding-counter {
-  font-family: 'Special Elite', monospace;
-  font-size: 10px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--ink-mute);
-  margin-top: 4px;
-}
-
 .zone-footnote {
   font-family: 'Source Serif 4', serif;
   font-style: italic;
@@ -1049,7 +1018,6 @@ h1.title em {
      - Detects pricing zone (USD / INR) on load
      - Renders price options for that zone
      - Shows footnote about the other zone for transparency
-     - Live founding-tier counter
      - Delegates ALL authentication to /login.html (item b, 2026-06-05):
        anonymous Subscribe clicks route to /login.html?mode=signup with a
        returnUrl carrying the selected priceKey (+ zone override if any).
@@ -1088,7 +1056,6 @@ if (isLocal) {
 }
 
 const detectPricingZone       = httpsCallable(functions, 'detectPricingZone');
-const getFoundingAvailability = httpsCallable(functions, 'getFoundingAvailability');
 const createCheckoutSession   = httpsCallable(functions, 'createCheckoutSession');
 
 // Email-key encoder — must match the server-side convention in checkout.js
@@ -1116,7 +1083,6 @@ const alreadySubSignout  = document.getElementById('already-sub-signout');
 
 // ─── State ────────────────────────────────────────────────────────────────
 let zone = null;          // 'usd' or 'inr'
-let availability = null;  // { usd: {...}, inr: {...} }
 let selectedPriceKey = null;
 
 // Display catalog. Cloud Function is source of truth for Price IDs and
@@ -1127,16 +1093,12 @@ const CATALOG = {
       detail: 'Billed monthly. Cancel any time.' },
     { key: 'usd_annual',   cadence: 'Annual',           amount: '$72', per: '/year',
       detail: 'Save $24 vs monthly. Cancel any time.' },
-    { key: 'usd_founding', cadence: 'Founding member',  amount: '$48', per: '/year',
-      detail: 'Founders lock in this rate forever.', founding: true },
   ],
   inr: [
     { key: 'inr_monthly',  cadence: 'Monthly',          amount: '₹99',  per: '/month',
       detail: 'Billed monthly. Cancel any time.' },
     { key: 'inr_annual',   cadence: 'Annual',           amount: '₹899', per: '/year',
       detail: 'Save ₹289 vs monthly. Cancel any time.' },
-    { key: 'inr_founding', cadence: 'Founding member',  amount: '₹599', per: '/year',
-      detail: 'Founders lock in this rate forever.', founding: true },
   ],
 };
 
@@ -1152,29 +1114,22 @@ const ZONE_FOOTNOTE = {
 
 // ─── Render ───────────────────────────────────────────────────────────────
 function renderOptions() {
-  if (!zone || !availability) return;
+  if (!zone) return;
 
   const items = CATALOG[zone];
-  const zoneAvail = availability[zone];
 
   optionsEl.innerHTML = '';
 
   items.forEach((item) => {
-    // Hide founding tier entirely when full
-    if (item.founding && !zoneAvail.available) return;
-
     const id = 'price-' + item.key;
     const wrapper = document.createElement('label');
-    wrapper.className = 'price-option' + (item.founding ? ' founding' : '');
+    wrapper.className = 'price-option';
     wrapper.htmlFor = id;
     wrapper.innerHTML =
       '<input type="radio" name="price" id="' + id + '" value="' + item.key + '">' +
       '<div class="price-option-label">' +
         '<span class="price-option-cadence">' + item.cadence + '</span>' +
         '<span class="price-option-detail">' + item.detail + '</span>' +
-        (item.founding
-          ? '<span class="founding-counter">' + zoneAvail.remaining + ' of ' + zoneAvail.cap + ' spots remaining</span>'
-          : '') +
       '</div>' +
       '<div class="price-option-amount">' + item.amount + '<span class="per">' + item.per + '</span></div>';
     optionsEl.appendChild(wrapper);
@@ -1273,14 +1228,7 @@ async function startCheckout() {
     console.error('createCheckoutSession failed:', err);
     let userMessage;
     const code = err && err.code;
-    if (code === 'functions/resource-exhausted') {
-      userMessage = err.message || 'Founding tier just filled up. Please choose monthly or annual.';
-      try {
-        const { data } = await getFoundingAvailability();
-        availability = data;
-        renderOptions();
-      } catch (e) { /* leave the message */ }
-    } else if (code === 'functions/already-exists') {
+    if (code === 'functions/already-exists') {
       // Defense in depth: the user is already a paid subscriber but slipped
       // past the on-load check (e.g. signed in mid-flow via magic link).
       // Swap the UI to the already-subscribed panel rather than just showing
@@ -1481,9 +1429,7 @@ if (alreadySubSignout) {
   // — and ONLY pre-selects. Checkout is never auto-triggered from URL
   // state; the reader confirms with a Subscribe click. Keys whose zone
   // doesn't match the rendered zone are ignored silently (no such radio
-  // exists, and the server geo-gate is the real enforcement). Founding
-  // keys whose tier filled mid-roundtrip are likewise ignored (radio
-  // hidden by renderOptions).
+  // exists, and the server geo-gate is the real enforcement).
   // ────────────────────────────────────────────────────────────────────
   function applyPricekeyFromUrl() {
     const key = new URLSearchParams(window.location.search).get('pricekey');
@@ -1497,12 +1443,8 @@ if (alreadySubSignout) {
   }
 
   try {
-    const [zoneRes, availRes] = await Promise.all([
-      detectPricingZone(),
-      getFoundingAvailability(),
-    ]);
+    const zoneRes = await detectPricingZone();
     zone = urlZoneOverride || (zoneRes.data && zoneRes.data.zone) || 'usd';
-    availability = availRes.data;
     if (urlZoneOverride) {
       console.log('[subscribe] zone override active: ' + urlZoneOverride + ' (detected was: ' + (zoneRes.data && zoneRes.data.zone) + ')');
     }
@@ -1511,10 +1453,6 @@ if (alreadySubSignout) {
   } catch (err) {
     console.error('Initial pricing fetch failed:', err);
     zone = urlZoneOverride || 'usd';
-    availability = {
-      usd: { cap: 100, taken: 0, remaining: 100, available: true },
-      inr: { cap: 100, taken: 0, remaining: 100, available: true },
-    };
     renderOptions();
     applyPricekeyFromUrl();
     if (!urlZoneOverride) {

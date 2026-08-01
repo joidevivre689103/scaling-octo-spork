@@ -42,7 +42,7 @@
 html{scroll-behavior:smooth}
 
 /* scroll margin so signup targets aren't flush with top of viewport when jumped to */
-#signup-main, #signup-free, #signup-founding{ scroll-margin-top:20px; }
+#signup-main, #signup-free{ scroll-margin-top:20px; }
 
 :root{
   --bg:#FDF6E3;--surface:#FFFDF7;--surface2:#F5EDDA;--surface3:#E8DCC8;
@@ -335,7 +335,7 @@ body{
 /* ═══ FREE NEWSLETTER SIGNUP — PRIMARY CTA ═══
    This is the visually dominant signup block. Cream background, crimson accent,
    generous padding. Free tier is the primary ask during pre-launch — it's what
-   most visitors should do. Founding member is a secondary option below this. */
+   most visitors should do. */
 .signup-free{
   padding:56px 24px;
   border-top:1px solid var(--border);
@@ -349,61 +349,7 @@ body{
   text-align:center;
 }
 
-/* ═══ FOUNDING MEMBER SIGNUP — SECONDARY CTA ═══
-   Visually smaller than the free block, uses gold accent (not crimson) to
-   differentiate it as a distinct/optional tier. Sits below the free signup
-   in the page flow, so a visitor who just wants free only has to engage
-   with the primary block. */
-.signup-founding{
-  padding:44px 24px;
-  background:var(--surface);
-  border-top:1px solid var(--border);
-  border-bottom:1px solid var(--border);
-  margin:0 -24px;
-}
-.signup-founding-inner{
-  max-width:540px;
-  margin:0 auto;
-  text-align:center;
-  padding:32px 28px;
-  background:var(--surface2);
-  border:1.5px solid var(--gold);
-  border-radius:8px;
-  position:relative;
-}
-.signup-founding .signup-label{ color:var(--gold); }
-.signup-founding .signup-title{
-  font-size:clamp(22px,3vw,28px);
-  color:var(--gold);
-}
-.signup-founding .signup-sub{
-  font-size:14px;
-  margin-bottom:20px;
-}
-/* Override MailerLite styling within .signup-founding so the button/ring is gold, not crimson */
-.signup-founding .ml-embedded input[type="email"]:focus,
-.signup-founding .ml-embedded .ml-field-email input:focus,
-.signup-founding .ml-embedded input.form-control:focus{
-  border-color:var(--gold) !important;
-  box-shadow:0 0 0 3px rgba(184,134,11,0.12) !important;
-}
-.signup-founding .ml-embedded button,
-.signup-founding .ml-embedded button[type="submit"],
-.signup-founding .ml-embedded .primary,
-.signup-founding .ml-embedded .ml-form-embedSubmit button{
-  background:var(--gold) !important;
-  border-color:var(--gold) !important;
-}
-.signup-founding .ml-embedded button:hover,
-.signup-founding .ml-embedded button[type="submit"]:hover,
-.signup-founding .ml-embedded .primary:hover,
-.signup-founding .ml-embedded .ml-form-embedSubmit button:hover{
-  background:#96700a !important;
-  border-color:#96700a !important;
-}
-
-/* Legacy class kept as alias in case anything still references .signup-main.
-   The founding block used to own this class. */
+/* Legacy class kept as alias in case anything still references .signup-main. */
 .signup-main{
   padding:56px 24px;
   border-top:1px solid var(--border);
@@ -580,34 +526,6 @@ body{
   border-bottom:1px solid var(--accent);
 }
 .signup-fineprint-link:hover{ color:var(--accent-hover); border-bottom-color:var(--accent-hover); }
-
-/* ═══ FOUNDING SPOTS COUNTER ═══ */
-.founding-counter{
-  display:inline-flex;
-  align-items:baseline;
-  gap:8px;
-  padding:10px 18px;
-  background:var(--surface);
-  border:1.5px solid var(--accent);
-  border-radius:999px;
-  margin-bottom:24px;
-}
-.founding-counter-num{
-  font-family:'Playfair Display',serif;
-  font-size:22px;
-  font-weight:700;
-  color:var(--accent);
-  line-height:1;
-  letter-spacing:-0.5px;
-}
-.founding-counter-label{
-  font-family:'Inter',sans-serif;
-  font-size:11px;
-  font-weight:600;
-  letter-spacing:1px;
-  text-transform:uppercase;
-  color:var(--text2);
-}
 
 /* ═══ FEATURES ═══ */
 .features{
@@ -843,19 +761,16 @@ body{
   .success-banner-text{ text-align:center; }
 }
 
-/* ═══ FORM DISABLED STATE (when subscribed=true or subscribed=founding) ═══ */
+/* ═══ FORM DISABLED STATE (when subscribed=true) ═══ */
 /* Keep the form visible so users see what they just did — but grey it out
    and make it non-interactive so they can't submit again. A small "✓ Subscribed"
    overlay sits on top of the whole signup block.
-   Applies to .signup-free (free tier), .signup-founding (paid tier), and
-   legacy .signup-main (for backward compat). */
+   Applies to .signup-free and legacy .signup-main (for backward compat). */
 .signup-free.subscribed,
-.signup-founding.subscribed,
 .signup-main.subscribed{
   position:relative;
 }
 .signup-free.subscribed .signup-free-inner > *:not(.subscribed-overlay),
-.signup-founding.subscribed .signup-founding-inner > *:not(.subscribed-overlay),
 .signup-main.subscribed .signup-main-inner > *:not(.subscribed-overlay){
   opacity:0.38;
   filter:grayscale(0.4);
@@ -879,7 +794,6 @@ body{
   max-width:90%;
 }
 .signup-free.subscribed .subscribed-overlay,
-.signup-founding.subscribed .subscribed-overlay,
 .signup-main.subscribed .subscribed-overlay{ display:block; }
 .subscribed-overlay-icon{
   display:inline-flex;
@@ -1205,40 +1119,6 @@ body{
     </div>
   </section>
 
-  <!-- FOUNDING MEMBER SIGNUP — SECONDARY CTA (gold accent, smaller visual weight) -->
-  <section class="signup-founding" id="signup-founding">
-    <div class="signup-founding-inner">
-
-      <!-- Overlay shown when user just reserved a founding spot -->
-      <div class="subscribed-overlay">
-        <span class="subscribed-overlay-icon">✓</span>
-        <span class="subscribed-overlay-text">Spot reserved</span>
-      </div>
-
-      <div class="signup-label">◆ Want More? Become a Founding Member</div>
-      <h2 class="signup-title">Reserve a Founding Spot</h2>
-      <p class="signup-sub">
-        Lock in <strong>$50/year for life</strong> before launch. Limited to the first 500 readers. Full archive, audio library, data export, and commenting — worth $72/year after founding spots are gone.
-      </p>
-
-      <!-- Founding spots counter — update manually in CMS or wire to Firestore later -->
-      <div class="founding-counter" id="foundingCounter">
-        <span class="founding-counter-num" id="foundingCounterNum">—</span>
-        <span class="founding-counter-label">of 500 founding spots claimed</span>
-      </div>
-
-      <!-- Loading placeholder for the founding form -->
-      <div class="signup-main-placeholder" id="foundingPlaceholder">Loading signup form…</div>
-
-      <!-- The real MailerLite embed — FOUNDING MEMBER form (EUewDg) -->
-      <div class="ml-embedded" data-form="EUewDg" data-source="founding-member"></div>
-
-      <div class="signup-fineprint">
-        <strong>No charge now.</strong> We'll email you the payment link when we're ready to process payments. Cancel anytime before paying.
-      </div>
-    </div>
-  </section>
-
   <!-- PULL QUOTE -->
   <section class="pullquote">
     <p class="pullquote-text">
@@ -1298,14 +1178,13 @@ body{
   if (el) el.textContent = `${days[d.getDay()]}, ${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()} · Vol. I, No. 1`;
 })();
 
-// Hide the "Loading signup form…" placeholder once MailerLite renders each form.
-// Two forms live on this page (free: cufVBG, founding: EUewDg), each with its own
-// placeholder. MutationObserver watches for MailerLite's markup injection; fallback
-// timeout of 8s hides the placeholder regardless if MailerLite is blocked/offline.
+// Hide the "Loading signup form…" placeholder once MailerLite renders the form.
+// One form lives on this page (free: cufVBG). MutationObserver watches for
+// MailerLite's markup injection; fallback timeout of 8s hides the placeholder
+// regardless if MailerLite is blocked/offline.
 (function(){
   const forms = [
-    { formId: 'cufVBG', placeholderId: 'mlPlaceholder' },        // free tier
-    { formId: 'EUewDg', placeholderId: 'foundingPlaceholder' }   // founding member
+    { formId: 'cufVBG', placeholderId: 'mlPlaceholder' }         // free tier
   ];
 
   forms.forEach(({ formId, placeholderId }) => {
@@ -1336,37 +1215,23 @@ body{
 })();
 
 // ═══ POST-SUBSCRIPTION SUCCESS BANNER ═══
-// MailerLite redirects the user back with either:
+// MailerLite redirects the user back with:
 //   ?subscribed=true      → free newsletter signup
-//   ?subscribed=founding  → founding member signup
-// Different banner copy for each, different signup section gets greyed out.
-// Top/bottom CTA buttons retarget to the banner regardless of which tier.
+// The signup section is greyed out and the CTA buttons retarget to the banner.
 (function(){
   const params = new URLSearchParams(window.location.search);
   const subscribedType = params.get('subscribed');
-  if (subscribedType !== 'true' && subscribedType !== 'founding') return;
+  if (subscribedType !== 'true') return;
 
   const banner = document.getElementById('successBanner');
   const freeSection = document.getElementById('signup-free');
-  const foundingSection = document.getElementById('signup-founding');
   if (!banner) return;
 
-  // Customize banner copy by tier. Founding gets a distinct message since the
-  // user expects a payment link, not just a newsletter confirmation.
   const titleEl = banner.querySelector('.success-banner-title');
   const bodyEl = banner.querySelector('.success-banner-body');
-  if (subscribedType === 'founding') {
-    if (titleEl) titleEl.textContent = 'Founding spot reserved — check your email';
-    if (bodyEl) bodyEl.innerHTML = 'Thanks for reserving a founding member spot! We\'ve sent a <strong>confirmation email</strong>. Click the link inside to confirm. We\'ll email you the payment link when we\'re ready to process payments. (Can\'t find it? Check your spam folder.)';
-    // Grey out ONLY the founding section — free signup stays active in case they want both
-    if (foundingSection) foundingSection.classList.add('subscribed');
-  } else {
-    // Free tier (?subscribed=true)
-    if (titleEl) titleEl.textContent = 'Almost there — check your email';
-    if (bodyEl) bodyEl.innerHTML = 'Thanks for subscribing! We\'ve sent a <strong>confirmation email</strong>. Click the link inside to finish signing up. (Can\'t find it? Check your spam folder.)';
-    // Grey out ONLY the free section — founding stays active in case they want to upgrade
-    if (freeSection) freeSection.classList.add('subscribed');
-  }
+  if (titleEl) titleEl.textContent = 'Almost there — check your email';
+  if (bodyEl) bodyEl.innerHTML = 'Thanks for subscribing! We\'ve sent a <strong>confirmation email</strong>. Click the link inside to finish signing up. (Can\'t find it? Check your spam folder.)';
+  if (freeSection) freeSection.classList.add('subscribed');
 
   // Show top banner
   banner.classList.add('visible');
@@ -1376,65 +1241,8 @@ body{
   document.querySelectorAll('.cta-button').forEach(btn => {
     if (btn.closest('.quiz-card')) return;
     btn.setAttribute('href', '#successBanner');
-    const ctaLabel = subscribedType === 'founding'
-      ? '✓ Spot Reserved — Check Your Email'
-      : '✓ Subscribed — Check Your Email';
-    btn.innerHTML = ctaLabel;
+    btn.innerHTML = '✓ Subscribed — Check Your Email';
   });
-})();
-
-// ═══ FOUNDING MEMBER COUNTER ═══
-// Tries to read live count from Firestore (config/launchConfig.foundingClaimed).
-// Falls back to hiding the counter entirely if Firestore isn't reachable or no value is set —
-// better to hide than show "—" indefinitely. To manually set the number, open the CMS and
-// update the "Launch Quiz" view (the counter lives in the same config doc).
-(function(){
-  const counterEl    = document.getElementById('foundingCounter');
-  const counterNumEl = document.getElementById('foundingCounterNum');
-  if (!counterEl || !counterNumEl) return;
-
-  // Hide by default; only show if we get a real number back
-  counterEl.style.display = 'none';
-
-  // Lazy-load Firebase only here (the main page shouldn't pay the cost if
-  // the counter is disabled). We use v9 compat via CDN to match the CMS convention.
-  const loadScript = (src) => new Promise((resolve, reject) => {
-    const s = document.createElement('script');
-    s.src = src; s.async = true;
-    s.onload = resolve; s.onerror = reject;
-    document.head.appendChild(s);
-  });
-
-  (async () => {
-    try {
-      await loadScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js');
-      await loadScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js');
-
-      // Same config as CMS — shared project
-      const fbConfig = {
-        apiKey: "AIzaSyBnfn9hK0y-p6nvIZ_AwoJnWD7DfDuIQd4",
-        authDomain: "hitwicket-cba02.firebaseapp.com",
-        projectId: "hitwicket-cba02",
-        storageBucket: "hitwicket-cba02.firebasestorage.app",
-        messagingSenderId: "196915483829",
-        appId: "1:196915483829:web:071c47af79914aec88dafc"
-      };
-      if (!firebase.apps.length) firebase.initializeApp(fbConfig);
-      const db = firebase.firestore();
-
-      const doc = await db.collection('config').doc('launchConfig').get();
-      if (!doc.exists) return;
-      const n = doc.data().foundingClaimed;
-      if (typeof n !== 'number' || n < 0) return;
-
-      // Show the counter with the fetched number
-      counterNumEl.textContent = n;
-      counterEl.style.display = 'inline-flex';
-    } catch (e) {
-      // Silent fail — counter stays hidden. Better than showing "—" forever.
-      console.warn('Founding counter: could not load from Firestore', e);
-    }
-  })();
 })();
 
 // ═══════════════════════════════════════════════════════════════════════════
