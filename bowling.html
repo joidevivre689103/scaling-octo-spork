@@ -188,22 +188,6 @@ td.num.highlight{color:var(--accent);font-weight:700}
   .tabs{width:100%;overflow-x:auto}
 }
 
-/* ══ Cricket Times Support Banner ══ */
-.ct-support-banner{max-width:1400px;margin:0 auto;padding:0 24px}
-.ct-support-inner{border-top:3px double var(--border2,#c8c4bc);border-bottom:3px double var(--border2,#c8c4bc);padding:36px 0;display:flex;align-items:center;gap:40px}
-.ct-support-icon{flex-shrink:0;width:72px;height:72px;border:2px solid var(--accent,#a03020);border-radius:50%;display:flex;align-items:center;justify-content:center}
-.ct-support-icon svg{width:32px;height:32px;stroke:var(--accent,#a03020);fill:none;stroke-width:1.5}
-.ct-support-content{flex:1}
-.ct-support-headline{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;line-height:1.3;margin-bottom:8px;color:var(--text,#1a1a18)}
-.ct-support-headline em{font-style:italic;color:var(--accent,#a03020)}
-.ct-support-body{font-family:'Source Serif 4',Georgia,serif;font-size:15px;color:var(--text2,#4a4a46);line-height:1.6;max-width:560px}
-.ct-support-actions{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:8px}
-.ct-support-btn{display:inline-flex;align-items:center;gap:8px;padding:12px 28px;background:var(--accent,#a03020);color:#fff;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;letter-spacing:0.5px;text-decoration:none;border:none;cursor:pointer;transition:all 0.2s ease}
-.ct-support-btn:hover{background:var(--accent-hover,#801810);transform:translateY(-1px)}
-.ct-support-btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2}
-.ct-support-aside{font-family:'Inter',sans-serif;font-size:10px;color:var(--text3,#7a7a74);letter-spacing:0.3px;text-align:center;max-width:220px}
-@media(max-width:768px){.ct-support-inner{flex-direction:column;text-align:center;gap:24px;padding:28px 0}.ct-support-body{margin:0 auto}.ct-support-headline{font-size:20px}}
-
 </style>
 </head>
 <body>
@@ -1644,26 +1628,6 @@ function exportToExcel(){
   applyFilters();
 })();
 </script>
-
-<!-- ══ Support Banner ══ -->
-<div class="ct-support-banner">
-  <div class="ct-support-inner">
-    <div class="ct-support-icon">
-      <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M12 2a2.5 2.5 0 0 0-2.5 2.5h5A2.5 2.5 0 0 0 12 2z"/><circle cx="12" cy="19" r="2" fill="var(--accent,#a03020)" stroke="none"/></svg>
-    </div>
-    <div class="ct-support-content">
-      <div class="ct-support-headline">Support <em>Independent</em> Cricket Stories</div>
-      <div class="ct-support-body">Cricket Times is free and independent. If you find value in our stories, analyses and tools, consider buying me a coffee to keep the scoreboard ticking.</div>
-    </div>
-    <div class="ct-support-actions">
-      <a href="https://buymeacoffee.com/YOUR_USERNAME" target="_blank" rel="noopener" class="ct-support-btn">
-        <svg viewBox="0 0 24 24"><path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><line x1="6" y1="2" x2="6" y2="4"/><line x1="10" y1="2" x2="10" y2="4"/><line x1="14" y1="2" x2="14" y2="4"/></svg>
-        Buy Me a Coffee
-      </a>
-      <span class="ct-support-aside">This is a personal contribution, not a donation — contributions are not tax-deductible.</span>
-    </div>
-  </div>
-</div>
 
 <footer data-ct-nav="footer"></footer>
 
