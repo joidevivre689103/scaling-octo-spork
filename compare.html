@@ -274,6 +274,22 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
 .ms-dd-item.checked .ms-cb{background:var(--accent);border-color:var(--accent)}
 .ms-dd-item.checked .ms-cb::after{content:'✓';color:#fff;font-size:10px;font-weight:700}
 .ms-dd-item .ms-lbl{flex:1;font-weight:500}
+.ms-dd-search{position:sticky;top:0;z-index:2;background:var(--surface);padding:6px;border-bottom:1px solid var(--border)}
+.ms-dd-search input{
+  width:100%;box-sizing:border-box;background:var(--surface2);border:1px solid var(--border);
+  border-radius:5px;padding:5px 8px;font-family:'Outfit',sans-serif;font-size:12px;
+  color:var(--text);outline:none;
+}
+.ms-dd-search input:focus{border-color:var(--accent)}
+.ms-dd-none{padding:8px 10px;font-size:11.5px;color:var(--text3)}
+.ms-dd-actions{
+  position:sticky;bottom:0;background:var(--surface);border-top:1px solid var(--border);
+  padding:5px 8px;display:flex;justify-content:flex-end;
+}
+.ms-dd-actions button{
+  background:none;border:none;color:var(--accent);cursor:pointer;
+  font-family:'Outfit',sans-serif;font-size:11px;font-weight:600;padding:2px 4px;
+}
 .active-filters{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
 .af-tag{
   display:inline-flex;align-items:center;gap:4px;padding:2px 9px;
@@ -875,11 +891,36 @@ header.header{display:none !important}
           <div class="ms-dd" id="fOppDD"></div>
         </div>
       </div>
-      <div class="fp-group"><label>Home / Away</label><select class="fp-select-lg" id="fHA" onchange="applyFilters()"><option value="">All</option><option value="home">Home</option><option value="away">Away</option><option value="neutral">Neutral</option></select></div>
-      <div class="fp-group"><label>City</label><select class="fp-select-lg" id="fCity" onchange="applyFilters()"><option value="">All cities</option></select></div>
-      <div class="fp-group"><label>Ground</label><select class="fp-select-lg" id="fGnd" onchange="applyFilters()"><option value="">All grounds</option></select></div>
-      <div class="fp-group"><label>Match Innings</label><select class="fp-select-lg" id="fInn" onchange="applyFilters()"><option value="">All innings</option><option value="1">1st innings</option><option value="2">2nd innings</option><option value="3">3rd innings</option><option value="4">4th innings</option></select></div>
-      <div class="fp-group"><label>Result</label><select class="fp-select-lg" id="fRes" onchange="applyFilters()"><option value="">All results</option><option value="won">Won</option><option value="lost">Lost</option><option value="drawn">Drawn</option><option value="tied">Tied</option></select></div>
+      <div class="fp-group"><label>Home / Away</label>
+        <div class="ms-wrap" id="fHAWrap">
+          <button class="ms-toggle" id="fHAToggle" type="button" onclick="msToggleDD('HA')"><span class="ms-placeholder">All</span></button>
+          <div class="ms-dd" id="fHADD"></div>
+        </div>
+      </div>
+      <div class="fp-group"><label>City</label>
+        <div class="ms-wrap" id="fCityWrap">
+          <button class="ms-toggle" id="fCityToggle" type="button" onclick="msToggleDD('City')"><span class="ms-placeholder">All cities</span></button>
+          <div class="ms-dd" id="fCityDD"></div>
+        </div>
+      </div>
+      <div class="fp-group"><label>Ground</label>
+        <div class="ms-wrap" id="fGndWrap">
+          <button class="ms-toggle" id="fGndToggle" type="button" onclick="msToggleDD('Gnd')"><span class="ms-placeholder">All grounds</span></button>
+          <div class="ms-dd" id="fGndDD"></div>
+        </div>
+      </div>
+      <div class="fp-group"><label>Match Innings</label>
+        <div class="ms-wrap" id="fInnWrap">
+          <button class="ms-toggle" id="fInnToggle" type="button" onclick="msToggleDD('Inn')"><span class="ms-placeholder">All innings</span></button>
+          <div class="ms-dd" id="fInnDD"></div>
+        </div>
+      </div>
+      <div class="fp-group"><label>Result</label>
+        <div class="ms-wrap" id="fResWrap">
+          <button class="ms-toggle" id="fResToggle" type="button" onclick="msToggleDD('Res')"><span class="ms-placeholder">All results</span></button>
+          <div class="ms-dd" id="fResDD"></div>
+        </div>
+      </div>
       <div class="fp-group"><label>Toss</label><select class="fp-select-lg" id="fToss" onchange="applyFilters()"><option value="">All</option><option value="won">Won toss</option><option value="lost">Lost toss</option></select></div>
       <div class="fp-group"><label>Team Captain</label>
         <div class="ms-wrap" id="fTeamCaptWrap">
@@ -1038,6 +1079,20 @@ function lum(h){return .299*parseInt(h.slice(1,3),16)/255+.587*parseInt(h.slice(
 function badge(c){const bg=cClr[c]||'#4a5568';return`<span class="ctry-badge" style="background:${bg};color:${lum(bg)>.45?'#1a1e26':'#fff'}">${c}</span>`}
 function fmt(v,d=2){if(v===null||v===undefined||v===''||v===0)return'—';if(typeof v==='number')return Number.isInteger(v)?v.toLocaleString():v.toFixed(d);return v}
 
+/* "1996–2012", or a bare "2003" when a phase sits inside a single year.
+   Used by the Years column so a Peak or Best Phase row says *when* it was. */
+function yearSpan(from,to){
+  if(typeof from!=='number'||typeof to!=='number')return'—';
+  return from===to?String(from):from+'–'+to;
+}
+/* Year span across a set of already-aggregated stat rows (totals rows). */
+function yearSpanOf(statArr){
+  const f=statArr.map(s=>s.yrFrom).filter(v=>typeof v==='number');
+  const t=statArr.map(s=>s.yrTo).filter(v=>typeof v==='number');
+  if(!f.length||!t.length)return'—';
+  return yearSpan(Math.min(...f),Math.max(...t));
+}
+
 function isHome(ptIdx,meta){
   const li=meta[6];if(li<0)return'neutral';
   const loc=LOCATIONS[li],ctry=TEAMS[ptIdx];
@@ -1145,11 +1200,13 @@ function loadFromURL(){
         updateOppToggleLabel();
         populateFilters();
       }
-      if(params.get('city')) document.getElementById('fCity').value = params.get('city');
-      if(params.get('gnd')) document.getElementById('fGnd').value = params.get('gnd');
-      if(params.get('ha')) document.getElementById('fHA').value = params.get('ha');
-      if(params.get('inn')) document.getElementById('fInn').value = params.get('inn');
-      if(params.get('res')) document.getElementById('fRes').value = params.get('res');
+      // Comma-separated lists; older single-value links still parse fine.
+      [['city','City'],['gnd','Gnd'],['ha','HA'],['inn','Inn'],['res','Res']].forEach(([qp,key])=>{
+        const raw = params.get(qp);
+        if(!raw) return;
+        MS_FILTERS[key].sel = raw.split(',').filter(Boolean).map(v=>msCast(key,v));
+      });
+      populateFilters();
       if(params.get('toss')) document.getElementById('fToss').value = params.get('toss');
       if(params.get('together')) document.getElementById('fTogether').value = params.get('together');
       if(hasEnough()) render();
@@ -1261,6 +1318,111 @@ function removeOppCapt(v){selectedOppCapts=selectedOppCapts.filter(x=>x!==v);doc
 function updateOppCaptToggleLabel(){const btn=document.getElementById('fOppCaptToggle');if(selectedOppCapts.length===0)btn.innerHTML='<span class="ms-placeholder">All captains</span>';else if(selectedOppCapts.length===1)btn.textContent=PID_NAME[selectedOppCapts[0]]||'?';else btn.textContent=selectedOppCapts.map(p=>PID_NAME[p]||'?').join(', ');}
 document.addEventListener('click',e=>{if(!e.target.closest('#fOppCaptWrap')){document.getElementById('fOppCaptDD').classList.remove('open');document.getElementById('fOppCaptToggle').classList.remove('open');}});
 
+// ── Generic multi-select filters ──────────────────────────────────────────
+// Home/Away, City, Ground, Match Innings and Result were single <select>s.
+// They all now use the same ms-wrap/ms-dd markup as Opponent, driven by this
+// one table so the five behave identically and there's one place to fix.
+// `sel` holds raw values; numeric keys store numbers (index into CITIES etc),
+// the rest store strings. Empty sel === no constraint.
+const MS_FILTERS = {
+  HA:   {sel:[], placeholder:'All',         numeric:false, searchable:false,
+         opts:()=>['home','away','neutral'],
+         label:v=>({home:'Home',away:'Away',neutral:'Neutral'}[v]||v)},
+  City: {sel:[], placeholder:'All cities',  numeric:true,  searchable:true,
+         opts:null, label:v=>CITIES[v]||'?'},
+  Gnd:  {sel:[], placeholder:'All grounds', numeric:true,  searchable:true,
+         opts:null, label:v=>GROUNDS[v]||'?'},
+  Inn:  {sel:[], placeholder:'All innings', numeric:true,  searchable:false,
+         opts:()=>[1,2,3,4], label:v=>ordinal(v)+' innings'},
+  Res:  {sel:[], placeholder:'All results', numeric:false, searchable:false,
+         opts:()=>['won','lost','drawn','tied'],
+         label:v=>v[0].toUpperCase()+v.slice(1)},
+};
+function msCast(key,v){ return MS_FILTERS[key].numeric ? +v : String(v); }
+function msToggleDD(key){
+  const dd=document.getElementById('f'+key+'DD'), btn=document.getElementById('f'+key+'Toggle');
+  if(!dd) return;
+  dd.classList.toggle('open'); btn.classList.toggle('open');
+  if(dd.classList.contains('open')){
+    const q=dd.querySelector('.ms-dd-search input');
+    if(q){ q.value=''; msFilterDD(key,''); q.focus(); }
+  }
+}
+function msFilterDD(key,q){
+  const dd=document.getElementById('f'+key+'DD'); if(!dd) return;
+  const needle=(q||'').trim().toLowerCase();
+  let shown=0;
+  dd.querySelectorAll('.ms-dd-item').forEach(el=>{
+    const hit = !needle || (el.dataset.lbl||'').includes(needle);
+    el.style.display = hit ? '' : 'none';
+    if(hit) shown++;
+  });
+  const none=dd.querySelector('.ms-dd-none');
+  if(none) none.style.display = shown ? 'none' : '';
+}
+function msToggleItem(key,el){
+  const v=msCast(key,el.dataset.val), f=MS_FILTERS[key];
+  el.classList.toggle('checked');
+  if(el.classList.contains('checked')){ if(!f.sel.includes(v)) f.sel.push(v); }
+  else f.sel=f.sel.filter(x=>x!==v);
+  msUpdateLabel(key); applyFilters();
+}
+function msRemove(key,val){
+  const v=msCast(key,val), f=MS_FILTERS[key];
+  f.sel=f.sel.filter(x=>x!==v);
+  document.querySelectorAll('#f'+key+'DD .ms-dd-item').forEach(el=>{
+    if(msCast(key,el.dataset.val)===v) el.classList.remove('checked');
+  });
+  msUpdateLabel(key); applyFilters();
+}
+function msClearAll(key){
+  MS_FILTERS[key].sel=[];
+  document.querySelectorAll('#f'+key+'DD .ms-dd-item').forEach(el=>el.classList.remove('checked'));
+  msUpdateLabel(key);
+}
+function msClearAndApply(key,e){ if(e) e.stopPropagation(); msClearAll(key); applyFilters(); }
+function msUpdateLabel(key){
+  const btn=document.getElementById('f'+key+'Toggle'), f=MS_FILTERS[key];
+  if(!btn) return;
+  if(f.sel.length===0) btn.innerHTML='<span class="ms-placeholder">'+f.placeholder+'</span>';
+  else if(f.sel.length<=3) btn.textContent=f.sel.map(f.label).join(', ');
+  else btn.textContent=f.sel.length+' selected';
+}
+// Rebuild a dropdown's items. `values` overrides the static opts() list —
+// City/Ground pass the set actually present in the selected players' careers.
+function msRenderDD(key,values){
+  const f=MS_FILTERS[key], dd=document.getElementById('f'+key+'DD');
+  if(!dd) return;
+  const vals = values || (f.opts ? f.opts() : []);
+  let html='';
+  if(f.searchable){
+    html += '<div class="ms-dd-search"><input type="text" placeholder="Search…" '
+          + 'oninput="msFilterDD(\''+key+'\',this.value)" onclick="event.stopPropagation()"></div>';
+  }
+  vals.forEach(v=>{
+    const lbl=f.label(v), checked=f.sel.includes(msCast(key,v))?'checked':'';
+    html += '<div class="ms-dd-item '+checked+'" data-val="'+v+'" data-lbl="'+String(lbl).toLowerCase()
+          + '" onclick="msToggleItem(\''+key+'\',this)"><span class="ms-cb"></span>'
+          + '<span class="ms-lbl">'+lbl+'</span></div>';
+  });
+  html += '<div class="ms-dd-none" style="display:none">No matches</div>';
+  html += '<div class="ms-dd-actions"><button type="button" onclick="msClearAndApply(\''+key+'\',event)">Clear</button></div>';
+  dd.innerHTML=html;
+  // Drop any selection that no longer exists in the option set
+  const live=new Set(vals.map(v=>msCast(key,v)));
+  f.sel=f.sel.filter(v=>live.has(v));
+  msUpdateLabel(key);
+}
+Object.keys(MS_FILTERS).forEach(key=>{
+  document.addEventListener('click',e=>{
+    if(!e.target.closest('#f'+key+'Wrap')){
+      const dd=document.getElementById('f'+key+'DD'), btn=document.getElementById('f'+key+'Toggle');
+      if(dd) dd.classList.remove('open');
+      if(btn) btn.classList.remove('open');
+    }
+  });
+});
+
 // ---- Filters ----
 function populateFilters(){
   const isSingle = activeSel().length < 2 || singleMode || !!phaseMode;
@@ -1281,12 +1443,11 @@ function populateFilters(){
   updateOppToggleLabel();
   const cU=new Set(),gU=new Set();
   activeSel().forEach(p=>{(SCD_IDX[p.id]||[]).forEach(i=>{const meta=TESTS[SCD[i][0]];if(!meta)return;if(meta[0]>=0)cU.add(meta[0]);if(meta[1]>=0)gU.add(meta[1])})});
-  const cityS=document.getElementById('fCity');
-  cityS.innerHTML='<option value="">All cities</option>';
-  [...cU].sort((a,b)=>CITIES[a].localeCompare(CITIES[b])).forEach(ci=>{cityS.innerHTML+=`<option value="${ci}">${CITIES[ci]}</option>`});
-  const gndS=document.getElementById('fGnd');
-  gndS.innerHTML='<option value="">All grounds</option>';
-  [...gU].sort((a,b)=>GROUNDS[a].localeCompare(GROUNDS[b])).forEach(gi=>{gndS.innerHTML+=`<option value="${gi}">${GROUNDS[gi]}</option>`});
+  msRenderDD('City',[...cU].sort((a,b)=>CITIES[a].localeCompare(CITIES[b])));
+  msRenderDD('Gnd', [...gU].sort((a,b)=>GROUNDS[a].localeCompare(GROUNDS[b])));
+  msRenderDD('HA');
+  msRenderDD('Inn');
+  msRenderDD('Res');
 
   // ── Captain dropdowns (multi-select) ──────────────────────────────────
   // Use MATCH_CAPT[mid] built from D.M[13/14]. Classify own-team vs opponent
@@ -1338,7 +1499,17 @@ function populateFilters(){
     });
 }
 
-function getF(){return{opp:selectedOpps,city:document.getElementById('fCity').value,gnd:document.getElementById('fGnd').value,ha:document.getElementById('fHA').value,inn:document.getElementById('fInn').value,res:document.getElementById('fRes').value,toss:document.getElementById('fToss').value,together:document.getElementById('fTogether').value,teamCapts:selectedTeamCapts,oppCapts:selectedOppCapts}}
+function getF(){return{opp:selectedOpps,city:MS_FILTERS.City.sel,gnd:MS_FILTERS.Gnd.sel,ha:MS_FILTERS.HA.sel,inn:MS_FILTERS.Inn.sel,res:MS_FILTERS.Res.sel,toss:document.getElementById('fToss').value,together:document.getElementById('fTogether').value,teamCapts:selectedTeamCapts,oppCapts:selectedOppCapts}}
+
+// Result code -> label, shared by the row filters. meta[4] is the winning team
+// index, -1 draw, -2 tie; anything else (abandoned) matches no result filter.
+function resultOf(rc,ptIdx){
+  if(rc===ptIdx) return 'won';
+  if(rc===-1) return 'drawn';
+  if(rc===-2) return 'tied';
+  if(rc>=0) return 'lost';
+  return null;
+}
 
 // ---- Career Phase multi-select state ----
 // Each entry: {val, label, from, to} where from/to are 1-based career test numbers (null=no limit, negative=from end)
@@ -1476,11 +1647,11 @@ function getRowsForPhase(player, phaseEntry){
     const r=SCD[i],meta=TESTS[r[0]];if(!meta)return false;
     const isT1=(meta[2]===ptIdx),isT2=(meta[3]===ptIdx),oppIdx=isT1?meta[3]:meta[2];
     if(f.opp.length&&!f.opp.includes(oppIdx))return false;
-    if(f.city&&meta[0]!==+f.city)return false;
-    if(f.gnd&&meta[1]!==+f.gnd)return false;
-    if(f.ha){if(isHome(ptIdx,meta)!==f.ha)return false}
-    if(f.inn&&r[2]!==+f.inn)return false;
-    if(f.res){const rc=meta[4];if(f.res==='won'&&rc!==ptIdx)return false;if(f.res==='lost'&&(rc===ptIdx||rc<0))return false;if(f.res==='drawn'&&rc!==-1)return false;if(f.res==='tied'&&rc!==-2)return false}
+    if(f.city.length&&!f.city.includes(meta[0]))return false;
+    if(f.gnd.length&&!f.gnd.includes(meta[1]))return false;
+    if(f.ha.length&&!f.ha.includes(isHome(ptIdx,meta)))return false;
+    if(f.inn.length&&!f.inn.includes(r[2]))return false;
+    if(f.res.length){const rr=resultOf(meta[4],ptIdx);if(!rr||!f.res.includes(rr))return false}
     if(f.toss){const tw=meta[5];if(f.toss==='won'&&tw!==ptIdx)return false;if(f.toss==='lost'&&tw===ptIdx)return false}
     if(f.teamCapts.length||f.oppCapts.length){
       const {myCapt,oppCapt:oppCap}=getCaptains(r[0],player.id);
@@ -1650,7 +1821,8 @@ function applyFilters(){
 }
 function resetFilters(){
   selectedOpps=[];selectedTeamCapts=[];selectedOppCapts=[];
-  ['fCity','fGnd','fHA','fInn','fRes','fToss','fTogether'].forEach(id=>{document.getElementById(id).value=''});
+  Object.keys(MS_FILTERS).forEach(msClearAll);
+  ['fToss','fTogether'].forEach(id=>{document.getElementById(id).value=''});
   document.getElementById('activeFilt').innerHTML='';
   document.getElementById('phaseCustomFrom').value='';
   document.getElementById('phaseCustomTo').value='';
@@ -1667,17 +1839,16 @@ function ordinal(n){return['','1st','2nd','3rd','4th'][n]||n}
 function showTags(){
   const f=getF(),tags=[];
   if(f.opp.length)f.opp.forEach(o=>tags.push({k:'opp_'+o,l:'vs '+TEAMS[o]}));
-  if(f.city)tags.push({k:'fCity',l:CITIES[f.city]});
-  if(f.gnd)tags.push({k:'fGnd',l:GROUNDS[f.gnd]});
-  if(f.ha)tags.push({k:'fHA',l:f.ha[0].toUpperCase()+f.ha.slice(1)});
-  if(f.inn)tags.push({k:'fInn',l:ordinal(f.inn)+' innings'});
-  if(f.res)tags.push({k:'fRes',l:f.res[0].toUpperCase()+f.res.slice(1)});
+  [['HA',f.ha],['City',f.city],['Gnd',f.gnd],['Inn',f.inn],['Res',f.res]].forEach(([key,vals])=>{
+    vals.forEach(v=>tags.push({ms:key,v:v,l:MS_FILTERS[key].label(v)}));
+  });
   if(f.toss)tags.push({k:'fToss',l:(f.toss==='won'?'Won':'Lost')+' toss'});
   f.teamCapts.forEach(p=>tags.push({k:'teamCapt_'+p,l:'Captain: '+(PID_NAME[p]||'?')}));
   f.oppCapts.forEach(p=>tags.push({k:'oppCapt_'+p,l:'Opp capt: '+(PID_NAME[p]||'?')}));
   if(f.together)tags.push({k:'fTogether',l:'Played together'});
   if(selectedPhases.length)tags.push({k:'phases',l:selectedPhases.map(p=>p.label).join(' · ')});
   document.getElementById('activeFilt').innerHTML=tags.map(t=>{
+    if(t.ms){return`<span class="af-tag">${t.l}<button onclick="msRemove('${t.ms}','${t.v}')">&times;</button></span>`;}
     if(t.k.startsWith('opp_')){const ov=t.k.split('_')[1];return`<span class="af-tag">${t.l}<button onclick="removeOpp(${ov})">&times;</button></span>`;}
     if(t.k.startsWith('teamCapt_')){const pv=+t.k.split('_')[1];return`<span class="af-tag">${t.l}<button onclick="removeTeamCapt(${pv})">&times;</button></span>`;}
     if(t.k.startsWith('oppCapt_')){const pv=+t.k.split('_')[1];return`<span class="af-tag">${t.l}<button onclick="removeOppCapt(${pv})">&times;</button></span>`;}
@@ -1693,11 +1864,11 @@ function getRows(player){
     const r=SCD[i],meta=TESTS[r[0]];if(!meta)return false;
     const isT1=(meta[2]===ptIdx),isT2=(meta[3]===ptIdx),oppIdx=isT1?meta[3]:meta[2];
     if(f.opp.length&&!f.opp.includes(oppIdx))return false;
-    if(f.city&&meta[0]!==+f.city)return false;
-    if(f.gnd&&meta[1]!==+f.gnd)return false;
-    if(f.ha){if(isHome(ptIdx,meta)!==f.ha)return false}
-    if(f.inn&&r[2]!==+f.inn)return false;
-    if(f.res){const rc=meta[4];if(f.res==='won'&&rc!==ptIdx)return false;if(f.res==='lost'&&(rc===ptIdx||rc<0))return false;if(f.res==='drawn'&&rc!==-1)return false;if(f.res==='tied'&&rc!==-2)return false}
+    if(f.city.length&&!f.city.includes(meta[0]))return false;
+    if(f.gnd.length&&!f.gnd.includes(meta[1]))return false;
+    if(f.ha.length&&!f.ha.includes(isHome(ptIdx,meta)))return false;
+    if(f.inn.length&&!f.inn.includes(r[2]))return false;
+    if(f.res.length){const rr=resultOf(meta[4],ptIdx);if(!rr||!f.res.includes(rr))return false}
     if(f.toss){const tw=meta[5];if(f.toss==='won'&&tw!==ptIdx)return false;if(f.toss==='lost'&&tw===ptIdx)return false}
     if(f.teamCapts.length||f.oppCapts.length){
       const {myCapt,oppCapt:oppCap}=getCaptains(r[0],player.id);
@@ -1717,8 +1888,11 @@ function agg(player,idxs,isFiltered){
   let inns=0,no=0,runs=0,balls=0,hs=0,fifties=0,hundreds=0;
   let overs=0,mdns=0,bR=0,wkts=0,bestW=0,bestR=9999,bowlInns=0;
   const tests=new Set();
+  let yMin=null,yMax=null;   // year span of whatever rows survived the filters
   idxs.forEach(i=>{
     const r=SCD[i];tests.add(r[0]);
+    const mmeta=TESTS[r[0]], yr=mmeta?mmeta[7]:null;
+    if(typeof yr==='number'){ if(yMin===null||yr<yMin)yMin=yr; if(yMax===null||yr>yMax)yMax=yr; }
     const isNO=r[4];
     if(isNO!==null){
       const br=typeof r[3]==='number'?r[3]:0, bb=typeof r[5]==='number'?r[5]:0;
@@ -1746,6 +1920,7 @@ function agg(player,idxs,isFiltered){
     sr = balls>=MIN_BALLS_FOR_SR ? (runs/balls)*100 : null;
   }
   return{
+    yrFrom:yMin, yrTo:yMax, years:yearSpan(yMin,yMax),
     tests:tests.size, inns, no, runs, balls,
     batAvg:(inns-no)>0?runs/(inns-no):0,
     sr:sr,
@@ -1816,6 +1991,7 @@ function buildTable(stats, cols, options = {}) {
         t[k] = subStats.reduce((a,s)=>a+(typeof s[k]==='number'?s[k]:0),0);
       });
       t.hs = Math.max(...subStats.map(s=>typeof s.hs==='number'?s.hs:0));
+      t.years = yearSpanOf(subStats);
       let bW=0,bR=9999; subStats.forEach(s=>{ if(s.bestBowl&&s.bestBowl!=='—'){const[w,r]=s.bestBowl.split('/').map(Number);if(w>bW||(w===bW&&r<bR)){bW=w;bR=r;}} });
       t.bestBowl = bW>0?bW+'/'+bR:'—';
       const dism = t.inns - t.no;
@@ -1900,7 +2076,7 @@ function render(){
   // Apply stats type tab visibility
   applyStatsTypeToTabs();
 
-  const f=getF(), any=f.opp.length||f.city||f.gnd||f.ha||f.inn||f.res||f.toss||f.teamCapts.length||f.oppCapts.length||f.together||selectedPhases.length;
+  const f=getF(), any=f.opp.length||f.city.length||f.gnd.length||f.ha.length||f.inn.length||f.res.length||f.toss||f.teamCapts.length||f.oppCapts.length||f.together||selectedPhases.length;
   const st = getStatsType();
 
   let displayPlayers = players;
@@ -1981,9 +2157,11 @@ function render(){
   if(any){
     const parts=[];
     if(f.opp.length)parts.push('vs '+f.opp.map(o=>TEAMS[o]).join(', '));
-    if(f.city)parts.push('in '+CITIES[f.city]);
-    if(f.gnd)parts.push('at '+GROUNDS[f.gnd]);if(f.ha)parts.push(f.ha);
-    if(f.inn)parts.push(ordinal(f.inn)+' inn');if(f.res)parts.push(f.res);
+    if(f.city.length)parts.push('in '+f.city.map(c=>CITIES[c]).join(', '));
+    if(f.gnd.length)parts.push('at '+f.gnd.map(g=>GROUNDS[g]).join(', '));
+    if(f.ha.length)parts.push(f.ha.join('/'));
+    if(f.inn.length)parts.push(f.inn.map(i=>ordinal(i)).join('/')+' inn');
+    if(f.res.length)parts.push(f.res.join('/'));
     if(f.toss)parts.push(f.toss+' toss');
     if(f.teamCapts.length){parts.push('capt: '+f.teamCapts.map(p=>PID_NAME[p]||'?').join('/'))}
     if(f.oppCapts.length){parts.push('opp capt: '+f.oppCapts.map(p=>PID_NAME[p]||'?').join('/'))}
@@ -2057,6 +2235,7 @@ function render(){
   // ---- Column definitions ----
   const ovCols = [
     {sec:'Batting'},
+    {label:'Years',key:'years',higher:null},
     {label:'Tests',key:'tests',higher:true,dec:0},
     {label:'Inns',key:'inns',higher:true,dec:0},
     {label:'Runs',key:'runs',higher:true,dec:0},
@@ -2074,6 +2253,7 @@ function render(){
     {label:'MoM',key:'mom',higher:true,dec:0},
   ];
   const batCols = [
+    {label:'Years',key:'years',higher:null},
     {label:'Tests',key:'tests',higher:true,dec:0},
     {label:'Innings',key:'inns',higher:true,dec:0},
     {label:'N.O.',key:'no',higher:true,dec:0},
@@ -2086,6 +2266,7 @@ function render(){
     {label:'100s',key:'hundreds',higher:true,dec:0},
   ];
   const bowlCols = [
+    {label:'Years',key:'years',higher:null},
     {label:'Overs',key:'overs',higher:true,dec:1},
     {label:'Maidens',key:'mdns',higher:true,dec:0},
     {label:'Runs',key:'bowlRuns',higher:false,dec:0},
@@ -2097,6 +2278,7 @@ function render(){
   ];
   const allCols = [
     {sec:'Batting'},
+    {label:'Years',key:'years',higher:null},
     {label:'Tests',key:'tests',higher:true,dec:0},
     {label:'Inns',key:'inns',higher:true,dec:0},
     {label:'N.O.',key:'no',higher:true,dec:0},
@@ -2389,16 +2571,16 @@ function shareComparison(){
   players.forEach((p, i) => { params.append(`p${i+1}`, p.id); });
   const f = getF();
   if(f.opp.length) params.set('opp', f.opp.join(','));
-  if(f.city) params.set('city', f.city);
-  if(f.gnd) params.set('gnd', f.gnd);
-  if(f.ha) params.set('ha', f.ha);
-  if(f.inn) params.set('inn', f.inn);
-  if(f.res) params.set('res', f.res);
+  if(f.city.length) params.set('city', f.city.join(','));
+  if(f.gnd.length) params.set('gnd', f.gnd.join(','));
+  if(f.ha.length) params.set('ha', f.ha.join(','));
+  if(f.inn.length) params.set('inn', f.inn.join(','));
+  if(f.res.length) params.set('res', f.res.join(','));
   if(f.toss) params.set('toss', f.toss);
   if(f.together) params.set('together', f.together);
   const shareUrl = window.location.origin + window.location.pathname + '?' + params.toString();
   const rowSets = players.map(p => getRows(p));
-  const stats = players.map((p, i) => agg(p, rowSets[i], f.opp.length || f.city || f.gnd || f.ha || f.inn || f.res || f.toss || f.teamCapts.length || f.oppCapts.length || f.together));
+  const stats = players.map((p, i) => agg(p, rowSets[i], f.opp.length || f.city.length || f.gnd.length || f.ha.length || f.inn.length || f.res.length || f.toss || f.teamCapts.length || f.oppCapts.length || f.together));
   const metricWins = stats.map(() => []);
   function scoreMetricForShare(key, higher, label){
     const vals = stats.map(s => {const v = s[key]; return typeof v === 'number' ? v : 0});
@@ -2441,7 +2623,7 @@ function exportToExcel(){
   const activeTab = activeTabBtn ? activeTabBtn.textContent.trim().toLowerCase().replace(/\s+/g,'') : 'overview';
   const st = getStatsType(); // 'both' | 'batting' | 'bowling'
   const f = getF();
-  const any = f.opp.length||f.city||f.gnd||f.ha||f.inn||f.res||f.toss||f.teamCapts.length||f.oppCapts.length||f.together;
+  const any = f.opp.length||f.city.length||f.gnd.length||f.ha.length||f.inn.length||f.res.length||f.toss||f.teamCapts.length||f.oppCapts.length||f.together;
 
   // helpers
   const n2 = v => typeof v==='number' && v>0 ? parseFloat(v.toFixed(2)) : (v||0);
@@ -2450,11 +2632,11 @@ function exportToExcel(){
 
   const filterParts = [];
   if(f.opp.length) filterParts.push('vs '+f.opp.map(o=>TEAMS[o]).join(', '));
-  if(f.city)  filterParts.push('in '+CITIES[f.city]);
-  if(f.gnd)   filterParts.push('at '+GROUNDS[f.gnd]);
-  if(f.ha)    filterParts.push(f.ha);
-  if(f.inn)   filterParts.push(ordinal(f.inn)+' innings');
-  if(f.res)   filterParts.push(f.res);
+  if(f.city.length) filterParts.push('in '+f.city.map(c=>CITIES[c]).join(', '));
+  if(f.gnd.length)  filterParts.push('at '+f.gnd.map(g=>GROUNDS[g]).join(', '));
+  if(f.ha.length)   filterParts.push(f.ha.join('/'));
+  if(f.inn.length)  filterParts.push(f.inn.map(i=>ordinal(i)).join('/')+' innings');
+  if(f.res.length)  filterParts.push(f.res.join('/'));
   if(f.toss)  filterParts.push(f.toss+' toss');
   if(f.teamCapts.length){filterParts.push('capt: '+f.teamCapts.map(p=>PID_NAME[p]||'?').join('/'))}
   if(f.oppCapts.length){filterParts.push('opp capt: '+f.oppCapts.map(p=>PID_NAME[p]||'?').join('/'))}
@@ -2526,6 +2708,7 @@ function exportToExcel(){
                      'overs','mdns','bowlRuns','wkts','bowlInns','catches','stumpings','mom'];
     sumKeys.forEach(k=>{ t[k] = statArr.reduce((a,s)=>a+(typeof s[k]==='number'?s[k]:0),0); });
     t.hs = Math.max(...statArr.map(s=>typeof s.hs==='number'?s.hs:0));
+    t.years = yearSpanOf(statArr);
     const dism = t.inns - t.no;
     t.batAvg  = dism>0 ? t.runs/dism : 0;
     t.bowlAvg = t.wkts>0 ? t.bowlRuns/t.wkts : 0;
@@ -2558,14 +2741,14 @@ function exportToExcel(){
   }
 
   // Row builders
-  const batHdr  = ['Player','Country','Tests','Innings','N.O.','Runs','Balls','Average','Strike Rate','H.S.','50s','100s'];
-  const bowlHdr = ['Player','Country','Tests','Bowl Inn','Overs','Maidens','Bowl Runs','Wickets','Average','Economy','B/W','Best'];
+  const batHdr  = ['Player','Country','Years','Tests','Innings','N.O.','Runs','Balls','Average','Strike Rate','H.S.','50s','100s'];
+  const bowlHdr = ['Player','Country','Years','Tests','Bowl Inn','Overs','Maidens','Bowl Runs','Wickets','Average','Economy','B/W','Best'];
   const fieldHdr= ['Player','Catches','Stumpings','Man of Match'];
-  const batCW   = [{wch:26},{wch:14},{wch:7},{wch:8},{wch:6},{wch:8},{wch:8},{wch:10},{wch:12},{wch:7},{wch:6},{wch:6}];
-  const bowlCW  = [{wch:26},{wch:14},{wch:7},{wch:9},{wch:8},{wch:8},{wch:10},{wch:8},{wch:10},{wch:10},{wch:8},{wch:10}];
+  const batCW   = [{wch:26},{wch:14},{wch:12},{wch:7},{wch:8},{wch:6},{wch:8},{wch:8},{wch:10},{wch:12},{wch:7},{wch:6},{wch:6}];
+  const bowlCW  = [{wch:26},{wch:14},{wch:12},{wch:7},{wch:9},{wch:8},{wch:8},{wch:10},{wch:8},{wch:10},{wch:10},{wch:8},{wch:10}];
 
-  function batRow(s){ return [s.name, s.country, s.tests, s.inns, s.no, s.runs, s.balls, n2(s.batAvg), sv(s.sr?n2(s.sr):null), s.hs||0, s.fifties||0, s.hundreds||0]; }
-  function bowlRow(s){ return [s.name, s.country, s.tests, s.bowlInns||0, n1(s.overs), s.mdns||0, s.bowlRuns||0, s.wkts||0, n2(s.bowlAvg), n2(s.econ), n2(s.bpw), sv(s.bestBowl)]; }
+  function batRow(s){ return [s.name, s.country, sv(s.years), s.tests, s.inns, s.no, s.runs, s.balls, n2(s.batAvg), sv(s.sr?n2(s.sr):null), s.hs||0, s.fifties||0, s.hundreds||0]; }
+  function bowlRow(s){ return [s.name, s.country, sv(s.years), s.tests, s.bowlInns||0, n1(s.overs), s.mdns||0, s.bowlRuns||0, s.wkts||0, n2(s.bowlAvg), n2(s.econ), n2(s.bpw), sv(s.bestBowl)]; }
   function fieldRow(s){ return [s.name, s.catches||0, s.stumpings||0, s.mom||0]; }
 
   // Write a labelled block to a sheet, return next row
