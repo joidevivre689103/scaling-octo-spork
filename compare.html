@@ -298,6 +298,10 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
 .ct-axis-title{font-size:10px;fill:var(--text3);font-family:'Outfit',sans-serif;letter-spacing:.06em;text-transform:uppercase}
 .ct-line{fill:none;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
 .ct-line-early{stroke-width:1.25;opacity:.3}
+.ct-bar{rx:1.5}
+.ct-bar-thin{opacity:.42}
+.ct-band-hl{fill:var(--text);opacity:.05}
+.ct-toggle-set{display:flex;gap:8px;flex-shrink:0;flex-wrap:wrap}
 .ct-baseline{stroke-width:1.5;stroke-dasharray:4 4;opacity:.6;fill:none}
 .ct-baseline-lb{font-size:9.5px;font-family:'Outfit',sans-serif;font-weight:600;letter-spacing:.04em}
 .ct-peak-dot{stroke:var(--surface);stroke-width:2}
@@ -1773,21 +1777,23 @@ function buildCareerSeries(player, rowIdxs){
   let cumRuns=0, cumOuts=0, cumOvers=0, cumBowlRuns=0, cumWkts=0, batInn=0, bowlInn=0;
   const pts = rows.map(r => {
     const isNO = r[4];
-    let batted = false;
+    let batted = false, runs = 0, out = 0;
     if(isNO !== null){                       // null = did not bat
-      cumRuns += typeof r[3]==='number' ? r[3] : 0;
-      if(!isNO) cumOuts++;                   // not-outs add runs, not dismissals
+      runs = typeof r[3]==='number' ? r[3] : 0;
+      cumRuns += runs;
+      if(!isNO){ cumOuts++; out = 1; }       // not-outs add runs, not dismissals
       batInn++; batted = true;
     }
     const ov = typeof r[6]==='number' ? r[6] : 0;
-    cumOvers    += ov;
-    cumBowlRuns += typeof r[8]==='number' ? r[8] : 0;
-    cumWkts     += typeof r[9]==='number' ? r[9] : 0;
+    const bRuns = typeof r[8]==='number' ? r[8] : 0;
+    const wkts  = typeof r[9]==='number' ? r[9] : 0;
+    cumOvers += ov; cumBowlRuns += bRuns; cumWkts += wkts;
     if(ov > 0) bowlInn++;
     return {
       mid: r[0], testNum: order[r[0]], inn: r[2], year: TESTS[r[0]][7],
-      batted, bowled: ov > 0, batInn, bowlInn, runs: typeof r[3]==='number' ? r[3] : 0,
-      cumRuns, cumOuts, cumOvers, cumBowlRuns, cumWkts,
+      batted, bowled: ov > 0, batInn, bowlInn,
+      runs, out, overs: ov, bowlRuns: bRuns, wkts,     // this innings
+      cumRuns, cumOuts, cumOvers, cumBowlRuns, cumWkts, // career to date
       batAvg:  cumOuts > 0 ? cumRuns / cumOuts : null,
       bowlAvg: cumWkts > 0 ? cumBowlRuns / cumWkts : null,
       matchEnd: false
@@ -2165,7 +2171,10 @@ function switchTab(tab,btn){
    The dashed baseline is the unfiltered career peak — the Δ Peak benchmark.
    The vertical gap between a filtered line and its baseline is that column. */
 
-let chartXAxis = 'year';        // 'year' | 'inns'
+let chartXAxis = 'year';        // 'year' | 'inns' — line mode only
+let chartType  = 'line';        // 'line' = cumulative curve, 'bars' = per-year
+const BAR_MIN_OUTS = 4;         // a year this thin is a sample, not a season
+const BAR_MIN_WKTS = 6;
 /* A cumulative average opens with a 100-or-0 spike that is arithmetic, not
    form. Two thresholds rather than one: plot from MIN, but scale the y-axis
    from STABLE, so the opening is visible without dictating the whole range.
@@ -2177,6 +2186,12 @@ const _ctData = {};
 function setChartAxis(mode, el){
   if(chartXAxis === mode) return;
   chartXAxis = mode;
+  if(el) [...el.parentNode.children].forEach(b => b.classList.toggle('on', b === el));
+  render();
+}
+function setChartType(mode, el){
+  if(chartType === mode) return;
+  chartType = mode;
   if(el) [...el.parentNode.children].forEach(b => b.classList.toggle('on', b === el));
   render();
 }
@@ -2221,20 +2236,166 @@ function buildCareerChart(players, rowSets, isBowling, rowFiltersOn){
   const stableGate = isBowling ? TREND_STABLE_WKTS : TREND_STABLE_OUTS;
   const chartId = isBowling ? 'ctBowl' : 'ctBat';
   const noun    = isBowling ? 'wickets' : 'dismissals';
+  const bars    = chartType === 'bars';
 
-  const series = players.map((p, i) => ({
-    name: p.name, colour: PCOLORS[i % PCOLORS.length],
-    peak: computePeakTest(p, isBowling).peakAvg,
-    pts: buildCareerSeries(p, rowSets[i] || [])
-           .filter(pt => pt[gateKey] >= gate && pt[key] !== null && (isBowling ? pt.bowled : pt.batted))
-  })).filter(sr => sr.pts.length >= 2);
+  // `all` is every innings the player appears in; `pts` applies the cumulative
+  // gate the line needs. Bars aggregate by year and don't want that gate — a
+  // debut year is a real season even if the running average is still noise.
+  const series = players.map((p, i) => {
+    const all = buildCareerSeries(p, rowSets[i] || [])
+                  .filter(pt => isBowling ? pt.bowled : pt.batted);
+    return {
+      name: p.name, colour: PCOLORS[i % PCOLORS.length],
+      peak: computePeakTest(p, isBowling).peakAvg,
+      all, pts: all.filter(pt => pt[gateKey] >= gate && pt[key] !== null)
+    };
+  }).filter(sr => bars ? sr.all.length : sr.pts.length >= 2);
+
+  const W=900, H=340, padL=54, padR=54, padT=16, padB=40;
+  const plotW = W - padL - padR, plotH = H - padT - padB;
+  const clipId = chartId + 'Clip';
+
+  const shell = (titleTxt, body, notes, legend) => `<div class="ct-chart">
+    <div class="ct-chart-head">
+      <div>
+        <div class="ct-chart-title">${titleTxt}</div>
+        <div class="ct-chart-sub">${notes.join(' · ')}</div>
+      </div>
+      <div class="ct-toggle-set">
+        <div class="ct-axis-toggle">
+          <button type="button" class="${bars?'':'on'}" onclick="setChartType('line',this)">Line</button>
+          <button type="button" class="${bars?'on':''}" onclick="setChartType('bars',this)">Bars</button>
+        </div>
+        ${bars ? '' : `<div class="ct-axis-toggle">
+          <button type="button" class="${chartXAxis==='year'?'on':''}" onclick="setChartAxis('year',this)">Year</button>
+          <button type="button" class="${chartXAxis==='inns'?'on':''}" onclick="setChartAxis('inns',this)">Innings</button>
+        </div>`}
+      </div>
+    </div>
+    ${body}
+    <div class="ct-legend">${legend}</div>
+    <div class="ct-tip" id="${chartId}Tip"></div>
+  </div>`;
 
   if(!series.length){
     return `<div class="ct-chart"><div class="ct-chart-title">Career trend</div>
-      <div class="ct-chart-empty">Needs at least ${gate} ${noun} in the filtered record before a
-      cumulative average means anything. Widen the filters to see the curve.</div></div>`;
+      <div class="ct-chart-empty">Needs at least ${gate} ${noun} in the filtered record before an
+      average means anything. Widen the filters to see the shape.</div></div>`;
   }
 
+  const legend = series.map(sr =>
+    `<div class="ct-legend-item"><span class="ct-legend-sw" style="background:${sr.colour}"></span>${sr.name}</div>`
+  ).join('');
+
+  // Shared chrome ---------------------------------------------------------
+  const yAxis = (sy, yMin, yMax) => ctTicks(yMin, yMax, 5).map(t => {
+    const y = sy(t);
+    if(y < padT - 1 || y > H - padB + 1) return '';
+    return `<line class="ct-grid" x1="${padL}" y1="${y.toFixed(1)}" x2="${W-padR}" y2="${y.toFixed(1)}"/>`
+         + `<text class="ct-tick" x="${padL-8}" y="${(y+3.5).toFixed(1)}" text-anchor="end">${t.toLocaleString()}</text>`;
+  }).join('');
+
+  const axisTitles = xTitle =>
+      `<line class="ct-axis-line" x1="${padL}" y1="${H-padB}" x2="${W-padR}" y2="${H-padB}"/>`
+    + `<text class="ct-axis-title" x="${(padL+(W-padR))/2}" y="${H-6}" text-anchor="middle">${xTitle}</text>`
+    + `<text class="ct-axis-title" x="${padL-40}" y="${padT+6}" text-anchor="start">${isBowling?'Bowl avg':'Bat avg'}</text>`;
+
+  const baselines = (sy, yMin, yMax, show) => !show ? '' : series.map(sr => {
+    if(sr.peak == null || sr.peak < yMin || sr.peak > yMax) return '';
+    const y = sy(sr.peak);
+    return `<line class="ct-baseline" x1="${padL}" y1="${y.toFixed(1)}" x2="${W-padR}" y2="${y.toFixed(1)}" stroke="${sr.colour}"/>`
+         + `<text class="ct-baseline-lb" x="${W-padR+5}" y="${(y+3.5).toFixed(1)}" fill="${sr.colour}">${sr.peak.toFixed(2)}</text>`;
+  }).join('');
+
+  const hoverLayer = `<g id="${chartId}Hover"></g>`
+    + `<rect x="${padL}" y="${padT}" width="${plotW}" height="${plotH}" fill="transparent"`
+    + ` onmousemove="ctHover(event,'${chartId}')" onmouseleave="ctHoverOut('${chartId}')"`
+    + ` ontouchmove="ctHover(event,'${chartId}')" ontouchend="ctHoverOut('${chartId}')"/>`;
+
+  const svgTag = (label, body) =>
+    `<svg class="ct-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="${label}">${body}</svg>`;
+
+  // ── Bars: one grouped column per calendar year ─────────────────────────
+  if(bars){
+    const barGate = isBowling ? BAR_MIN_WKTS : BAR_MIN_OUTS;
+    let y0 = Infinity, y1 = -Infinity;
+    series.forEach(sr => {
+      const byYear = {};
+      sr.all.forEach(pt => {
+        const b = byYear[pt.year] || (byYear[pt.year] = {year:pt.year, runs:0, outs:0, inns:0, bowlRuns:0, wkts:0});
+        b.inns++; b.runs += pt.runs; b.outs += pt.out; b.bowlRuns += pt.bowlRuns; b.wkts += pt.wkts;
+      });
+      sr.years = Object.values(byYear).map(b => {
+        const denom = isBowling ? b.wkts : b.outs;
+        // A year with no dismissal has no average — the runs still happened, so
+        // the bar is omitted rather than the year being dropped.
+        b.avg = denom > 0 ? (isBowling ? b.bowlRuns : b.runs) / denom : null;
+        b.thin = denom < barGate;
+        return b;
+      }).sort((a,c) => a.year - c.year);
+      sr.years.forEach(b => { if(b.avg != null){ y0 = Math.min(y0, b.avg); y1 = Math.max(y1, b.avg); } });
+    });
+
+    const yearsAll = [...new Set(series.flatMap(sr => sr.years.map(b => b.year)))].sort((a,c)=>a-c);
+    if(!yearsAll.length || y1 === -Infinity){
+      return shell(`${isBowling?'Bowling':'Batting'} average by year`,
+        `<div class="ct-chart-empty">No year in the filtered record has a dismissal to average against.</div>`,
+        [], legend);
+    }
+    // Missing years stay in the axis — a season out is information.
+    const yearSpan = [];
+    for(let y = yearsAll[0]; y <= yearsAll[yearsAll.length-1]; y++) yearSpan.push(y);
+
+    const showBaseline = series.length <= 3;
+    if(showBaseline) series.forEach(sr => { if(sr.peak != null) y1 = Math.max(y1, sr.peak); });
+    // Bars are read by area, so the scale starts at zero. Truncating the
+    // baseline would exaggerate every difference between seasons.
+    const yMin = 0, yMax = y1 * 1.08;
+    const sy = y => padT + (yMax - y)/(yMax - yMin) * plotH;
+
+    const band = plotW / yearSpan.length;
+    const inner = Math.min(band * 0.72, 46);
+    const bw = Math.max(inner / series.length, 1.5);
+
+    let body = yAxis(sy, yMin, yMax);
+    const bands = [];
+    yearSpan.forEach((yr, i) => {
+      const x0 = padL + i * band, xc = x0 + band/2;
+      const groupX = xc - (bw * series.length)/2;
+      const rows = [];
+      series.forEach((sr, si) => {
+        const b = sr.years.find(v => v.year === yr);
+        if(!b || b.avg == null) return;
+        const x = groupX + si * bw, h = Math.max(plotH - (sy(b.avg) - padT), 0);
+        body += `<rect class="ct-bar${b.thin?' ct-bar-thin':''}" x="${x.toFixed(1)}" y="${sy(b.avg).toFixed(1)}"`
+             +  ` width="${(bw*0.86).toFixed(1)}" height="${h.toFixed(1)}" fill="${sr.colour}"/>`;
+        rows.push({name: sr.name, colour: sr.colour, avg: b.avg, inns: b.inns, thin: b.thin});
+      });
+      bands.push({year: yr, x0, x1: x0 + band, xc, rows});
+    });
+
+    body += baselines(sy, yMin, yMax, showBaseline) + axisTitles('Year');
+    // Label every year if they fit, otherwise thin them out.
+    const step = Math.ceil(yearSpan.length / 14);
+    yearSpan.forEach((yr, i) => {
+      if(i % step) return;
+      body += `<text class="ct-tick" x="${(padL + i*band + band/2).toFixed(1)}" y="${H-padB+16}" text-anchor="middle">${yr}</text>`;
+    });
+    body += hoverLayer;
+
+    _ctData[chartId] = {mode:'bars', bands, geom:{W,H,padL,padR,padT,padB}, isBowling};
+
+    const notes = [];
+    if(rowFiltersOn) notes.push('follows the active filters');
+    if(showBaseline && series.some(sr => sr.peak != null)) notes.push('dashed line = unfiltered career peak');
+    notes.push('each bar is that year alone, not cumulative');
+    notes.push(`faded under ${barGate} ${noun}`);
+
+    return shell(`${isBowling?'Bowling':'Batting'} average by year`,
+                 svgTag(`${isBowling?'Bowling':'Batting'} average by year`, body), notes, legend);
+  }
+
+  // ── Line: the cumulative curve ─────────────────────────────────────────
   const xOf = pt => chartXAxis === 'year'
     ? pt.year + midYearPos(pt.mid)
     : (isBowling ? pt.bowlInn : pt.batInn);
@@ -2267,55 +2428,33 @@ function buildCareerChart(players, rowSets, isBowling, rowFiltersOn){
   const yPad = Math.max((yMax - yMin) * 0.12, 1);
   yMin = Math.max(0, yMin - yPad); yMax = yMax + yPad;
 
-  const W=900, H=340, padL=54, padR=54, padT=16, padB=40;
-  const sx = x => padL + (x - xMin)/(xMax - xMin) * (W - padL - padR);
-  const sy = y => padT + (yMax - y)/(yMax - yMin) * (H - padT - padB);
+  const sx = x => padL + (x - xMin)/(xMax - xMin) * plotW;
+  const sy = y => padT + (yMax - y)/(yMax - yMin) * plotH;
 
-  let svg = '';
-
-  // Horizontal gridlines + y labels
-  ctTicks(yMin, yMax, 5).forEach(t => {
-    const y = sy(t);
-    svg += `<line class="ct-grid" x1="${padL}" y1="${y.toFixed(1)}" x2="${W-padR}" y2="${y.toFixed(1)}"/>`
-        +  `<text class="ct-tick" x="${padL-8}" y="${(y+3.5).toFixed(1)}" text-anchor="end">${t.toLocaleString()}</text>`;
-  });
-
-  // X axis + labels
-  svg += `<line class="ct-axis-line" x1="${padL}" y1="${H-padB}" x2="${W-padR}" y2="${H-padB}"/>`;
+  let body = yAxis(sy, yMin, yMax);
   ctTicks(xMin, xMax, 6).forEach(t => {
-    if(chartXAxis === 'year' && t !== Math.round(t)) return;
-    if(chartXAxis === 'inns' && (t < 1 || t !== Math.round(t))) return;
+    if(t !== Math.round(t)) return;
+    if(chartXAxis === 'inns' && t < 1) return;
     const x = sx(t);
     if(x < padL - 1 || x > W - padR + 1) return;
-    svg += `<text class="ct-tick" x="${x.toFixed(1)}" y="${H-padB+16}" text-anchor="middle">${t}</text>`;
+    body += `<text class="ct-tick" x="${x.toFixed(1)}" y="${H-padB+16}" text-anchor="middle">${t}</text>`;
   });
-  svg += `<text class="ct-axis-title" x="${(padL+(W-padR))/2}" y="${H-6}" text-anchor="middle">`
-      +  `${chartXAxis === 'year' ? 'Year' : (isBowling ? 'Bowling innings' : 'Batting innings')}</text>`;
-  svg += `<text class="ct-axis-title" x="${padL-40}" y="${padT+6}" text-anchor="start">`
-      +  `${isBowling ? 'Bowl avg' : 'Bat avg'}</text>`;
-
-  // Unfiltered peak baselines — the Δ Peak benchmark, drawn where the gap is visible
-  if(showBaseline) series.forEach(sr => {
-    if(sr.peak == null || sr.peak < yMin || sr.peak > yMax) return;
-    const y = sy(sr.peak);
-    svg += `<line class="ct-baseline" x1="${padL}" y1="${y.toFixed(1)}" x2="${W-padR}" y2="${y.toFixed(1)}" stroke="${sr.colour}"/>`
-        +  `<text class="ct-baseline-lb" x="${W-padR+5}" y="${(y+3.5).toFixed(1)}" fill="${sr.colour}">${sr.peak.toFixed(2)}</text>`;
-  });
+  body += axisTitles(chartXAxis === 'year' ? 'Year' : (isBowling ? 'Bowling innings' : 'Batting innings'));
+  body += baselines(sy, yMin, yMax, showBaseline);
 
   // The curves. Split at the point the average settles: the opening is drawn
   // faint because it is still arithmetic noise, and clipped so a spike off the
   // top of the scale doesn't paint over the axis labels.
-  const clipId = chartId + 'Clip';
-  svg += `<clipPath id="${clipId}"><rect x="${padL}" y="${padT}" width="${W-padL-padR}" height="${H-padT-padB}"/></clipPath>`;
+  body += `<clipPath id="${clipId}"><rect x="${padL}" y="${padT}" width="${plotW}" height="${plotH}"/></clipPath>`;
   const dOf = pts => pts.map((pt,i) => `${i?'L':'M'}${sx(xOf(pt)).toFixed(1)} ${sy(pt[key]).toFixed(1)}`).join(' ');
   series.forEach(sr => {
     const firstStable = sr.pts.findIndex(pt => pt[gateKey] >= stableGate);
-    const early  = firstStable > 0 ? sr.pts.slice(0, firstStable + 1) : [];
+    const early   = firstStable > 0 ? sr.pts.slice(0, firstStable + 1) : [];
     const settled = firstStable >= 0 ? sr.pts.slice(firstStable) : sr.pts;
     if(early.length > 1)
-      svg += `<path class="ct-line ct-line-early" d="${dOf(early)}" stroke="${sr.colour}" clip-path="url(#${clipId})"/>`;
+      body += `<path class="ct-line ct-line-early" d="${dOf(early)}" stroke="${sr.colour}" clip-path="url(#${clipId})"/>`;
     if(settled.length > 1)
-      svg += `<path class="ct-line" d="${dOf(settled)}" stroke="${sr.colour}" clip-path="url(#${clipId})"/>`;
+      body += `<path class="ct-line" d="${dOf(settled)}" stroke="${sr.colour}" clip-path="url(#${clipId})"/>`;
   });
 
   // Peak marker — only meaningful on the line when the line is the full career
@@ -2323,45 +2462,22 @@ function buildCareerChart(players, rowSets, isBowling, rowFiltersOn){
     const pk = sr.pts.filter(pt => pt.matchEnd && sr.peak != null &&
                                    Math.abs(pt[key] - sr.peak) < 1e-9).pop();
     if(!pk) return;
-    svg += `<circle class="ct-peak-dot" cx="${sx(xOf(pk)).toFixed(1)}" cy="${sy(pk[key]).toFixed(1)}" r="4.5" fill="${sr.colour}"/>`;
+    body += `<circle class="ct-peak-dot" cx="${sx(xOf(pk)).toFixed(1)}" cy="${sy(pk[key]).toFixed(1)}" r="4.5" fill="${sr.colour}"/>`;
   });
+  body += hoverLayer;
 
-  // Hover layer
-  svg += `<g id="${chartId}Hover"></g>`
-      +  `<rect x="${padL}" y="${padT}" width="${W-padL-padR}" height="${H-padT-padB}" fill="transparent"`
-      +  ` onmousemove="ctHover(event,'${chartId}')" onmouseleave="ctHoverOut('${chartId}')"`
-      +  ` ontouchmove="ctHover(event,'${chartId}')" ontouchend="ctHoverOut('${chartId}')"/>`;
-
-  _ctData[chartId] = {series, key, xOf, sx, sy, geom:{W,H,padL,padR,padT,padB},
+  _ctData[chartId] = {mode:'line', series, key, xOf, sx, sy, geom:{W,H,padL,padR,padT,padB},
                       isBowling, xMode: chartXAxis};
-
-  const legend = series.map(sr =>
-    `<div class="ct-legend-item"><span class="ct-legend-sw" style="background:${sr.colour}"></span>${sr.name}</div>`
-  ).join('');
 
   const notes = [];
   if(rowFiltersOn) notes.push('follows the active filters');
-  if(showBaseline && series.some(sr => sr.peak != null))
-    notes.push('dashed line = unfiltered career peak');
+  if(showBaseline && series.some(sr => sr.peak != null)) notes.push('dashed line = unfiltered career peak');
   if(!rowFiltersOn && series.some(sr => sr.peak != null)) notes.push('dot marks the peak');
   notes.push(`faint until ${stableGate} ${noun}`);
 
-  return `<div class="ct-chart">
-    <div class="ct-chart-head">
-      <div>
-        <div class="ct-chart-title">Cumulative ${isBowling ? 'bowling' : 'batting'} average</div>
-        <div class="ct-chart-sub">${notes.join(' · ')}</div>
-      </div>
-      <div class="ct-axis-toggle">
-        <button type="button" class="${chartXAxis==='year'?'on':''}" onclick="setChartAxis('year',this)">Year</button>
-        <button type="button" class="${chartXAxis==='inns'?'on':''}" onclick="setChartAxis('inns',this)">Innings</button>
-      </div>
-    </div>
-    <svg class="ct-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" role="img"
-         aria-label="Cumulative ${isBowling?'bowling':'batting'} average by ${chartXAxis==='year'?'year':'innings'}">${svg}</svg>
-    <div class="ct-legend">${legend}</div>
-    <div class="ct-tip" id="${chartId}Tip"></div>
-  </div>`;
+  return shell(`Cumulative ${isBowling ? 'bowling' : 'batting'} average`,
+    svgTag(`Cumulative ${isBowling?'bowling':'batting'} average by ${chartXAxis==='year'?'year':'innings'}`, body),
+    notes, legend);
 }
 
 /* Nearest-point readout. Snaps to the closest x across every line so the
@@ -2375,6 +2491,27 @@ function ctHover(evt, chartId){
   const clientY = touch ? touch.clientY : evt.clientY;
   const box = svg.getBoundingClientRect();
   const vx = (clientX - box.left) / box.width * d.geom.W;
+
+  // Bars: hit-test the year band, so the whole column responds rather than
+  // each thin rect individually.
+  if(d.mode === 'bars'){
+    const band = d.bands.find(b => vx >= b.x0 && vx < b.x1) || null;
+    const g = document.getElementById(chartId + 'Hover');
+    const tip = document.getElementById(chartId + 'Tip');
+    if(!band || !band.rows.length){ ctHoverOut(chartId); return; }
+    if(g) g.innerHTML = `<rect class="ct-band-hl" x="${band.x0.toFixed(1)}" y="${d.geom.padT}"`
+      + ` width="${(band.x1-band.x0).toFixed(1)}" height="${(d.geom.H-d.geom.padT-d.geom.padB)}"/>`;
+    if(tip){
+      tip.innerHTML = `<b>${band.year}</b>` + band.rows.map(r =>
+        `<div class="ct-tip-row"><span class="ct-tip-sw" style="background:${r.colour}"></span>`
+        + `${r.name} — ${r.avg.toFixed(2)} <span style="opacity:.6">(${r.inns} inn)</span></div>`).join('');
+      const wrapBox = tip.parentNode.getBoundingClientRect();
+      tip.style.left = (clientX - wrapBox.left) + 'px';
+      tip.style.top  = (clientY - wrapBox.top - 12) + 'px';
+      tip.style.opacity = '1';
+    }
+    return;
+  }
 
   let best = null;
   d.series.forEach(sr => sr.pts.forEach(pt => {
