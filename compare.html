@@ -274,6 +274,52 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
 .ms-dd-item.checked .ms-cb{background:var(--accent);border-color:var(--accent)}
 .ms-dd-item.checked .ms-cb::after{content:'✓';color:#fff;font-size:10px;font-weight:700}
 .ms-dd-item .ms-lbl{flex:1;font-weight:500}
+
+/* Career trend chart */
+.ct-chart{
+  background:var(--surface);border:1px solid var(--border);border-radius:10px;
+  padding:16px 18px 12px;margin-bottom:18px;position:relative;
+}
+.ct-chart-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:2px;flex-wrap:wrap}
+.ct-chart-title{font-size:13px;font-weight:600;letter-spacing:.02em;color:var(--text)}
+.ct-chart-sub{font-size:11px;color:var(--text3);margin-top:2px;line-height:1.5}
+.ct-axis-toggle{display:flex;border:1px solid var(--border);border-radius:6px;overflow:hidden;flex-shrink:0}
+.ct-axis-toggle button{
+  background:var(--surface);border:none;cursor:pointer;padding:5px 12px;
+  font-family:'Outfit',sans-serif;font-size:11px;font-weight:600;color:var(--text3);
+}
+.ct-axis-toggle button + button{border-left:1px solid var(--border)}
+.ct-axis-toggle button.on{background:var(--accent-dim);color:var(--accent)}
+.ct-axis-toggle button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.ct-svg{display:block;width:100%;height:auto;margin-top:8px;touch-action:none}
+.ct-grid{stroke:var(--border);stroke-width:1;opacity:.55}
+.ct-axis-line{stroke:var(--border2);stroke-width:1}
+.ct-tick{font-size:10px;fill:var(--text3);font-family:'Outfit',sans-serif}
+.ct-axis-title{font-size:10px;fill:var(--text3);font-family:'Outfit',sans-serif;letter-spacing:.06em;text-transform:uppercase}
+.ct-line{fill:none;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.ct-line-early{stroke-width:1.25;opacity:.3}
+.ct-baseline{stroke-width:1.5;stroke-dasharray:4 4;opacity:.6;fill:none}
+.ct-baseline-lb{font-size:9.5px;font-family:'Outfit',sans-serif;font-weight:600;letter-spacing:.04em}
+.ct-peak-dot{stroke:var(--surface);stroke-width:2}
+.ct-guide{stroke:var(--border2);stroke-width:1;stroke-dasharray:3 3}
+.ct-legend{display:flex;flex-wrap:wrap;gap:14px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
+.ct-legend-item{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--text2)}
+.ct-legend-sw{width:14px;height:3px;border-radius:2px;flex-shrink:0}
+.ct-tip{
+  position:absolute;pointer-events:none;opacity:0;transform:translate(-50%,-100%);
+  background:var(--text);color:#fff;border-radius:6px;padding:7px 10px;
+  font-size:11px;line-height:1.5;white-space:nowrap;z-index:5;
+  box-shadow:0 4px 14px rgba(0,0,0,.18);transition:opacity .1s;
+}
+.ct-tip b{font-weight:600}
+.ct-tip .ct-tip-row{display:flex;align-items:center;gap:6px}
+.ct-tip .ct-tip-sw{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+.ct-chart-empty{font-size:12px;color:var(--text3);padding:10px 2px}
+@media (max-width:640px){
+  .ct-chart{padding:12px 12px 10px}
+  .ct-legend{gap:10px}
+}
+@media (prefers-reduced-motion:reduce){ .ct-tip{transition:none} }
 .ms-dd-search{position:sticky;top:0;z-index:2;background:var(--surface);padding:6px;border-bottom:1px solid var(--border)}
 .ms-dd-search input{
   width:100%;box-sizing:border-box;background:var(--surface2);border:1px solid var(--border);
@@ -1011,8 +1057,8 @@ header.header{display:none !important}
     </div>
     <div id="filtSummary"></div>
     <div class="tc on" id="t-overview"><div id="tblOverview"></div></div>
-    <div class="tc" id="t-batting"><div id="tblBatting"></div></div>
-    <div class="tc" id="t-bowling"><div id="tblBowling"></div></div>
+    <div class="tc" id="t-batting"><div id="chartBatting"></div><div id="tblBatting"></div></div>
+    <div class="tc" id="t-bowling"><div id="chartBowling"></div><div id="tblBowling"></div></div>
     <div class="tc" id="t-all"><div id="tblAll"></div></div>
   </div>
 </div>
@@ -1041,6 +1087,7 @@ let MATCH_CAPT={};
 function buildData(){
   PLAYERS=D.P.map(r=>{const p={};KEYS.forEach((k,i)=>p[k]=r[i]);return p});
   TEAMS=D.T; CITIES=D.C; GROUNDS=D.G; LOCATIONS=D.L; TESTS=D.M; PT=D.PT; SCD=D.S;
+  _midYearPos=null;   // derived from TESTS — rebuild lazily
 
   SCD.forEach((r,i)=>{const pid=r[1];if(!SCD_IDX[pid])SCD_IDX[pid]=[];SCD_IDX[pid].push(i)});
 
@@ -1709,59 +1756,69 @@ function getPlayerMatchOrder(playerId){
   return _playerMatchOrder[playerId];
 }
 
+/* Walk a player's innings in career order, carrying the cumulative averages.
+   One point per innings the player appears in. The Peak calculation reads the
+   match-end points of this series; the career trend chart plots it. They must
+   come from the same walk — a chart drawn by a second accumulator will
+   eventually disagree with the Δ Peak column it is supposed to explain.
+
+   rowIdxs decides the population: pass the raw career rows for Peak (which is
+   unfiltered by definition) or a filtered row set for the chart. */
+function buildCareerSeries(player, rowIdxs){
+  const {order} = getPlayerMatchOrder(player.id);
+  const rows = (rowIdxs || []).map(i => SCD[i])
+    .filter(r => TESTS[r[0]] && order[r[0]])
+    .sort((a,b) => (order[a[0]] - order[b[0]]) || (a[2] - b[2]));
+
+  let cumRuns=0, cumOuts=0, cumOvers=0, cumBowlRuns=0, cumWkts=0, batInn=0, bowlInn=0;
+  const pts = rows.map(r => {
+    const isNO = r[4];
+    let batted = false;
+    if(isNO !== null){                       // null = did not bat
+      cumRuns += typeof r[3]==='number' ? r[3] : 0;
+      if(!isNO) cumOuts++;                   // not-outs add runs, not dismissals
+      batInn++; batted = true;
+    }
+    const ov = typeof r[6]==='number' ? r[6] : 0;
+    cumOvers    += ov;
+    cumBowlRuns += typeof r[8]==='number' ? r[8] : 0;
+    cumWkts     += typeof r[9]==='number' ? r[9] : 0;
+    if(ov > 0) bowlInn++;
+    return {
+      mid: r[0], testNum: order[r[0]], inn: r[2], year: TESTS[r[0]][7],
+      batted, bowled: ov > 0, batInn, bowlInn, runs: typeof r[3]==='number' ? r[3] : 0,
+      cumRuns, cumOuts, cumOvers, cumBowlRuns, cumWkts,
+      batAvg:  cumOuts > 0 ? cumRuns / cumOuts : null,
+      bowlAvg: cumWkts > 0 ? cumBowlRuns / cumWkts : null,
+      matchEnd: false
+    };
+  });
+  // Mark the last innings of each Test — the points the Peak walk steps on.
+  pts.forEach((p, i) => { p.matchEnd = (i === pts.length - 1) || pts[i+1].mid !== p.mid; });
+  return pts;
+}
+
 // Compute "Peak" test number for a player: the Test # at which their
 // cumulative batting avg was highest (or bowling avg was lowest).
-// Returns {peakTest, label} where peakTest is the 1-based career Test number.
-// isBowling: if true, find lowest bowling average point instead.
+// Returns {peakTest, peakAvg, label}; peakTest is the 1-based career Test number.
+// Always unfiltered — see the Δ Peak note in buildPhaseRowTable.
 function computePeakTest(player, isBowling){
-  const {order, total} = getPlayerMatchOrder(player.id);
-  const idxs = SCD_IDX[player.id] || [];
-  // Build per-match aggregated batting/bowling stats, sorted by career Test #
-  const matchMap = {}; // matchId -> {runs, outs, overs, bowlRuns, wkts}
-  idxs.forEach(i => {
-    const r = SCD[i], mid = r[0];
-    if(!matchMap[mid]) matchMap[mid] = {runs:0, outs:0, overs:0, bowlRuns:0, wkts:0};
-    const m = matchMap[mid];
-    const isNO = r[4];
-    if(isNO !== null){
-      const br = typeof r[3]==='number' ? r[3] : 0;
-      m.runs += br;
-      if(!isNO) m.outs++;
-    }
-    const bo = typeof r[6]==='number' ? r[6] : 0;
-    m.overs += bo;
-    m.bowlRuns += typeof r[8]==='number' ? r[8] : 0;
-    m.wkts += typeof r[9]==='number' ? r[9] : 0;
-  });
-  // Sort matches by career Test order
-  const sortedMatches = Object.keys(matchMap)
-    .map(mid => ({mid: +mid, testNum: order[+mid], ...matchMap[mid]}))
-    .filter(m => m.testNum)
-    .sort((a,b) => a.testNum - b.testNum);
+  const {total} = getPlayerMatchOrder(player.id);
+  const sortedMatches = buildCareerSeries(player, SCD_IDX[player.id] || [])
+    .filter(p => p.matchEnd);
 
   if(sortedMatches.length === 0) return {peakTest: total, peakAvg: null, label: 'Peak'};
 
-  let cumRuns=0, cumOuts=0, cumOvers=0, cumBowlRuns=0, cumWkts=0;
   let bestVal = isBowling ? Infinity : -Infinity;
   let bestTestNum = 1;
 
   sortedMatches.forEach(m => {
-    cumRuns += m.runs; cumOuts += m.outs;
-    cumOvers += m.overs; cumBowlRuns += m.bowlRuns; cumWkts += m.wkts;
     if(isBowling){
-      // Bowling: find the Test # where cumulative bowling average is lowest
-      // Require at least 30 wickets to avoid early fluky lows
-      if(cumWkts >= 30){
-        const avg = cumBowlRuns / cumWkts;
-        if(avg < bestVal){ bestVal = avg; bestTestNum = m.testNum; }
-      }
+      // Lowest cumulative bowling average; 30 wickets minimum to avoid fluky lows
+      if(m.cumWkts >= 30 && m.bowlAvg < bestVal){ bestVal = m.bowlAvg; bestTestNum = m.testNum; }
     } else {
-      // Batting: find the Test # where cumulative batting average is highest
-      // Require at least 700 runs to avoid early fluky highs
-      if(cumRuns >= 700 && cumOuts > 0){
-        const avg = cumRuns / cumOuts;
-        if(avg > bestVal){ bestVal = avg; bestTestNum = m.testNum; }
-      }
+      // Highest cumulative batting average; 700 runs minimum to avoid fluky highs
+      if(m.cumRuns >= 700 && m.cumOuts > 0 && m.batAvg > bestVal){ bestVal = m.batAvg; bestTestNum = m.testNum; }
     }
   });
   // No qualifying peak (never cleared the 700-run / 30-wicket guard above):
@@ -2095,6 +2152,277 @@ function switchTab(tab,btn){
   document.getElementById('t-'+tab).classList.add('on');
 }
 
+
+/* ── Career trend chart ────────────────────────────────────────────────────
+   Plots the cumulative career average — the same curve computePeakTest walks
+   to find the peak, so the marked peak always sits on the line.
+
+   The chart follows the active filters, which means the x-axis in "Innings"
+   mode counts *filtered* innings: with an away filter on, point 12 is his
+   twelfth away innings. That is the only reading where the line ends at the
+   average shown in the table below it.
+
+   The dashed baseline is the unfiltered career peak — the Δ Peak benchmark.
+   The vertical gap between a filtered line and its baseline is that column. */
+
+let chartXAxis = 'year';        // 'year' | 'inns'
+/* A cumulative average opens with a 100-or-0 spike that is arithmetic, not
+   form. Two thresholds rather than one: plot from MIN, but scale the y-axis
+   from STABLE, so the opening is visible without dictating the whole range.
+   The pre-stable segment is drawn faint and clipped to the plot box. */
+const TREND_MIN_OUTS = 3,  TREND_STABLE_OUTS = 10;
+const TREND_MIN_WKTS = 5,  TREND_STABLE_WKTS = 15;
+const _ctData = {};
+
+function setChartAxis(mode, el){
+  if(chartXAxis === mode) return;
+  chartXAxis = mode;
+  if(el) [...el.parentNode.children].forEach(b => b.classList.toggle('on', b === el));
+  render();
+}
+
+/* Where a Test sits inside its year. Match dates aren't in the dataset — only
+   the year — so without this every match in a year stacks on one x position
+   and the line runs vertically. Test numbers are globally chronological, so
+   their rank within the year is a faithful ordering. */
+let _midYearPos = null;
+function midYearPos(mid){
+  if(!_midYearPos){
+    _midYearPos = {};
+    const byYear = {};
+    TESTS.forEach((m, id) => {
+      if(!m || typeof m[7] !== 'number') return;
+      (byYear[m[7]] = byYear[m[7]] || []).push(id);
+    });
+    Object.keys(byYear).forEach(y => {
+      const ids = byYear[y].sort((a,b) => a-b);
+      ids.forEach((id, i) => { _midYearPos[id] = ids.length > 1 ? i/ids.length : 0; });
+    });
+  }
+  return _midYearPos[mid] || 0;
+}
+
+/* Tick values at readable intervals (1/2/5 x powers of ten). */
+function ctTicks(min, max, target){
+  const span = (max - min) || 1;
+  const mag  = Math.pow(10, Math.floor(Math.log10(span/target)));
+  const norm = (span/target)/mag;
+  const step = (norm <= 1 ? 1 : norm <= 2 ? 2 : norm <= 5 ? 5 : 10) * mag;
+  const out = [];
+  for(let v = Math.ceil(min/step)*step; v <= max + step*1e-6; v += step) out.push(+v.toFixed(6));
+  return out;
+}
+
+function buildCareerChart(players, rowSets, isBowling, rowFiltersOn){
+  if(!players.length) return '';
+  const key     = isBowling ? 'bowlAvg' : 'batAvg';
+  const gateKey = isBowling ? 'cumWkts' : 'cumOuts';
+  const gate    = isBowling ? TREND_MIN_WKTS : TREND_MIN_OUTS;
+  const stableGate = isBowling ? TREND_STABLE_WKTS : TREND_STABLE_OUTS;
+  const chartId = isBowling ? 'ctBowl' : 'ctBat';
+  const noun    = isBowling ? 'wickets' : 'dismissals';
+
+  const series = players.map((p, i) => ({
+    name: p.name, colour: PCOLORS[i % PCOLORS.length],
+    peak: computePeakTest(p, isBowling).peakAvg,
+    pts: buildCareerSeries(p, rowSets[i] || [])
+           .filter(pt => pt[gateKey] >= gate && pt[key] !== null && (isBowling ? pt.bowled : pt.batted))
+  })).filter(sr => sr.pts.length >= 2);
+
+  if(!series.length){
+    return `<div class="ct-chart"><div class="ct-chart-title">Career trend</div>
+      <div class="ct-chart-empty">Needs at least ${gate} ${noun} in the filtered record before a
+      cumulative average means anything. Widen the filters to see the curve.</div></div>`;
+  }
+
+  const xOf = pt => chartXAxis === 'year'
+    ? pt.year + midYearPos(pt.mid)
+    : (isBowling ? pt.bowlInn : pt.batInn);
+
+  // x spans everything plotted; y is scaled to the settled part of the career
+  // so a wild third innings can't compress twenty years into a band.
+  let xMin=Infinity, xMax=-Infinity, yMin=Infinity, yMax=-Infinity;
+  let sawStable = false;
+  series.forEach(sr => sr.pts.forEach(pt => {
+    const x = xOf(pt);
+    if(x < xMin) xMin = x;  if(x > xMax) xMax = x;
+    if(pt[gateKey] >= stableGate){
+      sawStable = true;
+      const y = pt[key];
+      if(y < yMin) yMin = y;  if(y > yMax) yMax = y;
+    }
+  }));
+  if(!sawStable) series.forEach(sr => sr.pts.forEach(pt => {   // short careers
+    const y = pt[key];
+    if(y < yMin) yMin = y;  if(y > yMax) yMax = y;
+  }));
+
+  // Baselines crowd the plot past a few players; keep them where they're readable.
+  const showBaseline = series.length <= 3;
+  if(showBaseline) series.forEach(sr => {
+    if(sr.peak != null){ yMin = Math.min(yMin, sr.peak); yMax = Math.max(yMax, sr.peak); }
+  });
+
+  if(xMax === xMin){ xMin -= .5; xMax += .5; }
+  const yPad = Math.max((yMax - yMin) * 0.12, 1);
+  yMin = Math.max(0, yMin - yPad); yMax = yMax + yPad;
+
+  const W=900, H=340, padL=54, padR=54, padT=16, padB=40;
+  const sx = x => padL + (x - xMin)/(xMax - xMin) * (W - padL - padR);
+  const sy = y => padT + (yMax - y)/(yMax - yMin) * (H - padT - padB);
+
+  let svg = '';
+
+  // Horizontal gridlines + y labels
+  ctTicks(yMin, yMax, 5).forEach(t => {
+    const y = sy(t);
+    svg += `<line class="ct-grid" x1="${padL}" y1="${y.toFixed(1)}" x2="${W-padR}" y2="${y.toFixed(1)}"/>`
+        +  `<text class="ct-tick" x="${padL-8}" y="${(y+3.5).toFixed(1)}" text-anchor="end">${t.toLocaleString()}</text>`;
+  });
+
+  // X axis + labels
+  svg += `<line class="ct-axis-line" x1="${padL}" y1="${H-padB}" x2="${W-padR}" y2="${H-padB}"/>`;
+  ctTicks(xMin, xMax, 6).forEach(t => {
+    if(chartXAxis === 'year' && t !== Math.round(t)) return;
+    if(chartXAxis === 'inns' && (t < 1 || t !== Math.round(t))) return;
+    const x = sx(t);
+    if(x < padL - 1 || x > W - padR + 1) return;
+    svg += `<text class="ct-tick" x="${x.toFixed(1)}" y="${H-padB+16}" text-anchor="middle">${t}</text>`;
+  });
+  svg += `<text class="ct-axis-title" x="${(padL+(W-padR))/2}" y="${H-6}" text-anchor="middle">`
+      +  `${chartXAxis === 'year' ? 'Year' : (isBowling ? 'Bowling innings' : 'Batting innings')}</text>`;
+  svg += `<text class="ct-axis-title" x="${padL-40}" y="${padT+6}" text-anchor="start">`
+      +  `${isBowling ? 'Bowl avg' : 'Bat avg'}</text>`;
+
+  // Unfiltered peak baselines — the Δ Peak benchmark, drawn where the gap is visible
+  if(showBaseline) series.forEach(sr => {
+    if(sr.peak == null || sr.peak < yMin || sr.peak > yMax) return;
+    const y = sy(sr.peak);
+    svg += `<line class="ct-baseline" x1="${padL}" y1="${y.toFixed(1)}" x2="${W-padR}" y2="${y.toFixed(1)}" stroke="${sr.colour}"/>`
+        +  `<text class="ct-baseline-lb" x="${W-padR+5}" y="${(y+3.5).toFixed(1)}" fill="${sr.colour}">${sr.peak.toFixed(2)}</text>`;
+  });
+
+  // The curves. Split at the point the average settles: the opening is drawn
+  // faint because it is still arithmetic noise, and clipped so a spike off the
+  // top of the scale doesn't paint over the axis labels.
+  const clipId = chartId + 'Clip';
+  svg += `<clipPath id="${clipId}"><rect x="${padL}" y="${padT}" width="${W-padL-padR}" height="${H-padT-padB}"/></clipPath>`;
+  const dOf = pts => pts.map((pt,i) => `${i?'L':'M'}${sx(xOf(pt)).toFixed(1)} ${sy(pt[key]).toFixed(1)}`).join(' ');
+  series.forEach(sr => {
+    const firstStable = sr.pts.findIndex(pt => pt[gateKey] >= stableGate);
+    const early  = firstStable > 0 ? sr.pts.slice(0, firstStable + 1) : [];
+    const settled = firstStable >= 0 ? sr.pts.slice(firstStable) : sr.pts;
+    if(early.length > 1)
+      svg += `<path class="ct-line ct-line-early" d="${dOf(early)}" stroke="${sr.colour}" clip-path="url(#${clipId})"/>`;
+    if(settled.length > 1)
+      svg += `<path class="ct-line" d="${dOf(settled)}" stroke="${sr.colour}" clip-path="url(#${clipId})"/>`;
+  });
+
+  // Peak marker — only meaningful on the line when the line is the full career
+  if(!rowFiltersOn) series.forEach(sr => {
+    const pk = sr.pts.filter(pt => pt.matchEnd && sr.peak != null &&
+                                   Math.abs(pt[key] - sr.peak) < 1e-9).pop();
+    if(!pk) return;
+    svg += `<circle class="ct-peak-dot" cx="${sx(xOf(pk)).toFixed(1)}" cy="${sy(pk[key]).toFixed(1)}" r="4.5" fill="${sr.colour}"/>`;
+  });
+
+  // Hover layer
+  svg += `<g id="${chartId}Hover"></g>`
+      +  `<rect x="${padL}" y="${padT}" width="${W-padL-padR}" height="${H-padT-padB}" fill="transparent"`
+      +  ` onmousemove="ctHover(event,'${chartId}')" onmouseleave="ctHoverOut('${chartId}')"`
+      +  ` ontouchmove="ctHover(event,'${chartId}')" ontouchend="ctHoverOut('${chartId}')"/>`;
+
+  _ctData[chartId] = {series, key, xOf, sx, sy, geom:{W,H,padL,padR,padT,padB},
+                      isBowling, xMode: chartXAxis};
+
+  const legend = series.map(sr =>
+    `<div class="ct-legend-item"><span class="ct-legend-sw" style="background:${sr.colour}"></span>${sr.name}</div>`
+  ).join('');
+
+  const notes = [];
+  if(rowFiltersOn) notes.push('follows the active filters');
+  if(showBaseline && series.some(sr => sr.peak != null))
+    notes.push('dashed line = unfiltered career peak');
+  if(!rowFiltersOn && series.some(sr => sr.peak != null)) notes.push('dot marks the peak');
+  notes.push(`faint until ${stableGate} ${noun}`);
+
+  return `<div class="ct-chart">
+    <div class="ct-chart-head">
+      <div>
+        <div class="ct-chart-title">Cumulative ${isBowling ? 'bowling' : 'batting'} average</div>
+        <div class="ct-chart-sub">${notes.join(' · ')}</div>
+      </div>
+      <div class="ct-axis-toggle">
+        <button type="button" class="${chartXAxis==='year'?'on':''}" onclick="setChartAxis('year',this)">Year</button>
+        <button type="button" class="${chartXAxis==='inns'?'on':''}" onclick="setChartAxis('inns',this)">Innings</button>
+      </div>
+    </div>
+    <svg class="ct-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" role="img"
+         aria-label="Cumulative ${isBowling?'bowling':'batting'} average by ${chartXAxis==='year'?'year':'innings'}">${svg}</svg>
+    <div class="ct-legend">${legend}</div>
+    <div class="ct-tip" id="${chartId}Tip"></div>
+  </div>`;
+}
+
+/* Nearest-point readout. Snaps to the closest x across every line so the
+   guide reads as one moment in time rather than per-series hover targets. */
+function ctHover(evt, chartId){
+  const d = _ctData[chartId]; if(!d) return;
+  const svg = evt.target.ownerSVGElement; if(!svg) return;
+  if(evt.cancelable && evt.type === 'touchmove') evt.preventDefault();
+  const touch = evt.touches && evt.touches[0];
+  const clientX = touch ? touch.clientX : evt.clientX;
+  const clientY = touch ? touch.clientY : evt.clientY;
+  const box = svg.getBoundingClientRect();
+  const vx = (clientX - box.left) / box.width * d.geom.W;
+
+  let best = null;
+  d.series.forEach(sr => sr.pts.forEach(pt => {
+    const dist = Math.abs(d.sx(d.xOf(pt)) - vx);
+    if(!best || dist < best.dist) best = {dist, pt};
+  }));
+  if(!best) return;
+
+  const targetX = d.xOf(best.pt);
+  const rows = [];
+  let gx = null;
+  d.series.forEach(sr => {
+    let near = null;
+    sr.pts.forEach(pt => {
+      const dist = Math.abs(d.xOf(pt) - targetX);
+      if(!near || dist < near.dist) near = {dist, pt};
+    });
+    if(!near) return;
+    gx = d.sx(d.xOf(near.pt));
+    rows.push({sr, pt: near.pt});
+  });
+
+  const g = document.getElementById(chartId + 'Hover');
+  if(g){
+    g.innerHTML = `<line class="ct-guide" x1="${gx.toFixed(1)}" y1="${d.geom.padT}" x2="${gx.toFixed(1)}" y2="${d.geom.H-d.geom.padB}"/>`
+      + rows.map(r => `<circle cx="${d.sx(d.xOf(r.pt)).toFixed(1)}" cy="${d.sy(r.pt[d.key]).toFixed(1)}" r="3.5" fill="${r.sr.colour}" stroke="var(--surface)" stroke-width="1.5"/>`).join('');
+  }
+
+  const tip = document.getElementById(chartId + 'Tip');
+  if(tip){
+    const p0 = rows[0].pt;
+    const head = d.xMode === 'year'
+      ? `${p0.year} · Test #${p0.testNum}`
+      : `Innings ${d.isBowling ? p0.bowlInn : p0.batInn} · ${p0.year}`;
+    tip.innerHTML = `<b>${head}</b>` + rows.map(r =>
+      `<div class="ct-tip-row"><span class="ct-tip-sw" style="background:${r.sr.colour}"></span>`
+      + `${r.sr.name} — ${r.pt[d.key].toFixed(2)}</div>`).join('');
+    const wrapBox = tip.parentNode.getBoundingClientRect();
+    tip.style.left = (clientX - wrapBox.left) + 'px';
+    tip.style.top  = (clientY - wrapBox.top - 12) + 'px';
+    tip.style.opacity = '1';
+  }
+}
+function ctHoverOut(chartId){
+  const g = document.getElementById(chartId + 'Hover'); if(g) g.innerHTML = '';
+  const tip = document.getElementById(chartId + 'Tip'); if(tip) tip.style.opacity = '0';
+}
+
 function render(){
   const players = (cohortMode && window._cohortPlayerOverride) ? window._cohortPlayerOverride : activeSel();
   if(players.length<1)return;
@@ -2171,6 +2499,8 @@ function render(){
     document.getElementById('tblBatting').innerHTML = '';
     document.getElementById('tblBowling').innerHTML = '';
     document.getElementById('tblAll').innerHTML = '';
+    document.getElementById('chartBatting').innerHTML = '';
+    document.getElementById('chartBowling').innerHTML = '';
     document.getElementById('filtSummary').innerHTML = '';
     showTags();
     return;
@@ -2589,14 +2919,18 @@ function render(){
 
   if(st === 'both' || st === 'batting'){
     document.getElementById('tblBatting').innerHTML = buildTab(batCols, { showVerdict: st === 'batting' && !phaseView });
+    document.getElementById('chartBatting').innerHTML = buildCareerChart(displayPlayers, rowSets, false, rowFiltersOn);
   } else {
     document.getElementById('tblBatting').innerHTML = '';
+    document.getElementById('chartBatting').innerHTML = '';
   }
 
   if(st === 'both' || st === 'bowling'){
     document.getElementById('tblBowling').innerHTML = buildTab(bowlCols, { isBowling: true, showVerdict: st === 'bowling' && !phaseView });
+    document.getElementById('chartBowling').innerHTML = buildCareerChart(displayPlayers, rowSets, true, rowFiltersOn);
   } else {
     document.getElementById('tblBowling').innerHTML = '';
+    document.getElementById('chartBowling').innerHTML = '';
   }
 
   if(st === 'both'){
