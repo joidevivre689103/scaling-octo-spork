@@ -2222,6 +2222,99 @@ function midYearPos(mid){
   return _midYearPos[mid] || 0;
 }
 
+/* ── Significance plumbing ────────────────────────────────────────────────
+   Two-tailed p from a t statistic, via the regularised incomplete beta
+   function (Lentz's continued fraction). Needed because a slope on its own
+   can't say whether a career declined or merely wobbled downward. */
+function ctLogGamma(x){
+  const g=[76.18009172947146,-86.50532032941677,24.01409824083091,
+           -1.231739572450155,0.1208650973866179e-2,-0.5395239384953e-5];
+  let y=x, tmp=x+5.5;
+  tmp -= (x+0.5)*Math.log(tmp);
+  let ser=1.000000000190015;
+  for(let j=0;j<6;j++) ser += g[j]/++y;
+  return -tmp + Math.log(2.5066282746310005*ser/x);
+}
+function ctBetacf(a,b,x){
+  const MAXIT=300, EPS=3e-14, FPMIN=1e-300;
+  const qab=a+b, qap=a+1, qam=a-1;
+  let c=1, d=1-qab*x/qap;
+  if(Math.abs(d)<FPMIN) d=FPMIN;
+  d=1/d; let h=d;
+  for(let m=1;m<=MAXIT;m++){
+    const m2=2*m;
+    let aa=m*(b-m)*x/((qam+m2)*(a+m2));
+    d=1+aa*d; if(Math.abs(d)<FPMIN) d=FPMIN;
+    c=1+aa/c; if(Math.abs(c)<FPMIN) c=FPMIN;
+    d=1/d; h*=d*c;
+    aa=-(a+m)*(qab+m)*x/((a+m2)*(qap+m2));
+    d=1+aa*d; if(Math.abs(d)<FPMIN) d=FPMIN;
+    c=1+aa/c; if(Math.abs(c)<FPMIN) c=FPMIN;
+    d=1/d;
+    const del=d*c; h*=del;
+    if(Math.abs(del-1)<EPS) break;
+  }
+  return h;
+}
+function ctBetai(a,b,x){
+  if(x<=0) return 0;
+  if(x>=1) return 1;
+  const bt=Math.exp(ctLogGamma(a+b)-ctLogGamma(a)-ctLogGamma(b)+a*Math.log(x)+b*Math.log(1-x));
+  return x < (a+1)/(a+b+2) ? bt*ctBetacf(a,b,x)/a : 1-bt*ctBetacf(b,a,1-x)/b;
+}
+function ctPFromT(t, df){
+  if(!isFinite(t) || !(df >= 1)) return null;
+  return ctBetai(df/2, 0.5, df/(df + t*t));
+}
+function ctFmtP(p){
+  if(p == null) return 'n/a';
+  if(p < 0.001) return 'p < 0.001';
+  return 'p ' + p.toFixed(3);
+}
+
+/* Innings-level fit, batting only — the alternative basis, kept honest.
+
+   Regressing individual scores on time gives the same trend direction, but
+   innings inside a season are NOT independent: form clusters, a series is
+   played on similar pitches against one attack. Treating 180 innings as 180
+   independent draws shrinks the standard error and produces a p-value that is
+   far too confident. So the slope is plain OLS while the standard error is
+   cluster-robust, clustered by season, with df = clusters − 1.
+
+   Note the units: this is runs per innings, per year — not average per year,
+   because not-outs add runs without adding a dismissal. It reads slightly
+   flatter than the season fit for that reason. There is no bowling equivalent:
+   an innings can take zero wickets, so an innings-level bowling average does
+   not exist. */
+function ctInningsFit(pts){
+  const rows = (pts || []).filter(p => p.batted);
+  if(rows.length < 10) return null;
+  const xs = rows.map(p => p.year + midYearPos(p.mid));
+  const ys = rows.map(p => p.runs);
+  const n = xs.length;
+  const xbar = xs.reduce((a,b)=>a+b,0)/n, ybar = ys.reduce((a,b)=>a+b,0)/n;
+  let sxx=0, sxy=0;
+  for(let i=0;i<n;i++){ const dx=xs[i]-xbar; sxx += dx*dx; sxy += dx*(ys[i]-ybar); }
+  if(sxx < 1e-9) return null;
+  const slope = sxy/sxx, intercept = ybar - slope*xbar;
+
+  // Cluster the residual score by season
+  const byCluster = {};
+  for(let i=0;i<n;i++){
+    const g = rows[i].year;
+    byCluster[g] = (byCluster[g] || 0) + (xs[i]-xbar)*(ys[i] - (intercept + slope*xs[i]));
+  }
+  const G = Object.keys(byCluster).length;
+  if(G < 3) return null;
+  let meat = 0;
+  Object.values(byCluster).forEach(v => { meat += v*v; });
+  const correction = (G/(G-1)) * ((n-1)/(n-2));
+  const varB = correction * meat / (sxx*sxx);
+  if(!(varB > 0)) return null;
+  const t = slope/Math.sqrt(varB), df = G - 1;
+  return {slope, t, df, p: ctPFromT(Math.abs(t), df), n, clusters: G};
+}
+
 /* Career trend as a single number: weighted least squares through the season
    averages, in runs of average per calendar year.
 
@@ -2253,7 +2346,20 @@ function ctSlope(yearRows){
     ssRes += p.n*(p.avg-f)*(p.avg-f);
     ssTot += p.n*(p.avg-ybar)*(p.avg-ybar);
   });
-  return {slope, intercept, years: pts.length, r2: ssTot > 0 ? 1 - ssRes/ssTot : null};
+  // Standard error of the slope, and the t it implies. df = seasons − 2, so
+  // three seasons leaves a single degree of freedom and t is near worthless —
+  // the caller should treat a short career's verdict with suspicion.
+  const nS = pts.length, df = nS - 2;
+  let t = null, p = null;
+  if(df >= 1){
+    const denomX = sxx - sx*sx/sw;
+    if(denomX > 1e-9){
+      const se = Math.sqrt((ssRes/df)/denomX);
+      if(se > 0){ t = slope/se; p = ctPFromT(Math.abs(t), df); }
+    }
+  }
+  return {slope, intercept, years: nS, df, t, p,
+          r2: ssTot > 0 ? 1 - ssRes/ssTot : null};
 }
 
 /* Tick values at readable intervals (1/2/5 x powers of ten). */
@@ -2339,6 +2445,9 @@ function buildCareerChart(players, rowSets, isBowling, rowFiltersOn){
       return b;
     }).sort((a,c) => a.year - c.year);
     sr.fit = ctSlope(sr.years);
+    // Batting only — see ctInningsFit. Shown beside the season fit so the two
+    // bases can be compared on real players rather than taken on trust.
+    sr.innFit = isBowling ? null : ctInningsFit(sr.all);
   });
 
   const legend = series.map(sr => {
@@ -2351,7 +2460,23 @@ function buildCareerChart(players, rowSets, isBowling, rowFiltersOn){
     // wandered, not one that trended, and that has to be visible without a hover.
     const r2 = sr.fit.r2 == null ? null : sr.fit.r2;
     const r2Txt = r2 == null ? 'n/a' : r2.toFixed(2);
-    return `<div class="ct-legend-item" title="Weighted least-squares fit through ${sr.fit.years} season averages">`
+    const tip = [
+      `Season fit — ${sr.fit.years} seasons, weighted by ${noun}`,
+      `   slope ${sr.fit.slope >= 0 ? '+' : '\u2212'}${Math.abs(sr.fit.slope).toFixed(2)}/yr`
+        + `   t ${sr.fit.t == null ? 'n/a' : sr.fit.t.toFixed(2)}`
+        + `   ${ctFmtP(sr.fit.p)}`
+        + `   R\u00b2 ${r2Txt}`
+    ];
+    if(sr.innFit) tip.push(
+      `Innings fit — ${sr.innFit.n} innings in ${sr.innFit.clusters} seasons`,
+      `   slope ${sr.innFit.slope >= 0 ? '+' : '\u2212'}${Math.abs(sr.innFit.slope).toFixed(2)} runs/inn per yr`
+        + `   t ${sr.innFit.t.toFixed(2)}`
+        + `   ${ctFmtP(sr.innFit.p)}`,
+      `   standard errors clustered by season`
+    );
+    tip.push('t is the slope over its own standard error; p is how often a flat',
+             'career would throw up a slope this steep by chance.');
+    return `<div class="ct-legend-item" title="${tip.join('\n')}">`
       + `<span class="ct-legend-sw" style="background:${sr.colour}"></span>${sr.name}`
       + `<span class="ct-slope" style="color:${better ? 'var(--green)' : 'var(--red)'}">`
       + `${sign}${Math.abs(sr.fit.slope).toFixed(2)}/yr</span>`
