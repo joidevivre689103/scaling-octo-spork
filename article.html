@@ -1499,19 +1499,7 @@ function renderArticle(container, article, related) {
         ${relatedHTML}
       </div>
 
-      <div class="ct-newsletter-block" style="margin:40px 0 0;">
-        <span class="nl-kicker">The Cricket Times Dispatch</span>
-        <h3>Get new analysis in your inbox</h3>
-        <p>Subscribe for summaries of our latest stories and statistical deep dives, delivered to your inbox when new pieces are published.</p>
-        <form id="ct-nl-form" novalidate>
-          <div class="nl-row">
-            <input type="email" id="ct-nl-email" placeholder="your@email.com" required autocomplete="email" />
-            <button type="submit" id="ct-nl-btn">Subscribe</button>
-          </div>
-          <p class="nl-note">No spam. Unsubscribe anytime. &nbsp;·&nbsp; <a href="subscribe.html">Full signup &amp; privacy info</a></p>
-          <div class="nl-msg" id="ct-nl-msg"></div>
-        </form>
-      </div>
+      <div class="ct-newsletter" data-ct-source="article" data-ct-variant="compact"></div>
 
     </main>`;
 
@@ -2265,57 +2253,9 @@ function removeVotedReaction(commentId, reaction) {
 </script>
 
 <style>
-.ct-newsletter-block{border:1px solid var(--border);border-top:3px solid var(--accent);background:var(--surface2);padding:1.5rem 1.75rem;font-family:'Source Serif 4',Georgia,serif;}
-.ct-newsletter-block .nl-kicker{font-size:0.6rem;letter-spacing:0.25em;text-transform:uppercase;color:var(--accent);margin-bottom:0.5rem;display:block;}
-.ct-newsletter-block h3{font-family:'Playfair Display',Georgia,serif;font-size:1.15rem;font-weight:600;color:var(--text);margin:0 0 0.4rem;line-height:1.3;}
-.ct-newsletter-block p{font-size:0.85rem;color:var(--text2);line-height:1.65;margin:0 0 1rem;}
-.ct-newsletter-block .nl-row{display:flex;gap:0.5rem;flex-wrap:wrap;}
-.ct-newsletter-block input[type="email"]{flex:1;min-width:180px;border:1px solid var(--border);padding:0.6rem 0.85rem;font-family:'Source Serif 4',Georgia,serif;font-size:0.9rem;color:var(--text);background:#fff;outline:none;}
-.ct-newsletter-block input[type="email"]:focus{border-color:var(--accent);}
-.ct-newsletter-block button{background:var(--accent);color:#fff;border:none;padding:0.6rem 1.25rem;font-family:'Playfair Display',Georgia,serif;font-size:0.85rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:background 0.2s;}
-.ct-newsletter-block button:hover{background:var(--accent-hover);}
-.ct-newsletter-block button:disabled{opacity:0.6;cursor:not-allowed;}
-.ct-newsletter-block .nl-note{font-size:0.7rem;color:var(--text3);margin-top:0.6rem;}
-.ct-newsletter-block .nl-note a{color:var(--accent);}
-.ct-newsletter-block .nl-msg{font-size:0.85rem;margin-top:0.75rem;padding:0.5rem 0.75rem;display:none;}
-.ct-newsletter-block .nl-msg.success{display:block;background:#f0f7f0;border:1px solid #7aab7a;color:#2d5a2d;}
-.ct-newsletter-block .nl-msg.error{display:block;background:#fdf0f0;border:1px solid #c87a7a;color:#7a2020;}
 </style>
 
-<script>
-(function(){
-  var FORM_ACTION='https://assets.mailerlite.com/jsonp/2259944/forms/184395234410497566/subscribe';
-  function initNlForm(){
-    var form=document.getElementById('ct-nl-form');
-    var btn=document.getElementById('ct-nl-btn');
-    var msg=document.getElementById('ct-nl-msg');
-    if(!form)return;
-    form.addEventListener('submit',function(e){
-      e.preventDefault();
-      var email=document.getElementById('ct-nl-email').value.trim();
-      if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){msg.className='nl-msg error';msg.textContent='Please enter a valid email address.';return;}
-      btn.disabled=true;btn.textContent='…';msg.className='nl-msg';
-      var payload=new FormData();
-      payload.append('fields[email]',email);
-      payload.append('ml-submit','1');
-      payload.append('anticsrf','true');
-      payload.append('ajax','1');
-      fetch(FORM_ACTION,{method:'POST',body:payload})
-        .then(function(res){
-          if(res.ok){form.innerHTML='<p class="nl-msg success" style="display:block;margin:0;">✓ Subscribed! You\'ll hear from us with the next dispatch.</p>';}
-          else{throw new Error();}
-        })
-        .catch(function(){msg.className='nl-msg error';msg.textContent='Something went wrong. Try the full signup page.';btn.disabled=false;btn.textContent='Subscribe';});
-    });
-  }
-  // Article loads dynamically so poll briefly for the form to appear
-  var attempts=0;
-  var poll=setInterval(function(){
-    if(document.getElementById('ct-nl-form')){clearInterval(poll);initNlForm();}
-    if(++attempts>20)clearInterval(poll);
-  },300);
-}());
-</script>
+<script src="/ct-newsletter.js" defer></script>
 
 <script src="ct-nav.js"></script>
 </body>
