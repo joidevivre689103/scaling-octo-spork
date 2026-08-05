@@ -209,16 +209,16 @@
           '<input type="text" name="ct_hp" tabindex="-1" autocomplete="off"></label>' +
         '<div class="ct-nl__row">' +
           '<div class="ct-nl__field">' +
+            '<label class="ct-nl__label" for="' + id + '">' + COPY.emailLabel + '</label>' +
+            '<input class="ct-nl__input" id="' + id + '" type="email" name="fields[email]" ' +
+              'placeholder="your@email.com" autocomplete="email" required>' +
+          '</div>' +
+          '<div class="ct-nl__field">' +
             '<label class="ct-nl__label" for="' + id + '-name">' + COPY.nameLabel +
               '<span class="ct-nl__opt">' + COPY.nameOptional + '</span></label>' +
             '<input class="ct-nl__input" id="' + id + '-name" type="text" name="fields[name]" ' +
               'value="' + esc(prefillName(host)) + '" ' +
               'placeholder="' + COPY.namePlaceholder + '" autocomplete="given-name">' +
-          '</div>' +
-          '<div class="ct-nl__field">' +
-            '<label class="ct-nl__label" for="' + id + '">' + COPY.emailLabel + '</label>' +
-            '<input class="ct-nl__input" id="' + id + '" type="email" name="fields[email]" ' +
-              'placeholder="your@email.com" autocomplete="email" required>' +
           '</div>' +
         '</div>' +
         '<input type="hidden" name="fields[signup_source]" value="' + source + '">' +
@@ -250,7 +250,9 @@
     e.preventDefault();
 
     var host  = form.closest('.ct-nl');
-    var input = form.querySelector('.ct-nl__input');
+    // Select by name, NOT by class: there are two .ct-nl__input elements in
+    // the row and querySelector returns the first, which is the name field.
+    var input = form.querySelector('input[name="fields[email]"]');
     var btn   = form.querySelector('.ct-nl__btn');
     var msg   = host.querySelector('.ct-nl__msg');
     var hp    = form.querySelector('input[name="ct_hp"]');
