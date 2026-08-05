@@ -27,15 +27,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,300;8..60,400;8..60,500;8..60,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-<!-- MailerLite Universal -->
-<script>
-    (function(w,d,e,u,f,l,n){w[f]=w[f]||function(){(w[f].q=w[f].q||[])
-    .push(arguments);},l=d.createElement(e),l.async=1,l.src=u,
-    n=d.getElementsByTagName(e)[0],n.parentNode.insertBefore(l,n);})
-    (window,document,'script','https://assets.mailerlite.com/js/universal.js','ml');
-    ml('account', '2259944');
-</script>
-<!-- End MailerLite Universal -->
+
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -391,115 +383,6 @@ body{
    MailerLite wraps everything in .ml-form-embedContainer with nested divs.
    These selectors cover the standard output as of April 2026 — if MailerLite
    changes their markup, the form will still work but may look less polished. */
-.ml-embedded{
-  max-width:520px;
-  margin:0 auto;
-}
-.ml-embedded .ml-form-embedWrapper,
-.ml-embedded .ml-form-embedContent,
-.ml-embedded .ml-form-embedBody,
-.ml-embedded .ml-form-embedContainer{
-  background:transparent !important;
-  border:none !important;
-  padding:0 !important;
-  box-shadow:none !important;
-  max-width:none !important;
-}
-/* Hide MailerLite's own heading/description — our copy above is better */
-.ml-embedded .ml-form-embedContent,
-.ml-embedded h4.ml-form-embedContent,
-.ml-embedded .ml-form-embedContent > *{
-  display:none !important;
-}
-.ml-embedded input[type="email"],
-.ml-embedded .ml-field-email input,
-.ml-embedded input.form-control{
-  font-family:'Source Serif 4',Georgia,serif !important;
-  font-size:16px !important;
-  padding:14px 18px !important;
-  border:1.5px solid var(--border2) !important;
-  border-radius:var(--radius) !important;
-  background:var(--surface) !important;
-  color:var(--text) !important;
-  height:auto !important;
-  line-height:1.4 !important;
-  width:100% !important;
-  max-width:none !important;
-  box-shadow:none !important;
-}
-.ml-embedded input[type="email"]:focus,
-.ml-embedded .ml-field-email input:focus,
-.ml-embedded input.form-control:focus{
-  border-color:var(--accent) !important;
-  box-shadow:0 0 0 3px var(--accent-dim) !important;
-  outline:none !important;
-}
-.ml-embedded input[type="email"]::placeholder,
-.ml-embedded input.form-control::placeholder{
-  color:var(--text3) !important;
-  font-style:italic !important;
-}
-.ml-embedded button,
-.ml-embedded button[type="submit"],
-.ml-embedded .primary,
-.ml-embedded .ml-form-embedSubmit button{
-  font-family:'Inter',sans-serif !important;
-  font-size:12px !important;
-  font-weight:700 !important;
-  letter-spacing:1.5px !important;
-  text-transform:uppercase !important;
-  padding:14px 26px !important;
-  background:var(--accent) !important;
-  color:#fff !important;
-  border:1.5px solid var(--accent) !important;
-  border-radius:var(--radius) !important;
-  height:auto !important;
-  line-height:1.2 !important;
-  cursor:pointer !important;
-  transition:background 0.2s !important;
-  box-shadow:none !important;
-  width:auto !important;
-}
-.ml-embedded button:hover,
-.ml-embedded button[type="submit"]:hover,
-.ml-embedded .primary:hover,
-.ml-embedded .ml-form-embedSubmit button:hover{
-  background:var(--accent-hover) !important;
-  border-color:var(--accent-hover) !important;
-}
-/* Success message styling */
-.ml-embedded .ml-form-successBody,
-.ml-embedded .ml-form-successContent{
-  background:rgba(30,107,58,0.10) !important;
-  border:1px solid rgba(30,107,58,0.25) !important;
-  border-radius:var(--radius) !important;
-  padding:16px 20px !important;
-  font-family:'Source Serif 4',Georgia,serif !important;
-  color:var(--green) !important;
-}
-.ml-embedded .ml-form-successContent h4,
-.ml-embedded .ml-form-successBody h4{
-  font-family:'Playfair Display',serif !important;
-  color:var(--green) !important;
-  font-size:18px !important;
-  margin-bottom:6px !important;
-}
-/* MailerLite footer branding / permissions text — dim it */
-.ml-embedded .ml-form-embedPermissions,
-.ml-embedded .ml-form-formContent,
-.ml-embedded .ml-form-embedPermissions p{
-  font-family:'Inter',sans-serif !important;
-  font-size:11px !important;
-  color:var(--text3) !important;
-}
-/* Error message styling */
-.ml-embedded .ml-error-message,
-.ml-embedded .ml-block-form .ml-field-group.ml-error .label-description{
-  color:#b03030 !important;
-  font-family:'Inter',sans-serif !important;
-  font-size:12px !important;
-}
-
 /* Loading placeholder shown until MailerLite injects the form */
 .signup-main-placeholder{
   font-family:'Inter',sans-serif;
@@ -1107,11 +990,7 @@ body{
         Drop your email below. We'll let you know the minute we go live — plus the flagship analysis the day it publishes, the quiz the day it opens, and early access to new tools. Free, forever, 8 articles a month.
       </p>
 
-      <!-- Loading placeholder, hidden once MailerLite renders the form -->
-      <div class="signup-main-placeholder" id="mlPlaceholder">Loading signup form…</div>
-
-      <!-- The real MailerLite embed — FREE NEWSLETTER form (cufVBG) -->
-      <div class="ml-embedded" data-form="cufVBG" data-source="free-newsletter"></div>
+      <div class="ct-newsletter" data-ct-source="comingsoon"></div>
 
       <div class="signup-fineprint">
         No spam, unsubscribe anytime. One email a week at most, usually less.
@@ -1178,41 +1057,7 @@ body{
   if (el) el.textContent = `${days[d.getDay()]}, ${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()} · Vol. I, No. 1`;
 })();
 
-// Hide the "Loading signup form…" placeholder once MailerLite renders the form.
-// One form lives on this page (free: cufVBG). MutationObserver watches for
-// MailerLite's markup injection; fallback timeout of 8s hides the placeholder
-// regardless if MailerLite is blocked/offline.
-(function(){
-  const forms = [
-    { formId: 'cufVBG', placeholderId: 'mlPlaceholder' }         // free tier
-  ];
 
-  forms.forEach(({ formId, placeholderId }) => {
-    const placeholder = document.getElementById(placeholderId);
-    const target = document.querySelector(`.ml-embedded[data-form="${formId}"]`);
-    if (!placeholder || !target) return;
-
-    const hidePlaceholder = () => {
-      if (target.children.length > 0 || target.querySelector('form, input')) {
-        placeholder.classList.add('hidden');
-        return true;
-      }
-      return false;
-    };
-
-    if (hidePlaceholder()) return;
-
-    const observer = new MutationObserver(() => {
-      if (hidePlaceholder()) observer.disconnect();
-    });
-    observer.observe(target, { childList:true, subtree:true });
-
-    setTimeout(() => {
-      placeholder.classList.add('hidden');
-      observer.disconnect();
-    }, 8000);
-  });
-})();
 
 // ═══ POST-SUBSCRIPTION SUCCESS BANNER ═══
 // MailerLite redirects the user back with:
@@ -1402,5 +1247,6 @@ body{
 })();
 </script>
 
+<script src="/ct-newsletter.js" defer></script>
 </body>
 </html>
