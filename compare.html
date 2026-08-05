@@ -299,7 +299,10 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
 .ct-line{fill:none;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
 .ct-line-early{stroke-width:1.25;opacity:.3}
 .ct-fit{stroke-width:2;fill:none;stroke-linecap:round;opacity:.85}
-.ct-slope{font-weight:600;font-size:11px;margin-left:5px;cursor:help}
+.ct-slope{font-weight:600;font-size:11px;margin-left:5px}
+.ct-r2{font-size:10.5px;color:var(--text3);margin-left:5px;font-variant-numeric:tabular-nums}
+.ct-r2-weak{font-style:italic;opacity:.8}
+.ct-legend-item{cursor:help}
 .ct-bar{rx:1.5}
 .ct-bar-thin{opacity:.42}
 .ct-band-hl{fill:var(--text);opacity:.05}
@@ -2343,10 +2346,16 @@ function buildCareerChart(players, rowSets, isBowling, rowFiltersOn){
     // Rising average is improvement for a batter, decline for a bowler.
     const better = isBowling ? sr.fit.slope < 0 : sr.fit.slope > 0;
     const sign = sr.fit.slope >= 0 ? '+' : '\u2212';
-    return `<div class="ct-legend-item"><span class="ct-legend-sw" style="background:${sr.colour}"></span>${sr.name}`
-      + `<span class="ct-slope" style="color:${better ? 'var(--green)' : 'var(--red)'}"`
-      + ` title="Weighted least-squares fit through ${sr.fit.years} season averages · R² ${sr.fit.r2 == null ? 'n/a' : sr.fit.r2.toFixed(2)}">`
-      + `${sign}${Math.abs(sr.fit.slope).toFixed(2)}/yr</span></div>`;
+    // R² rides alongside the slope in muted type: it qualifies the number
+    // rather than competing with it. A steep slope at R² 0.05 is a career that
+    // wandered, not one that trended, and that has to be visible without a hover.
+    const r2 = sr.fit.r2 == null ? null : sr.fit.r2;
+    const r2Txt = r2 == null ? 'n/a' : r2.toFixed(2);
+    return `<div class="ct-legend-item" title="Weighted least-squares fit through ${sr.fit.years} season averages">`
+      + `<span class="ct-legend-sw" style="background:${sr.colour}"></span>${sr.name}`
+      + `<span class="ct-slope" style="color:${better ? 'var(--green)' : 'var(--red)'}">`
+      + `${sign}${Math.abs(sr.fit.slope).toFixed(2)}/yr</span>`
+      + `<span class="ct-r2${r2 != null && r2 < 0.25 ? ' ct-r2-weak' : ''}">R² ${r2Txt}</span></div>`;
   }).join('');
 
   // Shared chrome ---------------------------------------------------------
@@ -2449,7 +2458,7 @@ function buildCareerChart(players, rowSets, isBowling, rowFiltersOn){
     if(rowFiltersOn) notes.push('follows the active filters');
     if(showBaseline && series.some(sr => sr.peak != null)) notes.push('dashed line = unfiltered career peak');
     notes.push('each bar is that year alone, not cumulative');
-    if(series.some(sr => sr.fit)) notes.push('solid line = trend, per year');
+    if(series.some(sr => sr.fit)) notes.push('solid line = trend · R² is how well it fits');
     notes.push(`faded under ${barGate} ${noun}`);
 
     return shell(`${isBowling?'Bowling':'Batting'} average by year`,
@@ -2535,7 +2544,7 @@ function buildCareerChart(players, rowSets, isBowling, rowFiltersOn){
   if(showBaseline && series.some(sr => sr.peak != null)) notes.push('dashed line = unfiltered career peak');
   if(!rowFiltersOn && series.some(sr => sr.peak != null)) notes.push('dot marks the peak');
   notes.push(`faint until ${stableGate} ${noun}`);
-  if(series.some(sr => sr.fit)) notes.push('slope is fitted to season averages, not to this curve');
+  if(series.some(sr => sr.fit)) notes.push('slope fitted to season averages, not to this curve · R² is how well it fits');
 
   return shell(`Cumulative ${isBowling ? 'bowling' : 'batting'} average`,
     svgTag(`Cumulative ${isBowling?'bowling':'batting'} average by ${chartXAxis==='year'?'year':'innings'}`, body),
