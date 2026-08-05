@@ -298,6 +298,8 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
 .ct-axis-title{font-size:10px;fill:var(--text3);font-family:'Outfit',sans-serif;letter-spacing:.06em;text-transform:uppercase}
 .ct-line{fill:none;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
 .ct-line-early{stroke-width:1.25;opacity:.3}
+.ct-fit{stroke-width:2;fill:none;stroke-linecap:round;opacity:.85}
+.ct-slope{font-weight:600;font-size:11px;margin-left:5px;cursor:help}
 .ct-bar{rx:1.5}
 .ct-bar-thin{opacity:.42}
 .ct-band-hl{fill:var(--text);opacity:.05}
@@ -2217,6 +2219,40 @@ function midYearPos(mid){
   return _midYearPos[mid] || 0;
 }
 
+/* Career trend as a single number: weighted least squares through the season
+   averages, in runs of average per calendar year.
+
+   Deliberately NOT fitted to the cumulative curve. That series is a running
+   mean, so each point contains every point before it — consecutive values are
+   nearly identical by construction, the early innings dominate the fit through
+   sheer leverage, and the resulting slope mostly reports where the average
+   started rather than which way it is going. Season averages are independent
+   samples of form, which is the thing a slope is supposed to measure.
+
+   Weighted by dismissals: a 2-dismissal cameo should not pull the line as hard
+   as a 20-dismissal season. Needs three seasons before a line means anything. */
+function ctSlope(yearRows){
+  const pts = (yearRows || []).filter(r => r.avg != null && r.n > 0);
+  if(pts.length < 3) return null;
+  let sw=0, sx=0, sy=0, sxx=0, sxy=0;
+  pts.forEach(p => {
+    sw += p.n; sx += p.n*p.year; sy += p.n*p.avg;
+    sxx += p.n*p.year*p.year; sxy += p.n*p.year*p.avg;
+  });
+  const den = sw*sxx - sx*sx;
+  if(!isFinite(den) || Math.abs(den) < 1e-9) return null;   // every season in one year
+  const slope = (sw*sxy - sx*sy)/den;
+  const intercept = (sy - slope*sx)/sw;
+  const ybar = sy/sw;
+  let ssRes=0, ssTot=0;
+  pts.forEach(p => {
+    const f = intercept + slope*p.year;
+    ssRes += p.n*(p.avg-f)*(p.avg-f);
+    ssTot += p.n*(p.avg-ybar)*(p.avg-ybar);
+  });
+  return {slope, intercept, years: pts.length, r2: ssTot > 0 ? 1 - ssRes/ssTot : null};
+}
+
 /* Tick values at readable intervals (1/2/5 x powers of ten). */
 function ctTicks(min, max, target){
   const span = (max - min) || 1;
@@ -2283,9 +2319,35 @@ function buildCareerChart(players, rowSets, isBowling, rowFiltersOn){
       average means anything. Widen the filters to see the shape.</div></div>`;
   }
 
-  const legend = series.map(sr =>
-    `<div class="ct-legend-item"><span class="ct-legend-sw" style="background:${sr.colour}"></span>${sr.name}</div>`
-  ).join('');
+  // Season averages, needed by the bars and by the slope in both views.
+  const barGate = isBowling ? BAR_MIN_WKTS : BAR_MIN_OUTS;
+  series.forEach(sr => {
+    const byYear = {};
+    sr.all.forEach(pt => {
+      const b = byYear[pt.year] || (byYear[pt.year] = {year:pt.year, runs:0, outs:0, inns:0, bowlRuns:0, wkts:0});
+      b.inns++; b.runs += pt.runs; b.outs += pt.out; b.bowlRuns += pt.bowlRuns; b.wkts += pt.wkts;
+    });
+    sr.years = Object.values(byYear).map(b => {
+      b.n = isBowling ? b.wkts : b.outs;
+      // A year with no dismissal has no average — the runs still happened, so
+      // the bar is omitted rather than the year being dropped.
+      b.avg  = b.n > 0 ? (isBowling ? b.bowlRuns : b.runs) / b.n : null;
+      b.thin = b.n < barGate;
+      return b;
+    }).sort((a,c) => a.year - c.year);
+    sr.fit = ctSlope(sr.years);
+  });
+
+  const legend = series.map(sr => {
+    if(!sr.fit) return `<div class="ct-legend-item"><span class="ct-legend-sw" style="background:${sr.colour}"></span>${sr.name}</div>`;
+    // Rising average is improvement for a batter, decline for a bowler.
+    const better = isBowling ? sr.fit.slope < 0 : sr.fit.slope > 0;
+    const sign = sr.fit.slope >= 0 ? '+' : '\u2212';
+    return `<div class="ct-legend-item"><span class="ct-legend-sw" style="background:${sr.colour}"></span>${sr.name}`
+      + `<span class="ct-slope" style="color:${better ? 'var(--green)' : 'var(--red)'}"`
+      + ` title="Weighted least-squares fit through ${sr.fit.years} season averages · R² ${sr.fit.r2 == null ? 'n/a' : sr.fit.r2.toFixed(2)}">`
+      + `${sign}${Math.abs(sr.fit.slope).toFixed(2)}/yr</span></div>`;
+  }).join('');
 
   // Shared chrome ---------------------------------------------------------
   const yAxis = (sy, yMin, yMax) => ctTicks(yMin, yMax, 5).map(t => {
@@ -2317,24 +2379,10 @@ function buildCareerChart(players, rowSets, isBowling, rowFiltersOn){
 
   // ── Bars: one grouped column per calendar year ─────────────────────────
   if(bars){
-    const barGate = isBowling ? BAR_MIN_WKTS : BAR_MIN_OUTS;
     let y0 = Infinity, y1 = -Infinity;
-    series.forEach(sr => {
-      const byYear = {};
-      sr.all.forEach(pt => {
-        const b = byYear[pt.year] || (byYear[pt.year] = {year:pt.year, runs:0, outs:0, inns:0, bowlRuns:0, wkts:0});
-        b.inns++; b.runs += pt.runs; b.outs += pt.out; b.bowlRuns += pt.bowlRuns; b.wkts += pt.wkts;
-      });
-      sr.years = Object.values(byYear).map(b => {
-        const denom = isBowling ? b.wkts : b.outs;
-        // A year with no dismissal has no average — the runs still happened, so
-        // the bar is omitted rather than the year being dropped.
-        b.avg = denom > 0 ? (isBowling ? b.bowlRuns : b.runs) / denom : null;
-        b.thin = denom < barGate;
-        return b;
-      }).sort((a,c) => a.year - c.year);
-      sr.years.forEach(b => { if(b.avg != null){ y0 = Math.min(y0, b.avg); y1 = Math.max(y1, b.avg); } });
-    });
+    series.forEach(sr => sr.years.forEach(b => {
+      if(b.avg != null){ y0 = Math.min(y0, b.avg); y1 = Math.max(y1, b.avg); }
+    }));
 
     const yearsAll = [...new Set(series.flatMap(sr => sr.years.map(b => b.year)))].sort((a,c)=>a-c);
     if(!yearsAll.length || y1 === -Infinity){
@@ -2374,6 +2422,18 @@ function buildCareerChart(players, rowSets, isBowling, rowFiltersOn){
       bands.push({year: yr, x0, x1: x0 + band, xc, rows});
     });
 
+    // Trend lines, clipped so a steep fit can't run off into the axis labels.
+    body += `<clipPath id="${clipId}"><rect x="${padL}" y="${padT}" width="${plotW}" height="${plotH}"/></clipPath>`;
+    series.forEach(sr => {
+      if(!sr.fit) return;
+      const xAt = yr => padL + (yearSpan.indexOf(yr) + 0.5) * band;
+      const yA = sr.fit.intercept + sr.fit.slope * yearSpan[0];
+      const yB = sr.fit.intercept + sr.fit.slope * yearSpan[yearSpan.length-1];
+      body += `<line class="ct-fit" x1="${xAt(yearSpan[0]).toFixed(1)}" y1="${sy(yA).toFixed(1)}"`
+           +  ` x2="${xAt(yearSpan[yearSpan.length-1]).toFixed(1)}" y2="${sy(yB).toFixed(1)}"`
+           +  ` stroke="${sr.colour}" clip-path="url(#${clipId})"/>`;
+    });
+
     body += baselines(sy, yMin, yMax, showBaseline) + axisTitles('Year');
     // Label every year if they fit, otherwise thin them out.
     const step = Math.ceil(yearSpan.length / 14);
@@ -2389,6 +2449,7 @@ function buildCareerChart(players, rowSets, isBowling, rowFiltersOn){
     if(rowFiltersOn) notes.push('follows the active filters');
     if(showBaseline && series.some(sr => sr.peak != null)) notes.push('dashed line = unfiltered career peak');
     notes.push('each bar is that year alone, not cumulative');
+    if(series.some(sr => sr.fit)) notes.push('solid line = trend, per year');
     notes.push(`faded under ${barGate} ${noun}`);
 
     return shell(`${isBowling?'Bowling':'Batting'} average by year`,
@@ -2474,6 +2535,7 @@ function buildCareerChart(players, rowSets, isBowling, rowFiltersOn){
   if(showBaseline && series.some(sr => sr.peak != null)) notes.push('dashed line = unfiltered career peak');
   if(!rowFiltersOn && series.some(sr => sr.peak != null)) notes.push('dot marks the peak');
   notes.push(`faint until ${stableGate} ${noun}`);
+  if(series.some(sr => sr.fit)) notes.push('slope is fitted to season averages, not to this curve');
 
   return shell(`Cumulative ${isBowling ? 'bowling' : 'batting'} average`,
     svgTag(`Cumulative ${isBowling?'bowling':'batting'} average by ${chartXAxis==='year'?'year':'innings'}`, body),
