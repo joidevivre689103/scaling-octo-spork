@@ -2266,10 +2266,17 @@ function ctPFromT(t, df){
   if(!isFinite(t) || !(df >= 1)) return null;
   return ctBetai(df/2, 0.5, df/(df + t*t));
 }
+function ctFmtSlope(v){
+  const a = Math.abs(v);
+  return a < 1 ? a.toFixed(3) : a.toFixed(2);   // per-innings figures are small
+}
 function ctFmtT(t){
   if(t == null) return 'n/a';
-  if(!isFinite(t)) return t > 0 ? '+\u221e' : '\u2212\u221e';   // exact fit, zero residual
-  return t.toFixed(2);
+  const sign = t < 0 ? '\u2212' : '';
+  // A t in the trillions is floating-point dust on a near-exact fit, not
+  // information. Cap it, and keep the typographic minus used elsewhere.
+  if(!isFinite(t) || Math.abs(t) > 999) return t < 0 ? '<\u2212999' : '>999';
+  return sign + Math.abs(t).toFixed(2);
 }
 function ctFmtP(p){
   if(p == null) return 'n/a';
@@ -2337,13 +2344,15 @@ function ctInningsFit(pts){
 
    Weighted by dismissals: a 2-dismissal cameo should not pull the line as hard
    as a 20-dismissal season. Needs three seasons before a line means anything. */
-function ctSlope(yearRows){
-  const pts = (yearRows || []).filter(r => r.avg != null && r.n > 0);
+function ctSlope(yearRows, xKey){
+  xKey = xKey || 'year';
+  const pts = (yearRows || []).filter(r => r.avg != null && r.n > 0 && r[xKey] != null);
   if(pts.length < 3) return null;
   let sw=0, sx=0, sy=0, sxx=0, sxy=0;
   pts.forEach(p => {
-    sw += p.n; sx += p.n*p.year; sy += p.n*p.avg;
-    sxx += p.n*p.year*p.year; sxy += p.n*p.year*p.avg;
+    const x = p[xKey];
+    sw += p.n; sx += p.n*x; sy += p.n*p.avg;
+    sxx += p.n*x*x; sxy += p.n*x*p.avg;
   });
   const den = sw*sxx - sx*sx;
   if(!isFinite(den) || Math.abs(den) < 1e-9) return null;   // every season in one year
@@ -2352,7 +2361,7 @@ function ctSlope(yearRows){
   const ybar = sy/sw;
   let ssRes=0, ssTot=0;
   pts.forEach(p => {
-    const f = intercept + slope*p.year;
+    const f = intercept + slope*p[xKey];
     ssRes += p.n*(p.avg-f)*(p.avg-f);
     ssTot += p.n*(p.avg-ybar)*(p.avg-ybar);
   });
@@ -2457,7 +2466,18 @@ function buildCareerChart(players, rowSets, isBowling, rowFiltersOn){
       b.thin = b.n < barGate;
       return b;
     }).sort((a,c) => a.year - c.year);
-    sr.fit = ctSlope(sr.years);
+    // Innings played by the middle of each season, for the per-innings fit.
+    let run = 0;
+    sr.years.forEach(b => { b.cumInn = run + b.inns/2; run += b.inns; });
+
+    // Two fits over the same season averages, differing only in what x is.
+    // Per-year folds in how often he played; per-innings strips that out.
+    sr.fitYear = ctSlope(sr.years, 'year');
+    sr.fitInns = ctSlope(sr.years, 'cumInn');
+    // The bar chart's trend line is drawn against a year axis, so it always
+    // uses the year fit regardless of which one the legend is quoting.
+    sr.fit = (!bars && chartXAxis === 'inns') ? sr.fitInns : sr.fitYear;
+    sr.fitUnit = (!bars && chartXAxis === 'inns') ? '/inn' : '/yr';
     // Batting only — see ctInningsFit. Shown beside the season fit so the two
     // bases can be compared on real players rather than taken on trust.
     sr.innFit = isBowling ? null : ctInningsFit(sr.all);
@@ -2468,27 +2488,26 @@ function buildCareerChart(players, rowSets, isBowling, rowFiltersOn){
     // Rising average is improvement for a batter, decline for a bowler.
     const better = isBowling ? sr.fit.slope < 0 : sr.fit.slope > 0;
     const sign = sr.fit.slope >= 0 ? '+' : '\u2212';
-    const r2 = sr.fit.r2 == null ? null : sr.fit.r2;
-    const r2Txt = r2 == null ? 'n/a' : r2.toFixed(2);
     // Colour is the confidence signal. Green/red asserts a direction, and the
     // slope only earns that when the trend is distinguishable from a flat
     // career that happened to wobble. Otherwise it stays grey: the number is
     // still shown, but nothing about it is being claimed.
     const solid = sr.fit.p != null && sr.fit.p < CT_ALPHA;
     const slopeColour = !solid ? 'var(--text3)' : (better ? 'var(--green)' : 'var(--red)');
+    const fitLine = (f, unit) => f ? `   slope ${f.slope >= 0 ? '+' : '\u2212'}${ctFmtSlope(f.slope)}${unit}`
+        + `   t ${ctFmtT(f.t)}   ${ctFmtP(f.p)}`
+        + `   R\u00b2 ${f.r2 == null ? 'n/a' : f.r2.toFixed(2)}` : null;
     const tip = [
-      `Season fit — ${sr.fit.years} seasons, weighted by ${noun}`,
-      `   slope ${sr.fit.slope >= 0 ? '+' : '\u2212'}${Math.abs(sr.fit.slope).toFixed(2)}/yr`
-        + `   t ${ctFmtT(sr.fit.t)}`
-        + `   ${ctFmtP(sr.fit.p)}`
-        + `   R\u00b2 ${r2Txt}`
-    ];
+      `Season averages — ${sr.fit.years} seasons, weighted by ${noun}`,
+      fitLine(sr.fitYear, '/yr  (per calendar year)'),
+      fitLine(sr.fitInns, '/inn (per innings played)')
+    ].filter(Boolean);
     if(sr.innFit) tip.push(
-      `Innings fit — ${sr.innFit.n} innings in ${sr.innFit.clusters} seasons`,
-      `   slope ${sr.innFit.slope >= 0 ? '+' : '\u2212'}${Math.abs(sr.innFit.slope).toFixed(2)} runs/inn per yr`
+      `Individual scores — cross-check on ${sr.innFit.n} innings, ${sr.innFit.clusters} seasons`,
+      `   slope ${sr.innFit.slope >= 0 ? '+' : '\u2212'}${ctFmtSlope(sr.innFit.slope)} runs per innings, per year`
         + `   t ${ctFmtT(sr.innFit.t)}`
         + `   ${ctFmtP(sr.innFit.p)}`,
-      `   standard errors clustered by season`
+      `   errors clustered by season; not-outs make this read flatter`
     );
     tip.push(solid
       ? `Distinguishable from a flat career (p < ${CT_ALPHA}) — shown in colour.`
@@ -2498,7 +2517,7 @@ function buildCareerChart(players, rowSets, isBowling, rowFiltersOn){
     return `<div class="ct-legend-item" title="${tip.join('\n')}">`
       + `<span class="ct-legend-sw" style="background:${sr.colour}"></span>${sr.name}`
       + `<span class="ct-slope${solid ? '' : ' ct-slope-unsure'}" style="color:${slopeColour}">`
-      + `${sign}${Math.abs(sr.fit.slope).toFixed(2)}/yr</span></div>`;
+      + `${sign}${ctFmtSlope(sr.fit.slope)}${sr.fitUnit}</span></div>`;
   }).join('');
 
   // Shared chrome ---------------------------------------------------------
@@ -2577,10 +2596,10 @@ function buildCareerChart(players, rowSets, isBowling, rowFiltersOn){
     // Trend lines, clipped so a steep fit can't run off into the axis labels.
     body += `<clipPath id="${clipId}"><rect x="${padL}" y="${padT}" width="${plotW}" height="${plotH}"/></clipPath>`;
     series.forEach(sr => {
-      if(!sr.fit) return;
+      if(!sr.fitYear) return;
       const xAt = yr => padL + (yearSpan.indexOf(yr) + 0.5) * band;
-      const yA = sr.fit.intercept + sr.fit.slope * yearSpan[0];
-      const yB = sr.fit.intercept + sr.fit.slope * yearSpan[yearSpan.length-1];
+      const yA = sr.fitYear.intercept + sr.fitYear.slope * yearSpan[0];
+      const yB = sr.fitYear.intercept + sr.fitYear.slope * yearSpan[yearSpan.length-1];
       body += `<line class="ct-fit" x1="${xAt(yearSpan[0]).toFixed(1)}" y1="${sy(yA).toFixed(1)}"`
            +  ` x2="${xAt(yearSpan[yearSpan.length-1]).toFixed(1)}" y2="${sy(yB).toFixed(1)}"`
            +  ` stroke="${sr.colour}" clip-path="url(#${clipId})"/>`;
