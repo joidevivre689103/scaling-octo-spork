@@ -250,12 +250,14 @@
 
 <main>
     <h1>Privacy Policy</h1>
-    <p class="effective-date">Effective — 31 July 2026</p>
+    <p class="effective-date">Effective — 5 August 2026</p>
 
     <div class="summary-box">
         <p class="label">The short version</p>
-        <p>We are a small independent publication, not an advertising business. We do not sell your data, we do not share it with advertisers, and there are no third-party tracking or advertising cookies on this site.</p>
-        <p>We do measure how the site is read, and we do it ourselves rather than handing it to an outside analytics company. For a signed-in reader, that measurement is <strong>per-person</strong>: we can see which pages your account opened and roughly how long you spent on each. It is keyed to an internal account identifier, never to your email address, and only the site's administrators can see it.</p>
+        <p>We are an independent publication, not an advertising business. We do not sell your data, we do not share it with advertisers, and there are no third-party tracking or advertising cookies on this site.</p>
+        <p>We do measure how the site is read, and we do it ourselves rather than handing it to an outside analytics company. <strong>We measure pages, not people.</strong> We can tell how many times an article was opened and how long readers stayed on it. We cannot tell which articles any particular account opened, because we do not keep that record.</p>
+        <p><strong>We use it to decide what to write next, not to change what you see.</strong> Nothing on this site is personalised: no recommendations, no re-ordered front page, no pricing that depends on your reading.</p>
+        <p>One thing is tied to your account: a record of each time you sign in.</p>
         <p>If you would rather we did not hold any of it, write to <a href="mailto:contact@cricketimes.com">contact@cricketimes.com</a> and we will delete your account and its records.</p>
     </div>
 
@@ -289,18 +291,32 @@
 
     <h3>1.3 The newsletter</h3>
     <p>
-        The newsletter is separate from your account, and subscribing to it is entirely voluntary. If you
-        sign up we collect your <strong>email address</strong> and, if you give it, your
-        <strong>first name</strong>. These are used for one thing: sending you summaries of what has been
-        published on Cricket Times.
+        The newsletter is separate from your account, and subscribing to it is entirely voluntary. A
+        signup box appears in more than one place — beneath articles, on the subscribe page, at the end
+        of an Oracle quiz, and on the coming-soon page — but <strong>they are all the same list, used for
+        the same single purpose: sending you summaries of what has been published on Cricket
+        Times.</strong> Where you signed up makes no difference to what you receive, and we do not
+        maintain a second list for any other use. We do record which box an address came from, so that we
+        know which parts of the site people sign up from.
+    </p>
+    <p>
+        If you sign up we collect your <strong>email address</strong> and, if you give it, your
+        <strong>first name</strong>, which is optional and used only to address the emails.
+        <strong>Submitting the form is not enough on its own.</strong> We send a confirmation email, and
+        you are added to the list only when you click the link in it; if you never click it, nothing is
+        ever sent to you. That click is also the record that you asked for the emails — it is timestamped,
+        as is the moment the address joins the list.
     </p>
     <p>
         Newsletter subscriptions are stored and sent by <strong>MailerLite</strong>, our email service
         provider, under its own
         <a href="https://www.mailerlite.com/legal/privacy-policy" target="_blank" rel="noopener">privacy policy</a>.
-        MailerLite is based in the European Union. Signing up to the newsletter does not create a Cricket
-        Times account; if you also hold an account, the email address on it is held separately by us as
-        account data, as described in section 1.1.
+        MailerLite is based in the European Union. <strong>MailerLite records whether you open a
+        newsletter email and whether you click a link inside it</strong>, which is how it reports whether
+        an issue was read. That is measurement of the email, in your mail client, and is separate from the
+        site itself — no third-party code runs on the pages where you read (see section 5). Signing up to
+        the newsletter does not create a Cricket Times account; if you also hold an account, the email
+        address on it is held separately by us as account data, as described in section 1.1.
     </p>
     <p>
         You can unsubscribe at any time using the link at the foot of any newsletter email, or by writing
@@ -309,7 +325,7 @@
         subscription.
     </p>
 
-    <h3>1.4 How the site is read (engagement analytics)</h3>
+    <h3>1.4 How the site is read (aggregate measurement)</h3>
     <p>
         We measure how the site is used, so that we can tell which writing is worth continuing and which
         parts of the site nobody opens. This measurement is built by us and runs on our own Firebase
@@ -317,7 +333,11 @@
         or data broker receives any of it.</strong>
     </p>
     <p>
-        For a signed-in reader, the measurement is tied to that account. We collect:
+        <strong>It is not tied to you.</strong> The measurement counts pages and visits, not readers. A
+        page view adds one to that page's total; a visit adds its length to a running figure for the day.
+        What survives is a set of totals — how many times each page was opened, how long readers stayed,
+        how much of that time was active rather than idle. We do not keep, and cannot reconstruct, a list
+        of which pages any particular account opened. We collect:
     </p>
     <table class="data">
         <tr>
@@ -326,49 +346,49 @@
         </tr>
         <tr>
             <td><strong>Page path</strong></td>
-            <td>The path of the page you opened — for example <code>/oracle.html</code>. Anything after
-                the <code>?</code> in a web address is never recorded.</td>
+            <td>The path of the page opened — for example <code>/oracle.html</code>. Anything after the
+                <code>?</code> in a web address is never recorded.</td>
         </tr>
         <tr>
             <td><strong>Time and duration</strong></td>
-            <td>When you arrived, how long the visit lasted, and how much of that time you were actually
-                reading rather than idle. Time is counted in short intervals and only while the page is
-                visible and you have interacted with it recently.</td>
+            <td>How long a visit lasted, and how much of that time was active reading rather than idle
+                time with the page left open. Time is counted in short intervals and only while the page
+                is visible and has been interacted with recently.</td>
         </tr>
         <tr>
-            <td><strong>Per-page reading history</strong></td>
-            <td>For an account, a list of which specific pages that account has opened and how long was
-                spent on each. This is individual reading behaviour, not just an aggregate count, and we
-                describe it plainly here because that distinction matters.</td>
-        </tr>
-        <tr>
-            <td><strong>Return visits</strong></td>
-            <td>How often an account comes back, and when it last did.</td>
-        </tr>
-        <tr>
-            <td><strong>Sign-in records</strong></td>
-            <td>A record of each sign-in: the account's email address, the page you arrived on, and a
-                timestamp set by our server.</td>
+            <td><strong>A temporary visit identifier</strong></td>
+            <td>So that several page views in one sitting are counted as one visit, the browser generates
+                a random identifier for the visit. It is not your account identifier and is not connected
+                to it. It resets after thirty minutes without activity, and at midnight. Once the day's
+                totals are written, it is discarded.</td>
         </tr>
     </table>
     <p>
-        Two deliberate limits are worth naming. First, the reading measurement above — the pages, the
-        timings, the history — is keyed to an <strong>internal account identifier, a random string issued
-        by Firebase, and not to your email address</strong>. The sign-in log is the one exception: it is
-        written against the account's email address, because its purpose is to show us who signed in
-        rather than what they read. Second, we do not follow you across other websites, we do not buy or
-        receive data about you from anyone else, and we do not build an advertising profile from any of
-        it. Nothing we learn about your reading is sold, shared, or sent anywhere else.
+        We do not follow you across other websites, we do not buy or receive data about you from anyone
+        else, and we do not build an advertising profile. <strong>None of this is used to personalise the
+        site</strong> — there is no recommendation engine, no ranking that moves with your history, no
+        article ordering or pricing that varies by account. The measurement feeds editorial decisions we
+        make afterwards: which subjects to keep writing about, which parts of the site nobody opens. If
+        that changes, section 8 applies — we would say so on this page before it started.
     </p>
 
-    <h3>1.5 Comments, reactions, and submissions</h3>
+    <h3>1.5 Sign-in records</h3>
+    <p>
+        Separately from the measurement above, we keep a record of each time an account signs in: the
+        email address, a timestamp set by our server, and the page you were on when you signed in. We use
+        these records for security and for helping readers who have trouble signing in. They record that
+        you arrived, not what you went on to read. They are kept while your account is open and are
+        deleted when it is closed; you can also ask us to delete them sooner.
+    </p>
+
+    <h3>1.6 Comments, reactions, and submissions</h3>
     <p>
         If you post a comment we store its text, your display name, your account identifier, and the time
         it was posted. Reactions store the fact that your account reacted, so the count is right. If you
         submit an article as a contributor, we store the submission and anything you upload with it.
     </p>
 
-    <h3>1.6 Technical records</h3>
+    <h3>1.7 Technical records</h3>
     <p>
         Our hosting and server infrastructure is provided by <strong>Google Firebase</strong> and Google
         Cloud, which keeps operational logs — including IP addresses, request times, and browser and
@@ -377,15 +397,6 @@
         <a href="https://firebase.google.com/support/privacy" target="_blank" rel="noopener">Firebase privacy documentation</a>.
         We use these logs for security, abuse prevention, and debugging. We do not use them to identify
         readers or to work out where you are.
-    </p>
-
-    <h3>1.7 Identifiers in subscriber content</h3>
-    <p>
-        Content served to a signed-in account may carry an identifier tying that copy to the account it
-        was served to. It exists for one purpose: if subscriber material is republished in breach of our
-        <a href="/terms.html">Terms of Service</a>, it lets us establish where the copy came from. It is
-        not used for advertising, profiling, or any other purpose, and it is derived from your account
-        identifier rather than from anything about you personally.
     </p>
 
     <h2>2. Why we collect it, and on what basis</h2>
@@ -403,7 +414,7 @@
             <td>Performance of our contract; legal obligation for tax and accounting records</td>
         </tr>
         <tr>
-            <td>Understanding how the site is read, so we can decide what to publish</td>
+            <td>Understanding, in aggregate, how the site is read, so we can decide what to publish</td>
             <td>Our legitimate interest in running and improving an independent publication</td>
         </tr>
         <tr>
@@ -416,40 +427,46 @@
         </tr>
     </table>
     <p>
-        If you are in the UK or EU and you object to the analytics described in section 1.4 on the basis
-        of your particular situation, write to us and we will stop measuring your account and delete what
-        we hold for it. You do not have to give a reason beyond that.
+        Where we rely on legitimate interests, you have the right to object on the basis of your
+        particular situation. The measurement described in section 1.4 is not tied to your account, so
+        there is no record of your reading to stop or delete. What is tied to you is the sign-in record in
+        section 1.5, and you can ask us to delete the records we hold for you.
     </p>
 
     <h2>3. How long we keep it</h2>
     <ul>
-        <li><strong>Detailed activity records</strong> — the underlying event log, in which each page you
-            opened is a separate entry with its own timestamp — are kept for <strong>90 days</strong> and
-            then deleted automatically. Deletion runs as a background job rather than on the stroke of the
-            ninetieth day, so an entry may survive a short time past its expiry before it is removed.</li>
-        <li><strong>Summary figures derived from them</strong> — including, for each account, a daily
-            record of which pages it opened, how many times, and how long was spent on each — are kept
-            while your account exists, and are deleted with it. We want to be plain that these summaries
-            outlive the detailed records they are built from: what expires at 90 days is the moment-by-moment
-            trail, not the daily per-page picture.</li>
+        <li><strong>The underlying event log</strong> — the individual page views and timings, before they
+            are added up — is kept for <strong>90 days</strong> and then deleted automatically. Deletion
+            runs as a background job rather than on the stroke of the ninetieth day, so an entry may
+            survive a short time past its expiry before it is removed. These entries carry the temporary
+            visit identifier described in section 1.4, not your account.</li>
+        <li><strong>The totals derived from them</strong> — how many times each page was opened, and how
+            long readers stayed — are kept indefinitely. They are figures about pages rather than about
+            people, and contain nothing that identifies anyone.</li>
         <li><strong>Sign-in records</strong> — kept while your account is open, and deleted when you close
-            it.</li>
+            it, or sooner if you ask.</li>
         <li><strong>Account and subscription records</strong> — kept while your account is open, and deleted
             when you close it, except where we must keep payment and tax records for longer by law.</li>
+        <li><strong>A record that an account was closed</strong> — the email address, the dates, and what
+            was removed — is kept for <strong>six years</strong> and then deleted automatically, so that we
+            can show a deletion request was made and carried out. It is not used for anything else: it is
+            not a mailing list, not a suppression list, and is not consulted if you open a new account. Six
+            years is the period in which a claim arising from your subscription could still be brought
+            under Washington law.</li>
         <li><strong>Comments</strong> — kept while posted. If you close your account you can ask us to
             remove your comments as well; say so when you write to us.</li>
         <li><strong>Newsletter subscriptions</strong> — held by MailerLite until you unsubscribe or ask
-            for deletion.</li>
+            for deletion, together with the confirmation record and the open-and-click records described
+            in section 1.3.</li>
         <li><strong>Published contributor articles</strong> — kept in the archive indefinitely, as any
             publication keeps what it has published.</li>
     </ul>
 
     <h2>4. Who can see it</h2>
     <p>
-        Internally: only the site's administrators. The analytics collections are written by our servers
+        Internally: only the site's administrators. The measurement collections are written by our servers
         rather than by your browser, and the security rules that govern them permit reading only by an
-        administrator account. Cricket Times is a very small operation, and in practice that means the
-        people who run it.
+        administrator account. The aggregate figures contain nothing that identifies a reader.
     </p>
     <p>
         Externally: <strong>we do not sell personal information, and we do not share it for advertising.</strong>
@@ -467,29 +484,21 @@
 
     <h2>5. Cookies and local storage</h2>
     <p>
-        <strong>There are no advertising cookies on this site, and no third-party tracking on the pages
-        where you read.</strong> What we use ourselves is strictly functional: a session cookie and a
-        token that keep you signed in, and a small amount of browser storage that remembers things like
-        whether you have already reacted to a comment and whether this visit has already been counted as a
-        sign-in. Clearing your browser storage signs you out; it does not delete anything we hold.
+        <strong>There are no advertising cookies on this site, no third-party tracking cookies, and no
+        cookie banner — because there is nothing we would need to ask your consent for.</strong> No page
+        on this site loads a third-party tracking script of any kind. What we use ourselves is strictly
+        functional: a session cookie and a token that keep you signed in, and a small amount of browser
+        storage that remembers things like whether you have already reacted to a comment and whether this
+        visit has already been counted as a sign-in. Clearing your browser storage signs you out; it does
+        not delete anything we hold.
     </p>
-    <p>
-        One exception is worth naming plainly. The pages that carry an email signup form load that form
-        from <strong>MailerLite</strong> rather than serving it ourselves. To render it, MailerLite's code
-        contacts MailerLite's servers, requests a web font from Google, and may store an identifier in
-        your browser. This happens only on those pages, and only because the form is there — it is not
-        used to follow you, and none of it runs on the pages where you read. We intend to replace these
-        forms with a version that loads no third-party code at all, and we will update this section when
-        that is done.
-    </p>
-
     <h2>6. Your rights</h2>
     <p>You can ask us to:</p>
     <ul>
         <li>tell you what we hold about you, and give you a copy;</li>
         <li>correct anything that is wrong;</li>
+        <li>delete the sign-in records we hold for your account;</li>
         <li>delete your account and the records attached to it;</li>
-        <li>stop measuring your reading, while leaving your account and subscription in place;</li>
         <li>stop sending you email.</li>
     </ul>
     <p>
@@ -497,6 +506,12 @@
         requests promptly and will not charge you or make you give a reason. Depending on where you live
         you may also have a right to complain to a data-protection authority — in the UK, the Information
         Commissioner's Office — and we would rather you came to us first, but that is your right either way.
+    </p>
+    <p>
+        <strong>We will confirm any request with the account holder before acting on it</strong>, using the
+        email address on the account. Because closing an account cannot be undone, we will ask you to
+        confirm that specifically before we delete anything. Closing your account ends any access it
+        holds, so cancel an active subscription first if you want to use out the time you have paid for.
     </p>
     <p>
         We do not discriminate against anyone for exercising these rights: your subscription, price, and
@@ -513,8 +528,13 @@
     <h2>8. Changes to this policy</h2>
     <p>
         We may update this policy. The version on this page is the one in force, and the effective date at
-        the top changes when it does. Where a change materially affects how we handle your data, we will
-        make reasonable efforts to tell account holders rather than relying on you to re-read the page.
+        the top changes when it does.
+    </p>
+    <p>
+        Where a change materially affects how we collect, use, or share your personal information, we will
+        publish notice of it prominently on the Site at least <strong>30 days</strong> before it takes
+        effect, so that you have time to decide what you want to do before it does. Corrections and
+        clarifications that do not affect how we handle your data take effect when posted.
     </p>
     <p>
         This policy describes what Cricket Times does today. We currently run no advertising and no
