@@ -2096,18 +2096,28 @@ function renderComments() {
 
       try {
         // [2026-06-06, item f] Schema gains identity + zeroed reaction
-        // counters. firestore.rules validates all of it at create: authorUid
-        // must equal the caller's uid, emailKey must match the rules-side
-        // emailKey() of the caller's email, and the three counters must be 0.
-        // The email is lowercased before encoding because the rules helper
-        // calls .lower() — the shared emailToKey is the single client encoder.
+        // counters. firestore.rules validates at create: authorUid must equal
+        // the caller's uid, and the three counters must be 0.
+        //
+        // [2026-08-05] emailKey REMOVED from this write, and its requirement
+        // removed from the rules at the same time. Comments are
+        // `allow read: if true` — world-readable, whole document — and
+        // Firestore rules grant read per DOCUMENT, never per field, so there is
+        // no way to serve a comment while hiding something on it. Storing
+        // emailKey therefore published every commenter's address in recoverable
+        // form ('a_b_com' → 'a@b.com' is a storage convention, not
+        // obfuscation) to anyone who listed the collection. It never appeared
+        // on screen, which is exactly why it went unnoticed.
+        //
+        // Nothing read it back: it existed only to satisfy the create-time
+        // anti-spoofing check, and authorUid already does that against the
+        // verified token. Do not reinstate it.
         await addDoc(collection(db, COMMENTS_COLLECTION), {
           articleId: artId,
           name: name,
           text: text,
           timestamp: serverTimestamp(),
           authorUid: currentUser.uid,
-          emailKey: window.CTFeatureFlags.emailToKey(currentUser.email.toLowerCase()),
           likes: 0,
           dislikes: 0,
           loves: 0
