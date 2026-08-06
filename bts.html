@@ -660,13 +660,23 @@ function displayName(email) {
 }
 
 // (g) 2026-06-03: render-time byline accent. Posts/replies authored from the
-// Zoho primary render the stored authorName in maroon (.author-ct) so IJ can
-// tell at a glance which account wrote them. Keys off the denormalized
-// authorEmail already stored on every doc — no schema change, retroactive.
-const CT_PRIMARY_EMAIL = 'ivan@cricketimes.com';
-function authorMarkup(name, email) {
+// ivan@cricketimes.com account render the stored authorName in maroon
+// (.author-ct) so IJ can tell at a glance which account wrote them.
+//
+// [2026-08-05] Switched from authorEmail to authorUid. btsPosts and btsReplies
+// are readable by every paid subscriber, and Firestore grants read per
+// DOCUMENT, never per field — so a denormalized address on those docs was
+// readable by anyone holding a paid account, whether or not the page displayed
+// it. authorUid does the same job: it is already on every document, it is
+// pinned to the verified token at create, and it identifies the account
+// without storing an address. Still retroactive, still no schema change.
+//
+// A document with no authorUid (should not exist — both write paths have
+// always set it) simply renders without the accent rather than throwing.
+const CT_PRIMARY_UID = 'A8OVKwU4s6ZutaWiEnk3IUKrDtz2';   // ivan@cricketimes.com
+function authorMarkup(name, uid) {
   const safe = escapeHtml(name || 'Member');
-  return (email && email.toLowerCase() === CT_PRIMARY_EMAIL)
+  return (uid && uid === CT_PRIMARY_UID)
     ? `<span class="author-ct">${safe}</span>`
     : safe;
 }
@@ -794,10 +804,15 @@ async function createPost() {
       imageUrl = await getDownloadURL(ref);
     }
 
+    // [2026-08-05] authorEmail REMOVED from this write (and its requirement
+    // removed from firestore.rules). It was readable by every paid subscriber
+    // as a field on a readable document, and its only remaining job — the
+    // maroon byline accent — now keys off authorUid. authorName is still
+    // derived from the live token at write time, which stores a name, not an
+    // address.
     await addDoc(collection(db, 'btsPosts'), {
       text,
       imageUrl,
-      authorEmail: currentUser.email,
       authorName: displayName(currentUser.email),
       authorUid: currentUser.uid,
       timestamp: serverTimestamp(),
@@ -906,7 +921,7 @@ function renderPost(id, p) {
 
   el.innerHTML = `
     <div class="head">
-      <div class="author"><span class="by">by</span>${authorMarkup(p.authorName || 'Editor', p.authorEmail)}</div>
+      <div class="author"><span class="by">by</span>${authorMarkup(p.authorName || 'Editor', p.authorUid)}</div>
       <div class="timestamp">${escapeHtml(timeAgo(p.timestamp))}</div>
     </div>
     ${p.text ? `<div class="body">${escapeHtml(p.text)}</div>` : ''}
@@ -1013,7 +1028,7 @@ function renderReplyTree(postId, r, byParent, depth) {
 
   el.innerHTML = `
     <div class="head">
-      <span class="author">${authorMarkup(r.authorName || 'Member', r.authorEmail)}</span>
+      <span class="author">${authorMarkup(r.authorName || 'Member', r.authorUid)}</span>
       <span class="timestamp">${escapeHtml(timeAgo(r.timestamp))}</span>
     </div>
     ${r.text ? `<div class="body">${escapeHtml(r.text)}</div>` : ''}
@@ -1117,12 +1132,14 @@ function wireReplyForm(postId, parentReplyId, formEl) {
         imageUrl = await getDownloadURL(ref);
       }
 
+      // [2026-08-05] authorEmail REMOVED — see the note on the btsPosts write.
+      // This one mattered more: replies are authored by READERS, so the field
+      // exposed subscribers' addresses to each other in plaintext.
       await addDoc(collection(db, 'btsReplies'), {
         postId,
         parentReplyId: parentReplyId || null,
         text,
         imageUrl,
-        authorEmail: currentUser.email,
         authorName: displayName(currentUser.email),
         authorUid: currentUser.uid,
         timestamp: serverTimestamp(),
