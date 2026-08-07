@@ -549,17 +549,128 @@
       }
     }
 
+    /* ====================================================================
+     * DISPLAY NAMES — GENERATED, NEVER DERIVED FROM THE EMAIL
+     *
+     * REPLACED deriveDisplayName() 2026-08-07. That function turned
+     * 'joseph.ivan@gmail.com' into 'Joseph Ivan' and wrote it to
+     * users/{uid}.displayName, which article.html pre-fills into the comment
+     * box and stamps onto the comment itself. Comments are
+     * `allow read: if true`. So every new account was set up to publish a real
+     * name derived from its email address on a world-readable page, unless the
+     * reader happened to notice the box and edit it.
+     *
+     * Generated names fix three things at once:
+     *   - nothing about the address reaches a public surface
+     *   - readers are pseudonymous by default rather than by vigilance
+     *   - names are UNIQUE, so nobody can be impersonated by someone simply
+     *     typing their name (see the claim below)
+     *
+     * Readers do not type a name. They can draw a different one later from
+     * subscribed.html. That is deliberate: a free-text field is what makes
+     * impersonation and uniqueness hard problems in the first place.
+     * ==================================================================== */
+
+    // Kept deliberately cricket-flavoured — these appear on comment bylines and
+    // on the quiz leaderboard, where a playful name reads better than a
+    // serial number. ~100 x ~100 x 3 digits is comfortably over a million
+    // combinations, so a collision is rare and a retry settles it.
+    const NAME_ADJECTIVES = [
+      'Cover','Square','Fine','Deep','Silly','Short','Long','Third','Golden','Silver',
+      'Swinging','Spinning','Turning','Rising','Skidding','Drifting','Dipping','Looping',
+      'Nightwatch','Opening','Closing','Declared','Following','Rolling','Sweeping',
+      'Bouncing','Seaming','Reverse','Classic','Vintage','Northern','Southern','Coastal',
+      'Village','County','Test','Timeless','Patient','Restless','Watchful','Stubborn',
+      'Elegant','Crafty','Wily','Quiet','Thunder','Morning','Evening','Overcast','Sunlit'
+    ];
+    const NAME_NOUNS = [
+      'Drive','Cut','Pull','Hook','Sweep','Glance','Flick','Loft','Block','Leave',
+      'Yorker','Bouncer','Googly','Doosra','Carrom','Seamer','Swinger','Topspin',
+      'Maiden','Over','Innings','Session','Stumps','Crease','Gully','Slip','Point',
+      'Cover','Mid','Bail','Bat','Pad','Willow','Pavilion','Boundary','Sightscreen',
+      'Scorecard','Wicket','Century','Ton','Duck','Nightwatchman','Tailender','Opener',
+      'Corvid','Swallow','Heron','Kestrel','Magpie','Sparrow','Starling','Wren'
+    ];
+
+    function randomOf(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    /** Generate one candidate display name, e.g. 'CoverDriveCorvid417'. */
+    function generateDisplayName() {
+      const n = Math.floor(Math.random() * 900) + 100;   // 100-999
+      return randomOf(NAME_ADJECTIVES) + randomOf(NAME_NOUNS) + n;
+    }
+
     /**
-     * Derive a display name from an email local-part.
-     * 'joseph.ivan@gmail.com' -> 'Joseph Ivan'
+     * Normalised key for the uniqueness claim. Lowercased and stripped of
+     * everything but letters and digits, so 'CoverDrive417' and
+     * 'coverdrive 417' cannot both be claimed. Generated names never contain
+     * anything else, but the key is defined defensively so a future custom-name
+     * path cannot slip a near-duplicate past it.
      */
-    function deriveDisplayName(email) {
-      const local = (email || '').split('@')[0] || '';
-      return local
-        .split(/[._-]+/)
-        .filter(Boolean)
-        .map(s => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase())
-        .join(' ') || 'Reader';
+    function displayNameKey(name) {
+      return String(name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    }
+
+    /**
+     * Claim a generated name and return it.
+     *
+     * The uniqueness check is the CREATE ITSELF. In Firestore rules `allow
+     * create` matches only when the document does not already exist, so a
+     * setDoc against a taken key is an UPDATE, which the rule denies. No
+     * exists() read, no transaction, no Cloud Function — a permission-denied
+     * simply means "taken, draw again".
+     *
+     * Because of that, a genuine rules misconfiguration is indistinguishable
+     * from a collision: both surface as permission-denied. That is why this
+     * gives up after a bounded number of attempts and returns null rather than
+     * looping. The callers treat null as non-fatal — an account with no display
+     * name is recoverable from subscribed.html; a signup that hangs is not.
+     */
+    async function claimDisplayName(uid) {
+      for (let attempt = 0; attempt < 6; attempt++) {
+        const name = generateDisplayName();
+        const key = displayNameKey(name);
+        try {
+          await setDoc(doc(db, 'displayNames', key), {
+            uid: uid,
+            displayName: name,
+            claimedAt: serverTimestamp()
+          });
+          return name;
+        } catch (e) {
+          // Taken, or the rule rejected us. Either way, try another.
+          continue;
+        }
+      }
+      console.warn('[login] could not claim a display name after 6 attempts');
+      return null;
+    }
+
+    /**
+     * Claim a name and publish it. Two writes, deliberately not a transaction:
+     *   displayNames/{key}     the uniqueness claim (written by claimDisplayName)
+     *   publicProfiles/{uid}   the PROJECTION every byline reads
+     *
+     * publicProfiles exists because users/{uid} is owner-or-admin — it holds the
+     * email — so no reader can resolve another reader's name from it. Firestore
+     * grants read per document and never per field, so the only way to publish
+     * one field is to publish it in a document of its own that contains nothing
+     * else.
+     *
+     * Returns the name (or null), which the caller writes to users/{uid} as
+     * part of the profile write it is already doing.
+     */
+    async function assignDisplayName(uid) {
+      const name = await claimDisplayName(uid);
+      if (!name) return null;
+      try {
+        await setDoc(doc(db, 'publicProfiles', uid), { displayName: name });
+      } catch (e) {
+        console.warn('[login] publicProfiles write failed (non-fatal):', e);
+      }
+      return name;
     }
 
     /**
@@ -828,10 +939,15 @@
           const profileRef = doc(db, 'users', user.uid);
           const snap = await getDoc(profileRef);
           if (!snap.exists()) {
+            // An account with no users/ doc predates this write path. Give it a
+            // generated name like any other — user.displayName is NOT used as a
+            // fallback here any more, because for accounts created before
+            // 2026-08-07 it holds the old email-derived value.
+            const generated = await assignDisplayName(user.uid);
             await setDoc(profileRef, {
               email: user.email || email,
               emailKey: encodeEmailKey(user.email || email),
-              displayName: user.displayName || deriveDisplayName(user.email || email),
+              displayName: generated || 'Reader',
               createdAt: serverTimestamp()
             });
             console.log('[login] backfilled users/' + user.uid);
@@ -884,10 +1000,16 @@
         // line must not race the Firestore write. Sub-task 7.4 conversion
         // preserves this sequential ordering.
         try {
+          // Claim a generated name and publish the projection BEFORE the
+          // profile write, so users/{uid}.displayName and publicProfiles/{uid}
+          // agree from the first moment. A null here (six failed draws) is
+          // non-fatal: the account is created and the name can be drawn again
+          // from subscribed.html.
+          const generated = await assignDisplayName(user.uid);
           await setDoc(doc(db, 'users', user.uid), {
             email: email,
             emailKey: encodeEmailKey(email),
-            displayName: deriveDisplayName(email),
+            displayName: generated || 'Reader',
             createdAt: serverTimestamp()
           });
         } catch (writeErr) {
@@ -1025,10 +1147,12 @@
             const profileRef = doc(db, 'users', user.uid);
             const snap = await getDoc(profileRef);
             if (!snap.exists()) {
+              // Same reasoning as the sign-in backfill above.
+              const generated = await assignDisplayName(user.uid);
               await setDoc(profileRef, {
                 email: user.email || resetConfirmEmail,
                 emailKey: encodeEmailKey(user.email || resetConfirmEmail),
-                displayName: user.displayName || deriveDisplayName(user.email || resetConfirmEmail),
+                displayName: generated || 'Reader',
                 createdAt: serverTimestamp()
               });
               console.log('[login] backfilled users/' + user.uid + ' on reset-confirm');
