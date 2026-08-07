@@ -42,6 +42,8 @@ import { initializeApp, getApps, getApp }
   from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
 import { getFirestore, collection, doc, getDoc, addDoc, setDoc }
   from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
+import { getAuth }
+  from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
 
 const _fbConfig = {
   apiKey: "AIzaSyBnfn9hK0y-p6nvIZ_AwoJnWD7DfDuIQd4",
@@ -53,6 +55,13 @@ const _fbConfig = {
 };
 const _app = getApps().length ? getApp() : initializeApp(_fbConfig);
 const db = getFirestore(_app);
+// Added 2026-08-07 for the score document's uid. Read at write time via
+// auth.currentUser rather than subscribed via onAuthStateChanged: the quiz gates
+// nothing on identity, so there is no UI to hold back while auth resolves, and a
+// reader who finishes a quiz has been on the page long enough for the token to
+// have settled. If currentUser is null the score is simply anonymous, which is
+// the correct outcome for a signed-out visitor either way.
+const auth = getAuth(_app);
 
 // ═══════════════════════════════════════════════════════════════════════════
 // LAUNCH DATE TOGGLE
@@ -424,35 +433,52 @@ function nextQuestion() {
 
 // ═══════════════════════════════════════════════════════════════════════════
 // WRITE SCORE DOCUMENT
-// Writes one doc to oracleScores. email/pseudonym/isStaff are retained in the
-// shape for backward compatibility with existing documents, but are always
-// null/false now: the quiz no longer collects identity. The future leaderboard
-// will be paid and account-based, so it reads identity from users/{uid}, not
-// from here. These scores are analytics.
+// Writes one doc to oracleScores.
+//
+// SHAPE CHANGED 2026-08-07. It previously wrote `email: null`, `pseudonym: null`
+// and `isStaff: false`, justified as "retained for backward compatibility with
+// existing documents". That reason expired the same day: email and pseudonym
+// were stripped from every existing oracleScores document during the privacy
+// sweep, so there is nothing left to be compatible with, and writing them only
+// recreated two empty fields shaped like the retired email wall. isStaff was
+// hardcoded false and never read.
+//
+// IDENTITY IS NOW THE uid AND NOTHING ELSE. Signed in -> store the uid; signed
+// out -> store nothing identifying. No name is captured or stored here,
+// deliberately: a stored display name is a second copy that goes stale when the
+// reader renames and outlives their account when it is closed, which is the
+// exact class of defect the August sweep existed to remove. The leaderboard
+// resolves names from users/{uid} SERVER-SIDE into a derived public document —
+// it cannot resolve them in the browser, because users/{uid} is owner-or-admin
+// and one reader may not read another's displayName.
+//
+// `anonymous` is now DERIVED from whether a user is signed in, not passed in.
+// It was a parameter with exactly one caller that always passed true, i.e. a
+// constant wearing a variable's clothes. It is the field the leaderboard
+// filters on, so it needs to mean something.
 // ═══════════════════════════════════════════════════════════════════════════
-async function writeScoreDocument({ anonymous }) {
+async function writeScoreDocument() {
   if (!currentEdition) return;  // safety — shouldn't happen
   if (savedScoreDocId) return;  // already written this session
 
   const correctCount = computeScore();
   const score = correctCount * 5;  // per v2 §6: 5 points per correct answer
 
-  // Simple session ID — random + timestamp. Not a real user session, just
-  // a handle for this one submission. Good enough for the leaderboard use
-  // case; when accounts ship, we'll move to real session management.
+  // Handle for this one submission — random per attempt, so it identifies a
+  // submission and NOT a person. Do not build anything person-shaped on it.
   const sessionId = 'sess_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 8);
+
+  const user = auth.currentUser;
 
   const scoreDoc = {
     sessionId,
-    email: null,
-    pseudonym: null,
+    uid: user ? user.uid : null,
     editionId: currentEdition.id,
     editionName: currentEdition.name,  // denormalised for leaderboard display without a join
     correctCount,
     score,
     total: questions.length,
-    isStaff: false,
-    anonymous: !!anonymous,
+    anonymous: !user,
     timestamp: new Date().toISOString()
   };
 
@@ -468,21 +494,19 @@ async function writeScoreDocument({ anonymous }) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// SKIP EMAIL & SEE SCORE
-// Secondary/escape path for users who refuse the email gate. Preserves the
-// viral share loop — they still get the full score and breakdown.
-// Under the leaderboard-aware design, skipping means:
-//   - Score is shown normally
-//   - Score IS written to oracleScores but flagged anonymous:true
-//   - Anonymous scores do NOT appear on the (future) leaderboard
-//   - The "✓ You're subscribed" banner stays hidden (honest — they didn't)
-// The anonymous score gives you analytics on skip-path completion rates
-// without polluting the leaderboard.
+// COMPLETE AND SHOW SCORE
+// The single completion path. There is no email gate and no skip path — the
+// header that used to sit here described "users who refuse the email gate" and
+// a "✓ You're subscribed" banner, both of which left with the wall in the
+// 2026-08-04 rework. It is rewritten rather than amended because a comment
+// describing two routes, directly above a body that says "single completion
+// path", is worse than no comment at all.
+//
+// The score is written for analytics and, once a reader is signed in, for the
+// leaderboard. Non-blocking: the score renders whether or not the write lands.
 // ═══════════════════════════════════════════════════════════════════════════
 function completeAndShowScore() {
-  // Single completion path. Writes an anonymous score doc for analytics —
-  // non-blocking, the score renders either way.
-  writeScoreDocument({ anonymous: true })
+  writeScoreDocument()
     .catch(e => console.warn('Score write failed (non-blocking):', e));
 
   finalizeAndShowScore();
