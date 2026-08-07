@@ -355,8 +355,8 @@ body{
 .quiz-result.correct{ background:rgba(26,104,72,0.12); border:1px solid var(--green); color:var(--green); }
 .quiz-result.wrong{ background:rgba(176,48,48,0.08); border:1px solid #b03030; color:#b03030; }
 .quiz-contributed{ margin-top:9px; font-family:'Inter',sans-serif; font-size:10px; color:var(--text3); font-style:italic; }
-#quizNameInput:focus{ border-color:#1A1A1A !important; background:#FFFDF7 !important; }
-#quizNameSubmit:hover{ background:#6B0000 !important; }
+/* #quizNameInput / #quizNameSubmit rules removed 2026-08-07 with the name
+   capture they styled — see the note in the quiz widget script. */
 
 @media(max-width:900px){
   .hero-section{ grid-template-columns:1fr; }
@@ -677,7 +677,7 @@ body.articles-loading .analysis-section{ visibility:hidden; }
 </style>
 <script type="module">
   import { initializeApp, getApp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
-  import { getFirestore, collection, addDoc, getDocs, query, orderBy, where, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
+  import { getFirestore, collection, getDocs, query, orderBy, where } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
   const firebaseConfig = {
     apiKey: "AIzaSyBnfn9hK0y-p6nvIZ_AwoJnWD7DfDuIQd4",
     authDomain: "hitwicket-cba02.firebaseapp.com",
@@ -692,10 +692,11 @@ body.articles-loading .analysis-section{ visibility:hidden; }
   let app;
   try { app = getApp(); } catch (e) { app = initializeApp(firebaseConfig); }
   const db  = getFirestore(app);
-  window._quizDb           = db;
-  window._quizFsCollection = collection;
-  window._quizFsAddDoc     = addDoc;
-  window._quizFsTimestamp  = serverTimestamp;
+  // _quizDb / _quizFsCollection / _quizFsAddDoc / _quizFsTimestamp REMOVED
+  // 2026-08-07 — their only consumer was the quiz_answers write in the
+  // Googlies widget, which is gone. Left behind they would be an idle handle to
+  // an addDoc that nothing calls. The quiz widget still reads config/quiz via
+  // _fsDb below.
   window._fsDb             = db;
   window._fsGetDocs        = getDocs;
   window._fsQuery          = query;
@@ -1478,13 +1479,27 @@ function toggleArticleAudio(btn) {
     const options = [{ label:'A', text:quiz.optionA },{ label:'B', text:quiz.optionB },{ label:'C', text:quiz.optionC }];
     const container = document.getElementById('quizOptionsContainer');
     let answered = false;
-    function buildNamePrompt(onSubmit) {
-      const wrap = document.createElement('div');
-      wrap.style.cssText = 'margin-top:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap';
-      wrap.innerHTML = `<input id="quizNameInput" type="text" placeholder="Your name (optional)" style="flex:1;min-width:160px;padding:7px 10px;border:1px solid #D4C5A9;background:#F5EDDA;font-family:inherit;font-size:13px;outline:none;border-radius:3px"><button id="quizNameSubmit" style="padding:7px 14px;background:#8B0000;color:#FFFDF7;border:none;font-family:inherit;font-size:13px;cursor:pointer;border-radius:3px;white-space:nowrap">Submit name</button>`;
-      wrap.querySelector('#quizNameSubmit').addEventListener('click', () => { onSubmit(wrap.querySelector('#quizNameInput').value.trim()); wrap.remove(); });
-      return wrap;
-    }
+    /* Name capture REMOVED 2026-08-07. The widget used to offer "Your name
+     * (optional)" + a Submit name button on a correct answer, and write
+     * { quizQuestion, answer, name, answeredAt, quizDate } to quiz_answers.
+     *
+     * It had not worked since around March: quiz_answers has no match block in
+     * firestore.rules, so Firestore's default deny rejected every write —
+     * including from signed-in accounts, confirmed live. The failure was
+     * invisible, because the handler removed the prompt from the DOM before the
+     * await, so the field vanished and read as success while console.warn
+     * swallowed the error.
+     *
+     * Removed rather than fixed: the name was only ever intended for a
+     * leaderboard that was never built, so it had no destination. Adding the
+     * rule instead would have opened an unauthenticated intake for a name at
+     * the point of publishing the privacy policy, created a store no account
+     * closure could reach for a visitor with no account, and added a third
+     * reader action against the two-actions rule.
+     *
+     * If a leaderboard is ever built, use the design already agreed for the
+     * Oracle scores: signed in -> store uid and resolve the display name at
+     * render; not signed in -> store nothing identifying. */
     options.forEach(opt => {
       const label = document.createElement('label');
       label.className = 'quiz-option';
@@ -1503,13 +1518,6 @@ function toggleArticleAudio(btn) {
         if (isCorrect) {
           resultEl.textContent = '🎉 Congratulations! That\'s the correct answer!';
           resultEl.className = 'quiz-result show correct';
-          const prompt = buildNamePrompt(async (name) => {
-            try {
-              const db=window._quizDb, col=window._quizFsCollection, add=window._quizFsAddDoc, ts=window._quizFsTimestamp;
-              if (db && col && add) await add(col(db,'quiz_answers'),{ quizQuestion:quiz.question, answer:opt.label, name:name||'Anonymous', answeredAt:ts?ts():new Date().toISOString(), quizDate:quiz.date||new Date().toISOString().slice(0,10) });
-            } catch(e) { console.warn('Quiz save error:',e); }
-          });
-          resultEl.after(prompt);
         } else {
           resultEl.textContent = `Not quite — the correct answer is: ${options.find(o=>o.label===quiz.correctAnswer).text}`;
           resultEl.className = 'quiz-result show wrong';
