@@ -11,7 +11,7 @@
 <script src="/ct-tracker.js" async></script>
 <!-- CT_7G_INJECT:END -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Submit Content â Cricket Times</title>
+  <title>Submit Content – Cricket Times</title>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400;1,700&family=IM+Fell+English:ital@0;1&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet" />
   <script type="module">
     import { initializeApp, getApp, getApps } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
@@ -102,7 +102,7 @@
       min-height: 100vh;
     }
 
-    /* ââ MASTHEAD ââ */
+    /* ── MASTHEAD ── */
     .masthead {
       background: var(--cream);
       border-bottom: 3px double var(--ink);
@@ -144,7 +144,7 @@
       margin-top: 4px;
     }
 
-    /* ââ PAGE HEADER ââ */
+    /* ── PAGE HEADER ── */
     .page-header {
       background: var(--ink);
       padding: 28px 40px 24px;
@@ -192,18 +192,32 @@
       line-height: 1.5;
     }
 
-    /* ââ LAYOUT ââ */
+    /* ── LAYOUT ── */
     .main-layout {
       max-width: 1080px;
       margin: 0 auto;
       padding: 40px 24px 60px;
+    }
+
+    /* The two-column grid moved from .main-layout onto #submitModules
+       (2026-08-07). The sign-in gate is now a sibling of the modules inside
+       .main-layout, so leaving the grid on the parent put the gate in one
+       column and BOTH module cards in the other — which stacked them and made
+       the page scroll. The grid belongs on the element that actually holds the
+       two cards.
+
+       #submitModules carries inline display:none until auth resolves; the
+       handler clears the inline value rather than setting 'block', so this
+       grid is what takes over. Setting it to 'block' would silently undo the
+       two-column layout. */
+    #submitModules {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 36px;
       align-items: start;
     }
 
-    /* ââ MODULE CARD ââ */
+    /* ── MODULE CARD ── */
     /* Sign-in gate (2026-08-07) */
     .auth-gate {
       background: var(--paper, #fffdf8);
@@ -301,7 +315,7 @@
       font-style: italic;
     }
 
-    /* ââ FORM ELEMENTS ââ */
+    /* ── FORM ELEMENTS ── */
     .field-group { margin-bottom: 16px; }
     .field-group label {
       display: block;
@@ -338,7 +352,7 @@
 
     .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
-    /* ââ DIVIDER ââ */
+    /* ── DIVIDER ── */
     .section-divider {
       display: flex;
       align-items: center;
@@ -361,7 +375,7 @@
       background: var(--border);
     }
 
-    /* ââ QUIZ BUILDER ââ */
+    /* ── QUIZ BUILDER ── */
     .quiz-meta { margin-bottom: 18px; }
 
     .questions-list { display: flex; flex-direction: column; gap: 14px; }
@@ -471,7 +485,7 @@
     }
     .add-question-btn:hover { border-color: var(--red); color: var(--red); background: rgba(181,23,30,0.03); }
 
-    /* ââ ARTICLE UPLOAD ââ */
+    /* ── ARTICLE UPLOAD ── */
     .contributor-fields { margin-bottom: 20px; }
 
     .declarations {
@@ -517,7 +531,7 @@
       margin-bottom: 2px;
     }
 
-    /* ââ FILE DROP ZONE ââ */
+    /* ── FILE DROP ZONE ── */
     .file-zone {
       border: 2px dashed var(--border);
       padding: 28px 20px;
@@ -564,7 +578,7 @@
       display: none;
     }
 
-    /* ââ SUBMIT BUTTONS ââ */
+    /* ── SUBMIT BUTTONS ── */
     .submit-btn {
       width: 100%;
       padding: 13px 20px;
@@ -592,7 +606,7 @@
     }
     .submit-btn svg { width: 18px; height: 18px; fill: currentColor; }
 
-    /* ââ SUCCESS TOAST ââ */
+    /* ── SUCCESS TOAST ── */
     .toast {
       position: fixed;
       bottom: 30px;
@@ -613,7 +627,7 @@
     .toast.show { transform: translateY(0); opacity: 1; }
     .toast strong { color: var(--gold); font-family: 'Playfair Display', serif; font-size: 15px; display: block; margin-bottom: 4px; }
 
-    /* ââ PROGRESS BAR ââ */
+    /* ── PROGRESS BAR ── */
     .progress-wrap {
       height: 3px;
       background: var(--border-light);
@@ -627,7 +641,7 @@
       transition: width 0.3s ease;
     }
 
-    /* ââ VALIDATION HIGHLIGHT ââ */
+    /* ── VALIDATION HIGHLIGHT ── */
     .invalid {
       border-color: var(--red) !important;
       background: rgba(181,23,30,0.04) !important;
@@ -641,18 +655,19 @@
     }
     .field-error.visible { display: block; }
 
-    /* ââ RESPONSIVE ââ */
+    /* ── RESPONSIVE ── */
     @media (max-width: 760px) {
-      .main-layout { grid-template-columns: 1fr; gap: 28px; padding: 24px 16px 50px; }
+      .main-layout { padding: 24px 16px 50px; }
+      #submitModules { grid-template-columns: 1fr; gap: 28px; }
       .masthead-top { padding: 8px 16px 6px; }
       .masthead-brand { padding: 12px 16px 8px; }
       .page-header { padding: 22px 20px 18px; }
       .field-row { grid-template-columns: 1fr; }
     }
-    /* ââ HONEYPOT (invisible to humans) ââ */
+    /* ── HONEYPOT (invisible to humans) ── */
     .hp-field { position: absolute; left: -9999px; top: -9999px; opacity: 0; height: 0; width: 0; overflow: hidden; }
 
-    /* ââ PRIVACY NOTE ââ */
+    /* ── PRIVACY NOTE ── */
     .privacy-note {
       font-size: 11px;
       color: var(--ink-light);
@@ -663,7 +678,7 @@
       gap: 4px;
     }
     .privacy-note::before {
-      content: 'ð';
+      content: '🔒';
       font-style: normal;
       font-size: 10px;
     }
@@ -674,7 +689,7 @@
 <!-- MASTHEAD -->
 <header class="masthead">
   <div class="masthead-top">
-    <a href="news.html">â Back to Home</a>
+    <a href="news.html">← Back to Home</a>
     <a href="batting-records.html">Statistics</a>
   </div>
   <div class="masthead-brand">
@@ -687,7 +702,7 @@
 <div class="page-header">
   <div class="kicker">Contribute to Cricket Times</div>
   <h2>Submit Your Content</h2>
-  <p class="deck">Share your cricket knowledge with our readers â from quizzes to long-form analysis, every submission is reviewed by our editorial team.</p>
+  <p class="deck">Share your cricket knowledge with our readers — from quizzes to long-form analysis, every submission is reviewed by our editorial team.</p>
 </div>
 
 <!-- MAIN LAYOUT -->
@@ -725,7 +740,7 @@
   <!-- Revealed only once a signed-in user is confirmed. -->
   <div id="submitModules" style="display:none">
 
-  <!-- ââ MODULE 1: QUIZ BUILDER ââ -->
+  <!-- ── MODULE 1: QUIZ BUILDER ── -->
   <div class="module-card">
     <div class="module-header">
       <div class="module-icon">
@@ -742,7 +757,7 @@
       <div class="quiz-meta">
         <div class="field-group">
           <label>Quiz Title <span class="req">*</span></label>
-          <input type="text" id="quizTitle" placeholder="e.g. The 2005 Ashes â A Summer to Remember" />
+          <input type="text" id="quizTitle" placeholder="e.g. The 2005 Ashes — A Summer to Remember" />
           <div class="field-error" id="quizTitleErr">Please enter a quiz title.</div>
         </div>
         <div class="field-row">
@@ -773,7 +788,7 @@
         </div>
         <div class="field-group">
           <label>Brief Description</label>
-          <textarea id="quizDesc" placeholder="Describe what your quiz coversâ¦" rows="2"></textarea>
+          <textarea id="quizDesc" placeholder="Describe what your quiz covers…" rows="2"></textarea>
         </div>
         <div class="field-row">
           <div class="field-group">
@@ -853,7 +868,7 @@
     </div>
   </div>
 
-  <!-- ââ MODULE 2: ARTICLE SUBMISSION ââ -->
+  <!-- ── MODULE 2: ARTICLE SUBMISSION ── -->
   <div class="module-card">
     <div class="module-header">
       <div class="module-icon">
@@ -905,7 +920,7 @@
         </div>
         <div class="field-group">
           <label>Short Bio / Credentials</label>
-          <textarea id="artBio" placeholder="Tell us briefly about yourself and your cricket backgroundâ¦" rows="2"></textarea>
+          <textarea id="artBio" placeholder="Tell us briefly about yourself and your cricket background…" rows="2"></textarea>
         </div>
       </div>
 
@@ -948,9 +963,9 @@
 
       <div class="file-zone" id="fileZone">
         <input type="file" id="fileInput" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" onchange="onFileSelect(event)" />
-        <span class="file-icon">ð</span>
+        <span class="file-icon">📄</span>
         <span class="file-zone-label">Drop your .docx file here</span>
-        <span class="file-zone-sub">or click to browse â Word documents only (.docx)</span>
+        <span class="file-zone-sub">or click to browse — Word documents only (.docx)</span>
         <div class="file-name-display" id="fileNameDisplay"></div>
       </div>
       <div class="field-error" id="artFileErr" style="display:none;">Please upload a .docx file.</div>
@@ -977,7 +992,7 @@
 </div>
 
 <script>
-// ââ SPAM PROTECTION ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ── SPAM PROTECTION ──────────────────────────────────────────────────────────
 const RECAPTCHA_SITE_KEY = '6LfFiYUsAAAAAJs2WPi4hp0yK0NbBkKEamwXzR_Y';
 
 async function getRecaptchaToken(action) {
@@ -1058,9 +1073,9 @@ window._ctOnAuth = function (user) {
   });
 };
 
-/* âââââââââââââââââââââââââââââââââââââââ
+/* ═══════════════════════════════════════
    QUIZ BUILDER
-âââââââââââââââââââââââââââââââââââââââ */
+═══════════════════════════════════════ */
 let questions = [];
 let qId = 0;
 
@@ -1099,10 +1114,10 @@ function renderQuestions() {
     block.innerHTML = `
       <div class="question-block-header">
         <span class="q-label">Question ${qIdx + 1}</span>
-        <button class="q-remove" title="Remove question" onclick="removeQuestion(${q.id})">Ã</button>
+        <button class="q-remove" title="Remove question" onclick="removeQuestion(${q.id})">×</button>
       </div>
       <div class="field-group" style="margin-bottom:10px">
-        <input type="text" placeholder="Enter your questionâ¦" value="${escHtml(q.text)}"
+        <input type="text" placeholder="Enter your question…" value="${escHtml(q.text)}"
           oninput="questions[${qIdx}].text = this.value" />
       </div>
       <div class="options-list">
@@ -1115,7 +1130,7 @@ function renderQuestions() {
             <input type="text" class="option-input" placeholder="Option ${String.fromCharCode(65+oIdx)}"
               value="${escHtml(opt)}"
               oninput="questions[${qIdx}].options[${oIdx}] = this.value" />
-            <button class="option-remove" title="Remove option" onclick="removeOption(${qIdx}, ${oIdx})">Ã</button>
+            <button class="option-remove" title="Remove option" onclick="removeOption(${qIdx}, ${oIdx})">×</button>
           </div>
         `).join('')}
       </div>
@@ -1200,7 +1215,7 @@ document.getElementById('submitQuizBtn').addEventListener('click', async () => {
 
   const btn = document.getElementById('submitQuizBtn');
   btn.disabled = true;
-  btn.textContent = 'Submittingâ¦';
+  btn.textContent = 'Submitting…';
 
   const recaptchaToken = await getRecaptchaToken('submit_quiz');
 
@@ -1267,9 +1282,9 @@ function resetQuizForm() {
   addQuestion(); addQuestion(); addQuestion();
 }
 
-/* âââââââââââââââââââââââââââââââââââââââ
+/* ═══════════════════════════════════════
    ARTICLE SUBMISSION
-âââââââââââââââââââââââââââââââââââââââ */
+═══════════════════════════════════════ */
 let selectedFile = null;
 const declChecked = [false, false, false, false];
 
@@ -1309,7 +1324,7 @@ function onFileSelect(e) {
   const zone = document.getElementById('fileZone');
   zone.classList.add('has-file');
   const disp = document.getElementById('fileNameDisplay');
-  disp.textContent = 'â ' + f.name + ' (' + (f.size / 1024).toFixed(1) + ' KB)';
+  disp.textContent = '✓ ' + f.name + ' (' + (f.size / 1024).toFixed(1) + ' KB)';
   disp.style.display = 'block';
   updateArtProgress();
 }
@@ -1325,7 +1340,7 @@ fz.addEventListener('drop', e => {
     selectedFile = f;
     fz.classList.add('has-file');
     const disp = document.getElementById('fileNameDisplay');
-    disp.textContent = 'â ' + f.name + ' (' + (f.size/1024).toFixed(1) + ' KB)';
+    disp.textContent = '✓ ' + f.name + ' (' + (f.size/1024).toFixed(1) + ' KB)';
     disp.style.display = 'block';
     updateArtProgress();
   } else {
@@ -1368,7 +1383,7 @@ document.getElementById('submitArtBtn').addEventListener('click', async () => {
 
   const btn = document.getElementById('submitArtBtn');
   btn.disabled = true;
-  btn.textContent = 'Submittingâ¦';
+  btn.textContent = 'Submitting…';
 
   const recaptchaToken = await getRecaptchaToken('submit_article');
 
@@ -1377,7 +1392,7 @@ document.getElementById('submitArtBtn').addEventListener('click', async () => {
   let docStorageUrl = null;
   const submissionId = 'art-' + Date.now();
   try {
-    btn.textContent = 'Uploading documentâ¦';
+    btn.textContent = 'Uploading document…';
     const result = await window._uploadSubmissionDoc(selectedFile, submissionId);
     docStoragePath = result.path;
     docStorageUrl = result.url;
@@ -1389,7 +1404,7 @@ document.getElementById('submitArtBtn').addEventListener('click', async () => {
     return;
   }
 
-  btn.textContent = 'Saving submissionâ¦';
+  btn.textContent = 'Saving submission…';
 
   const data = {
     type: 'article',
@@ -1445,9 +1460,9 @@ function resetArticleForm() {
   updateArtProgress();
 }
 
-/* âââââââââââââââââââââââââââââââââââââââ
+/* ═══════════════════════════════════════
    SHARED UTILS
-âââââââââââââââââââââââââââââââââââââââ */
+═══════════════════════════════════════ */
 function toggleErr(fieldId, errId, show) {
   const el = document.getElementById(fieldId);
   const err = document.getElementById(errId);
