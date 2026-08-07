@@ -545,6 +545,37 @@
         </div>
       </div>
 
+      <!-- DISPLAY NAME (added 2026-08-07).
+           OUTSIDE the (b)/(c)/(d) panels deliberately. Those are SUBSCRIPTION
+           states; a display name belongs to the ACCOUNT. A free reader who
+           comments has a name to change and no subscription at all — and the
+           "Change" link on the comment form sends them here — so gating this
+           behind the paid panel would show them the misaligned message
+           ("sign in with your checkout email") for a question that has nothing
+           to do with payment. -->
+      <div id="displayNamePanel" class="signedin-panel hidden">
+        <div class="signin-eyebrow">Your name on the site</div>
+        <div class="signin-title">
+          You appear as <span class="crimson" id="dnCurrent">&mdash;</span>
+        </div>
+        <div class="signin-blurb">
+          This is the name on your comments and posts. Names are drawn from a
+          list rather than typed &mdash; it keeps everyone anonymous and means
+          nobody can take a name that is already someone else&rsquo;s.
+        </div>
+        <div class="signin-blurb" style="margin-bottom:0.8rem">
+          <strong>Changing it updates your name everywhere you have posted</strong>,
+          including comments you wrote before.
+        </div>
+        <div class="signin-form">
+          <button type="button" class="signin-btn" id="dnDrawBtn">
+            Show me three new names
+          </button>
+        </div>
+        <div id="dnChoices" class="hidden" style="margin-top:0.9rem"></div>
+        <div id="dnStatus" class="hidden" style="margin-top:0.7rem;font-size:0.95rem"></div>
+      </div>
+
     </div>
 
     <!-- Body prose — sits below the action so it doesn't compete -->
@@ -795,7 +826,159 @@
       if (formPanel) formPanel.classList.add('hidden');
 
       resolveSignedInState(user);
+      initDisplayNamePanel(user);
     });
+
+    /* ==================================================================
+     * DISPLAY NAME — draw and claim   (2026-08-07)
+     *
+     * The ONLY place a reader can change their name. It used to be the
+     * comment form's name box, which was fine while each comment froze its
+     * own copy — and became a trapdoor once bylines resolve at render, since
+     * one keystroke would rewrite the name on everything they had ever
+     * posted. A rename has to be deliberate, so it lives here and nowhere
+     * else.
+     *
+     * NOTE ON DUPLICATION: the word lists and displayNameKey() below are a
+     * COPY of login.html's. There is no shared bundle for this and adding one
+     * is a build step this browser-only project does not have. If either copy
+     * changes, change both — a divergent key function is the dangerous half,
+     * because it would let two names normalise differently and both be
+     * claimed. The lists diverging is merely cosmetic.
+     *
+     * ORDER IS LOAD-BEARING: claim the NEW name before releasing the OLD one.
+     * Reversed, a failure between the two steps leaves the reader with no
+     * name and no claim, and the old name free for someone else to take.
+     * This way the worst case is a harmless orphaned claim.
+     *
+     * This page uses the COMPAT SDK, not the modular one — hence
+     * db.collection(...).doc(...) rather than doc(db, ...).
+     * ================================================================== */
+    const DN_ADJECTIVES = [
+      'Cover','Square','Fine','Deep','Silly','Short','Long','Third','Golden','Silver',
+      'Swinging','Spinning','Turning','Rising','Skidding','Drifting','Dipping','Looping',
+      'Nightwatch','Opening','Closing','Declared','Following','Rolling','Sweeping',
+      'Bouncing','Seaming','Reverse','Classic','Vintage','Northern','Southern','Coastal',
+      'Village','County','Test','Timeless','Patient','Restless','Watchful','Stubborn',
+      'Elegant','Crafty','Wily','Quiet','Thunder','Morning','Evening','Overcast','Sunlit'
+    ];
+    const DN_NOUNS = [
+      'Drive','Cut','Pull','Hook','Sweep','Glance','Flick','Loft','Block','Leave',
+      'Yorker','Bouncer','Googly','Doosra','Carrom','Seamer','Swinger','Topspin',
+      'Maiden','Over','Innings','Session','Stumps','Crease','Gully','Slip','Point',
+      'Cover','Mid','Bail','Bat','Pad','Willow','Pavilion','Boundary','Sightscreen',
+      'Scorecard','Wicket','Century','Ton','Duck','Nightwatchman','Tailender','Opener',
+      'Corvid','Swallow','Heron','Kestrel','Magpie','Sparrow','Starling','Wren'
+    ];
+
+    function dnRandomOf(a) { return a[Math.floor(Math.random() * a.length)]; }
+    function dnGenerate() {
+      return dnRandomOf(DN_ADJECTIVES) + dnRandomOf(DN_NOUNS) +
+             (Math.floor(Math.random() * 900) + 100);
+    }
+    function dnKey(name) {
+      return String(name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    }
+
+    let dnUser = null;
+    let dnCurrentName = '';
+
+    function dnSay(msg, isError) {
+      const el = document.getElementById('dnStatus');
+      if (!el) return;
+      el.textContent = msg;
+      el.classList.remove('hidden');
+      el.style.color = isError ? '#8b1a1a' : 'inherit';
+    }
+
+    function initDisplayNamePanel(user) {
+      dnUser = user;
+      const panel = document.getElementById('displayNamePanel');
+      if (!panel) return;
+      panel.classList.remove('hidden');
+
+      // Read the reader's own users/{uid} — owner-read is permitted. Falls
+      // back to the projection, then to a dash; a missing name is not an
+      // error state, it is just an account that predates the generator.
+      db.collection('users').doc(user.uid).get().then(function (snap) {
+        dnCurrentName = (snap.exists && snap.data().displayName) || '';
+        const el = document.getElementById('dnCurrent');
+        if (el) el.textContent = dnCurrentName || '\u2014';
+      }).catch(function () { /* leave the dash */ });
+
+      const drawBtn = document.getElementById('dnDrawBtn');
+      if (drawBtn) drawBtn.addEventListener('click', dnDraw);
+    }
+
+    function dnDraw() {
+      const wrap = document.getElementById('dnChoices');
+      if (!wrap) return;
+      const names = [dnGenerate(), dnGenerate(), dnGenerate()];
+      wrap.innerHTML = '';
+      names.forEach(function (name) {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'signin-btn';
+        b.style.cssText = 'display:block;width:100%;margin-bottom:0.4rem';
+        b.textContent = name;
+        b.addEventListener('click', function () { dnPick(name, wrap); });
+        wrap.appendChild(b);
+      });
+      wrap.classList.remove('hidden');
+      dnSay('Pick one, or draw again.');
+    }
+
+    async function dnPick(name, wrap) {
+      if (!dnUser) return;
+      wrap.querySelectorAll('button').forEach(function (b) { b.disabled = true; });
+      dnSay('Saving\u2026');
+
+      const newKey = dnKey(name);
+      const oldKey = dnKey(dnCurrentName);
+
+      try {
+        // 1. CLAIM FIRST. A taken name fails here as permission-denied,
+        //    because the rules deny update and only create matches a
+        //    document that does not exist yet.
+        await db.collection('displayNames').doc(newKey).set({
+          uid: dnUser.uid,
+          displayName: name,
+          claimedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        // 2. Publish the projection — this is what every byline reads, so
+        //    the rename is visible from here on.
+        await db.collection('publicProfiles').doc(dnUser.uid)
+                .set({ displayName: name });
+
+        // 3. Update the canonical record.
+        await db.collection('users').doc(dnUser.uid)
+                .set({ displayName: name }, { merge: true });
+
+        // 4. Release the OLD claim last. If this fails the rename has still
+        //    succeeded; the cost is one name nobody can use again, which is
+        //    far better than a reader left without one.
+        if (oldKey && oldKey !== newKey) {
+          try {
+            await db.collection('displayNames').doc(oldKey).delete();
+          } catch (relErr) {
+            console.warn('[subscribed] old name claim not released:', relErr && relErr.message);
+          }
+        }
+
+        dnCurrentName = name;
+        const cur = document.getElementById('dnCurrent');
+        if (cur) cur.textContent = name;
+        wrap.classList.add('hidden');
+        dnSay('Done. You now appear as ' + name + ' everywhere you have posted.');
+      } catch (e) {
+        // Almost always means the drawn name was taken between generating and
+        // claiming. Drawing again is the fix, so say that rather than showing
+        // a permission error the reader cannot act on.
+        wrap.querySelectorAll('button').forEach(function (b) { b.disabled = false; });
+        dnSay('That name was just taken. Draw again.', true);
+      }
+    }
 
     // ────────────────────────────────────────────────────────────
     // resolveSignedInState — branch (b) / (c) / (d).
