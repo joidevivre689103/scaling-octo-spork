@@ -834,6 +834,28 @@ body{
 .comment-form-row{
   margin-bottom:14px;
 }
+/* "Posting as X — Change" (2026-08-07). Replaces the free-text name input;
+   the input CSS below is kept because the rules still apply to nothing else
+   and removing it risks touching an unrelated form. */
+.comment-posting-as{
+  font-family:'Source Serif 4','Source Serif Pro',Georgia,serif;
+  font-size:14px;
+  color:var(--muted,#6b5c42);
+}
+.comment-posting-as strong{
+  color:var(--ink,#1a1208);
+  font-weight:600;
+}
+.comment-change-name{
+  margin-left:10px;
+  font-size:13px;
+  color:var(--accent);
+  text-decoration:none;
+  border-bottom:1px solid transparent;
+}
+.comment-change-name:hover{
+  border-bottom-color:var(--accent);
+}
 .comment-form-row input{
   width:100%;
   max-width:340px;
@@ -1944,7 +1966,11 @@ async function loadComments() {
       const data = d.data();
       return {
         id: d.id,
-        name: data.name,
+        authorUid: data.authorUid || null,
+        // Legacy only. Comments written before 2026-08-07 carry a frozen name;
+        // new ones do not. See resolveCommentNames() for the fallback chain.
+        legacyName: data.name || '',
+        displayName: '',
         text: data.text,
         timestamp: data.timestamp ? data.timestamp.toDate() : new Date(),
         likes: data.likes || 0,
@@ -1952,11 +1978,60 @@ async function loadComments() {
         loves: data.loves || 0
       };
     });
+    await resolveCommentNames();
   } catch(e) {
     console.warn('Comments load error:', e.message);
     comments = [];
   }
   renderComments();
+}
+
+/* ===========================================================================
+ * BYLINE RESOLUTION  (2026-08-07)
+ *
+ * Comments no longer carry a name. The byline is looked up from
+ * publicProfiles/{uid} at render time, so a reader who changes their display
+ * name sees it change on everything they have posted, and a CLOSED account
+ * loses its name everywhere at once — one document deleted rather than a hunt
+ * through every comment they ever wrote.
+ *
+ * publicProfiles exists because users/{uid} is owner-or-admin (it holds the
+ * email) and Firestore grants read per DOCUMENT, never per field. The
+ * projection is the only way to publish one field.
+ *
+ * FALLBACK CHAIN, in order:
+ *   1. publicProfiles/{uid}.displayName   — the live name
+ *   2. the legacy `name` frozen on the comment — pre-2026-08-07 comments only
+ *   3. 'Former reader'                    — closed account, or no profile
+ *
+ * Step 2 disappears on its own as old comments age out; it is not a permanent
+ * feature. Do not reintroduce a stored name to make it simpler.
+ *
+ * ONE READ PER DISTINCT AUTHOR, not per comment — twenty comments from four
+ * people is four gets. The cache lives for the page, so a re-render after
+ * posting costs nothing.
+ * ======================================================================== */
+const _profileCache = new Map();   // uid -> displayName | null
+
+async function resolveCommentNames() {
+  const uids = [...new Set(comments.map(c => c.authorUid).filter(Boolean))];
+  const unknown = uids.filter(u => !_profileCache.has(u));
+
+  await Promise.all(unknown.map(async (uid) => {
+    try {
+      const snap = await getDoc(doc(db, 'publicProfiles', uid));
+      _profileCache.set(uid, snap.exists() ? (snap.data().displayName || null) : null);
+    } catch (e) {
+      // A failed lookup must not blank a byline that has a legacy name to fall
+      // back on, so cache undefined-as-null and let the chain below decide.
+      _profileCache.set(uid, null);
+    }
+  }));
+
+  comments.forEach(c => {
+    const resolved = c.authorUid ? _profileCache.get(c.authorUid) : null;
+    c.displayName = resolved || c.legacyName || 'Former reader';
+  });
 }
 
 function renderComments() {
@@ -1990,13 +2065,19 @@ function renderComments() {
     // deliberate lockdown). Fail closed with a neutral message.
     html += '<div class="comments-closed-msg">Commenting is temporarily unavailable.</div>';
   } else {
-    // Account-level pseudonym: the name field is prefilled from
-    // users/{uid}.displayName and stays editable — edits persist back to the
-    // profile on post (see the submit handler).
-    const presetName = (profile && profile.displayName) ? String(profile.displayName) : '';
+    // NAME IS NO LONGER TYPED (2026-08-07). It was a free-text field prefilled
+    // from users/{uid}.displayName, and posting persisted whatever was in it
+    // back to the profile. That was tolerable while each comment froze its own
+    // copy of the name. It is NOT tolerable now that bylines resolve at render:
+    // the same keystroke would silently rewrite the name on every comment and
+    // BTS post the reader had ever made. A rename has to be a deliberate act,
+    // not a side effect of commenting — so it lives in one place, behind a
+    // link, and this shows the name rather than offering to change it.
+    const postingAs = (profile && profile.displayName) ? String(profile.displayName) : 'Reader';
     html += '<div class="comment-form" id="commentForm">';
-    html += '  <div class="comment-form-row">';
-    html += '    <input type="text" id="commentName" placeholder="Your name" maxlength="60" autocomplete="off" value="' + cEsc(presetName).replace(/"/g, '&quot;') + '">';
+    html += '  <div class="comment-form-row comment-posting-as">';
+    html += '    Posting as <strong>' + cEsc(postingAs) + '</strong>';
+    html += '    <a href="/subscribed.html" class="comment-change-name">Change</a>';
     html += '  </div>';
     html += '  <textarea id="commentText" placeholder="Write your comment…" maxlength="2000"></textarea>';
     html += '  <label class="comment-disclaimer">';
@@ -2019,8 +2100,8 @@ function renderComments() {
     comments.forEach(c => {
       html += '<li class="comment-item" data-id="' + c.id + '">';
       html += '  <div class="comment-meta">';
-      html += '    <div class="comment-avatar">' + cEsc(cGetInitials(c.name)) + '</div>';
-      html += '    <span class="comment-author">' + cEsc(c.name) + '</span>';
+      html += '    <div class="comment-avatar">' + cEsc(cGetInitials(c.displayName)) + '</div>';
+      html += '    <span class="comment-author">' + cEsc(c.displayName) + '</span>';
       html += '    <span class="comment-date">' + timeAgo(c.timestamp) + '</span>';
       html += '  </div>';
       html += '  <div class="comment-body">' + cEsc(c.text) + '</div>';
@@ -2054,7 +2135,6 @@ function renderComments() {
 
   // Wire form events — only when the composer rendered (signed-in + allowed)
   if (!isClosed && currentUser && canPost) {
-    const nameEl       = document.getElementById('commentName');
     const textEl       = document.getElementById('commentText');
     const countEl      = document.getElementById('commentWordCount');
     const btnEl        = document.getElementById('commentSubmitBtn');
@@ -2066,27 +2146,25 @@ function renderComments() {
       const wc = wordCount(textEl.value);
       countEl.textContent = wc + ' / ' + MAX_WORDS + ' words';
       countEl.classList.toggle('over-limit', wc > MAX_WORDS);
-      btnEl.disabled = !(nameEl.value.trim() && textEl.value.trim() && wc <= MAX_WORDS && disclaimerEl.checked);
+      btnEl.disabled = !(textEl.value.trim() && wc <= MAX_WORDS && disclaimerEl.checked);
     }
     textEl.addEventListener('input', updateWordCount);
-    nameEl.addEventListener('input', updateWordCount);
     disclaimerEl.addEventListener('change', updateWordCount);
 
     btnEl.addEventListener('click', async () => {
       errorEl.textContent = '';
       successEl.textContent = '';
 
-      const name = nameEl.value.trim();
       const text = textEl.value.trim();
 
-      if (!name) { errorEl.textContent = 'Please enter your name.'; return; }
-      if (name.length < 2) { errorEl.textContent = 'Name must be at least 2 characters.'; return; }
       if (!text) { errorEl.textContent = 'Please write a comment.'; return; }
       if (wordCount(text) > MAX_WORDS) {
         errorEl.textContent = 'Your comment exceeds the ' + MAX_WORDS + '-word limit.';
         return;
       }
-      if (containsProfanity(name) || containsProfanity(text)) {
+      // Name is generated, so there is nothing user-supplied left to screen
+      // but the comment body itself.
+      if (containsProfanity(text)) {
         errorEl.textContent = 'Your comment contains inappropriate language. Please revise and try again.';
         return;
       }
@@ -2112,9 +2190,14 @@ function renderComments() {
         // Nothing read it back: it existed only to satisfy the create-time
         // anti-spoofing check, and authorUid already does that against the
         // verified token. Do not reinstate it.
+        // [2026-08-07] `name` REMOVED from this write. The byline is resolved
+        // from publicProfiles/{uid} at render time, keyed on authorUid, so a
+        // stored copy would only be a second source of truth that drifts when
+        // the reader renames and outlives the account when it closes. Same
+        // reasoning that removed emailKey above — a denormalised field nothing
+        // needs is a liability, not a convenience.
         await addDoc(collection(db, COMMENTS_COLLECTION), {
           articleId: artId,
-          name: name,
           text: text,
           timestamp: serverTimestamp(),
           authorUid: currentUser.uid,
@@ -2122,17 +2205,12 @@ function renderComments() {
           dislikes: 0,
           loves: 0
         });
-        // Account-level pseudonym: an edited name persists to
-        // users/{uid}.displayName (the rules allow owner updates to exactly
-        // that field), becoming the stable byline for future comments.
-        if (profile && name !== profile.displayName) {
-          try {
-            await setDoc(doc(db, 'users', currentUser.uid), { displayName: name }, { merge: true });
-            profile.displayName = name;
-          } catch (dnErr) {
-            console.warn('displayName persist failed (non-fatal):', dnErr.message);
-          }
-        }
+        // [2026-08-07] The displayName persist-on-post block is GONE. It used
+        // to write whatever was typed in the name field back to
+        // users/{uid}.displayName. With bylines resolving at render that would
+        // rename every past comment as a side effect of writing a new one.
+        // Renaming now happens only in subscribed.html, where it also has to
+        // release and re-claim the uniqueness entry in displayNames/.
         successEl.textContent = 'Comment posted successfully!';
         textEl.value = '';
         countEl.textContent = '0 / ' + MAX_WORDS + ' words';

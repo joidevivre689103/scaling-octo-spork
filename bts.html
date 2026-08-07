@@ -595,11 +595,12 @@ const storage = getStorage(app);
 
 setPersistence(auth, browserLocalPersistence);
 
-// Display-only [demoted by item (g) 2026-06-03]: emails bylined as "IJ" in
-// displayName(). NO LONGER used for gating — requireAccess (feature-flags.js)
-// is the sole access authority. Zoho primary added so its posts also store
-// the "IJ" authorName at write time.
-const ADMIN_EMAILS = ['joseph.ivan@outlook.com', 'ivan@cricketimes.com'];
+// ADMIN_EMAILS REMOVED 2026-08-07. Its only consumer was displayName(), which
+// bylined those two addresses as "IJ" at write time. Bylines now resolve from
+// publicProfiles/{uid} and the editor accent keys off CT_PRIMARY_UID, so the
+// list identified nobody and gated nothing — an address list kept in a
+// front-end file for a job that no longer existed. It had already been demoted
+// from gating by item (g) on 2026-06-03; this removes the last of it.
 
 /* =====================================================================
    STATE
@@ -651,12 +652,47 @@ function toast(msg) {
   toast._t = setTimeout(() => t.classList.remove('show'), 2400);
 }
 
-function displayName(email) {
-  if (!email) return 'Unknown';
-  if (ADMIN_EMAILS.includes(email.toLowerCase())) return 'IJ';
-  // first part of email, capitalised
-  const local = email.split('@')[0].split(/[._-]/)[0];
-  return local.charAt(0).toUpperCase() + local.slice(1);
+/* ===========================================================================
+ * BYLINE RESOLUTION  (2026-08-07)
+ *
+ * REPLACED displayName(email). That function took the email local part —
+ * 'priya.nair@…' became 'Priya' — and the result was FROZEN onto every post and
+ * reply as `authorName`. Two problems: it published a fragment of the reader's
+ * address on a byline, and it ignored the account's own display name entirely,
+ * so someone who deliberately chose a pseudonym for comments was overridden
+ * here without being told.
+ *
+ * Names are now resolved from publicProfiles/{uid} at RENDER time, keyed on
+ * authorUid. A rename shows up on everything that person has posted; a closed
+ * account loses its name everywhere at once, because one document is deleted
+ * rather than every post being hunted down.
+ *
+ * FALLBACK CHAIN: live profile -> the legacy authorName frozen on the document
+ * (pre-2026-08-07 only) -> 'Former reader'. The middle step ages out on its
+ * own; do not reintroduce a stored name to shorten it.
+ *
+ * The 'IJ' special case is gone with the email lookup. The maroon accent in
+ * authorMarkup() already keys off CT_PRIMARY_UID, which is the same signal
+ * without needing an address to test.
+ * ======================================================================== */
+const _btsProfileCache = new Map();   // uid -> displayName | null
+
+async function resolveProfileNames(uids) {
+  const unknown = [...new Set(uids.filter(Boolean))].filter(u => !_btsProfileCache.has(u));
+  await Promise.all(unknown.map(async (uid) => {
+    try {
+      const snap = await getDoc(doc(db, 'publicProfiles', uid));
+      _btsProfileCache.set(uid, snap.exists() ? (snap.data().displayName || null) : null);
+    } catch (e) {
+      _btsProfileCache.set(uid, null);
+    }
+  }));
+}
+
+/** Byline for a stored document. `legacy` is its old authorName, if any. */
+function bylineFor(uid, legacy) {
+  const resolved = uid ? _btsProfileCache.get(uid) : null;
+  return resolved || legacy || 'Former reader';
 }
 
 // (g) 2026-06-03: render-time byline accent. Posts/replies authored from the
@@ -810,10 +846,12 @@ async function createPost() {
     // maroon byline accent — now keys off authorUid. authorName is still
     // derived from the live token at write time, which stores a name, not an
     // address.
+    // [2026-08-07] authorName REMOVED, for the same reason authorEmail was:
+    // a denormalised copy that drifts on rename and outlives the account.
+    // authorUid is the identity; the name is resolved at render.
     await addDoc(collection(db, 'btsPosts'), {
       text,
       imageUrl,
-      authorName: displayName(currentUser.email),
       authorUid: currentUser.uid,
       timestamp: serverTimestamp(),
       likes: 0,
@@ -844,7 +882,14 @@ function subscribeToFeed() {
     orderBy('timestamp', 'desc'),
     limit(50)
   );
-  postsUnsub = onSnapshot(q, renderFeed, err => {
+  // Resolve every author's current name BEFORE rendering, so the first paint
+  // already has bylines. Doing it inside renderFeed would mean rendering
+  // 'Former reader' and then correcting it a moment later, which reads as a
+  // bug. onSnapshot cannot await, so the prefetch wraps the callback.
+  postsUnsub = onSnapshot(q, async (snap) => {
+    await resolveProfileNames(snap.docs.map(d => d.data().authorUid));
+    renderFeed(snap);
+  }, err => {
     console.error('Feed listener error:', err);
     $('feedList').innerHTML = `<div class="empty-feed">Could not load the feed right now. Please refresh in a moment.</div>`;
   });
@@ -921,7 +966,7 @@ function renderPost(id, p) {
 
   el.innerHTML = `
     <div class="head">
-      <div class="author"><span class="by">by</span>${authorMarkup(p.authorName || 'Editor', p.authorUid)}</div>
+      <div class="author"><span class="by">by</span>${authorMarkup(bylineFor(p.authorUid, p.authorName), p.authorUid)}</div>
       <div class="timestamp">${escapeHtml(timeAgo(p.timestamp))}</div>
     </div>
     ${p.text ? `<div class="body">${escapeHtml(p.text)}</div>` : ''}
@@ -983,7 +1028,9 @@ function toggleReplies(postId, postEl) {
       where('postId', '==', postId),
       orderBy('timestamp', 'asc')
     );
-    const unsub = onSnapshot(q, snap => {
+    const unsub = onSnapshot(q, async (snap) => {
+      // Same prefetch as the feed — see the note there.
+      await resolveProfileNames(snap.docs.map(d => d.data().authorUid));
       renderReplies(postId, postEl, snap);
     }, err => {
       console.error('Replies error:', err);
@@ -1028,7 +1075,7 @@ function renderReplyTree(postId, r, byParent, depth) {
 
   el.innerHTML = `
     <div class="head">
-      <span class="author">${authorMarkup(r.authorName || 'Member', r.authorUid)}</span>
+      <span class="author">${authorMarkup(bylineFor(r.authorUid, r.authorName), r.authorUid)}</span>
       <span class="timestamp">${escapeHtml(timeAgo(r.timestamp))}</span>
     </div>
     ${r.text ? `<div class="body">${escapeHtml(r.text)}</div>` : ''}
@@ -1042,7 +1089,7 @@ function renderReplyTree(postId, r, byParent, depth) {
       ${canDelete ? '<button class="action-btn delete" data-action="delete-reply" title="Delete">🗑</button>' : ''}
     </div>
     <div class="reply-form" data-reply-form style="display:none;margin-top:8px">
-      <textarea placeholder="Reply to ${escapeHtml(r.authorName || 'this')}…" maxlength="600"></textarea>
+      <textarea placeholder="Reply to ${escapeHtml(bylineFor(r.authorUid, r.authorName))}…" maxlength="600"></textarea>
       <div class="preview" data-reply-preview>
         <button class="remove" type="button">×</button>
         <img alt="">
@@ -1135,12 +1182,12 @@ function wireReplyForm(postId, parentReplyId, formEl) {
       // [2026-08-05] authorEmail REMOVED — see the note on the btsPosts write.
       // This one mattered more: replies are authored by READERS, so the field
       // exposed subscribers' addresses to each other in plaintext.
+      // [2026-08-07] authorName REMOVED — see the note on the post write.
       await addDoc(collection(db, 'btsReplies'), {
         postId,
         parentReplyId: parentReplyId || null,
         text,
         imageUrl,
-        authorName: displayName(currentUser.email),
         authorUid: currentUser.uid,
         timestamp: serverTimestamp(),
         likes: 0
