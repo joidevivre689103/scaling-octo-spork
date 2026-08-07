@@ -14,9 +14,10 @@
   <title>Submit Content â Cricket Times</title>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400;1,700&family=IM+Fell+English:ital@0;1&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet" />
   <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
+    import { initializeApp, getApp, getApps } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
     import { getFirestore, collection, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
     import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-storage.js';
+    import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
 
     const firebaseConfig = {
       apiKey: "AIzaSyBnfn9hK0y-p6nvIZ_AwoJnWD7DfDuIQd4",
@@ -27,15 +28,42 @@
       appId: "1:196915483829:web:071c47af79914aec88dafc"
     };
 
-    const app = initializeApp(firebaseConfig);
+    // getApp() when one already exists. auth-status.js and ct-tracker.js are
+    // both injected into this page and both initialise Firebase; a second
+    // initializeApp() with the same name is the duplicate-app hazard already on
+    // the housekeeping list. Reusing the existing app also means this page
+    // shares their auth state rather than starting a second, empty one.
+    const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const storage = getStorage(app);
+    const auth = getAuth(app);
 
     // Expose to global scope for non-module script
     window._db = db;
     window._fsCollection = collection;
     window._fsAddDoc = addDoc;
     window._fsTimestamp = serverTimestamp;
+    window._auth = auth;
+
+    /* Sign-in gate. Submitting content is a privilege of having an account —
+     * decided 2026-08-07 — so both modules stay hidden until auth resolves and
+     * reports a signed-in user.
+     *
+     * The gate is CONVENIENCE, not enforcement: firestore.rules is what
+     * actually requires request.auth on a submissions create. Hiding the form
+     * only stops honest people wasting their time filling one in.
+     *
+     * Note the null case fires on a definitive signed-OUT too, not just before
+     * resolution, so the "checking" state has to be cleared either way or a
+     * signed-out visitor sits on a spinner forever. */
+    onAuthStateChanged(auth, (user) => {
+      // Module scripts are deferred, so the classic inline script below has
+      // already defined _ctOnAuth by the time this runs. Stash the user anyway
+      // if it hasn't — a gate that silently never opens is the worst outcome
+      // here, and this costs one line.
+      window._ctAuthUser = user || null;
+      if (typeof window._ctOnAuth === 'function') window._ctOnAuth(user);
+    });
 
     // Storage helpers
     window._uploadSubmissionDoc = async (file, submissionId) => {
@@ -176,6 +204,52 @@
     }
 
     /* ââ MODULE CARD ââ */
+    /* Sign-in gate (2026-08-07) */
+    .auth-gate {
+      background: var(--paper, #fffdf8);
+      border: 1px solid var(--border, #d9cfba);
+      border-radius: 10px;
+      padding: 40px 32px;
+      text-align: center;
+      max-width: 560px;
+      margin: 0 auto 32px;
+    }
+    .auth-gate-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--ink, #1a1208);
+      margin-bottom: 10px;
+    }
+    .auth-gate-text {
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--ink-light, #6b5c42);
+      margin: 0 auto 20px;
+      max-width: 420px;
+    }
+    .auth-gate-btn {
+      display: inline-block;
+      background: var(--crimson, #8b1a1a);
+      color: #fff;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 14px;
+      padding: 11px 22px;
+      border-radius: 6px;
+      transition: opacity .15s;
+    }
+    .auth-gate-btn:hover { opacity: .88; }
+    .signed-in-note {
+      font-size: 12px;
+      color: var(--ink-light, #6b5c42);
+      margin-top: 4px;
+    }
+    input[readonly] {
+      background: var(--cream-dark, #ede7d6);
+      cursor: not-allowed;
+    }
+
     .module-card {
       background: #fff;
       border: 1px solid var(--border);
@@ -619,6 +693,38 @@
 <!-- MAIN LAYOUT -->
 <div class="main-layout">
 
+  <!-- SIGN-IN GATE (added 2026-08-07).
+       Submitting content is a privilege of holding an account, so neither
+       module is offered to a signed-out visitor.
+
+       THREE states, and all three must be handled or one strands the visitor:
+       CHECKING (auth has not resolved — the forms must not flash into view and
+       then vanish), SIGNED OUT (offer sign-in), SIGNED IN (show the forms). The
+       default markup is the CHECKING state, because that is the state the page
+       is in before any script runs.
+
+       This gate is CONVENIENCE. firestore.rules is the enforcement: a
+       submissions create now requires request.auth and pins authorUid and email
+       to the caller's own token. Hiding the form only stops honest people
+       filling one in for nothing. -->
+  <div class="auth-gate" id="authGate">
+    <div id="authChecking">
+      <div class="auth-gate-title">Checking your account&hellip;</div>
+    </div>
+    <div id="authSignedOut" style="display:none">
+      <div class="auth-gate-title">Sign in to submit</div>
+      <p class="auth-gate-text">
+        Quizzes and articles are published under your name, so contributions come
+        from an account rather than an email address. It takes a moment, and it
+        also means you can follow what happens to your submission.
+      </p>
+      <a class="auth-gate-btn" id="authSignInBtn" href="/login.html">Sign in or create an account</a>
+    </div>
+  </div>
+
+  <!-- Revealed only once a signed-in user is confirmed. -->
+  <div id="submitModules" style="display:none">
+
   <!-- ââ MODULE 1: QUIZ BUILDER ââ -->
   <div class="module-card">
     <div class="module-header">
@@ -694,6 +800,48 @@
         <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
         Add Question
       </button>
+
+      <!-- Declarations — ADDED 2026-08-07. The article module has required these
+           four since it was built; the quiz module did not, so submitted quiz
+           questions could be approved and published to the site with no consent
+           to publish, no originality warranty and no plagiarism check. Same four
+           declarations, worded for questions rather than a document. -->
+      <div class="section-divider"><span>Declarations</span></div>
+
+      <p style="font-size:13px;color:var(--ink-light);margin-bottom:12px;font-style:italic;">All boxes must be checked before submitting your quiz.</p>
+
+      <div class="declarations" id="quizDeclarationsList">
+        <label class="declaration-item" id="qdecl0">
+          <input type="checkbox" class="qdecl-check" data-idx="0" onchange="updateQuizDeclState(0)" />
+          <div class="declaration-text">
+            <strong>Original Authorship</strong>
+            These questions are my own work, written solely by me.
+          </div>
+        </label>
+        <label class="declaration-item" id="qdecl1">
+          <input type="checkbox" class="qdecl-check" data-idx="1" onchange="updateQuizDeclState(1)" />
+          <div class="declaration-text">
+            <strong>Not AI-Generated</strong>
+            This quiz has not been generated by artificial intelligence tools, in whole or in part.
+          </div>
+        </label>
+        <label class="declaration-item" id="qdecl2">
+          <input type="checkbox" class="qdecl-check" data-idx="2" onchange="updateQuizDeclState(2)" />
+          <div class="declaration-text">
+            <strong>No Plagiarism</strong>
+            I have not copied these questions, answers or their wording from another quiz or publication.
+          </div>
+        </label>
+        <label class="declaration-item" id="qdecl3">
+          <input type="checkbox" class="qdecl-check" data-idx="3" onchange="updateQuizDeclState(3)" />
+          <div class="declaration-text">
+            <strong>Publication Consent</strong>
+            I permit Cricket Times to publish this quiz on their platform with appropriate editorial edits, while retaining attribution to me as the author.
+          </div>
+        </label>
+      </div>
+
+      <div class="field-error" id="quizDeclErr" style="display:none;color:var(--red);">Please check all four declaration boxes before submitting.</div>
 
       <div class="progress-wrap"><div class="progress-bar" id="quizProgress"></div></div>
 
@@ -818,6 +966,8 @@
     </div>
   </div>
 
+  </div><!-- /submitModules -->
+
 </div><!-- /main-layout -->
 
 <!-- TOAST -->
@@ -843,6 +993,70 @@ async function getRecaptchaToken(action) {
 function isHoneypotFilled(id) {
   return (document.getElementById(id)?.value || '').trim().length > 0;
 }
+
+/* ---------------------------------------------------------------------------
+   SIGN-IN GATE (2026-08-07)
+
+   Submitting content requires an account. This is the UI half; firestore.rules
+   is the enforcement half.
+
+   window._ctOnAuth is called by the module block's onAuthStateChanged. It fires
+   with a user OR with null, and null means "definitively signed out", not
+   "still checking" — so the checking panel must be cleared on BOTH branches or
+   a signed-out visitor sits looking at a spinner forever.
+
+   Name and email are taken from the ACCOUNT rather than typed. The email is
+   read-only because the security rule requires it to equal the caller's own
+   token; letting someone type a different address would produce a
+   permission-denied that looks like a broken form. The name stays editable when
+   the account has no display name, since a byline is a real choice, but it is
+   pre-filled where we know it.
+--------------------------------------------------------------------------- */
+let ctUser = null;
+
+window._ctOnAuth = function (user) {
+  ctUser = user || null;
+
+  const gate      = document.getElementById('authGate');
+  const checking  = document.getElementById('authChecking');
+  const signedOut = document.getElementById('authSignedOut');
+  const modules   = document.getElementById('submitModules');
+
+  if (checking) checking.style.display = 'none';
+
+  if (!ctUser) {
+    if (signedOut) signedOut.style.display = 'block';
+    if (modules) modules.style.display = 'none';
+    // Come back here after signing in. If login.html uses a different query
+    // parameter than returnUrl, change it here — the link still works without
+    // it, it just lands the visitor on the home page instead.
+    const btn = document.getElementById('authSignInBtn');
+    if (btn) btn.href = '/login.html?returnUrl=' + encodeURIComponent(location.pathname);
+    return;
+  }
+
+  if (gate) gate.style.display = 'none';
+  if (modules) modules.style.display = '';
+
+  const email = ctUser.email || '';
+  const name  = ctUser.displayName || '';
+
+  [['quizEmail', 'quizAuthor'], ['artEmail', 'artName']].forEach(([emailId, nameId]) => {
+    const emailEl = document.getElementById(emailId);
+    if (emailEl) {
+      emailEl.value = email;
+      emailEl.readOnly = true;
+      const note = emailEl.parentElement && emailEl.parentElement.querySelector('.privacy-note');
+      if (note) {
+        note.textContent = 'Taken from your account. Used solely for editorial ' +
+                           'correspondence about this submission and not shared ' +
+                           'with third parties.';
+      }
+    }
+    const nameEl = document.getElementById(nameId);
+    if (nameEl && name && !nameEl.value) nameEl.value = name;
+  });
+};
 
 /* âââââââââââââââââââââââââââââââââââââââ
    QUIZ BUILDER
@@ -917,9 +1131,31 @@ function escHtml(s) {
   return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+/* Quiz declarations — ADDED 2026-08-07, mirroring the article module's
+ * declChecked/updateDeclState/allDeclChecked trio. Kept as a SEPARATE array
+ * rather than sharing the article one: the two modules sit on the same page and
+ * can be filled in independently, so one shared array would let ticking the
+ * article boxes silently satisfy the quiz gate. */
+const quizDeclChecked = [false, false, false, false];
+
+function updateQuizDeclState(idx) {
+  quizDeclChecked[idx] = document.querySelector(`.qdecl-check[data-idx="${idx}"]`).checked;
+  document.getElementById(`qdecl${idx}`).classList.toggle('checked', quizDeclChecked[idx]);
+  const err = document.getElementById('quizDeclErr');
+  if (err && allQuizDeclChecked()) err.style.display = 'none';
+  updateQuizProgress();
+}
+
+function allQuizDeclChecked() {
+  return quizDeclChecked.every(Boolean);
+}
+
 function updateQuizProgress() {
   const filled = questions.filter(q => q.text.trim() && q.options.filter(o=>o.trim()).length >= 2).length;
-  const pct = questions.length ? Math.round((filled/questions.length)*100) : 0;
+  const qPct = questions.length ? (filled/questions.length) : 0;
+  // Questions are 80% of the bar, declarations the remaining 20%, so the bar
+  // cannot read 100% while the submission is still blocked.
+  const pct = Math.round(qPct * 80) + (allQuizDeclChecked() ? 20 : quizDeclChecked.filter(Boolean).length * 5);
   document.getElementById('quizProgress').style.width = pct + '%';
 }
 
@@ -939,11 +1175,27 @@ function validateQuiz() {
   toggleErr('quizEmail', 'quizEmailErr', !email || !email.includes('@'));
   if (!title || !author || !email || !email.includes('@')) ok = false;
   if (questions.length === 0) ok = false;
+
+  // Declarations. Shown as its own error line rather than folded into the
+  // generic "fill in all required fields" toast, because an unticked box
+  // several screens down is otherwise invisible.
+  const declErr = document.getElementById('quizDeclErr');
+  if (!allQuizDeclChecked()) {
+    if (declErr) declErr.style.display = 'block';
+    ok = false;
+  } else if (declErr) {
+    declErr.style.display = 'none';
+  }
+
   return ok;
 }
 
 document.getElementById('submitQuizBtn').addEventListener('click', async () => {
-  if (!validateQuiz()) { showToast('Missing Information', 'Please fill in all required fields.', true); return; }
+  if (!validateQuiz()) { showToast('Missing Information', 'Please fill in all required fields and check all four declarations.', true); return; }
+  if (!ctUser) {
+    showToast('Sign In Required', 'Please sign in to submit content.', true);
+    return;
+  }
   if (isHoneypotFilled('quizHp')) return; // silent bot rejection
 
   const btn = document.getElementById('submitQuizBtn');
@@ -959,12 +1211,25 @@ document.getElementById('submitQuizBtn').addEventListener('click', async () => {
     difficulty: document.getElementById('quizDifficulty').value,
     description: document.getElementById('quizDesc').value,
     author: document.getElementById('quizAuthor').value,
-    email: document.getElementById('quizEmail').value,
+    // From the account, not the field. The field is read-only and pre-filled,
+    // but reading the ACCOUNT here means a tampered input cannot produce a
+    // document the security rule then rejects with a confusing error.
+    email: (ctUser && ctUser.email) || '',
+    authorUid: ctUser ? ctUser.uid : null,
     questions: questions.map(q => ({
       question: q.text,
       options: q.options.filter(o => o.trim()),
       correctIndex: q.correct
     })),
+    // Recorded on the document, matching the article path. The client gate is
+    // what the submitter sees; this is the record that they made the
+    // declaration, which is the part that matters when the quiz is published.
+    declarations: {
+      originalContent: true,
+      notAI: true,
+      noPlagiarism: true,
+      publishConsent: true
+    },
     recaptchaToken,
     status: 'pending',
     submittedAt: window._fsTimestamp ? window._fsTimestamp() : new Date().toISOString()
@@ -987,6 +1252,17 @@ function resetQuizForm() {
   ['quizTitle','quizAuthor','quizEmail','quizDesc'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('quizCategory').value = '';
   document.getElementById('quizDifficulty').value = '';
+  // Declarations must reset too, or the next submitter inherits a ticked form
+  // and the declaration is recorded without anyone having made it.
+  quizDeclChecked.fill(false);
+  for (let i = 0; i < 4; i++) {
+    const box = document.querySelector(`.qdecl-check[data-idx="${i}"]`);
+    if (box) box.checked = false;
+    const row = document.getElementById(`qdecl${i}`);
+    if (row) row.classList.remove('checked');
+  }
+  const declErr = document.getElementById('quizDeclErr');
+  if (declErr) declErr.style.display = 'none';
   questions = []; qId = 0;
   addQuestion(); addQuestion(); addQuestion();
 }
@@ -1084,6 +1360,10 @@ document.getElementById('submitArtBtn').addEventListener('click', async () => {
   }
 
   if (!ok) { showToast('Incomplete Submission', 'Please complete all fields, sign all declarations, and upload your document.', true); return; }
+  if (!ctUser) {
+    showToast('Sign In Required', 'Please sign in to submit content.', true);
+    return;
+  }
   if (isHoneypotFilled('artHp')) return; // silent bot rejection
 
   const btn = document.getElementById('submitArtBtn');
@@ -1114,7 +1394,10 @@ document.getElementById('submitArtBtn').addEventListener('click', async () => {
   const data = {
     type: 'article',
     submissionId,
-    name, email, title,
+    name, title,
+    // See the note on the quiz payload — account, not field.
+    email: (ctUser && ctUser.email) || '',
+    authorUid: ctUser ? ctUser.uid : null,
     category: document.getElementById('artCategory').value,
     bio: document.getElementById('artBio').value,
     fileName: selectedFile.name,
