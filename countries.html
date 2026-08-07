@@ -676,12 +676,10 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
           </div>
           <div class="sel-group">
             <label>Venue</label>
-            <select id="filterHA" onchange="renderTable()" class="team-select">
-              <option value="all">All</option>
-              <option value="home">Home</option>
-              <option value="away">Away</option>
-              <option value="neutral">Neutral</option>
-            </select>
+            <div class="ms-wrap" id="msVenue">
+              <button type="button" class="ms-trigger" id="msVenue-trigger"><span class="ms-placeholder">All venues</span></button>
+              <div class="ms-panel" id="msVenue-panel"></div>
+            </div>
           </div>
           <div class="sel-group">
             <label>Result</label>
@@ -794,6 +792,26 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
 
     <!-- Per-period scoreboards (replace the single scoreboard when Period B is set) -->
     <div id="scoreboardPeriods" style="display:none"></div>
+
+    <!-- Record by venue: one row per venue ticked in the Venue picker -->
+    <div id="venueBreakdown" style="display:none">
+      <div class="section-title">Record by venue</div>
+      <div class="tbl-wrap">
+        <table class="rec-table">
+          <thead>
+            <tr>
+              <th class="left">Venue</th>
+              <th>Tests</th>
+              <th id="vbLab1">Wins</th>
+              <th id="vbLab2">Losses</th>
+              <th>Draws</th>
+              <th>Win %</th>
+            </tr>
+          </thead>
+          <tbody id="venueBreakdownBody"></tbody>
+        </table>
+      </div>
+    </div>
 
     <!-- Bar Chart -->
     <div class="bar-section" id="barSection">
@@ -948,7 +966,7 @@ let currentPage = 1;
 // Triggers onChange after every toggle; 'All' is a virtual row that flips
 // the set to equal TEAMS (or clears it when clicked while all-selected).
 // ──────────────────────────────────────────────────────────────
-function createMultiSelect(id, options, allLabel, onChange, {singleOnly=false, showCode=true, searchable=false} = {}) {
+function createMultiSelect(id, options, allLabel, onChange, {singleOnly=false, showCode=true, searchable=false, emptyLabel=null} = {}) {
   const root = document.getElementById(id);
   const trigger = document.getElementById(id + '-trigger');
   const panel = document.getElementById(id + '-panel');
@@ -966,6 +984,25 @@ function createMultiSelect(id, options, allLabel, onChange, {singleOnly=false, s
     // True when this side represents "everyone" — either flagged via Select All
     // or because every option happens to be ticked manually.
     isAll(){ return !singleOnly && (allMode || (options.length > 0 && sel.size === options.length)); },
+    // Rename options in place. The venue picker's labels carry the team name
+    // \u2014 "England Home" \u2014 so they change whenever the country pickers do.
+    // Rebuilding is skipped when nothing actually changed, otherwise an open
+    // panel would be torn down under the pointer on every render.
+    setLabels(map){
+      let changed = false;
+      options.forEach(o => {
+        const l = map[o.code];
+        if (l && l !== o.label) { o.label = l; changed = true; }
+      });
+      if (changed) { buildPanel(); render(); }
+    },
+    // Drop codes that no longer mean anything in the current context.
+    deselect(codes){
+      let changed = false;
+      (codes || []).forEach(c => { if (sel.delete(c)) changed = true; });
+      if (changed) render();
+      return changed;
+    },
     // Select every option except the given codes, keeping the All flag on.
     setAllExcept(codes){
       const skip = new Set(codes || []);
@@ -1057,7 +1094,7 @@ function createMultiSelect(id, options, allLabel, onChange, {singleOnly=false, s
     });
     // Update trigger label
     if (sel.size === 0) {
-      trigger.innerHTML = '<span class="ms-placeholder">— Select —</span>';
+      trigger.innerHTML = `<span class="ms-placeholder">${emptyLabel || '— Select —'}</span>`;
     } else if (!singleOnly && sel.size === options.length) {
       trigger.textContent = allLabel || 'All';
     } else if (!singleOnly && allMode) {
@@ -1181,8 +1218,22 @@ const ms2 = createMultiSelect('ms2', TEAM_OPTIONS, 'All countries', () => { sync
 // Era picker. City and ground can only be built once the match table has
 // loaded, so they are created in initH2HFromPipeline.
 const msEra = createMultiSelect('msEra', ERA_OPTIONS, 'All eras',
-  () => renderTable(), { showCode: false });
+  () => renderTable(), { showCode: false, emptyLabel: 'All eras' });
 let msCity = null, msGround = null;
+
+// \u2500\u2500 Venue \u2500\u2500
+// Ticking nothing means every venue, the same as the old "All" option. Labels
+// are rewritten in renderTable to carry the Group 1 name.
+const VENUE_OPTIONS = [
+  {code:'home',    label:'Home'},
+  {code:'away',    label:'Away'},
+  {code:'neutral', label:'Neutral'}
+];
+const VENUE_ORDER = ['home', 'away', 'neutral'];
+const msVenue = createMultiSelect('msVenue', VENUE_OPTIONS, 'All venues',
+  () => renderTable(), { showCode: false, emptyLabel: 'All venues' });
+
+function venueSel() { return VENUE_ORDER.filter(c => msVenue.has(c)); }
 
 // ─────────────────────────────────────────────────────────────
 // Keep the two sides from overlapping.
@@ -1544,7 +1595,6 @@ function updateResults() {
   document.getElementById('filterTo').value = '';
   document.getElementById('filterFrom2').value = '';
   document.getElementById('filterTo2').value = '';
-  document.getElementById('filterHA').value = 'all';
   clearVenueAndEra();
   renderTable();
 }
@@ -1554,7 +1604,6 @@ function clearYearFilters() {
   document.getElementById('filterTo').value = '';
   document.getElementById('filterFrom2').value = '';
   document.getElementById('filterTo2').value = '';
-  document.getElementById('filterHA').value = 'all';
   clearVenueAndEra();
   renderTable();
 }
@@ -1563,6 +1612,7 @@ function clearYearFilters() {
    Clear button says "Clear", and a picker left ticked out of sight is the
    commonest way to end up staring at an empty table. */
 function clearVenueAndEra() {
+  if (msVenue)  msVenue.set([]);
   if (msEra)    msEra.set([]);
   if (msCity)   msCity.set([]);
   if (msGround) msGround.set([]);
@@ -1574,6 +1624,49 @@ function normalizeMargin(margin) {
   // had runs/wickets systematically swapped and this function used to flip
   // them back; kept as a passthrough so call sites are untouched.
   return margin;
+}
+
+// ─────────────────────────────────────────────────────────────
+// Record by venue. The Venue picker is a multi-select, so rather than
+// collapsing the ticked venues into one total the record is broken out a row
+// per venue, with a combined line when more than one is on show. Win % is
+// wins over Tests played, draws included in the denominator — the same basis
+// as the win-distribution bars, so the two never disagree.
+// With nothing ticked every venue is in play and there is nothing to break
+// out, so the table stays hidden and the single scoreboard covers it.
+// ─────────────────────────────────────────────────────────────
+function venueRow(label, ms) {
+  const w = ms.filter(m => m.result === 'Won').length;
+  const l = ms.filter(m => m.result === 'Lost').length;
+  const d = ms.filter(m => m.result === 'Draw').length;
+  return { label, tests: ms.length, w, l, d, pct: pct(w, ms.length) };
+}
+
+function renderVenueRows(venues, matches, labels, lab1, lab2) {
+  const wrap = document.getElementById('venueBreakdown');
+  const body = document.getElementById('venueBreakdownBody');
+  if (!wrap || !body) return;
+
+  if (!venues.length) { wrap.style.display = 'none'; body.innerHTML = ''; return; }
+
+  const l1 = document.getElementById('vbLab1'), l2 = document.getElementById('vbLab2');
+  if (l1) l1.textContent = lab1;
+  if (l2) l2.textContent = lab2;
+
+  const rows = venues.map(v => venueRow(labels[v] || v, matches.filter(m => m.ha === v)));
+  if (rows.length > 1) rows.push(Object.assign(venueRow('All selected', matches), { _total: true }));
+
+  body.innerHTML = rows.map(r => `
+    <tr${r._total ? ' style="font-weight:700;background:var(--surface2)"' : ''}>
+      <td class="left">${r.label}</td>
+      <td>${r.tests}</td>
+      <td style="color:var(--green)">${r.w}</td>
+      <td style="color:var(--red)">${r.l}</td>
+      <td>${r.d}</td>
+      <td>${r.pct}</td>
+    </tr>`).join('');
+
+  wrap.style.display = '';
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -1713,10 +1806,9 @@ function renderTable() {
 
   const filter = document.getElementById('filterResult').value;
   const allVsAll = isAllVsAll();
-  const haSel = document.getElementById('filterHA');
-  // No fixed "away" side when everyone is on both sides — drop a stale selection
-  if (allVsAll && haSel && haSel.value === 'away') haSel.value = 'all';
-  const haFilter = (haSel || {value:'all'}).value;
+  // No fixed "away" side when everyone is on both sides — drop a stale tick
+  if (allVsAll) msVenue.deselect(['away']);
+  const venues = venueSel();
   // When a side holds more than one country, "Group 1 won" is meaningless —
   // the table names the actual winner and shows the matchup column instead.
   const multiSide = allVsAll || t1Set.length > 1 || t2Set.length > 1;
@@ -1728,11 +1820,13 @@ function renderTable() {
   filterSel.options[1].textContent = allVsAll ? 'Home team wins' : 'Wins for ' + t1Name;
   filterSel.options[2].textContent = allVsAll ? 'Away team wins' : 'Wins for ' + t2Name;
 
-  // Update HA dropdown labels with team name context
-  const haEl = haSel;
-  haEl.options[1].textContent = allVsAll ? 'In a team\u2019s home country' : t1Name + ' Home';
-  haEl.options[2].textContent = allVsAll ? 'Away (n/a)' : t1Name + ' Away';
-  haEl.options[2].disabled = allVsAll;
+  // Venue labels carry the Group 1 name, so they follow the country pickers
+  const venueLabels = {
+    home:    allVsAll ? 'In a team\u2019s home country' : t1Name + ' Home',
+    away:    allVsAll ? 'Away (n/a)' : t1Name + ' Away',
+    neutral: 'Neutral'
+  };
+  msVenue.setLabels(venueLabels);
 
   // Scoreboard stat labels
   const lab1 = allVsAll ? 'Home wins' : 'Wins';
@@ -1755,7 +1849,7 @@ function renderTable() {
   let yearFiltered = periods.length
     ? currentMatches.filter(m => periods.some(p => inPeriod(m, p)))
     : currentMatches;
-  if (haFilter !== 'all') yearFiltered = yearFiltered.filter(m => m.ha === haFilter);
+  if (venues.length) yearFiltered = yearFiltered.filter(m => venues.includes(m.ha));
 
   // Era, city and ground narrow the same set. Era sits alongside the year
   // periods rather than replacing them: both are time constraints and both
@@ -1827,6 +1921,9 @@ function renderTable() {
         </div>
       </div>`;
   });
+
+  // Record by venue — one row per venue ticked, plus a combined line
+  renderVenueRows(venues, yearFiltered, venueLabels, lab1, lab2);
 
   // Period comparison — only meaningful once Period B has something in it
   renderPeriodCompare(periods, yearFiltered, allVsAll ? 'Home team wins' : t1Name + ' wins',
@@ -1925,12 +2022,17 @@ function exportToExcel(){
   // Apply same filters as renderTable
   const filter = document.getElementById('filterResult').value;
   const periods = activePeriods();
-  const haFilter = (document.getElementById('filterHA') || {value:'all'}).value;
+  const venues = venueSel();
+  const eras = msEra ? msEra.get() : [];
+  const cities = msCity ? msCity.get() : [];
+  const grounds = msGround ? msGround.get() : [];
 
   let matches = currentMatches;
   if (periods.length) matches = matches.filter(m => periods.some(p => inPeriod(m, p)));
-  if (haFilter !== 'all') matches = matches.filter(m => m.ha === haFilter);
-  if (haFilter !== 'all') matches = matches.filter(m => m.ha === haFilter);
+  if (venues.length)  matches = matches.filter(m => venues.includes(m.ha));
+  if (eras.length)    matches = matches.filter(m => eraOkFor(m, eras));
+  if (cities.length)  matches = matches.filter(m => cities.includes(m.venue));
+  if (grounds.length) matches = matches.filter(m => grounds.includes(m.ground));
   if (filter === 'Won') matches = matches.filter(m => m.result === 'Won');
   else if (filter === 'Lost') matches = matches.filter(m => m.result === 'Lost');
   else if (filter === 'Draw') matches = matches.filter(m => m.result === 'Draw');
@@ -2147,9 +2249,9 @@ function buildVenuePickers(D) {
   const opts = set => [...set].sort((a, b) => String(a).localeCompare(String(b)))
                               .map(v => ({ code: v, label: v }));
   msCity   = createMultiSelect('msCity', opts(cities), 'All cities',
-              () => renderTable(), { showCode: false, searchable: true });
+              () => renderTable(), { showCode: false, searchable: true, emptyLabel: 'All cities' });
   msGround = createMultiSelect('msGround', opts(grounds), 'All grounds',
-              () => renderTable(), { showCode: false, searchable: true });
+              () => renderTable(), { showCode: false, searchable: true, emptyLabel: 'All grounds' });
   console.info(`[countries] venue filters: ${cities.size} cities, ${grounds.size} grounds.`);
 }
 
