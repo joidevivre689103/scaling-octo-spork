@@ -79,6 +79,13 @@ body{font-family:'Source Serif 4',Georgia,serif;background:var(--bg);color:var(-
 .ms-opt:hover{background:var(--accent-dim)}
 .ms-opt input{margin:0;cursor:pointer}
 .ms-sep{padding:7px 8px 4px;margin-top:3px;border-top:1px solid var(--border);font-size:9.5px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:var(--text3)}
+.ms-search{position:sticky;top:0;background:var(--surface);padding:6px;border-bottom:1px solid var(--border);z-index:2}
+.ms-search input{width:100%;padding:5px 8px;font-family:inherit;font-size:12px;border:1px solid var(--border);border-radius:3px;background:var(--bg);color:var(--text);outline:none}
+.ms-search input:focus{border-color:var(--accent)}
+.ms-foot{position:sticky;bottom:0;background:var(--surface);border-top:1px solid var(--border);padding:5px 8px;text-align:right;z-index:2}
+.ms-foot span{font-size:11px;color:var(--accent);cursor:pointer;font-weight:600}
+.ms-opt.hidden{display:none}
+.ms-none{padding:8px;font-size:12px;color:var(--text3)}
 
 /* ── Aggregate mode ── */
 .fg.dim,.tabs.dim{opacity:0.4;pointer-events:none;filter:grayscale(1)}
@@ -248,6 +255,20 @@ td.num.highlight{color:var(--accent);font-weight:700}
             <option value="away">Away</option>
             <option value="neutral">Neutral</option>
           </select>
+        </div>
+        <div class="fg">
+          <label>City</label>
+          <div class="ms-wrap" id="msCity">
+            <button class="ms-btn" type="button" onclick="toggleMS('msCity')">All Cities</button>
+            <div class="ms-drop" id="msCity-drop"></div>
+          </div>
+        </div>
+        <div class="fg">
+          <label>Ground</label>
+          <div class="ms-wrap" id="msGround">
+            <button class="ms-btn" type="button" onclick="toggleMS('msGround')">All Grounds</button>
+            <div class="ms-drop" id="msGround-drop"></div>
+          </div>
         </div>
         <div class="fg">
           <label>Era</label>
@@ -516,16 +537,81 @@ function syncPanelOverflow(){
     p.classList.toggle('ms-open', !!p.querySelector('.ms-drop.open'));
   });
 }
+/* The City and Ground dropdowns carry a search box, so an input:checked
+   selector would pick that up as well — every read is checkbox-only. */
 function getMSValues(id){
-  return [...document.querySelectorAll(`#${id}-drop input:checked`)].map(c=>c.value);
+  return [...document.querySelectorAll(`#${id}-drop input[type="checkbox"]:checked`)].map(c=>c.value);
 }
-const MS_EMPTY={msEra:'All Eras',msCountry:'All Countries'};
+const MS_EMPTY={msEra:'All Eras',msCountry:'All Countries',msCity:'All Cities',msGround:'All Grounds'};
+/* Lists long enough that spelling every tick out would overrun the button. */
+const MS_MANY={msCity:'cities',msGround:'grounds',msCountry:'countries'};
 function updateMSLabel(id){
-  const checks=[...document.querySelectorAll(`#${id}-drop input:checked`)];
+  const checks=[...document.querySelectorAll(`#${id}-drop input[type="checkbox"]:checked`)];
   const btn=document.querySelector(`#${id} .ms-btn`);
   if(!btn) return;
-  btn.textContent = checks.length===0 ? (MS_EMPTY[id]||'All')
-    : checks.map(c=>c.parentElement.textContent.trim()).join(', ');
+  if(checks.length===0){ btn.textContent=MS_EMPTY[id]||'All'; return; }
+  if(checks.length>3&&MS_MANY[id]){ btn.textContent=`${checks.length} ${MS_MANY[id]}`; return; }
+  btn.textContent=checks.map(c=>c.parentElement.textContent.trim()).join(', ');
+}
+
+/* ── Searchable multi-select (City, Ground) ──
+   Both lists run to three figures, so the dropdown gets a filter box and a
+   Clear footer. Options carry data-i so a tag can clear one by index —
+   grounds like Lord's carry apostrophes that would break a value-matched
+   selector built into an onclick attribute. */
+function escHtml(v){
+  return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;')
+                  .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function populateSearchableMS(id,values,placeholder){
+  const drop=document.getElementById(id+'-drop');
+  if(!drop) return;
+  drop.innerHTML=
+    `<div class="ms-search"><input type="text" placeholder="${placeholder}" `+
+      `oninput="msSearch('${id}',this.value)" onclick="event.stopPropagation()"></div>`+
+    values.map((v,i)=>
+      `<div class="ms-opt" data-lbl="${escHtml(String(v).toLowerCase())}">`+
+      `<input type="checkbox" data-i="${i}" value="${escHtml(v)}" onchange="applyFilters()">`+
+      `<span>${escHtml(v)}</span></div>`).join('')+
+    `<div class="ms-none" style="display:none">No match</div>`+
+    `<div class="ms-foot"><span onclick="clearMS('${id}')">Clear</span></div>`;
+}
+function msSearch(id,q){
+  const s=String(q||'').trim().toLowerCase();
+  let shown=0;
+  document.querySelectorAll(`#${id}-drop .ms-opt`).forEach(o=>{
+    const hit=!s||(o.dataset.lbl||'').includes(s);
+    o.classList.toggle('hidden',!hit);
+    if(hit) shown++;
+  });
+  const none=document.querySelector(`#${id}-drop .ms-none`);
+  if(none) none.style.display=shown?'none':'';
+}
+function clearMS(id){
+  document.querySelectorAll(`#${id}-drop input[type="checkbox"]`).forEach(c=>c.checked=false);
+  applyFilters();
+}
+function clearMSIndex(id,i){
+  const box=document.querySelector(`#${id}-drop input[data-i="${i}"]`);
+  if(box) box.checked=false;
+  applyFilters();
+}
+
+/* Cities and grounds actually present in the match table — D.C / D.G carry
+   entries the dataset never uses, and a dead option that returns nothing is
+   worse than no option at all. */
+function populateCityGround(){
+  const cities=new Set(), grounds=new Set();
+  Object.keys(D.M||{}).forEach(k=>{
+    const m=D.M[k]; if(!m) return;
+    const c=D.C&&D.C[m[0]], g=D.G&&D.G[m[1]];
+    if(c) cities.add(c);
+    if(g) grounds.add(g);
+  });
+  const sort=a=>[...a].sort((x,y)=>String(x).localeCompare(String(y)));
+  populateSearchableMS('msCity',sort(cities),'Search cities\u2026');
+  populateSearchableMS('msGround',sort(grounds),'Search grounds\u2026');
+  console.info(`[bowling] venue filters: ${cities.size} cities, ${grounds.size} grounds in the match table.`);
 }
 
 const ERA_LIST=['pre1900','1900','1910','1920','1930','1940','1950','1960','1970',
@@ -621,6 +707,7 @@ function bucketsFor(pid,mid,m){
   const isEng=PID_COUNTRY[pid]==='England';
   return {
     era:eraKeyForYear(m[7]), year:m[7], ha:haFor(pid,m),
+    city:(D.C&&D.C[m[0]])||'', ground:(D.G&&D.G[m[1]])||'',
     //   baz    — England's own bowlers in England's Tests
     //   bazVs  — their opponents in those same Tests
     //   bazAll — every Test played anywhere in the window
@@ -711,21 +798,32 @@ function buildBazballSet(){
    totals, so when either is active each bowler's figures are rebuilt from the
    matching innings. MoM has no per-innings source and is hidden while sliced.
    ────────────────────────────────────────────────────────────────────────── */
+/* Venue constraints that apply per innings: home/away, city, ground. */
+function venuePred(f){
+  const haOk  = f.ha ? (r=>r.ha===f.ha) : (()=>true);
+  const cityOk= (f.cities&&f.cities.length)   ? (r=>f.cities.includes(r.city))    : (()=>true);
+  const grOk  = (f.grounds&&f.grounds.length) ? (r=>f.grounds.includes(r.ground)) : (()=>true);
+  return r=>haOk(r)&&cityOk(r)&&grOk(r);
+}
+
 function inningsPredicate(f){
   const eras=f.eras||[];
   const eraOk=eras.length
     ? (r=>eras.some(e=>BAZ_FLAG[e]?r[BAZ_FLAG[e]]:r.era===e))
     : (()=>true);
-  const haOk=f.ha ? (r=>r.ha===f.ha) : (()=>true);
-  return r=>eraOk(r)&&haOk(r);
+  const vOk=venuePred(f);
+  return r=>eraOk(r)&&vOk(r);
 }
-function isSliced(f){ return !!((f.eras&&f.eras.length)||f.ha); }
+function isSliced(f){
+  return !!((f.eras&&f.eras.length)||f.ha||
+            (f.cities&&f.cities.length)||(f.grounds&&f.grounds.length));
+}
 
 function slicedPlayers(f){
   const eras=(f.eras||[]).slice().sort((a,b)=>ERA_LIST.indexOf(a)-ERA_LIST.indexOf(b));
   // One pass per selected era → one row per (bowler, era).
   const groups=eras.length?eras:[null];
-  const haOk=f.ha ? (r=>r.ha===f.ha) : (()=>true);
+  const haOk=venuePred(f);   // home/away + city + ground
   const out=[];
 
   groups.forEach(eraKey=>{
@@ -827,15 +925,43 @@ function aggregateInnings(list,label){
 }
 
 const BAZ_FLAG={bazball:'baz',bazballvs:'bazVs',bazballall:'bazAll'};
-let _haPred=()=>true;   // set by applyFilters; aggregate rows honour Home/Away too
+/* Every filter the aggregate view can honour, folded into one predicate over
+   the innings index. Set by applyFilters. The player-level filters (country,
+   type, the minimums and maximums, search) arrive as an eligible-id set; the
+   venue ones are properties of the innings itself. */
+let _aggPred=()=>true;
+
+function aggregateEligible(f){
+  const s=new Set();
+  ALL_PLAYERS.forEach(p=>{
+    if((p.wkts||0)<1) return;                      // never took a wicket
+    if(f.countries.length&&!f.countries.includes(p.country)) return;
+    if(!bowlTypeMatch(p,f.bowlType)) return;
+    if((p.wkts||0)<f.minWkts) return;
+    if(f.minTests&&(p.tests||0)<f.minTests) return;
+    if(f.maxAvg&&(p.bowlAvg||999)>f.maxAvg) return;
+    if(f.maxSR&&(p.bowlSR||999)>f.maxSR) return;
+    if(f.maxEcon&&(p.econ||999)>f.maxEcon) return;
+    if(f.search&&!(p.fullName||p.name||'').toLowerCase().includes(f.search)
+               &&!(p.country||'').toLowerCase().includes(f.search)) return;
+    s.add(p.id);
+  });
+  return s;
+}
+
+function buildAggPred(f){
+  const eligible=aggregateEligible(f);
+  const vOk=venuePred(f);
+  return r=>eligible.has(r.pid)&&vOk(r);
+}
 function inningsForEra(key){
   const flag=BAZ_FLAG[key];
-  return flag ? BOWL_INNS.filter(r=>r[flag]&&_haPred(r))
-              : BOWL_INNS.filter(r=>r.era===key&&_haPred(r));
+  return flag ? BOWL_INNS.filter(r=>r[flag]&&_aggPred(r))
+              : BOWL_INNS.filter(r=>r.era===key&&_aggPred(r));
 }
 
 function buildAggregateRows(eras){
-  if(!eras.length) return [aggregateInnings(BOWL_INNS.filter(_haPred),'All Bowlers')];
+  if(!eras.length) return [aggregateInnings(BOWL_INNS.filter(_aggPred),'All Bowlers')];
   return eras.slice()
     .sort((a,b)=>ERA_LIST.indexOf(a)-ERA_LIST.indexOf(b))
     .map(e=>aggregateInnings(inningsForEra(e),ERA_LABEL[e]||e));
@@ -856,6 +982,8 @@ function getFilters(){
     countries:getMSValues('msCountry'),
     eras:getMSValues('msEra'),
     ha:document.getElementById('fHA').value,
+    cities:getMSValues('msCity'),
+    grounds:getMSValues('msGround'),
     bowlType:document.getElementById('fBowlType').value,
     minWkts:+document.getElementById('fMinWkts').value||0,
     minTests:+document.getElementById('fMinTests').value||0,
@@ -884,11 +1012,15 @@ function bowlTypeMatch(p,type){
 let aggregateMode=false;
 let aggRows=null;
 
-/* Grey out everything the aggregate view can't honour, and say why. */
+/* The aggregate used to grey the panel down to the era picker. It now honours
+   every filter — the player-level ones decide whose innings enter the pool,
+   the venue ones decide which of those innings count — so nothing is
+   disabled. The tab bar stays dimmed: the aggregate table has one fixed shape,
+   so the Wickets / Averages / Economy tabs have nothing to switch between. */
 function syncModeUI(f){
   document.querySelectorAll('.fp-grid .fg[data-dim]').forEach(g=>{
-    g.classList.toggle('dim',aggregateMode);
-    g.querySelectorAll('select,input,button').forEach(el=>{ el.disabled=aggregateMode; });
+    g.classList.remove('dim');
+    g.querySelectorAll('select,input,button').forEach(el=>{ el.disabled=false; });
   });
   const tabBar=document.getElementById('tabBar');
   if(tabBar) tabBar.classList.toggle('dim',aggregateMode);
@@ -897,8 +1029,8 @@ function syncModeUI(f){
     let txt='';
     if(aggregateMode){
       txt=f.eras.length
-        ? 'Aggregate of every Test bowling innings in the selected era(s). Only the era picker applies in this view.'
-        : 'Aggregate of every Test bowling innings ever bowled. Pick one or more eras for a row each. Only the era picker applies in this view.';
+        ? 'Aggregate of every Test bowling innings in the selected era(s), one row each. Every other filter narrows which innings are counted.'
+        : 'Aggregate of every Test bowling innings ever bowled. Pick one or more eras for a row each; every other filter narrows which innings are counted.';
     }
     const bazKeys = (f.eras || []).filter(e => BAZ_FLAG[e]);
     if (bazKeys.length && BAZBALL) {
@@ -928,16 +1060,20 @@ let sliced=false;   // figures rebuilt from the innings index
 function applyFilters(){
   updateMSLabel('msEra');
   updateMSLabel('msCountry');
+  updateMSLabel('msCity');
+  updateMSLabel('msGround');
   const f=getFilters();
   aggregateMode=(f.mode==='all');
   sliced=!aggregateMode&&isSliced(f);
-  _haPred=f.ha ? (r=>r.ha===f.ha) : (()=>true);
   syncModeUI(f);
 
   if(aggregateMode){
-    // Only the era picker applies. `filtered` still drives the summary cards,
-    // so keep it to the bowlers active in the selected eras.
-    filtered=ALL_PLAYERS.filter(p=>(p.wkts||0)>0&&eraMatch(p,f.eras));
+    // Every filter applies here now. `filtered` still drives the summary cards,
+    // so keep it to the bowlers who survive the player-level filters and were
+    // active in the selected eras.
+    _aggPred=buildAggPred(f);
+    const eligible=aggregateEligible(f);
+    filtered=ALL_PLAYERS.filter(p=>eligible.has(p.id)&&eraMatch(p,f.eras));
     aggRows=buildAggregateRows(f.eras);
     currentPage=1;
     renderAll();
@@ -975,6 +1111,9 @@ function resetFilters(){
   document.getElementById('fMaxSR').value='0';
   document.getElementById('fMaxEcon').value='0';
   document.getElementById('fSearch').value='';
+  document.querySelectorAll('#msCity-drop input[type="checkbox"], #msGround-drop input[type="checkbox"]').forEach(c=>c.checked=false);
+  document.querySelectorAll('#msCity-drop .ms-search input, #msGround-drop .ms-search input').forEach(i=>{ i.value=''; });
+  msSearch('msCity',''); msSearch('msGround','');
   applyFilters();
 }
 
@@ -1256,9 +1395,13 @@ function renderTags(){
   let tags=[];
   if(aggregateMode) tags.push(['All bowlers','fMode']);
   f.eras.forEach(e=>tags.push([`Era: ${ERA_LABEL[e]||e}`,'era_'+e]));
-  if(!aggregateMode){
   f.countries.forEach(c=>tags.push([`Country: ${c}`,'ctry_'+c]));
   if(f.ha) tags.push([`Venue: ${f.ha[0].toUpperCase()+f.ha.slice(1)}`,'fHA']);
+  [['msCity','City','city_'],['msGround','Ground','grnd_']].forEach(([id,lab,pre])=>{
+    document.querySelectorAll(`#${id}-drop input[type="checkbox"]:checked`).forEach(b=>{
+      tags.push([`${lab}: ${escHtml(b.value)}`,pre+b.dataset.i]);
+    });
+  });
   if(f.bowlType) tags.push([`Type: ${f.bowlType.charAt(0).toUpperCase()+f.bowlType.slice(1)}`,'fBowlType']);
   if(f.minWkts>1) tags.push([`Min Wkts: ${f.minWkts}`,'fMinWkts']);
   if(f.minTests) tags.push([`Min Tests: ${f.minTests}`,'fMinTests']);
@@ -1266,7 +1409,6 @@ function renderTags(){
   if(f.maxSR) tags.push([`Max SR: ${f.maxSR}`,'fMaxSR']);
   if(f.maxEcon) tags.push([`Max Econ: ${f.maxEcon}`,'fMaxEcon']);
   if(f.search) tags.push([`Search: "${f.search}"`,'fSearch']);
-  }
 
   const bar=document.getElementById('tagBar');
   if(!tags.length){bar.innerHTML='';updateExportButton(0);return;}
@@ -1299,6 +1441,8 @@ function clearTag(id){
     if(box) box.checked=false;
     applyFilters(); return;
   }
+  if(id.startsWith('city_')){ clearMSIndex('msCity',id.slice(5)); return; }
+  if(id.startsWith('grnd_')){ clearMSIndex('msGround',id.slice(5)); return; }
   if(id.startsWith('era_')){
     const box=document.querySelector(`#msEra-drop input[value="${id.slice(4)}"]`);
     if(box) box.checked=false;
@@ -1625,6 +1769,7 @@ function exportToExcel(){
   buildBowlInnings();
   buildBazballSet();
   populateCountryDropdown();
+  populateCityGround();
   applyFilters();
 })();
 </script>

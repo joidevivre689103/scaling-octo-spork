@@ -170,6 +170,15 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
 .ms-panel-head{
   display:flex;gap:6px;padding:4px 6px 8px;border-bottom:1px solid var(--border);margin-bottom:4px;
 }
+.ms-search-box{padding:2px 6px 8px}
+.ms-search-box input{
+  width:100%;padding:7px 10px;font-family:'Outfit',sans-serif;font-size:13px;
+  border:1px solid var(--border);border-radius:6px;background:var(--surface2);
+  color:var(--text);outline:none;
+}
+.ms-search-box input:focus{border-color:var(--accent)}
+.ms-opt.ms-hidden{display:none}
+.ms-nomatch{padding:8px 10px;font-size:13px;color:var(--text3)}
 .ms-mini-btn{
   flex:1;padding:5px 8px;font-family:'Outfit',sans-serif;font-size:11px;font-weight:600;
   background:var(--surface2);border:1px solid var(--border);border-radius:5px;color:var(--text2);
@@ -683,6 +692,27 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
               <option value="Draw">Draws only</option>
             </select>
           </div>
+          <div class="sel-group">
+            <label>Eras <span class="period-hint">multi-select</span></label>
+            <div class="ms-wrap" id="msEra">
+              <button type="button" class="ms-trigger" id="msEra-trigger"><span class="ms-placeholder">All eras</span></button>
+              <div class="ms-panel" id="msEra-panel"></div>
+            </div>
+          </div>
+          <div class="sel-group">
+            <label>City</label>
+            <div class="ms-wrap" id="msCity">
+              <button type="button" class="ms-trigger" id="msCity-trigger"><span class="ms-placeholder">All cities</span></button>
+              <div class="ms-panel" id="msCity-panel"></div>
+            </div>
+          </div>
+          <div class="sel-group">
+            <label>Ground</label>
+            <div class="ms-wrap" id="msGround">
+              <button type="button" class="ms-trigger" id="msGround-trigger"><span class="ms-placeholder">All grounds</span></button>
+              <div class="ms-panel" id="msGround-panel"></div>
+            </div>
+          </div>
         </div>
         <div class="filters-row">
           <div class="sel-group period">
@@ -918,7 +948,7 @@ let currentPage = 1;
 // Triggers onChange after every toggle; 'All' is a virtual row that flips
 // the set to equal TEAMS (or clears it when clicked while all-selected).
 // ──────────────────────────────────────────────────────────────
-function createMultiSelect(id, options, allLabel, onChange, {singleOnly=false} = {}) {
+function createMultiSelect(id, options, allLabel, onChange, {singleOnly=false, showCode=true, searchable=false} = {}) {
   const root = document.getElementById(id);
   const trigger = document.getElementById(id + '-trigger');
   const panel = document.getElementById(id + '-panel');
@@ -952,18 +982,38 @@ function createMultiSelect(id, options, allLabel, onChange, {singleOnly=false} =
         <button type="button" class="ms-mini-btn" data-act="none">Clear</button>
       </div>`);
     }
+    // City and ground lists run to three figures \u2014 unusable without a filter box
+    if (searchable) {
+      rows.push(`<div class="ms-search-box"><input type="text" placeholder="Search\u2026"></div>`);
+    }
     options.forEach(o => {
       // Use a <div> instead of <label> + <input> to avoid native label→input
       // click activation firing alongside our own handler (which caused
       // check/uncheck races, especially for Group 2). We render a purely
       // visual checkbox (✓ icon when selected) keyed off the ms-sel class.
-      rows.push(`<div class="ms-opt" data-code="${o.code}" role="option" aria-selected="false">
+      rows.push(`<div class="ms-opt" data-code="${escAttr(o.code)}" data-lbl="${escAttr(String(o.label).toLowerCase())}" role="option" aria-selected="false">
         <span class="ms-check${singleOnly ? ' ms-radio' : ''}" aria-hidden="true"></span>
         <span>${o.label}</span>
-        <span class="ms-code">${o.code}</span>
+        ${showCode ? `<span class="ms-code">${o.code}</span>` : ''}
       </div>`);
     });
+    if (searchable) rows.push(`<div class="ms-nomatch" style="display:none">No match</div>`);
     panel.innerHTML = rows.join('');
+    const searchEl = searchable ? panel.querySelector('.ms-search-box input') : null;
+    if (searchEl) {
+      searchEl.addEventListener('click', e => e.stopPropagation());
+      searchEl.addEventListener('input', () => {
+        const q = searchEl.value.trim().toLowerCase();
+        let shown = 0;
+        panel.querySelectorAll('.ms-opt').forEach(row => {
+          const hit = !q || (row.dataset.lbl || '').includes(q);
+          row.classList.toggle('ms-hidden', !hit);
+          if (hit) shown++;
+        });
+        const none = panel.querySelector('.ms-nomatch');
+        if (none) none.style.display = shown ? 'none' : '';
+      });
+    }
     panel.querySelectorAll('.ms-opt').forEach(row => {
       row.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -1051,11 +1101,88 @@ document.addEventListener('click', (e) => {
   }
 });
 
+function escAttr(v) {
+  return String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                  .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+// \u2500\u2500 Eras \u2500\u2500
+// Decade buckets matching the batting and bowling pages, plus the two Bazball
+// views that mean something at match level. A head-to-head row is a fixture,
+// not an innings, so "England" and "vs England" would pick out the SAME Tests
+// here \u2014 the split that matters instead is England's Tests in the window
+// against everyone else's, which is the control group the window is read
+// against.
+function eraKeyForYear(y) {
+  if (y < 1950) return 'pre1950';
+  const d = Math.floor(y / 10) * 10;
+  return d >= 2020 ? '2020' : String(d);
+}
+
+const ERA_OPTIONS = [
+  {code:'pre1950', label:'Pre-1950'}, {code:'1950', label:'1950s'},
+  {code:'1960', label:'1960s'}, {code:'1970', label:'1970s'},
+  {code:'1980', label:'1980s'}, {code:'1990', label:'1990s'},
+  {code:'2000', label:'2000s'}, {code:'2010', label:'2010s'},
+  {code:'2020', label:'2020s'},
+  {code:'bazball',   label:'Bazball (England Tests)'},
+  {code:'bazothers', label:'Bazball (Other Countries)'}
+];
+
+// The window is resolved from the data rather than from years: D.M stores only
+// the year, and England played three pre-Bazball Tests in 2022. Its bookends
+// are the England\u2013New Zealand Tests that opened and closed the
+// Stokes\u2013McCullum era, and Test numbers are globally sequential, so a
+// test-number range is exact at both ends.
+let BAZ_WINDOW = null;   // { fromTest, toTest }
+
+function resolveBazWindow(D) {
+  BAZ_WINDOW = null;
+  if (!D || !D.M || !D.T) return;
+  const idx = names => {
+    const want = names.map(n => n.toLowerCase());
+    for (let i = 0; i < D.T.length; i++) {
+      if (want.includes(String(D.T[i] || '').toLowerCase())) return i;
+    }
+    return -1;
+  };
+  const ENG = idx(['england','eng']), NZ = idx(['new zealand','nz','newzealand']);
+  if (ENG < 0 || NZ < 0) return;
+  let first = null, last = null;
+  Object.keys(D.M).forEach(k => {
+    const m = D.M[k]; if (!m) return;
+    const y = m[7]; if (typeof y !== 'number' || y < 2022) return;
+    const engNz = (m[2] === ENG && m[3] === NZ) || (m[2] === NZ && m[3] === ENG);
+    if (!engNz) return;
+    const n = +k;
+    if (y === 2022 && (first === null || n < first)) first = n;
+    if (last === null || n > last) last = n;
+  });
+  if (first === null || last === null || last < first) return;
+  BAZ_WINDOW = { fromTest: first, toTest: last, fromYear: D.M[first][7], toYear: D.M[last][7] };
+  console.info(`[countries] Bazball window: Tests #${first}\u2013#${last} (${BAZ_WINDOW.fromYear}\u2013${BAZ_WINDOW.toYear}).`);
+}
+
+function eraOkFor(m, eras) {
+  if (!eras || !eras.length) return true;
+  return eras.some(e => {
+    if (e === 'bazball')   return !!m.bazEng;
+    if (e === 'bazothers') return !!m.bazOther;
+    return eraKeyForYear(m.year) === e;
+  });
+}
+
 const TEAM_OPTIONS = TEAMS.map(c => ({ code: c, label: TEAM_NAMES[c] || c }));
 
 // Country vs Country pickers
 const ms1 = createMultiSelect('ms1', TEAM_OPTIONS, 'All countries', () => { syncGroups(); updateResults(); });
 const ms2 = createMultiSelect('ms2', TEAM_OPTIONS, 'All countries', () => { syncGroups(); updateResults(); });
+
+// Era picker. City and ground can only be built once the match table has
+// loaded, so they are created in initH2HFromPipeline.
+const msEra = createMultiSelect('msEra', ERA_OPTIONS, 'All eras',
+  () => renderTable(), { showCode: false });
+let msCity = null, msGround = null;
 
 // ─────────────────────────────────────────────────────────────
 // Keep the two sides from overlapping.
@@ -1290,7 +1417,8 @@ function buildAllVsAllMatches() {
         const home = (vc === c1 || vc === c2) ? vc : null;
         if (home === c2) { c1 = opp; c2 = me; }   // list the host first
         out.push({
-          test: m.test, year: m.year, venue: m.venue, margin: m.margin,
+          test: m.test, year: m.year, venue: m.venue, ground: m.ground, margin: m.margin,
+          bazEng: m.bazEng, bazOther: m.bazOther,
           c1: c1, c2: c2, winner: winner,
           ha: home ? 'home' : 'neutral',
           result: !winner ? 'Draw' : (winner === home ? 'Won' : 'Lost')
@@ -1417,6 +1545,7 @@ function updateResults() {
   document.getElementById('filterFrom2').value = '';
   document.getElementById('filterTo2').value = '';
   document.getElementById('filterHA').value = 'all';
+  clearVenueAndEra();
   renderTable();
 }
 
@@ -1426,7 +1555,17 @@ function clearYearFilters() {
   document.getElementById('filterFrom2').value = '';
   document.getElementById('filterTo2').value = '';
   document.getElementById('filterHA').value = 'all';
+  clearVenueAndEra();
   renderTable();
+}
+
+/* Era, city and ground reset together with the year and venue boxes \u2014 the
+   Clear button says "Clear", and a picker left ticked out of sight is the
+   commonest way to end up staring at an empty table. */
+function clearVenueAndEra() {
+  if (msEra)    msEra.set([]);
+  if (msCity)   msCity.set([]);
+  if (msGround) msGround.set([]);
 }
 
 function normalizeMargin(margin) {
@@ -1617,6 +1756,17 @@ function renderTable() {
     ? currentMatches.filter(m => periods.some(p => inPeriod(m, p)))
     : currentMatches;
   if (haFilter !== 'all') yearFiltered = yearFiltered.filter(m => m.ha === haFilter);
+
+  // Era, city and ground narrow the same set. Era sits alongside the year
+  // periods rather than replacing them: both are time constraints and both
+  // must hold, so picking the 1990s and a period of 2000\u20132010 correctly
+  // returns nothing.
+  const eras = msEra ? msEra.get() : [];
+  if (eras.length) yearFiltered = yearFiltered.filter(m => eraOkFor(m, eras));
+  const cities = msCity ? msCity.get() : [];
+  if (cities.length) yearFiltered = yearFiltered.filter(m => cities.includes(m.venue));
+  const grounds = msGround ? msGround.get() : [];
+  if (grounds.length) yearFiltered = yearFiltered.filter(m => grounds.includes(m.ground));
 
   // Recalculate summary stats from year-filtered matches
   const w1 = yearFiltered.filter(m => m.result === 'Won').length;
@@ -1942,6 +2092,9 @@ function buildH2HFromData(D) {
     }
     const isDraw = drawn || winner === null;
     const venue = D.C[m[0]], year = m[7];
+    const ground = (D.G && D.G[m[1]]) || '';
+    const inBaz = !!(BAZ_WINDOW && t >= BAZ_WINDOW.fromTest && t <= BAZ_WINDOW.toTest);
+    const hasEng = (c1 === 'ENG' || c2 === 'ENG');
     const margin = isDraw ? '' : marginFromResult(res);
     [[c1, c2], [c2, c1]].forEach(pair => {
       const me = pair[0], opp = pair[1];
@@ -1953,7 +2106,8 @@ function buildH2HFromData(D) {
       else if (winner === me) { r = 'Won'; b.wins++; }
       else { r = 'Lost'; b.losses++; }
       b.total++;
-      b.matches.push({ test: t, year: year, venue: venue, result: r, margin: margin });
+      b.matches.push({ test: t, year: year, venue: venue, ground: ground, result: r, margin: margin,
+                       bazEng: inBaz && hasEng, bazOther: inBaz && !hasEng });
     });
   });
   return h;
@@ -1963,7 +2117,9 @@ function buildH2HFromData(D) {
 (async function initH2HFromPipeline() {
   try {
     const D = await loadImpactData();
+    resolveBazWindow(D);
     H2H = buildH2HFromData(D);
+    buildVenuePickers(D);
     const tt = document.getElementById('totalTests');
     if (tt) tt.textContent = Object.keys(D.M).length.toLocaleString('en-US');
     updateResults();
@@ -1976,6 +2132,26 @@ function buildH2HFromData(D) {
     }
   }
 })();
+
+// Cities and grounds actually present in the match table \u2014 D.C / D.G carry
+// entries the dataset never uses, and a dead option that returns nothing is
+// worse than no option at all.
+function buildVenuePickers(D) {
+  const cities = new Set(), grounds = new Set();
+  Object.keys(D.M || {}).forEach(k => {
+    const m = D.M[k]; if (!m) return;
+    const c = D.C && D.C[m[0]], g = D.G && D.G[m[1]];
+    if (c) cities.add(c);
+    if (g) grounds.add(g);
+  });
+  const opts = set => [...set].sort((a, b) => String(a).localeCompare(String(b)))
+                              .map(v => ({ code: v, label: v }));
+  msCity   = createMultiSelect('msCity', opts(cities), 'All cities',
+              () => renderTable(), { showCode: false, searchable: true });
+  msGround = createMultiSelect('msGround', opts(grounds), 'All grounds',
+              () => renderTable(), { showCode: false, searchable: true });
+  console.info(`[countries] venue filters: ${cities.size} cities, ${grounds.size} grounds.`);
+}
 
 async function loadImpactData() {
   if (__impactData) return __impactData;

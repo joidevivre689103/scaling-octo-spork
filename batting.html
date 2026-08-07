@@ -131,6 +131,13 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-he
 .ms-opt:hover{background:var(--surface2)}
 .ms-opt input{accent-color:var(--accent)}
 .ms-sep{padding:7px 10px 4px;margin-top:3px;border-top:1px solid var(--border);font-size:9.5px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:var(--text3)}
+.ms-search{position:sticky;top:0;background:var(--surface);padding:6px;border-bottom:1px solid var(--border);z-index:2}
+.ms-search input{width:100%;padding:5px 8px;font-family:var(--font-body);font-size:12px;border:1px solid var(--border);border-radius:3px;background:var(--bg);color:var(--text);outline:none}
+.ms-search input:focus{border-color:var(--accent)}
+.ms-foot{position:sticky;bottom:0;background:var(--surface);border-top:1px solid var(--border);padding:5px 10px;text-align:right;z-index:2}
+.ms-foot span{font-size:11px;color:var(--accent);cursor:pointer;font-weight:600}
+.ms-opt.hidden{display:none}
+.ms-none{padding:8px 10px;font-size:12px;color:var(--text3)}
 
 /* ── Tabs ── */
 .tabs{display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:0}
@@ -266,6 +273,20 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-he
             <option value="away">Away</option>
             <option value="neutral">Neutral</option>
           </select>
+        </div>
+        <div class="fp-group">
+          <label>City</label>
+          <div class="ms-wrap" id="msCity">
+            <button class="ms-btn" type="button" onclick="toggleMS('msCity')">All cities</button>
+            <div class="ms-drop" id="msCity-drop"></div>
+          </div>
+        </div>
+        <div class="fp-group">
+          <label>Ground</label>
+          <div class="ms-wrap" id="msGround">
+            <button class="ms-btn" type="button" onclick="toggleMS('msGround')">All grounds</button>
+            <div class="ms-drop" id="msGround-drop"></div>
+          </div>
         </div>
         <div class="fp-group">
           <label>Era</label>
@@ -560,11 +581,15 @@ let aggregateMode = false;   // "All players" — one aggregate row per era
 let aggRows       = null;    // rows for that view
 let sliced        = false;   // figures rebuilt from the innings index
 
-/* Grey out everything the aggregate view can't honour, and say why. */
+/* The aggregate used to grey the panel down to the era picker. It now honours
+   every filter — the player-level ones decide whose innings enter the pool,
+   the venue and opponent ones decide which of those innings count — so
+   nothing is disabled. The tab bar stays dimmed: the aggregate table has one
+   fixed shape, so Runs / Average / SR / Milestones have nothing to switch. */
 function syncModeUI(f) {
   document.querySelectorAll('.fp-grid .fp-group[data-dim]').forEach(g => {
-    g.classList.toggle('dim', aggregateMode);
-    g.querySelectorAll('select,input,button').forEach(el => { el.disabled = aggregateMode; });
+    g.classList.remove('dim');
+    g.querySelectorAll('select,input,button').forEach(el => { el.disabled = false; });
   });
   const tabBar = document.getElementById('tabBar');
   if (tabBar) tabBar.classList.toggle('dim', aggregateMode);
@@ -572,8 +597,8 @@ function syncModeUI(f) {
     let txt = '';
     if (aggregateMode) {
       txt = f.eras.length
-        ? 'Aggregate of every Test innings played in the selected era(s). Only the era picker applies in this view.'
-        : 'Aggregate of every Test innings ever played. Pick one or more eras for a row each. Only the era picker applies in this view.';
+        ? 'Aggregate of every Test innings played in the selected era(s), one row each. Every other filter narrows which innings are counted.'
+        : 'Aggregate of every Test innings ever played. Pick one or more eras for a row each; every other filter narrows which innings are counted.';
     }
     const bazKeys = (f.eras || []).filter(e => BAZ_FLAG[e]);
     if (bazKeys.length && BAZBALL) {
@@ -637,18 +662,83 @@ document.addEventListener('click', e => {
     if (!d.parentElement.contains(e.target)) d.classList.remove('open');
   });
 });
+/* The City and Ground dropdowns carry a search box, so an input:checked
+   selector would pick that up as well — every read is checkbox-only. */
 function getMSValues(id) {
-  const checks = document.querySelectorAll(`#${id}-drop input:checked`);
+  const checks = document.querySelectorAll(`#${id}-drop input[type="checkbox"]:checked`);
   return [...checks].map(c => c.value);
 }
-const MS_EMPTY = { msOpp: 'All opponents', msEra: 'All eras', msCountry: 'All countries', msPos: 'All positions' };
+const MS_EMPTY = { msOpp: 'All opponents', msEra: 'All eras', msCountry: 'All countries',
+                   msPos: 'All positions', msCity: 'All cities', msGround: 'All grounds' };
+/* Lists long enough that spelling every tick out would overrun the button. */
+const MS_MANY  = { msCity: 'cities', msGround: 'grounds', msOpp: 'opponents', msCountry: 'countries' };
 function updateMSLabel(id) {
-  const checks = [...document.querySelectorAll(`#${id}-drop input:checked`)];
+  const checks = [...document.querySelectorAll(`#${id}-drop input[type="checkbox"]:checked`)];
   const btn = document.querySelector(`#${id} .ms-btn`);
   if (!btn) return;
-  btn.textContent = checks.length === 0
-    ? (MS_EMPTY[id] || 'All')
-    : checks.map(c => c.parentElement.textContent.trim()).join(', ');
+  if (checks.length === 0)              { btn.textContent = MS_EMPTY[id] || 'All'; return; }
+  if (checks.length > 3 && MS_MANY[id]) { btn.textContent = `${checks.length} ${MS_MANY[id]}`; return; }
+  btn.textContent = checks.map(c => c.parentElement.textContent.trim()).join(', ');
+}
+
+/* ── Searchable multi-select (City, Ground) ──
+   Both lists run to three figures, so the dropdown gets a filter box and a
+   Clear footer. Options carry data-i so a tag can clear one by index —
+   grounds like Lord's carry apostrophes that would break a value-matched
+   selector built into an onclick attribute. */
+function escHtml(v) {
+  return String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                  .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+function populateSearchableMS(id, values, placeholder) {
+  const drop = document.getElementById(id + '-drop');
+  if (!drop) return;
+  drop.innerHTML =
+    `<div class="ms-search"><input type="text" placeholder="${placeholder}" ` +
+      `oninput="msSearch('${id}',this.value)" onclick="event.stopPropagation()"></div>` +
+    values.map((v, i) =>
+      `<div class="ms-opt" data-lbl="${escHtml(String(v).toLowerCase())}">` +
+      `<input type="checkbox" data-i="${i}" value="${escHtml(v)}" onchange="applyFilters()">` +
+      `<span>${escHtml(v)}</span></div>`).join('') +
+    `<div class="ms-none" style="display:none">No match</div>` +
+    `<div class="ms-foot"><span onclick="clearMS('${id}')">Clear</span></div>`;
+}
+function msSearch(id, q) {
+  const s = String(q || '').trim().toLowerCase();
+  let shown = 0;
+  document.querySelectorAll(`#${id}-drop .ms-opt`).forEach(o => {
+    const hit = !s || (o.dataset.lbl || '').includes(s);
+    o.classList.toggle('hidden', !hit);
+    if (hit) shown++;
+  });
+  const none = document.querySelector(`#${id}-drop .ms-none`);
+  if (none) none.style.display = shown ? 'none' : '';
+}
+function clearMS(id) {
+  document.querySelectorAll(`#${id}-drop input[type="checkbox"]`).forEach(c => c.checked = false);
+  applyFilters();
+}
+function clearMSIndex(id, i) {
+  const box = document.querySelector(`#${id}-drop input[data-i="${i}"]`);
+  if (box) box.checked = false;
+  applyFilters();
+}
+
+/* Cities and grounds actually present in the match table — D.C / D.G carry
+   entries the dataset never uses, and a dead option that returns nothing is
+   worse than no option at all. */
+function populateCityGround() {
+  const cities = new Set(), grounds = new Set();
+  Object.keys(D.M || {}).forEach(k => {
+    const m = D.M[k]; if (!m) return;
+    const c = D.C && D.C[m[0]], g = D.G && D.G[m[1]];
+    if (c) cities.add(c);
+    if (g) grounds.add(g);
+  });
+  const sort = a => [...a].sort((x, y) => String(x).localeCompare(String(y)));
+  populateSearchableMS('msCity', sort(cities), 'Search cities\u2026');
+  populateSearchableMS('msGround', sort(grounds), 'Search grounds\u2026');
+  console.info(`[batting] venue filters: ${cities.size} cities, ${grounds.size} grounds in the match table.`);
 }
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -836,6 +926,36 @@ function resolveBazball() {
 let BAT_INNS = [];
 let APPEAR = [];   // one entry per (player, match) — matches PLAYED, not batted
 
+/* Teams in each match, derived from the countries of the players who appear
+   in it rather than from D.M's team indices — same reasoning as
+   buildOpponentLookup, which this mirrors. Built before the innings index so
+   every innings can carry the opponent it was played against. */
+let MATCH_TEAMS = new Map();   // matchId → [countryA, countryB]
+
+function buildMatchTeams() {
+  MATCH_TEAMS = new Map();
+  if (!D.S) return;
+  const byMatch = new Map();
+  for (const s of D.S) {
+    const mid = s[0], pid = s[1];
+    if (!mid || !pid) continue;
+    let set = byMatch.get(mid);
+    if (!set) { set = new Set(); byMatch.set(mid, set); }
+    if (set.size >= 2) continue;
+    const c = PID_COUNTRY[pid];
+    if (c) set.add(c);
+  }
+  byMatch.forEach((set, mid) => { if (set.size === 2) MATCH_TEAMS.set(mid, [...set]); });
+}
+
+function oppFor(pid, mid) {
+  const t = MATCH_TEAMS.get(mid);
+  if (!t) return '';
+  const c = PID_COUNTRY[pid];
+  if (!c) return '';
+  return t[0] === c ? t[1] : (t[1] === c ? t[0] : '');
+}
+
 /* Which era / venue / Bazball buckets one (player, match) pairing falls into.
    Shared by the innings index and the appearance index so they can never
    disagree about where a match belongs. */
@@ -845,6 +965,8 @@ function bucketsFor(pid, mid, m) {
   const isEng = PID_COUNTRY[pid] === 'England';
   return {
     era: eraKeyForYear(m[7]), year: m[7], ha: haFor(pid, m),
+    city: (D.C && D.C[m[0]]) || '', ground: (D.G && D.G[m[1]]) || '',
+    opp: oppFor(pid, mid),
     // Three Bazball views of the same window:
     //   baz    — England's own batsmen in England's Tests
     //   bazVs  — their opponents in those same Tests
@@ -1074,16 +1196,27 @@ function buildBazballSet() {
    the matching innings instead. MoM and %Ct/Inn have no per-innings source, so
    those two columns are hidden while a slice is in force.
    ────────────────────────────────────────────────────────────────────────── */
+/* Venue constraints that apply per innings: home/away, city, ground. */
+function venuePred(f) {
+  const haOk   = f.ha ? (r => r.ha === f.ha) : (() => true);
+  const cityOk = (f.cities  && f.cities.length)  ? (r => f.cities.includes(r.city))    : (() => true);
+  const grOk   = (f.grounds && f.grounds.length) ? (r => f.grounds.includes(r.ground)) : (() => true);
+  return r => haOk(r) && cityOk(r) && grOk(r);
+}
+
 function inningsPredicate(f) {
   const eras = f.eras || [];
   const eraOk = eras.length
     ? (r => eras.some(e => BAZ_FLAG[e] ? r[BAZ_FLAG[e]] : r.era === e))
     : (() => true);
-  const haOk = f.ha ? (r => r.ha === f.ha) : (() => true);
-  return r => eraOk(r) && haOk(r);
+  const vOk = venuePred(f);
+  return r => eraOk(r) && vOk(r);
 }
 
-function isSliced(f) { return !!((f.eras && f.eras.length) || f.ha); }
+function isSliced(f) {
+  return !!((f.eras && f.eras.length) || f.ha ||
+            (f.cities && f.cities.length) || (f.grounds && f.grounds.length));
+}
 
 function slicedPlayers(f) {
   const eras = (f.eras || []).slice().sort((a, b) => ERA_LIST.indexOf(a) - ERA_LIST.indexOf(b));
@@ -1091,7 +1224,7 @@ function slicedPlayers(f) {
   // there's a single unnamed group, so the venue filter alone still gives one
   // row per player.
   const groups = eras.length ? eras : [null];
-  const haOk = f.ha ? (r => r.ha === f.ha) : (() => true);
+  const haOk = venuePred(f);   // home/away + city + ground
   const out = [];
 
   groups.forEach(eraKey => {
@@ -1209,16 +1342,51 @@ function aggregateInnings(list, label) {
 
 /* Innings belonging to one era key. Bazball is a flag, not a decade bucket. */
 const BAZ_FLAG = { bazball: 'baz', bazballvs: 'bazVs', bazballall: 'bazAll' };
-let _haPred = () => true;   // set by applyFilters; aggregate rows honour Home/Away too
+/* Every filter the aggregate view can honour, folded into one predicate over
+   the innings index. Set by applyFilters. Player-level filters (country,
+   position, the minimums, search) arrive as an eligible-id set; the rest —
+   home/away, city, ground, opponent — are properties of the innings. */
+let _aggPred = () => true;
+
+function aggregateEligible(f) {
+  const s = new Set();
+  PLAYERS.forEach(p => {
+    if (f.countries.length && !f.countries.includes(p.country)) return;
+    if (!posMatch(p, f.pos)) return;
+    if (f.tests && p.tests < f.tests) return;
+    if (f.inns  && p.inns  < f.inns)  return;
+    if (f.runs  && p.runs  < f.runs)  return;
+    if (f.avg   && p.avg   < f.avg)   return;
+    if (f.sr    && p.sr    < f.sr)    return;
+    if (f.search) {
+      const q = f.search;
+      if (!p.name.toLowerCase().includes(q) &&
+          !p.fullName.toLowerCase().includes(q) &&
+          !p.country.toLowerCase().includes(q)) return;
+    }
+    s.add(p.id);
+  });
+  return s;
+}
+
+/* In the player table the opponent filter is a career question — has he faced
+   all of these sides. The aggregate has no careers in it, only innings, so it
+   reads per innings instead: count the innings played against a picked side. */
+function buildAggPred(f) {
+  const eligible = aggregateEligible(f);
+  const vOk = venuePred(f);
+  const oppOk = f.opponents.length ? (r => f.opponents.includes(r.opp)) : (() => true);
+  return r => eligible.has(r.pid) && vOk(r) && oppOk(r);
+}
 function inningsForEra(key) {
   const flag = BAZ_FLAG[key];
-  return flag ? BAT_INNS.filter(r => r[flag] && _haPred(r))
-              : BAT_INNS.filter(r => r.era === key && _haPred(r));
+  return flag ? BAT_INNS.filter(r => r[flag] && _aggPred(r))
+              : BAT_INNS.filter(r => r.era === key && _aggPred(r));
 }
 
 /* One row per selected era, or a single all-time row when none are picked. */
 function buildAggregateRows(eras) {
-  if (!eras.length) return [aggregateInnings(BAT_INNS.filter(_haPred), 'All Players')];
+  if (!eras.length) return [aggregateInnings(BAT_INNS.filter(_aggPred), 'All Players')];
   return eras
     .slice()
     .sort((a, b) => ERA_LIST.indexOf(a) - ERA_LIST.indexOf(b))
@@ -1262,6 +1430,8 @@ function getFilters() {
     eras:     getMSValues('msEra'),
     countries: getMSValues('msCountry'),
     ha:       document.getElementById('fHA').value,
+    cities:   getMSValues('msCity'),
+    grounds:  getMSValues('msGround'),
     pos:      getMSValues('msPos'),
     tests:    +document.getElementById('fTests').value,
     inns:     +document.getElementById('fInns').value,
@@ -1278,16 +1448,20 @@ function applyFilters() {
   updateMSLabel('msEra');
   updateMSLabel('msCountry');
   updateMSLabel('msPos');
+  updateMSLabel('msCity');
+  updateMSLabel('msGround');
   const f = getFilters();
   aggregateMode = (f.mode === 'all');
   sliced = !aggregateMode && isSliced(f);
-  _haPred = f.ha ? (r => r.ha === f.ha) : (() => true);
   syncModeUI(f);
 
   if (aggregateMode) {
-    // Only the era picker applies. `filtered` still drives the stat cards, so
-    // keep it to the players active in the selected eras.
-    filtered = PLAYERS.filter(p => eraMatch(p, f.eras));
+    // Every filter applies here now. `filtered` still drives the stat cards, so
+    // keep it to the players who survive the player-level filters and were
+    // active in the selected eras.
+    _aggPred = buildAggPred(f);
+    const eligible = aggregateEligible(f);
+    filtered = PLAYERS.filter(p => eligible.has(p.id) && eraMatch(p, f.eras));
     aggRows = buildAggregateRows(f.eras);
     page = 1;
     updateCards();
@@ -1644,9 +1818,13 @@ function renderTags() {
   f.eras.forEach(e => {
     tags.push(`<span class="fp-tag" onclick="document.querySelector('#msEra-drop input[value=\\'${e}\\']').checked=false;applyFilters()">${ERA_LABEL[e] || e} ${x}</span>`);
   });
-  if (!aggregateMode) {
   f.countries.forEach(c => tags.push(`<span class="fp-tag" onclick="document.querySelector('#msCountry-drop input[value=\\'${c}\\']').checked=false;applyFilters()">${c} ${x}</span>`));
   if (f.ha) tags.push(`<span class="fp-tag" onclick="document.getElementById('fHA').value='';applyFilters()">${f.ha[0].toUpperCase()+f.ha.slice(1)} ${x}</span>`);
+  [['msCity', 'City'], ['msGround', 'Ground']].forEach(([id, lab]) => {
+    document.querySelectorAll(`#${id}-drop input[type="checkbox"]:checked`).forEach(b => {
+      tags.push(`<span class="fp-tag" onclick="clearMSIndex('${id}',${b.dataset.i})">${lab}: ${escHtml(b.value)} ${x}</span>`);
+    });
+  });
   {
     const posLabels = {'1-3':'Top order','4-5':'Middle order','6-7':'Lower middle','8-11':'Tail'};
     f.pos.forEach(k => tags.push(`<span class="fp-tag" onclick="document.querySelector('#msPos-drop input[value=\\'${k}\\']').checked=false;applyFilters()">${posLabels[k]||k} ${x}</span>`));
@@ -1659,7 +1837,6 @@ function renderTags() {
   f.opponents.forEach(o => {
     tags.push(`<span class="fp-tag" onclick="document.querySelector('#msOpp-drop input[value=\\'${o}\\']').checked=false;applyFilters()">vs ${o} ${x}</span>`);
   });
-  }
 
   const box = document.getElementById('tagBox');
   box.innerHTML = tags.join('');
@@ -1706,6 +1883,10 @@ function resetFilters() {
   document.getElementById('fSR').value = '0';
   document.getElementById('fSearch').value = '';
   document.querySelectorAll('#msOpp-drop input').forEach(c => c.checked = false);
+  document.querySelectorAll('#msCity-drop input[type="checkbox"]').forEach(c => c.checked = false);
+  document.querySelectorAll('#msGround-drop input[type="checkbox"]').forEach(c => c.checked = false);
+  document.querySelectorAll('#msCity-drop .ms-search input, #msGround-drop .ms-search input').forEach(i => { i.value = ''; });
+  msSearch('msCity', ''); msSearch('msGround', '');
   applyFilters();
 }
 
@@ -1823,12 +2004,14 @@ function exportToExcel() {
   buildPlayers();
   buildTwoX100();
   resolveBazball();
+  buildMatchTeams();
   buildBatInnings();
   applyDoubles();
   buildBazballSet();
   applyInningsDerivedSR();
   buildOpponentLookup();
   populateCountries();
+  populateCityGround();
   applyFilters();
 })();
 </script>
