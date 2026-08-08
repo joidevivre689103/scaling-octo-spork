@@ -673,7 +673,7 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
     <p style="margin-top:8px"><strong>Team aggregates.</strong> <em>Batting Strength</em> = position-weighted sum of the XI's batting ratings (top-order batters count ~3× more than the tail). <em>Bowling Strength</em> = sum of the top-5 bowling ratings in the XI.</p>
     <p style="margin-top:8px"><strong>Match outcome.</strong> Three-way logistic on <code>D = (A_bat − B_bow) + (A_bow − B_bat)</code>, plus home effect and a bat-first effect (the decision made at the toss — which team chose to bat first). Fit on <span id="calibN">~2,500</span> historical Tests. Out-of-the-box calibration: log-loss <span id="calibLogLoss">0.97</span> (vs <span id="calibLogLossBase">1.10</span> uniform baseline), Brier <span id="calibBrier">0.58</span> (vs <span id="calibBrierBase">0.67</span>).</p>
     <p style="margin-top:8px"><strong>Known v1 quirks.</strong> XI reconstruction drops ~3% of historical Tests where country-matching fails (e.g. ICC World XI). Empty slots default to a below-average filler (0.5 bat, 0 bow). All documented in <code>sim_model.json</code>.</p>
-    <p style="margin-top:12px;padding-top:10px;border-top:1px dotted var(--border);font-size:12px;color:var(--text3)"><strong style="color:var(--text2)">Data files:</strong> <code>simulations.html</code> loads <code>sim_ratings.json</code> and <code>sim_model.json</code> from the same directory, plus <code>calibration.json</code> for the accuracy numbers above. <span id="dataFilesGen"></span></p>
+    <p style="margin-top:12px;padding-top:10px;border-top:1px dotted var(--border);font-size:12px;color:var(--text3)"><strong style="color:var(--text2)">Data files:</strong> the ratings and match model are pipeline artifacts served from Cricket Times' authenticated data endpoint, not fetched as public files. The accuracy figures above come from a separate published calibration file. <span id="dataFilesGen"></span></p>
   </div>
 </main>
 </div>
@@ -869,8 +869,10 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
    Global state lives on window.MS to avoid polluting global namespace unnecessarily. */
 (function(){
   "use strict";
-  const RATINGS_URL="sim_ratings.json";   // pipeline artifact
-  const MODEL_URL="sim_model.json";       // pipeline artifact
+  // RATINGS_URL / MODEL_URL removed 2026-08-08: they held bare same-directory
+  // filenames ("sim_ratings.json"), were left behind by Phase 3 §3 when both
+  // artifacts moved behind CTData/serveDerivedData, and their only remaining
+  // reader was the error overlay that quoted them at the reader.
   const CALIB_URL="https://firebasestorage.googleapis.com/v0/b/hitwicket-cba02.firebasestorage.app/o/public%2Fcalibration.json?alt=media";     // public Storage artifact — non-blocking (accuracy numbers in method-note)
 
   const MS={
@@ -1415,7 +1417,7 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
     MS.dataLoading=(async()=>{
       // Phase 3 §3: dataset comes from the gated serveDerivedData endpoint via CTData
       // (Bearer token + browser-native gzip inflation). CTData has its own cache too.
-      MS.data = await CTData.load('data');
+      MS.data = await CTData.load('data', { renderError: false });
       return MS.data;
     })();
     return MS.dataLoading;
@@ -1554,7 +1556,8 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
   // ── Boot
   async function boot(){
     try{
-      await SimEngine.load(await CTData.load('ratings'), await CTData.load('model'));
+      await SimEngine.load(await CTData.load('ratings', { renderError: false }),
+                           await CTData.load('model',   { renderError: false }));
       populateTeamSelects();
       bindTeamSelects();
       populatePresetDropdowns();
@@ -1585,16 +1588,16 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
       }).catch(()=>{/* non-fatal, fallback numbers stay */});
     }catch(e){
       console.error(e);
-      document.getElementById("dataLoadingOverlay").innerHTML=`
-        <div style="text-align:center;max-width:440px;padding:20px">
-          <div style="font-family:'Playfair Display',serif;font-size:20px;color:var(--accent);margin-bottom:8px">Engine failed to load</div>
-          <div style="font-family:'Source Serif 4',serif;font-size:14px;color:var(--text2);line-height:1.6">
-            Could not fetch <code>${RATINGS_URL}</code> or <code>${MODEL_URL}</code>.<br><br>
-            These are pipeline artifacts produced by <code>build_ratings.py</code> and <code>fit_match_model.py</code>. A third artifact, <code>calibration.json</code>, supplies the accuracy numbers in the method note and is fetched separately (a missing <code>calibration.json</code> does not block the page).<br><br>
-            All files must sit in the same directory as <code>simulations.html</code>.<br><br>
-            <span style="color:var(--text3);font-size:12px">${e.message}</span>
-          </div>
-        </div>`;
+      // (1c): one message for every data failure across the site. Rendered INTO
+      // the loading overlay because it sits at z-index 9999 -- a panel mounted
+      // anywhere else on this page would be hidden behind it. hide:null because
+      // the overlay already covers the page chrome. The former bespoke markup
+      // here named sim_ratings.json / sim_model.json as same-directory files,
+      // which stopped being true at Phase 3 §3.
+      var ov = document.getElementById("dataLoadingOverlay");
+      ov.innerHTML = "";
+      ov.style.display = "flex";
+      CTData.renderError(e, { into: "#dataLoadingOverlay", hide: null });
     }
   }
   boot();
