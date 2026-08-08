@@ -531,13 +531,22 @@
     var existing = document.querySelector('.' + PANEL_CLASS);
     if (existing) return existing;
 
-    var host = null, i;
+    var host = null, matched = null, i;
     var list = opts.into ? [opts.into].concat(TARGETS) : TARGETS;
     for (i = 0; i < list.length; i++) {
       try { host = document.querySelector(list[i]); } catch (_) { host = null; }
-      if (host) break;
+      if (host) { matched = list[i]; break; }
     }
     if (!host) return null;
+
+    // Only ever EMPTY a host we know holds the data and nothing else: an
+    // explicit opts.into, a page-declared [data-ct-data-region], or .tbl-wrap.
+    // 'main' / '.wrap' / 'body' are last-resort fallbacks for a page that
+    // declared no target -- clearing one of those would blank the masthead,
+    // nav and everything else on the page, which is far worse than the empty
+    // table this whole item exists to fix. Append there instead.
+    var PRECISE = { '[data-ct-data-region]': 1, '.tbl-wrap': 1 };
+    var mayClear = (matched === opts.into) || !!PRECISE[matched];
 
     injectCss();
 
@@ -599,8 +608,9 @@
       + ((err && err.reason) ? ' \u00b7 ' + err.reason : '');
     panel.appendChild(ref);
 
-    // Empty the host of the thing that was going to hold data (the table), then mount.
-    if (opts.replace !== false) host.innerHTML = '';
+    // Empty the host of the thing that was going to hold data (the table), then
+    // mount. Skipped for coarse fallback hosts -- see the mayClear note above.
+    if (opts.replace !== false && mayClear) host.innerHTML = '';
     host.appendChild(panel);
 
     // 429 only: hold the retry until the server's window has passed.
