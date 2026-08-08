@@ -49,7 +49,7 @@
     var e = new Error(message || code);
     e.name = 'CTDataError';
     e.code = code;
-    if (extra) { e.status = extra.status; e.reason = extra.reason; }
+    if (extra) { e.status = extra.status; e.reason = extra.reason; e.retryAfter = extra.retryAfter; }
     return e;
   }
 
@@ -295,6 +295,19 @@
           { status: 403, reason: (body && body.reason) || 'paywall' });
       });
     }
+    if (s === 429) {
+      // Rate limited. UNREACHABLE TODAY -- nothing in serveDerivedData limits
+      // requests (maxInstances:10 sheds load, it does not 429). Built now so
+      // (1a) App Check and any future limiter have a branch to land on rather
+      // than falling through to the generic 'http' code. Deliberately NO auto-
+      // retry: sleeping for an unknown Retry-After inside load() would look
+      // identical to a hang. The panel counts down and lets the reader retry.
+      var ra = null;
+      try { ra = resp.headers.get('Retry-After'); } catch (_) {}
+      var secs = (ra && /^\d+$/.test(ra.trim())) ? parseInt(ra, 10) : null;   // HTTP-date form ignored on purpose
+      throw CTDataError('rate-limited',
+        'serveDerivedData is rate limiting this client.', { status: 429, retryAfter: secs });
+    }
     if (s === 401) throw CTDataError('unauthorized', 'Authentication failed for serveDerivedData.', { status: 401 });
     if (s === 400) throw CTDataError('bad-file',    'serveDerivedData rejected the file parameter.', { status: 400 });
     if (s === 405) throw CTDataError('method',      'serveDerivedData requires GET.',                { status: 405 });
@@ -304,7 +317,8 @@
   }
 
   /* --- public load (with in-memory + sessionStorage cache + single-flight) --- */
-  function load(file) {
+  function load(file, opts) {
+    opts = opts || {};
     if (!ALLOWED[file]) {
       return Promise.reject(CTDataError('bad-file',
         'Unknown derived-data file "' + file + '" (allowed: data, ratings, model).'));
@@ -357,9 +371,22 @@
     });
 
     // clear the in-flight slot on either outcome
+    // (1c): draw the panel HERE, on the final rejection, then rethrow unchanged.
+    // Rendering in the loader rather than in each page means a new gated page
+    // inherits it for free, and the nine existing catch blocks keep working
+    // exactly as they do today -- by the time `catch (e)` runs, the reader is
+    // already looking at a message instead of an empty table.
+    // Opt out with CTData.load('data', { renderError: false }) for admin tools
+    // that want their own handling.
     var cleaned = p.then(
       function (v) { delete load._inflight[file]; return v; },
-      function (e) { delete load._inflight[file]; throw e; }
+      function (e) {
+        delete load._inflight[file];
+        if (opts.renderError !== false) {
+          try { renderError(e, opts); } catch (_) { /* never let the panel mask the error */ }
+        }
+        throw e;
+      }
     );
     load._inflight[file] = cleaned;
     return cleaned;
@@ -374,5 +401,227 @@
     });
   }
 
-  window.CTData = { load: load, clearCache: clearCache, _endpoint: ENDPOINT };
+  /* --- error presentation ----------------------------------------------------
+   * (1c). The loader has always produced well-typed rejections; nothing ever
+   * showed them to a reader. Every stats page ends its init with
+   *   catch (e) { console.error(...); return; }
+   * which leaves a fully-rendered page wrapped around an empty <tbody>.
+   *
+   * This renders IN THE LOADER, by default, on any rejection out of load() --
+   * so a NEW gated page inherits the behaviour by including this script and
+   * writing no error code at all. The rejection still propagates, so existing
+   * page-level catch blocks keep working unchanged.
+   *
+   * WHO ACTUALLY SEES THIS: mostly entitled subscribers. The bootstrap in
+   * feature-flags.js fails OPEN on a stalled gate (signed-in + timeout ->
+   * reveal), while serveDerivedData fails CLOSED -- and separately, cold
+   * starts, dropped connections and 5xx all land here on readers whose access
+   * is perfectly fine. Hence the deliberately soft access copy: a confident
+   * "your subscription has lapsed" would be wrong for most of them.
+   * ------------------------------------------------------------------------ */
+
+  // First match wins. Add data-ct-data-region to a new page to steer it.
+  var TARGETS      = ['[data-ct-data-region]', '.tbl-wrap', 'main', '.wrap', 'body'];
+  // Chrome that is meaningless without data: tabs that switch nothing,
+  // pagination over nothing. Pages can opt in more via data-ct-hide-on-error.
+  var HIDE_ON_ERROR = '[data-ct-hide-on-error], #tabBar, #pag';
+  var STYLE_ID      = 'ctd-error-style';
+  var PANEL_CLASS   = 'ctd-error';
+
+  /* Scoped to .ctd-error, so it cannot collide with page CSS. Every colour and
+   * face reads the page's own custom properties with a hard fallback, so the
+   * panel is correct on the nine stats pages and still legible anywhere else. */
+  var PANEL_CSS = [
+    '.ctd-error{max-width:560px;margin:48px auto;padding:26px 28px;',
+      'background:var(--surface,#fff);border:1px solid var(--border,#e0dcd5);',
+      'border-left:3px solid var(--accent,#8B2500);border-radius:var(--radius,6px);',
+      'font-family:var(--font-body,Georgia,serif);color:var(--text,#1a1e26)}',
+    '.ctd-error-title{font-family:var(--font-display,Georgia,serif);font-size:1.25rem;',
+      'font-weight:700;letter-spacing:-0.3px;margin:0 0 10px}',
+    '.ctd-error-body{font-size:14.5px;line-height:1.6;color:var(--text2,#555);margin:0}',
+    '.ctd-error-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}',
+    '.ctd-error-btn{padding:8px 16px;font-family:var(--font-body,Georgia,serif);font-size:13px;',
+      'border-radius:4px;border:1px solid var(--border,#e0dcd5);background:var(--surface,#fff);',
+      'color:var(--text,#1a1e26);text-decoration:none;cursor:pointer;display:inline-block;',
+      'transition:background .15s,color .15s,border-color .15s}',
+    '.ctd-error-btn:hover:not([disabled]){background:var(--accent-dim,rgba(139,37,0,.08));',
+      'color:var(--accent,#8B2500);border-color:var(--accent,#8B2500)}',
+    '.ctd-error-btn:focus-visible{outline:2px solid var(--accent,#8B2500);outline-offset:2px}',
+    '.ctd-error-btn[disabled]{opacity:.5;cursor:default}',
+    '.ctd-error-primary{background:var(--accent,#8B2500);border-color:var(--accent,#8B2500);color:#fff;font-weight:600}',
+    '.ctd-error-primary:hover:not([disabled]){background:var(--accent,#8B2500);color:#fff;opacity:.9}',
+    '.ctd-error-ref{margin:16px 0 0;font-family:var(--font-mono,monospace);font-size:10.5px;',
+      'letter-spacing:.4px;color:var(--text3,#888)}',
+    '@media(max-width:520px){.ctd-error{margin:28px 12px;padding:20px}}'
+  ].join('');
+
+  function injectCss() {
+    if (document.getElementById(STYLE_ID)) return;
+    var s = document.createElement('style');
+    s.id = STYLE_ID;
+    s.textContent = PANEL_CSS;
+    (document.head || document.documentElement).appendChild(s);
+  }
+
+  function returnUrl() {
+    return encodeURIComponent(location.pathname + location.search);
+  }
+
+  /* err.code / err.reason -> what the reader is told and what they can do.
+   *
+   * The default for an UNRECOGNISED 403 reason is 'temporary', never the access
+   * copy. This is the safety valve for (1a): App Check denials arrive as 403s
+   * with reasons this code has never seen, so a misconfigured enforcement
+   * rollout must not tell every paying subscriber their access has failed. */
+  function classify(err) {
+    var code   = (err && err.code) || 'unknown';
+    var reason = (err && err.reason) || '';
+
+    if (code === 'forbidden') {
+      if (reason === 'not-signed-in') return 'signin';
+      if (reason === 'not-allowed')   return 'access';
+      return 'temporary';
+    }
+    if (code === 'no-user' || code === 'no-firebase' || code === 'unauthorized') return 'signin';
+    if (code === 'rate-limited') return 'busy';
+    return 'temporary';
+  }
+
+  function copyFor(kind, err, opts) {
+    if (kind === 'signin') {
+      return {
+        title: 'Sign in to see this data',
+        body:  'Your session has ended. Sign in again to pick up where you left off.',
+        link:  { href: (opts.loginUrl || '/login.html') + '?returnUrl=' + returnUrl(), label: 'Sign in', primary: true },
+        retry: false
+      };
+    }
+    if (kind === 'access') {
+      return {
+        title: 'We couldn\u2019t confirm your access',
+        body:  'This data is part of a Cricket Times subscription. Try again \u2014 if it keeps happening, check that your subscription is active.',
+        link:  { href: opts.subscribeUrl || '/subscribe.html', label: 'Check my subscription', primary: false },
+        retry: true
+      };
+    }
+    if (kind === 'busy') {
+      var s = err && err.retryAfter;
+      return {
+        title: 'Too many requests',
+        body:  s ? ('The data service is limiting requests. Try again in ' + s + ' seconds.')
+                 : 'The data service is limiting requests. Try again in a moment.',
+        link:  null,
+        retry: true,
+        wait:  s || 0
+      };
+    }
+    return {
+      title: 'The data didn\u2019t load',
+      body:  'This is usually temporary \u2014 the connection dropped or the data service was slow to wake. Try again.',
+      link:  null,
+      retry: true
+    };
+  }
+
+  function renderError(err, opts) {
+    opts = opts || {};
+    if (typeof document === 'undefined') return null;
+
+    // One panel per page: a page loading data + ratings + model must not stack three.
+    var existing = document.querySelector('.' + PANEL_CLASS);
+    if (existing) return existing;
+
+    var host = null, i;
+    var list = opts.into ? [opts.into].concat(TARGETS) : TARGETS;
+    for (i = 0; i < list.length; i++) {
+      try { host = document.querySelector(list[i]); } catch (_) { host = null; }
+      if (host) break;
+    }
+    if (!host) return null;
+
+    injectCss();
+
+    // Hide chrome that does nothing without data (tabs, pagination).
+    var hide = (opts.hide === undefined) ? HIDE_ON_ERROR : opts.hide;
+    if (hide) {
+      try {
+        var dead = document.querySelectorAll(hide);
+        for (i = 0; i < dead.length; i++) dead[i].style.display = 'none';
+      } catch (_) {}
+    }
+
+    var kind = classify(err);
+    var c    = copyFor(kind, err, opts);
+
+    var panel = document.createElement('div');
+    panel.className = PANEL_CLASS;
+    panel.setAttribute('role', 'alert');
+
+    var h = document.createElement('p');
+    h.className = 'ctd-error-title';
+    h.textContent = c.title;
+    panel.appendChild(h);
+
+    var p = document.createElement('p');
+    p.className = 'ctd-error-body';
+    p.textContent = c.body;
+    panel.appendChild(p);
+
+    var actions = document.createElement('div');
+    actions.className = 'ctd-error-actions';
+
+    var btn = null;
+    if (c.retry) {
+      btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'ctd-error-btn ctd-error-primary';
+      btn.textContent = 'Try again';
+      btn.addEventListener('click', function () {
+        if (typeof opts.onRetry === 'function') { opts.onRetry(); return; }
+        location.reload();   // drops the in-memory cache and re-runs the page's init
+      });
+      actions.appendChild(btn);
+    }
+    if (c.link) {
+      var a = document.createElement('a');
+      a.className = 'ctd-error-btn' + (c.link.primary ? ' ctd-error-primary' : '');
+      a.href = c.link.href;
+      a.textContent = c.link.label;
+      actions.appendChild(a);
+    }
+    if (actions.childNodes.length) panel.appendChild(actions);
+
+    // Support handle: turns "it's broken" into one identifiable branch.
+    var ref = document.createElement('p');
+    ref.className = 'ctd-error-ref';
+    ref.textContent = 'Reference: ' + ((err && err.code) || 'unknown')
+      + ((err && err.status) ? ' \u00b7 ' + err.status : '')
+      + ((err && err.reason) ? ' \u00b7 ' + err.reason : '');
+    panel.appendChild(ref);
+
+    // Empty the host of the thing that was going to hold data (the table), then mount.
+    if (opts.replace !== false) host.innerHTML = '';
+    host.appendChild(panel);
+
+    // 429 only: hold the retry until the server's window has passed.
+    if (btn && c.wait > 0) {
+      var left = c.wait;
+      btn.disabled = true;
+      btn.textContent = 'Try again in ' + left + 's';
+      var t = setInterval(function () {
+        left -= 1;
+        if (left <= 0) {
+          clearInterval(t);
+          btn.disabled = false;
+          btn.textContent = 'Try again';
+        } else {
+          btn.textContent = 'Try again in ' + left + 's';
+        }
+      }, 1000);
+    }
+
+    return panel;
+  }
+
+  window.CTData = { load: load, clearCache: clearCache, renderError: renderError, _endpoint: ENDPOINT };
 })();
