@@ -41,6 +41,23 @@
                                             // SDK), stop holding events after this and send anon
   var PENDING_KEY     = 'ct_pending';       // events carried to the next page when we unload
                                             // before identity is known — see flush()/replayPending()
+  var PENDING_MAX_AGE_MS = 6 * 60 * 60 * 1000;  // [2026-08-10] drop a deferred batch older than this.
+                                            // WHY: the deferred batch had no expiry, so a batch
+                                            // stranded on an unresolved unload replayed WHENEVER the
+                                            // reader next opened the site — days or weeks later —
+                                            // still carrying its original session_id and ts. Three
+                                            // consequences, all now bounded: (a) events arriving long
+                                            // after the visit they describe; (b) unbounded growth,
+                                            // because replayPending() prepends into `batch`, so a run
+                                            // of consecutive unresolved loads re-persists an ever
+                                            // larger set rather than rotating it; (c) a session doc
+                                            // dated in the past being created fresh, its expireAt
+                                            // sliding forward from the WRITE — so "no session doc
+                                            // older than two days" was not actually guaranteed by the
+                                            // doc id. 6h is deliberately generous: it covers a laptop
+                                            // closed over lunch and reopened, which is the case this
+                                            // buffer exists for, while refusing the week-old replay
+                                            // that no aggregate wants.
 
   // ------------------------------------------------------------- utilities ---
   function uuid() {
@@ -202,9 +219,20 @@
       // markAuthResolved(). But an unload can't wait: rather than beacon these
       // events tokenless (which is exactly how session_start was being filed as
       // anonymous), persist the batch and let the next page replay it once its
-      // auth is warm. The session is deferred, never lost, never misattributed.
+      // auth is warm. The session is deferred rather than lost.
+      // [2026-08-10] The original comment here said "never misattributed". That
+      // is stronger than the code: a parked batch flushes with whatever token is
+      // warm on the REPLAYING page, so on a shared browser it can ride out under
+      // a different account. Since item (0) the collector groups by ct_sid rather
+      // than uid, so which token carried the batch decides only identified-vs-anon
+      // and no longer attributes anything to a person — but the guarantee the old
+      // wording implied was never actually made.
       if (useBeacon) {
-        try { lsSet(PENDING_KEY, JSON.stringify(batch)); } catch (e) {}
+        // [2026-08-10] Stamp when this was parked. replayPending() drops it if
+        // it has gone stale. Wrapper object, not a bare array — replayPending()
+        // still accepts the legacy array shape so a batch parked by the previous
+        // build is not thrown away on the deploy that ships this change.
+        try { lsSet(PENDING_KEY, JSON.stringify({ at: Date.now(), events: batch })); } catch (e) {}
         batch = [];
       }
       return;
@@ -225,12 +253,27 @@
   // them at the front of this page's batch. Cleared BEFORE parsing so a crash
   // mid-replay can't cause a double-send (the collector counts every event, it
   // does not dedupe). These ride out on this page's flush once auth resolves.
+  //
+  // [2026-08-10] Now age-checked. Two shapes are accepted: the current
+  // { at, events } wrapper, and a bare array left by the previous build — the
+  // legacy shape has no timestamp, so it is replayed once rather than discarded,
+  // which keeps the deploy that ships this change from dropping anything already
+  // parked. Anything older than PENDING_MAX_AGE_MS is dropped, not sent.
   function replayPending() {
     var raw = lsGet(PENDING_KEY);
     if (!raw) return;
     lsDel(PENDING_KEY);
     try {
-      var evs = JSON.parse(raw);
+      var parsed = JSON.parse(raw);
+      var evs = null;
+      if (parsed && Object.prototype.toString.call(parsed) === '[object Array]') {
+        evs = parsed;                       // legacy shape, pre-2026-08-10 — replay once
+      } else if (parsed && parsed.events) {
+        var age = Date.now() - (Number(parsed.at) || 0);
+        // Negative age = the clock moved backwards since parking. Treat as stale
+        // rather than trusting it: an unbounded replay is the thing being fixed.
+        if (age >= 0 && age <= PENDING_MAX_AGE_MS) evs = parsed.events;
+      }
       if (evs && evs.length) batch = evs.concat(batch);
     } catch (e) { /* corrupt buffer — drop it */ }
   }
