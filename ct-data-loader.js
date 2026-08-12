@@ -223,7 +223,28 @@
   }
 
   /* --- network -------------------------------------------------------------- */
+
+  /* App Check (item 1a): resolve to a token or null. ct-appcheck.js is optional —
+   * if it is not on the page, or it could not mint, we send the request without
+   * the header. In monitoring mode that is the correct trade: the request is
+   * logged as unattested, the reader still gets their page. NEVER let this
+   * reject; a token problem must not become a data-loading problem. */
+  function appCheckToken() {
+    try {
+      if (!window.CTAppCheck || typeof window.CTAppCheck.token !== 'function') {
+        return Promise.resolve(null);
+      }
+      return window.CTAppCheck.token().catch(function () { return null; });
+    } catch (_) { return Promise.resolve(null); }
+  }
+
   function doFetch(file, token, etag) {
+    return appCheckToken().then(function (acToken) {
+      return doFetchWithTokens(file, token, etag, acToken);
+    });
+  }
+
+  function doFetchWithTokens(file, token, etag, acToken) {
     var ctrl  = (typeof AbortController !== 'undefined') ? new AbortController() : null;
     var timer = ctrl ? setTimeout(function () { ctrl.abort(); }, REQUEST_TIMEOUT_MS) : null;
 
@@ -231,6 +252,11 @@
     // Conditional GET: if we hold a version token for a cached copy, ask the
     // server to confirm it. Server replies 304 (unchanged) or 200 (fresh body).
     if (etag) headers['If-None-Match'] = etag;
+    // App Check attestation. NB: adding a header to a cross-origin request adds
+    // it to the preflight's Access-Control-Request-Headers, so serveDerivedData
+    // MUST list x-firebase-appcheck in Access-Control-Allow-Headers or every
+    // request fails at the preflight. Server change ships first.
+    if (acToken) headers['X-Firebase-AppCheck'] = acToken;
 
     return fetch(ENDPOINT + '?file=' + encodeURIComponent(file), {
       method: 'GET',
