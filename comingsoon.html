@@ -795,9 +795,9 @@ body{
 .beta-link a:hover{ color:var(--accent); text-decoration-color:var(--accent); }
 /* Login pill — masthead top-right on desktop, centred under the tagline on
    narrow screens. Opens the SAME modal as the footer "Sign in" link, so there
-   is exactly one sign-in path on this page. Sign-in only: see the existing-
-   account guard in sendBetaSigninLink() below — no account is ever created
-   from this page. */
+   is exactly one sign-in path on this page. Sign-in only: the modal uses
+   email + password, and signInWithEmailAndPassword() cannot create an
+   account, so no account is ever created from this page. */
 .masthead-login{
   position:absolute;
   top:20px;
@@ -865,14 +865,27 @@ body{
   display:block;font-size:11px;color:var(--text3);text-transform:uppercase;
   letter-spacing:1.5px;margin-bottom:6px;font-weight:600;
 }
-.beta-modal input[type="email"]{
+.beta-modal input[type="email"],
+.beta-modal input[type="password"]{
   width:100%;padding:11px 14px;font-size:14px;font-family:'Inter',sans-serif;
   border:1px solid #d4d4d4;border-radius:8px;background:#fafafa;
   outline:none;transition:border-color 0.15s,background 0.15s;
 }
-.beta-modal input[type="email"]:focus{
+.beta-modal input[type="email"]:focus,
+.beta-modal input[type="password"]:focus{
   border-color:var(--accent);background:#fff;
 }
+.beta-modal label.beta-modal-label-spaced{ margin-top:14px; }
+.beta-modal-forgot{
+  margin-top:10px;text-align:right;
+}
+.beta-modal-forgot a{
+  font-size:11.5px;color:var(--text3);cursor:pointer;
+  text-decoration:underline;text-decoration-color:rgba(0,0,0,0.15);
+  text-underline-offset:3px;transition:color 0.15s;
+}
+.beta-modal-forgot a:hover{ color:var(--accent); text-decoration-color:var(--accent); }
+.beta-modal-forgot a:focus-visible{ outline:2px solid var(--accent);outline-offset:2px;border-radius:2px; }
 .beta-modal-actions{
   margin-top:20px;display:flex;gap:10px;align-items:center;justify-content:flex-end;
 }
@@ -881,8 +894,8 @@ body{
   font-family:'Inter',sans-serif;cursor:pointer;border:none;transition:all 0.15s;
 }
 .beta-modal-btn.primary{ background:var(--accent);color:#fff; }
-.beta-modal-btn.primary:hover{ background:#a06614; }
-.beta-modal-btn.primary:disabled{ background:#d4b88c;cursor:default; }
+.beta-modal-btn.primary:hover{ background:var(--accent-hover); }
+.beta-modal-btn.primary:disabled{ background:#c99a9a;cursor:default; }
 .beta-modal-btn.secondary{ background:transparent;color:var(--text3); }
 .beta-modal-btn.secondary:hover{ color:var(--text); }
 .beta-modal-msg{
@@ -932,7 +945,7 @@ body{
   <a href="/" class="masthead-logo">Cricket<span>Times</span></a>
   <div class="masthead-tagline">All the Test cricket that's fit to compute</div>
   <div class="masthead-login">
-    <button type="button" class="login-pill" id="mastheadLoginPill" onclick="openBetaModal()" aria-haspopup="dialog" aria-controls="betaModal">
+    <button type="button" class="login-pill" id="mastheadLoginPill" onclick="openLoginModal()" aria-haspopup="dialog" aria-controls="betaModal">
       <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
       Sign In
     </button>
@@ -1086,22 +1099,33 @@ body{
   <div class="footer-tagline">All the Test cricket that's fit to compute</div>
   <div class="footer-copy">© 2026 Cricket Times. Launching soon.</div>
   <div class="beta-link">
-    Beta access? <a id="betaSigninLink" onclick="openBetaModal()">Sign in</a>
+    Have an account? <a id="betaSigninLink" onclick="openLoginModal()">Sign in</a>
   </div>
 </footer>
 
-<!-- BETA SIGN-IN MODAL -->
+<!-- SIGN-IN MODAL — email + password. Sign-in only: signInWithEmailAndPassword
+     cannot create an account, so no guard is needed to keep this page from
+     minting new users. -->
 <div class="beta-modal-overlay" id="betaModal" role="dialog" aria-modal="true" aria-labelledby="betaModalTitle">
   <div class="beta-modal">
     <h3 id="betaModalTitle">Sign in</h3>
-    <p>Enter the email address you've been given access with. We'll email you a single-use sign-in link — no password needed.</p>
+    <p>Enter the email address and password for your Cricket Times account.</p>
     <p class="beta-modal-note">Sign-in only. Accounts can't be created here — if you don't have access yet, join the launch list below and we'll be in touch.</p>
-    <label for="betaEmailInput">Email address</label>
-    <input type="email" id="betaEmailInput" placeholder="you@example.com" autocomplete="email" />
+
+    <label for="loginEmailInput">Email address</label>
+    <input type="email" id="loginEmailInput" placeholder="you@example.com" autocomplete="email" />
+
+    <label for="loginPasswordInput" class="beta-modal-label-spaced">Password</label>
+    <input type="password" id="loginPasswordInput" placeholder="Your password" autocomplete="current-password" />
+
+    <div class="beta-modal-forgot">
+      <a role="button" tabindex="0" onclick="sendLoginReset()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();sendLoginReset();}">Forgot password?</a>
+    </div>
+
     <div class="beta-modal-msg" id="betaModalMsg"></div>
     <div class="beta-modal-actions">
-      <button class="beta-modal-btn secondary" onclick="closeBetaModal()">Cancel</button>
-      <button class="beta-modal-btn primary" id="betaSendBtn" onclick="sendBetaSigninLink()">Send link</button>
+      <button class="beta-modal-btn secondary" onclick="closeLoginModal()">Cancel</button>
+      <button class="beta-modal-btn primary" id="loginSubmitBtn" onclick="submitLogin()">Sign in</button>
     </div>
   </div>
 </div>
@@ -1151,26 +1175,40 @@ body{
 })();
 
 // ═══════════════════════════════════════════════════════════════════════════
-// BETA SIGN-IN (Firebase email-link auth)
+// SIGN IN (Firebase email + password)
 // ───────────────────────────────────────────────────────────────────────────
-// This page is the coming-soon landing AND the email-link return target.
-// On page load we check for two things:
-//   1. URL has email-link sign-in params  → finalise the sign-in, redirect
-//   2. User clicks the masthead login pill OR the footer "Sign in" link
-//      → open modal, verify the account EXISTS, then send the link
+// SIGN-IN ONLY. This page never creates accounts, and that is now enforced by
+// the MECHANISM rather than by a lookup: signInWithEmailAndPassword() cannot
+// create an account — an unknown address simply fails to authenticate.
 //
-// SIGN-IN ONLY: this page never creates accounts. Both entry points share
-// sendBetaSigninLink(), which refuses any address without an existing
-// Firebase Auth record (see the EXISTING-ACCOUNT GUARD below).
-// On successful sign-in, the user's role is checked by prelaunch-guard.js
-// on the next page (stories.html). If they're priority+ they see the site.
-// If they're regular, they bounce back here — but they're now signed in,
-// so when you promote them in admin, the next page load lets them through.
+// The previous email-link (passwordless) flow has been REMOVED entirely.
+// sendSignInLinkToEmail() → signInWithEmailLink() creates a Firebase Auth
+// record for any address that doesn't have one, so email-link auth is a
+// sign-up path as much as a sign-in path and could not be made sign-in-only
+// without a pre-flight lookup. That lookup (fetchSignInMethodsForEmail) is
+// neutered by Firebase's "Email enumeration protection" setting, which makes
+// it return an empty array for EVERY address including real accounts — which
+// is exactly why the guarded build rejected a valid account. Password auth
+// sidesteps both problems and matches login.html / subscribe.html.
+//
+// Entry points: the masthead login pill and the footer "Sign in" link. Both
+// call openLoginModal(); there is one sign-in implementation on this page.
+//
+// NOTE ON ERROR MESSAGES: with enumeration protection enabled, Firebase
+// returns the SAME code (auth/invalid-credential) for "no such account" and
+// "wrong password" — deliberately, so the form can't be used to discover who
+// has an account. The copy below is therefore generic on purpose; do not
+// "improve" it into distinguishing the two cases, because Firebase does not
+// give us the information to do so.
+//
+// AFTER SIGN-IN: the user is sent to /stories.html, where prelaunch-guard.js
+// decides whether their ROLE clears config/featureFlags.site.minimumTier.
+// Signing in successfully and still bouncing back here is a ROLE problem, not
+// an auth problem. Non-ranked reader roles (subscriber, paidSubscriber) do
+// NOT clear the pre-launch gate.
 // ═══════════════════════════════════════════════════════════════════════════
 (function(){
-  // Reuse the loadScript helper if defined in scope; otherwise define our own.
   const loadScript = (src) => new Promise((resolve, reject) => {
-    // Don't double-load
     if (document.querySelector(`script[src="${src}"]`)) return resolve();
     const s = document.createElement('script');
     s.src = src; s.async = true;
@@ -1187,7 +1225,6 @@ body{
     appId: "1:196915483829:web:071c47af79914aec88dafc"
   };
 
-  const PENDING_EMAIL_KEY = 'ct_beta_pending_email';
   const POST_SIGNIN_REDIRECT = '/stories.html';
 
   async function ensureFirebase() {
@@ -1198,16 +1235,26 @@ body{
   }
 
   // ─── Modal controls ────────────────────────────────────────────────
-  window.openBetaModal = function(){
+  window.openLoginModal = function(){
     document.getElementById('betaModal').classList.add('show');
-    setTimeout(() => document.getElementById('betaEmailInput').focus(), 50);
+    setTimeout(() => {
+      const el = document.getElementById('loginEmailInput');
+      if (el) el.focus();
+    }, 50);
+    // Warm Firebase in the background so the first submit isn't slow.
+    ensureFirebase().catch(() => {});
   };
-  window.closeBetaModal = function(){
+  window.closeLoginModal = function(){
     document.getElementById('betaModal').classList.remove('show');
-    setBetaModalMsg('', '');
+    const pw = document.getElementById('loginPasswordInput');
+    if (pw) pw.value = '';
+    setLoginMsg('', '');
   };
+  // Back-compat aliases — older markup/bookmarks may still call these.
+  window.openBetaModal = window.openLoginModal;
+  window.closeBetaModal = window.closeLoginModal;
 
-  function setBetaModalMsg(kind, text) {
+  function setLoginMsg(kind, text) {
     const el = document.getElementById('betaModalMsg');
     if (!el) return;
     el.className = 'beta-modal-msg';
@@ -1217,134 +1264,108 @@ body{
     }
   }
 
-  // ─── Send the email-link ───────────────────────────────────────────
-  window.sendBetaSigninLink = async function(){
-    const input = document.getElementById('betaEmailInput');
-    const btn = document.getElementById('betaSendBtn');
-    const email = (input.value || '').trim().toLowerCase();
+  function friendlyError(e) {
+    switch (e && e.code) {
+      case 'auth/invalid-credential':
+      case 'auth/wrong-password':
+      case 'auth/user-not-found':
+        // Same message for both — see NOTE ON ERROR MESSAGES above.
+        return 'That email and password combination didn\'t work. Sign-in here is for existing accounts only.';
+      case 'auth/invalid-email':
+        return 'That doesn\'t look like a valid email address.';
+      case 'auth/user-disabled':
+        return 'That account has been disabled. Get in touch if you think that\'s a mistake.';
+      case 'auth/too-many-requests':
+        return 'Too many attempts from this device. Wait a few minutes and try again.';
+      case 'auth/network-request-failed':
+        return 'Network problem — check your connection and try again.';
+      default:
+        return (e && e.message) ? e.message : 'Sign-in failed. Please try again.';
+    }
+  }
+
+  // ─── Sign in ───────────────────────────────────────────────────────
+  window.submitLogin = async function(){
+    const emailEl = document.getElementById('loginEmailInput');
+    const pwEl    = document.getElementById('loginPasswordInput');
+    const btn     = document.getElementById('loginSubmitBtn');
+    const email = (emailEl.value || '').trim().toLowerCase();
+    const password = pwEl.value || '';
+
     if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
-      setBetaModalMsg('error', 'Please enter a valid email address.');
+      setLoginMsg('error', 'Please enter a valid email address.');
+      emailEl.focus();
       return;
     }
-    btn.disabled = true; btn.textContent = 'Checking…';
-    setBetaModalMsg('info', 'Checking your account…');
+    if (!password) {
+      setLoginMsg('error', 'Please enter your password.');
+      pwEl.focus();
+      return;
+    }
+
+    btn.disabled = true; btn.textContent = 'Signing in…';
+    setLoginMsg('info', 'Signing you in…');
 
     try {
       await ensureFirebase();
+      await firebase.auth().signInWithEmailAndPassword(email, password);
 
-      // ─── EXISTING-ACCOUNT GUARD ────────────────────────────────────
-      // sendSignInLinkToEmail() CREATES an account for any address that
-      // doesn't already have one — email-link auth is a sign-up path as
-      // much as a sign-in path. This page must never create accounts, so
-      // we look the address up first and refuse if it isn't registered.
-      //
-      // fetchSignInMethodsForEmail() returns [] for an unknown address.
-      // Fail CLOSED: on an empty result, or on a lookup error, we do NOT
-      // send the link.
-      //
-      // ⚠ PRE-DEPLOY CHECK — Firebase Console → Authentication → Settings
-      // → User actions → "Email enumeration protection". If that is
-      // ENABLED, fetchSignInMethodsForEmail() returns [] for EVERY address,
-      // including real accounts, and this guard will lock out every
-      // legitimate beta user. It must be DISABLED for this to work.
-      let methods = [];
-      try {
-        methods = await firebase.auth().fetchSignInMethodsForEmail(email);
-      } catch (lookupErr) {
-        console.error('Account lookup failed:', lookupErr);
-        setBetaModalMsg('error', 'We couldn\'t verify that address just now. Please try again in a moment.');
-        btn.disabled = false; btn.textContent = 'Send link';
-        return;
-      }
+      // Clear prelaunch-guard's cached verdict so the next page re-checks
+      // access against the newly authenticated session instead of reusing
+      // the "blocked" result cached while signed out.
+      try { window.sessionStorage.removeItem('ct_access_verdict_v1'); } catch(e) {}
 
-      if (!methods || methods.length === 0) {
-        setBetaModalMsg('error', 'We couldn\'t find an account for that address. Sign-in here is for existing beta accounts only — join the launch list below and we\'ll be in touch when access opens.');
-        btn.disabled = false; btn.textContent = 'Send link';
-        return;
-      }
-      // ───────────────────────────────────────────────────────────────
-
-      btn.textContent = 'Sending…';
-      setBetaModalMsg('info', 'Sending your sign-in link…');
-
-      const actionCodeSettings = {
-        // Return the email link directly to comingsoon.html — NOT to /index.html.
-        // index.html is a redirect stub (post-launch it'll become the homepage),
-        // and a redirect would strip the email-link query string. Returning to
-        // comingsoon.html means the URL preserves the apiKey/oobCode/mode params
-        // that auth.isSignInWithEmailLink() needs to recognise this is a return
-        // visit and complete sign-in.
-        url: window.location.origin + '/comingsoon.html',
-        handleCodeInApp: true
-      };
-      await firebase.auth().sendSignInLinkToEmail(email, actionCodeSettings);
-      try { window.localStorage.setItem(PENDING_EMAIL_KEY, email); } catch(e) {}
-      setBetaModalMsg('success',
-        '✓ Sign-in link sent to ' + email + '. Check your inbox — and your spam folder, since the email is sent from a Firebase address you may not have received from before. Click the link on the same device to complete sign-in.');
-      btn.textContent = 'Send link';
-      input.value = '';
+      setLoginMsg('success', '✓ Signed in — taking you through…');
+      window.location.replace(POST_SIGNIN_REDIRECT);
     } catch (e) {
-      console.error('Beta sign-in send failed:', e);
-      setBetaModalMsg('error', e.message || 'Could not send sign-in link. Please try again.');
-      btn.disabled = false;
-      btn.textContent = 'Send link';
+      console.error('Sign-in failed:', e);
+      setLoginMsg('error', friendlyError(e));
+      btn.disabled = false; btn.textContent = 'Sign in';
     }
   };
 
-  // ─── Handle return from email-link ─────────────────────────────────
-  // On page load, check whether the URL is an email-link sign-in URL.
-  // If so, complete the sign-in and redirect to stories.
-  (async function checkSignInLink(){
-    try {
-      // Quick pre-check before loading Firebase to avoid the ~30KB cost
-      // for normal page visits. Firebase email-link URLs always contain
-      // these query params.
-      const qs = window.location.search;
-      if (!/[?&](mode|oobCode|apiKey)=/.test(qs)) return;
-
-      await ensureFirebase();
-      const auth = firebase.auth();
-
-      if (!auth.isSignInWithEmailLink(window.location.href)) return;
-
-      let email = null;
-      try { email = window.localStorage.getItem(PENDING_EMAIL_KEY); } catch(e) {}
-
-      if (!email) {
-        // Different device than the one that initiated. Prompt the user.
-        email = window.prompt('Please confirm the email address you used to request the sign-in link:');
-        if (!email) return;
-        email = email.trim().toLowerCase();
-      }
-
-      // Show progress UI on the page
-      document.body.style.cursor = 'progress';
-
-      const result = await auth.signInWithEmailLink(email, window.location.href);
-      try { window.localStorage.removeItem(PENDING_EMAIL_KEY); } catch(e) {}
-
-      // Clear our session-cache verdict from prelaunch-guard so the next
-      // page does a fresh check (otherwise the cached "blocked" result
-      // would persist into the new authenticated session).
-      try { window.sessionStorage.removeItem('ct_access_verdict_v1'); } catch(e) {}
-
-      // Strip the email-link params from the URL before redirecting
-      // (they're single-use anyway, but tidy).
-      window.location.replace(POST_SIGNIN_REDIRECT);
-    } catch (e) {
-      console.error('Email-link sign-in failed:', e);
-      // If the link is expired/invalid, show a message inside the modal area.
-      // Open modal so the user has a clear path.
-      setTimeout(() => {
-        const msg = (e && e.code === 'auth/invalid-action-code')
-          ? 'That sign-in link has expired or has already been used. Request a new one below.'
-          : 'Sign-in failed: ' + (e?.message || 'unknown error') + '. Please request a new link.';
-        if (typeof window.openBetaModal === 'function') window.openBetaModal();
-        setBetaModalMsg('error', msg);
-        document.body.style.cursor = '';
-      }, 100);
+  // ─── Password reset ────────────────────────────────────────────────
+  // Does NOT create accounts. With enumeration protection on, Firebase may
+  // resolve successfully for an unknown address rather than reveal that it
+  // isn't registered — so the confirmation copy is deliberately neutral.
+  window.sendLoginReset = async function(){
+    const emailEl = document.getElementById('loginEmailInput');
+    const email = (emailEl.value || '').trim().toLowerCase();
+    if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+      setLoginMsg('error', 'Enter your email address above first, then click "Forgot password?".');
+      emailEl.focus();
+      return;
     }
-  })();
+    setLoginMsg('info', 'Sending reset email…');
+    try {
+      await ensureFirebase();
+      await firebase.auth().sendPasswordResetEmail(email);
+      setLoginMsg('success', 'If that address has an account, a password reset email is on its way. Check your spam folder too.');
+    } catch (e) {
+      console.error('Password reset failed:', e);
+      setLoginMsg('error', friendlyError(e));
+    }
+  };
+
+  // ─── Keyboard handling ─────────────────────────────────────────────
+  document.addEventListener('keydown', function(ev){
+    const modal = document.getElementById('betaModal');
+    if (!modal || !modal.classList.contains('show')) return;
+    if (ev.key === 'Enter') {
+      const t = ev.target;
+      if (t && (t.id === 'loginEmailInput' || t.id === 'loginPasswordInput')) {
+        ev.preventDefault();
+        window.submitLogin();
+      }
+    } else if (ev.key === 'Escape') {
+      window.closeLoginModal();
+    }
+  });
+
+  // Click the backdrop to dismiss.
+  document.addEventListener('click', function(ev){
+    if (ev.target && ev.target.id === 'betaModal') window.closeLoginModal();
+  });
 })();
 </script>
 
