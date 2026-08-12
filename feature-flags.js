@@ -177,6 +177,66 @@
     });
   }
 
+  // [2026-08-12] How much longer the timeout tiebreaker waits for auth to
+  // settle before concluding there is no session. Deliberately SHORT: it only
+  // ever runs after the main budget has already expired, so it is worst-case
+  // added latency on an already-slow load. 1.5s is enough for a rehydration
+  // that was nearly done — which is the case that was producing the loop —
+  // without turning a 5s stall into a 10s one.
+  const AUTH_GRACE_MS = 1500;
+
+  // [2026-08-12] Bounce breaker. If the gate sends the same path to login twice
+  // inside this window, the redirect is not achieving anything and we reveal
+  // instead. Long enough to span a login round-trip, short enough that a
+  // genuine sign-in later in the session is unaffected.
+  const GATE_BOUNCE_KEY     = 'ct_gate_bounce_v1';
+  const GATE_BOUNCE_TTL_MS  = 60 * 1000;
+
+  // [2026-08-12] Confirm a session without reading currentUser synchronously.
+  //   1. currentUser first — if persistence has already rehydrated, free and
+  //      instant, same as the old behaviour on the happy path.
+  //   2. Otherwise wait up to `ms` for the first onAuthStateChanged emission,
+  //      which is the authoritative "auth has settled" barrier (see authSettled).
+  //   3. If auth or the subscribe function never got assigned — the stall
+  //      happened before getAuth() ran — there is nothing to ask, so report
+  //      false and let the bounce breaker handle the consequences.
+  // Never rejects.
+  function confirmSession(auth, onAuthChanged, ms) {
+    try {
+      if (auth && auth.currentUser) return Promise.resolve(true);
+      if (!auth || typeof onAuthChanged !== 'function') return Promise.resolve(false);
+      return Promise.race([
+        authSettled(auth, onAuthChanged).then(function (u) { return !!u; }),
+        new Promise(function (resolve) { setTimeout(function () { resolve(false); }, ms); })
+      ]).catch(function () { return false; });
+    } catch (e) {
+      return Promise.resolve(false);
+    }
+  }
+
+  // Bounce bookkeeping lives in sessionStorage: per-tab, cleared on tab close,
+  // and invisible to the server. Failures are swallowed — in a browser where
+  // storage is unavailable the breaker simply never trips, which is the old
+  // behaviour rather than a new failure mode.
+  function recentlyBounced() {
+    try {
+      const raw = window.sessionStorage.getItem(GATE_BOUNCE_KEY);
+      if (!raw) return false;
+      const obj = JSON.parse(raw);
+      if (!obj || obj.path !== location.pathname) return false;
+      return (Date.now() - obj.ts) < GATE_BOUNCE_TTL_MS;
+    } catch (e) { return false; }
+  }
+
+  function noteBounce() {
+    try {
+      window.sessionStorage.setItem(GATE_BOUNCE_KEY, JSON.stringify({
+        path: location.pathname,
+        ts: Date.now()
+      }));
+    } catch (e) { /* ignore */ }
+  }
+
   // Resolves fn()'s result, or CT_TIMEOUT if ms elapses first. The losing
   // branch is abandoned (its later settle is ignored), not cancelled.
   function withTimeout(ms, fn) {
@@ -320,7 +380,10 @@
     // [2026-06-04] gates added: the tier-aware tiebreaker below needs to know
     // whether the page is FREE even when a later step (auth/requireAccess)
     // is what timed out.
-    let auth = null, db = null, email = null, gates = null;
+    // [2026-08-12] onAuthChanged captured too: the timeout tiebreaker below no
+    // longer reads currentUser synchronously (see the grace-window comment
+    // there), so it needs the subscribe function, not just the auth handle.
+    let auth = null, db = null, email = null, gates = null, onAuthChanged = null;
 
     let verdict;
     try {
@@ -349,6 +412,7 @@
         //   — the grep-and-sweep on the v12 bump must catch it too.
         db   = fs.getFirestore(app);
         auth = au.getAuth(app);
+        onAuthChanged = au.onAuthStateChanged;   // [2026-08-12] for the tiebreaker
         // [2026-06-04] Explicit gates read BEFORE auth settling, captured for
         // the tiebreaker. Not a second Firestore read: getFeatureGates caches
         // for 5 minutes, so requireAccess below reuses this result. Ordering
@@ -366,13 +430,39 @@
       verdict = CT_TIMEOUT;
     }
 
-    // [Contract §5/Q3] Timeout tiebreaker. Knowing "signed in" needs auth to
-    // have settled — which is what timed out — so read currentUser synchronously.
-    //   currentUser non-null → fail OPEN (reveal + warn). The requireAccess
-    //     Firestore read stalled; a confirmed session is the lesser risk.
-    //   currentUser null/absent → fail CLOSED (login). No confirmable session.
+    // [Contract §5/Q3] Timeout tiebreaker.
+    //
+    // ─── REWRITTEN 2026-08-12. READ THIS BEFORE CHANGING IT BACK. ───────────
+    // The original tiebreaker read `auth.currentUser` SYNCHRONOUSLY and treated
+    // null as "no session → send to login". That cannot work in the one case it
+    // was written for. `currentUser` is null until Firebase rehydrates the
+    // persisted session — which is precisely the step that stalled. So a
+    // signed-in reader on a slow load was read as anonymous and redirected to
+    // login.html, which resolved the session correctly, offered Continue, and
+    // returned them here — where the same race ran again. That is the login loop
+    // observed 2026-08-12.
+    //
+    // This is the SECOND time this failure has been addressed. The budget above
+    // was raised 2000 → 5000 on 2026-06-04 for the same symptom. Raising a
+    // threshold moves the line; it does not fix the line being in the wrong
+    // place. Anything added to page load eats the headroom again — an eager App
+    // Check init did exactly that in August 2026.
+    //
+    // Two changes, deliberately belt-and-braces:
+    //   (a) GRACE WINDOW. Instead of a synchronous read, give auth a further
+    //       AUTH_GRACE_MS to settle. currentUser is still checked first, so a
+    //       session that HAS rehydrated costs nothing. This addresses the cause.
+    //   (b) BOUNCE BREAKER. Independently, refuse to send the same path to login
+    //       twice inside GATE_BOUNCE_TTL_MS. Whatever future cause produces a
+    //       false "not signed in", the reader gets a page rather than a loop.
+    //       Revealing is safe: the client gate has always failed OPEN while the
+    //       server fails CLOSED — serveDerivedData re-checks entitlement itself,
+    //       and a genuinely unentitled reader gets a 403 rendered by the (1c)
+    //       panel, whose copy is deliberately soft for exactly this case.
+    //
     // console.warn ONLY — never write a diagnostic to Firestore during a
     // Firestore stall.
+    // ────────────────────────────────────────────────────────────────────────
     if (verdict === CT_TIMEOUT) {
       // [2026-06-04] Tier-aware first check — deviation #2 from the locked S2
       // tiebreaker, evidence-driven: a slow load of a FREE page was bouncing
@@ -385,10 +475,21 @@
         console.warn('[ct-bootstrap] timeout on free page → reveal page=' + pageId);
         return reveal();
       }
-      if (auth && auth.currentUser) {
+      // (a) Grace window — resolves true as soon as a session is confirmed.
+      const signedIn = await confirmSession(auth, onAuthChanged, AUTH_GRACE_MS);
+      if (signedIn) {
         console.warn('[ct-bootstrap] fail-open timeout page=' + pageId);
         return reveal();
       }
+
+      // (b) Bounce breaker — if this path already went to login moments ago,
+      // the redirect is not working. Stop repeating it.
+      if (recentlyBounced()) {
+        console.warn('[ct-bootstrap] second gate bounce for this path → revealing instead ' +
+                     'of looping; the server still enforces. page=' + pageId);
+        return reveal();
+      }
+      noteBounce();
       return redirect('/login.html?returnUrl=' + encodeURIComponent(location.pathname + location.search));
     }
 
@@ -797,7 +898,7 @@
    *
    * isAdmin is set independently of allowed — it's always true for users
    * with admin/superadmin role, even when allowed is true for some other
-   * reason (e.g. an admin accessing a free page gets reason='free' but
+   * reason (e.g. an admin visiting a free page gets reason='free' but
    * isAdmin=true). Useful for pages like bts.html that gate the page on
    * paid access but expose admin-only compose UI.
    *
