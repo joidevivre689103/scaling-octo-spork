@@ -131,10 +131,36 @@
   const OWNER_BYPASS_SECRET = '8n50brmcd1mei2oq';
   const OWNER_FLAG_KEY = 'ct_owner_preview';
 
-  // How long to wait for the async tier check before failing open
-  // (revealing the page anyway). 3 seconds is generous; typical Firestore
-  // round-trip is well under 1s.
-  const ASYNC_TIMEOUT_MS = 3000;
+  // How long to wait for the async tier check before failing CLOSED
+  // (redirecting to comingsoon.html — see finalize()).
+  //
+  // [2026-08-12] 3000 → 8000. TWO reasons, and the comment this replaces was
+  // wrong on both counts: it said "failing open (revealing the page anyway)",
+  // which is the opposite of what finalize(false) does, and it called 3 seconds
+  // generous.
+  //
+  //   (1) BUDGET DRIFT. ctPageBootstrap in feature-flags.js raised its own gate
+  //       budget 2000 → 5000 on 2026-06-04 after live evidence of signed-in
+  //       users being bounced on slow navigations. THIS constant was never
+  //       raised to match, so the guard became the tighter of the two gates and
+  //       started failing first — which is why a slow load lands on comingsoon
+  //       rather than on the bootstrap's login redirect. Observed 2026-08-12: a
+  //       first sign-in on a cold Firefox profile went to comingsoon, and the
+  //       immediate retry succeeded because everything was then warm.
+  //
+  //   (2) THE WORK IS NOT SMALL. This check waits for Firebase init, imports
+  //       THREE SDK modules, settles auth, forces an ID token, then makes three
+  //       Firestore reads. On a cold profile with nothing cached that is not a
+  //       sub-second operation, and the typical-round-trip figure the old
+  //       comment quoted measured only the last step.
+  //
+  // 8000 rather than 5000 because this gate does strictly more work than the
+  // bootstrap's, and because failing closed here costs a reader the whole site
+  // rather than one page. NOTE this file is DELETED at launch per the AT-LAUNCH
+  // checklist, so raising a threshold — rather than fixing the tiebreaker
+  // properly, as feature-flags.js now does — is a deliberate trade against a
+  // known deletion date, not a pattern to copy.
+  const ASYNC_TIMEOUT_MS = 8000;
 
   // Cache the access verdict for this session so we don't re-query
   // Firestore on every page navigation. Cleared automatically when the
