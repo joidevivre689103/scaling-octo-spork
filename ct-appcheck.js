@@ -10,7 +10,7 @@
  *   ct-data-loader.js attaches that string as the `X-Firebase-AppCheck` header
  *   on its serveDerivedData fetch.
  *
- * THREE DESIGN RULES, EACH LEARNED THE HARD WAY
+ * FOUR DESIGN RULES, EACH LEARNED THE HARD WAY
  *
  * 1. IT NEVER CALLS getApp(). The app is taken from
  *    window.CTFeatureFlags.firebaseReady, exactly as ct-data-loader.js does.
@@ -28,6 +28,50 @@
  *    blocker, corporate proxy, offline) the promise would otherwise hang and
  *    take the data fetch down with it.
  *
+ * 4. IT DOES NOT START AT PARSE TIME. Added 2026-08-12 — see below. This is a
+ *    CORRECTNESS rule, not a performance one; do not "optimise" it back.
+ *
+ * ─── WHY INIT IS DEFERRED (2026-08-12) ──────────────────────────────────────
+ *   This file previously called ensureAppCheck() on the last line, at parse
+ *   time, so the reCAPTCHA script load would overlap the rest of page load and
+ *   the first data fetch would find a token already minted. That optimisation
+ *   was costing correctness.
+ *
+ *   ctPageBootstrap in feature-flags.js wraps a FIVE-SECOND budget around a
+ *   serial chain — firebaseReady, SDK imports, getFeatureGates, auth settling,
+ *   requireAccess — and decides from it whether the reader may see the page. An
+ *   eager App Check init runs a third-party module import plus the reCAPTCHA
+ *   Enterprise script and its assessment CONCURRENTLY with that budget, on every
+ *   gated page load. On a cold profile (incognito, cleared cache, slow network)
+ *   that contention pushed the chain past five seconds.
+ *
+ *   What happens then is not a slow page — it is a REDIRECT. The bootstrap's
+ *   timeout tiebreaker reads auth.currentUser synchronously, which is null
+ *   precisely when auth settling is the step that stalled, so it concludes there
+ *   is no session and sends the reader to login.html. login.html then resolves
+ *   the session correctly, offers Continue, and returns them to the gated page —
+ *   where the same race runs again. That is the login loop observed 2026-08-12.
+ *
+ *   Note the budget was already raised 2000 -> 5000 on 2026-06-04 for this exact
+ *   failure ("signed-in admin bounced to login on slow navigations"). App Check
+ *   ate the headroom that bump created.
+ *
+ *   THE SHAPE OF THE FIX. Not "lazy" — that would move the whole reCAPTCHA cost
+ *   in front of the table and make a blocked script a visible stall. Instead the
+ *   warm-up is SCHEDULED for the moment page load settles, which is after the
+ *   gate has decided. Whichever comes first wins:
+ *     - the `load` event fires    -> warm up speculatively, token ready early
+ *     - token() is called first   -> initialise on demand, same as before
+ *   The gate runs uncontended either way, and the common case keeps its
+ *   parallelism.
+ *
+ *   THIS FILE IS ONLY HALF THE FIX. The tiebreaker in feature-flags.js is wrong
+ *   independently of App Check: on timeout it must not read currentUser
+ *   synchronously, because currentUser is null until Firebase rehydrates the
+ *   persisted session — so the "signed in, fail open" branch cannot fire in the
+ *   one case it exists for. Raising the budget a third time only moves the
+ *   threshold. Fix that too.
+ *
  * DEBUG TOKENS (browser-only workflow — read before enforcing)
  *   In a browser where you need to bypass attestation, run:
  *       localStorage.setItem('ct-appcheck-debug', '1'); location.reload();
@@ -35,9 +79,14 @@
  *   Firebase Console -> App Check -> Apps -> (Cricket Times) -> Manage debug
  *   tokens. To stop: localStorage.removeItem('ct-appcheck-debug').
  *   NOTE the flag must be set BEFORE initializeAppCheck runs, which is why it
- *   is read from localStorage at the top of this file rather than passed in.
+ *   is read from localStorage at the top of this file rather than passed in —
+ *   that is still true with deferred init, because the flag is set on `self` at
+ *   parse time while only the initialise CALL is deferred.
  *   A registered debug token bypasses App Check for whoever holds it — treat it
  *   like a credential, register one per browser, and revoke when done.
+ *   DEBUG TOKENS ARE PER-ORIGIN: the SDK persists its UUID in localStorage, so
+ *   cricket-times-admin.web.app needs its own registration separate from the
+ *   apex. A second UUID is expected, not a fault.
  * ========================================================================== */
 (function () {
   'use strict';
@@ -54,7 +103,9 @@
   var APPCHECK_TIMEOUT_MS = 5000;
   var DEBUG_FLAG_KEY      = 'ct-appcheck-debug';
 
-  /* Debug flag must be set on self BEFORE initializeAppCheck is called. */
+  /* Debug flag must be set on self BEFORE initializeAppCheck is called. Set at
+   * parse time even though init is deferred — cheap, and it removes any ordering
+   * question about whether the flag beat the initialise call. */
   try {
     if (window.localStorage && localStorage.getItem(DEBUG_FLAG_KEY) === '1') {
       self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
@@ -65,7 +116,8 @@
 
   var _initPromise = null;
 
-  /* Resolve to the AppCheck instance, or null if anything at all goes wrong. */
+  /* Resolve to the AppCheck instance, or null if anything at all goes wrong.
+   * Idempotent: the first caller starts the work, everyone else joins it. */
   function ensureAppCheck() {
     if (_initPromise) return _initPromise;
 
@@ -93,10 +145,13 @@
     return _initPromise;
   }
 
-  /* Public: resolve to a token string, or null. NEVER rejects. */
+  /* Public: resolve to a token string, or null. NEVER rejects.
+   * If the warm-up below has already run, ensureAppCheck() returns the settled
+   * promise and this is effectively instant. If it has not, this initialises on
+   * demand — so a fetch that beats the `load` event still gets a token. */
   function token() {
     return ensureAppCheck().then(function (ac) {
-      if (!ac) return null;
+      if (!ac) return null;   // init failed hard — return immediately, no waiting
       return import(FB_APPCHECK_URL).then(function (mod) {
         var timeout = new Promise(function (resolve) {
           setTimeout(function () { resolve(null); }, APPCHECK_TIMEOUT_MS);
@@ -112,9 +167,20 @@
     }).catch(function () { return null; });
   }
 
-  /* Start init immediately so the first data fetch isn't also paying for the
-   * reCAPTCHA script load. Failure here is already swallowed above. */
-  ensureAppCheck();
+  /* ── Warm-up scheduling ────────────────────────────────────────────────────
+   * Start init once page load has settled, so it never overlaps the gate budget
+   * in feature-flags.js. If document load has ALREADY fired by the time this
+   * script runs, start on the next macrotask rather than synchronously — the
+   * point is to leave the current turn of the event loop to the bootstrap.
+   *
+   * Do NOT change this to a parse-time call. See the header block: an eager init
+   * is what produced the 2026-08-12 login loop. */
+  function scheduleWarmUp() {
+    var start = function () { setTimeout(ensureAppCheck, 0); };
+    if (document.readyState === 'complete') start();
+    else window.addEventListener('load', start, { once: true });
+  }
+  scheduleWarmUp();
 
   window.CTAppCheck = { token: token, _siteKey: RECAPTCHA_SITE_KEY };
 })();
