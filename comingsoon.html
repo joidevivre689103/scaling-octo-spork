@@ -5,14 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<title>Cricket Times — Coming Soon · Launching June 2026</title>
-<meta name="description" content="Test cricket, examined properly. 149 years of Test cricket analysed with the care the format deserves — every match since 1877, every player, every era. Launching June 2026.">
+<title>Cricket Times — Coming Soon</title>
+<meta name="description" content="Test cricket, examined properly. 149 years of Test cricket analysed with the care the format deserves — every match since 1877, every player, every era. Launching soon.">
 
 <!-- Open Graph / Facebook / WhatsApp / iMessage -->
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://cricketimes.com/">
 <meta property="og:title" content="Cricket Times — Test cricket, examined properly.">
-<meta property="og:description" content="149 years of Test cricket, analysed with the care the format deserves. Every match since 1877, every player, every era — indexed, comparable, and written about with opinions. Launching June 2026.">
+<meta property="og:description" content="149 years of Test cricket, analysed with the care the format deserves. Every match since 1877, every player, every era — indexed, comparable, and written about with opinions. Launching soon.">
 <meta property="og:image" content="https://cricketimes.com/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -22,7 +22,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:url" content="https://cricketimes.com/">
 <meta name="twitter:title" content="Cricket Times — Test cricket, examined properly.">
-<meta name="twitter:description" content="149 years of Test cricket, analysed with the care the format deserves. Launching June 2026.">
+<meta name="twitter:description" content="149 years of Test cricket, analysed with the care the format deserves. Launching soon.">
 <meta name="twitter:image" content="https://cricketimes.com/og-image.png">
 
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,300;8..60,400;8..60,500;8..60,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -58,6 +58,7 @@ body{
   text-align:center;
   padding:24px 24px 18px;
   border-bottom:2px solid var(--text);
+  position:relative;
 }
 .masthead-date{
   font-family:'Inter',sans-serif;
@@ -792,6 +793,54 @@ body{
   transition:color 0.15s;
 }
 .beta-link a:hover{ color:var(--accent); text-decoration-color:var(--accent); }
+/* Login pill — masthead top-right on desktop, centred under the tagline on
+   narrow screens. Opens the SAME modal as the footer "Sign in" link, so there
+   is exactly one sign-in path on this page. Sign-in only: see the existing-
+   account guard in sendBetaSigninLink() below — no account is ever created
+   from this page. */
+.masthead-login{
+  position:absolute;
+  top:20px;
+  right:24px;
+}
+.login-pill{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  font-family:'Inter',sans-serif;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:1.2px;
+  text-transform:uppercase;
+  padding:8px 16px;
+  border-radius:999px;
+  background:transparent;
+  color:var(--accent);
+  border:1.5px solid var(--accent);
+  cursor:pointer;
+  text-decoration:none;
+  line-height:1;
+  transition:background 0.18s, color 0.18s, border-color 0.18s, transform 0.1s;
+}
+.login-pill:hover{
+  background:var(--accent);
+  color:#fff;
+  border-color:var(--accent);
+}
+.login-pill:active{ transform:translateY(1px); }
+.login-pill:focus-visible{
+  outline:2px solid var(--accent);
+  outline-offset:3px;
+}
+.login-pill svg{ flex-shrink:0; }
+@media(max-width:760px){
+  .masthead-login{
+    position:static;
+    margin-top:16px;
+  }
+  .login-pill{ padding:7px 15px; font-size:10.5px; }
+}
+
 .beta-modal-overlay{
   position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;
   display:none;align-items:center;justify-content:center;padding:20px;
@@ -807,6 +856,10 @@ body{
 }
 .beta-modal p{
   font-size:13px;color:var(--text2);line-height:1.55;margin:0 0 18px;
+}
+.beta-modal p.beta-modal-note{
+  font-size:12px;color:var(--text3);margin:-10px 0 18px;
+  padding-left:10px;border-left:2px solid var(--border);
 }
 .beta-modal label{
   display:block;font-size:11px;color:var(--text3);text-transform:uppercase;
@@ -870,7 +923,7 @@ body{
 
 <!-- COMING SOON BANNER -->
 <div class="cs-banner">
-  <span>Coming Soon</span> Launching June 2026
+  <span>Coming Soon</span> Join the Launch List
 </div>
 
 <!-- MASTHEAD -->
@@ -878,6 +931,12 @@ body{
   <div class="masthead-date" id="mastheadDate">Friday, April 17, 2026 · Vol. I, No. 1</div>
   <a href="/" class="masthead-logo">Cricket<span>Times</span></a>
   <div class="masthead-tagline">All the Test cricket that's fit to compute</div>
+  <div class="masthead-login">
+    <button type="button" class="login-pill" id="mastheadLoginPill" onclick="openBetaModal()" aria-haspopup="dialog" aria-controls="betaModal">
+      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+      Sign In
+    </button>
+  </div>
 </header>
 
 <!-- MAIN -->
@@ -885,7 +944,7 @@ body{
 
   <!-- HERO -->
   <section class="hero">
-    <div class="hero-kicker">A New Publication · Launching June 2026</div>
+    <div class="hero-kicker">A New Publication · Launching Soon</div>
     <h1 class="hero-headline">
       Test cricket, examined <em>properly</em>.
     </h1>
@@ -1034,8 +1093,9 @@ body{
 <!-- BETA SIGN-IN MODAL -->
 <div class="beta-modal-overlay" id="betaModal" role="dialog" aria-modal="true" aria-labelledby="betaModalTitle">
   <div class="beta-modal">
-    <h3 id="betaModalTitle">Beta access</h3>
+    <h3 id="betaModalTitle">Sign in</h3>
     <p>Enter the email address you've been given access with. We'll email you a single-use sign-in link — no password needed.</p>
+    <p class="beta-modal-note">Sign-in only. Accounts can't be created here — if you don't have access yet, join the launch list below and we'll be in touch.</p>
     <label for="betaEmailInput">Email address</label>
     <input type="email" id="betaEmailInput" placeholder="you@example.com" autocomplete="email" />
     <div class="beta-modal-msg" id="betaModalMsg"></div>
@@ -1096,7 +1156,12 @@ body{
 // This page is the coming-soon landing AND the email-link return target.
 // On page load we check for two things:
 //   1. URL has email-link sign-in params  → finalise the sign-in, redirect
-//   2. User clicks the "Sign in" footer link → open modal, send link
+//   2. User clicks the masthead login pill OR the footer "Sign in" link
+//      → open modal, verify the account EXISTS, then send the link
+//
+// SIGN-IN ONLY: this page never creates accounts. Both entry points share
+// sendBetaSigninLink(), which refuses any address without an existing
+// Firebase Auth record (see the EXISTING-ACCOUNT GUARD below).
 // On successful sign-in, the user's role is checked by prelaunch-guard.js
 // on the next page (stories.html). If they're priority+ they see the site.
 // If they're regular, they bounce back here — but they're now signed in,
@@ -1161,11 +1226,47 @@ body{
       setBetaModalMsg('error', 'Please enter a valid email address.');
       return;
     }
-    btn.disabled = true; btn.textContent = 'Sending…';
-    setBetaModalMsg('info', 'Sending your sign-in link…');
+    btn.disabled = true; btn.textContent = 'Checking…';
+    setBetaModalMsg('info', 'Checking your account…');
 
     try {
       await ensureFirebase();
+
+      // ─── EXISTING-ACCOUNT GUARD ────────────────────────────────────
+      // sendSignInLinkToEmail() CREATES an account for any address that
+      // doesn't already have one — email-link auth is a sign-up path as
+      // much as a sign-in path. This page must never create accounts, so
+      // we look the address up first and refuse if it isn't registered.
+      //
+      // fetchSignInMethodsForEmail() returns [] for an unknown address.
+      // Fail CLOSED: on an empty result, or on a lookup error, we do NOT
+      // send the link.
+      //
+      // ⚠ PRE-DEPLOY CHECK — Firebase Console → Authentication → Settings
+      // → User actions → "Email enumeration protection". If that is
+      // ENABLED, fetchSignInMethodsForEmail() returns [] for EVERY address,
+      // including real accounts, and this guard will lock out every
+      // legitimate beta user. It must be DISABLED for this to work.
+      let methods = [];
+      try {
+        methods = await firebase.auth().fetchSignInMethodsForEmail(email);
+      } catch (lookupErr) {
+        console.error('Account lookup failed:', lookupErr);
+        setBetaModalMsg('error', 'We couldn\'t verify that address just now. Please try again in a moment.');
+        btn.disabled = false; btn.textContent = 'Send link';
+        return;
+      }
+
+      if (!methods || methods.length === 0) {
+        setBetaModalMsg('error', 'We couldn\'t find an account for that address. Sign-in here is for existing beta accounts only — join the launch list below and we\'ll be in touch when access opens.');
+        btn.disabled = false; btn.textContent = 'Send link';
+        return;
+      }
+      // ───────────────────────────────────────────────────────────────
+
+      btn.textContent = 'Sending…';
+      setBetaModalMsg('info', 'Sending your sign-in link…');
+
       const actionCodeSettings = {
         // Return the email link directly to comingsoon.html — NOT to /index.html.
         // index.html is a redirect stub (post-launch it'll become the homepage),
