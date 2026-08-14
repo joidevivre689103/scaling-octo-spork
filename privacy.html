@@ -250,7 +250,7 @@
 
 <main>
     <h1>Privacy Policy</h1>
-    <p class="effective-date">Effective — 5 August 2026</p>
+    <p class="effective-date">Effective — 14 August 2026</p>
 
     <div class="summary-box">
         <p class="label">The short version</p>
@@ -258,6 +258,7 @@
         <p>We do measure how the site is read, and we do it ourselves rather than handing it to an outside analytics company. <strong>We measure pages, not people.</strong> We can tell how many times an article was opened and how long readers stayed on it. We cannot tell which articles any particular account opened, because we do not keep that record.</p>
         <p><strong>We use it to decide what to write next, not to change what you see.</strong> Nothing on this site is personalised: no recommendations, no re-ordered front page, no pricing that depends on your reading.</p>
         <p>One thing is tied to your account: a record of each time you sign in.</p>
+        <p>We work out which <strong>country</strong> you are in, from your IP address, for two narrow purposes: to show you the right price, and because paid subscriptions are only offered in some countries. We do not keep a history of where you have been.</p>
         <p>If you would rather we did not hold any of it, write to <a href="mailto:contact@cricketimes.com">contact@cricketimes.com</a> and we will delete your account and its records.</p>
     </div>
 
@@ -281,12 +282,33 @@
 
     <h3>1.2 Subscription information</h3>
     <p>
-        If you subscribe, payment is taken by <strong>Stripe</strong>, our payment processor.
-        <strong>We never receive or store your card number.</strong> What we hold is the status of your
-        subscription — whether it is active, cancelled, or lapsed — together with the identifiers Stripe
-        gives us so the two systems can refer to the same subscription. Stripe processes your payment
-        details under its own
+        If you subscribe, payment is handled by <strong>Stripe</strong> through its Managed Payments
+        service, under which Stripe acts as <strong>merchant of record</strong> for the transaction rather
+        than simply processing a payment on our behalf. Stripe provides that service through a Stripe
+        company called <strong>Sold through Link, LLC</strong>, and the name you will actually see is
+        <strong>Link</strong> &mdash; they are the same organisation.
+        <strong>We never receive or store your card number.</strong>
+    </p>
+    <p>
+        Because of that arrangement, Link — not Cricket Times — holds the payment relationship with you.
+        Link collects and holds your payment details and billing address, sends your receipt and invoice,
+        handles refunds and disputes, and gives you an account at
+        <a href="https://link.com" target="_blank" rel="noopener">link.com</a> where you can see your order
+        history, update your card, and cancel. Those emails come from Link and we cannot change or suppress
+        them. Stripe and Link process this data under Stripe&rsquo;s own
         <a href="https://stripe.com/privacy" target="_blank" rel="noopener">privacy policy</a>.
+    </p>
+    <p>
+        What <em>we</em> hold is narrower: the status of your subscription — whether it is active,
+        cancelled, or lapsed — the identifiers Stripe gives us so the two systems can refer to the same
+        subscription, and the country in which the card used was issued (see section 1.8).
+    </p>
+    <p>
+        <strong>One consequence you should know about.</strong> If you ask Link to delete your data, Stripe
+        will cancel any subscription bought through Managed Payments and delete the associated records from
+        our Stripe account as well as its own. That happens on Link&rsquo;s side and we cannot prevent or
+        reverse it. It does not delete your Cricket Times account, your comments, or anything else described
+        in this policy — for that, write to us as described in section 6.
     </p>
 
     <h3>1.3 The newsletter</h3>
@@ -395,8 +417,36 @@
         device information — as an ordinary part of serving and securing a website. Google handles this
         under its
         <a href="https://firebase.google.com/support/privacy" target="_blank" rel="noopener">Firebase privacy documentation</a>.
-        We use these logs for security, abuse prevention, and debugging. We do not use them to identify
-        readers or to work out where you are.
+        We use these logs for security, abuse prevention, and debugging, and we do not use them to identify
+        readers. Section 1.8 describes the one place where we do derive your country from an IP address.
+    </p>
+
+    <h3>1.8 Where you are, and why we need to know</h3>
+    <p>
+        Two things about this site depend on which country you are in: the <strong>price and currency</strong>
+        we show you, and whether a paid subscription is <strong>available</strong> to you at all — we can
+        only sell subscriptions in the countries listed in our <a href="/service-area.html">Service Area</a>,
+        because those are the countries where our payment provider handles local sales tax on our behalf.
+    </p>
+    <p>
+        To do that, we derive a <strong>country</strong> from the IP address of the request when you visit
+        the subscribe page. It has to work this way round: the price must be on the screen before you type
+        a card number, so we cannot take the country from your card. We work out the country only — not a
+        city, a region, or a location on a map — and we do not store a history of it or attach it to your
+        reading. If the country we detect is not the right one, you can change it on the page.
+    </p>
+    <p>
+        Separately, when a subscription is purchased, we record the <strong>country in which the payment
+        card was issued</strong>, which Stripe passes to us. We compare it with the country we showed the
+        price for. This is how we check that subscriptions are not bought from countries we cannot sell
+        into, and that regional pricing is not obtained by misrepresenting location — both of which our
+        <a href="/terms.html">Terms of Service</a> prohibit. Where we find a mismatch we may cancel the
+        subscription and refund the unused portion. <strong>We do not use this for anything else</strong>,
+        and it tells us the issuing country of a card, not where you were standing.
+    </p>
+    <p>
+        These records are kept for <strong>24 months</strong> and then deleted, together with a note of
+        what we decided in any case we acted on.
     </p>
 
     <h2>2. Why we collect it, and on what basis</h2>
@@ -420,6 +470,10 @@
         <tr>
             <td>Keeping the site secure, and enforcing our Terms</td>
             <td>Our legitimate interest in protecting the site and our work</td>
+        </tr>
+        <tr>
+            <td>Working out which country you are in, to show the right price and to check whether we may sell to you</td>
+            <td>Performance of our contract; legal obligation in respect of sales tax; and our legitimate interest in enforcing our Terms</td>
         </tr>
         <tr>
             <td>Sending emails you asked for</td>
@@ -447,6 +501,9 @@
             it, or sooner if you ask.</li>
         <li><strong>Account and subscription records</strong> — kept while your account is open, and deleted
             when you close it, except where we must keep payment and tax records for longer by law.</li>
+        <li><strong>Location and card-country checks</strong> (section 1.8) — kept for <strong>24 months</strong>
+            and then deleted, along with a note of any decision we took. Payment records held by Link are kept
+            under Stripe&rsquo;s own policy, not ours.</li>
         <li><strong>A record that an account was closed</strong> — the email address, the dates, and what
             was removed — is kept for <strong>six years</strong> and then deleted automatically, so that we
             can show a deletion request was made and carried out. It is not used for anything else: it is
@@ -472,7 +529,7 @@
         Externally: <strong>we do not sell personal information, and we do not share it for advertising.</strong>
         The only third parties that handle your data are the service providers we need in order to
         operate — <strong>Google Firebase and Google Cloud</strong> (hosting, authentication, database, and
-        email delivery for account messages), <strong>Stripe</strong> (subscription payments),
+        email delivery for account messages), <strong>Stripe</strong>, including its Managed Payments entity <strong>Sold through Link, LLC</strong> (subscription payments, as merchant of record — see section 1.2),
         and <strong>MailerLite</strong> (the newsletter) — and each only to the extent needed to provide that service. We may also disclose information where we are legally
         required to, or where it is necessary to establish or defend a legal claim.
     </p>
@@ -488,9 +545,11 @@
         cookie banner — because there is nothing we would need to ask your consent for.</strong> No page
         on this site loads a third-party tracking script of any kind. What we use ourselves is strictly
         functional: a session cookie and a token that keep you signed in, and a small amount of browser
-        storage that remembers things like whether you have already reacted to a comment and whether this
-        visit has already been counted as a sign-in. Clearing your browser storage signs you out; it does
-        not delete anything we hold.
+        storage that remembers things like whether you have already reacted to a comment, whether this
+        visit has already been counted as a sign-in, and &mdash; on the subscribe page &mdash; which
+        country&rsquo;s prices you asked to see, if the country we detected was not the right one. That
+        preference stays in your browser; it is not sent to us as a record of where you are. Clearing your browser
+        storage signs you out; it does not delete anything we hold.
     </p>
     <h2>6. Your rights</h2>
     <p>You can ask us to:</p>
@@ -512,6 +571,14 @@
         email address on the account. Because closing an account cannot be undone, we will ask you to
         confirm that specifically before we delete anything. Closing your account ends any access it
         holds, so cancel an active subscription first if you want to use out the time you have paid for.
+    </p>
+    <p>
+        <strong>There is a second route we do not control.</strong> Because Stripe is the merchant of record
+        for subscriptions (section 1.2), you can also ask Link directly to delete your data. If you do,
+        Stripe will cancel the subscription and remove the payment records from its systems and from our
+        Stripe account. That is Link&rsquo;s process, not ours, and we cannot reverse it — and it will not
+        delete your Cricket Times account, your comments, or your sign-in records, which are separate and
+        which only we can remove. If you want everything gone, write to us as well.
     </p>
     <p>
         We do not discriminate against anyone for exercising these rights: your subscription, price, and
