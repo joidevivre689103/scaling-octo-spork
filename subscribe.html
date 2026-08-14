@@ -655,7 +655,7 @@ h1.title em {
 
     <p>The free part of Cricket Times is not a tease. It's the writing — every article, in full, with the narrated audio sitting on the piece itself. No login, no email, nothing to wait for. If you came here from a friend's link or a Google search and never sign up for anything, you'll still read it exactly as it was meant to be read.</p>
 
-    <p>A free account — a minute, an email address, no card — adds the two things that have to know who you are: <strong>commenting</strong> on articles, and the <strong>Test Cricket Oracle</strong> quiz on the first of every month, with its leaderboard. Both stay free permanently. Signing up is about identity, not payment.</p>
+    <p>A free account — a minute, an email address, no card — adds the two things that have to know who you are: <strong>commenting</strong> on articles, and the <strong>Test Cricket Oracle</strong> quiz every month, with its leaderboard. Both stay free permanently. Signing up is about identity, not payment.</p>
 
     <p>This isn't generosity, exactly. It's a belief that good writing about cricket — any cricket — is rarer than it should be, and the answer to "rare" is "share it widely." The articles you read were written for you whether you ever pay a penny.</p>
 
@@ -671,9 +671,9 @@ h1.title em {
 
     <p>But "support the work" is a thin pitch on its own — a noble one, but thin. So the paid tier comes with things that make subscribing feel like joining the studio rather than just paying the rent.</p>
 
-    <p>The first is the <strong>statistics</strong>. Batting and bowling records, wicketkeeping, captaincy, country head-to-heads, and player-against-player comparison — filterable by era, by opposition, by venue, by whatever question you actually walked in with. This is the part that took longest to build, and it is the part subscribers open most.</p>
+    <p>The first is the <strong>statistics</strong>. Batting and bowling records, wicketkeeping, captaincy, country head-to-heads, and player-against-player comparison — filterable by era, by opposition, by venue, by whatever question you actually walked in with. This is the part that took longest to build, and it is the part paid subscribers open most.</p>
 
-    <p>The second is the <strong>archive</strong>. Every article ever published, browsable by author, era, team, format, statistic, and topic. The free tier gives you any single article you click on; the archive is where you go when you remember reading something a few months ago about the third innings at Headingley and you'd like to find it again. Or when you'd like to find six other things like it. The free site is a daily paper; the archive is the bound volumes on the shelf, organised properly.</p>
+    <p>The second is the <strong>archive</strong>. Every article ever published, browsable by author, era, team, format, statistic, and topic. The free tier gives you any single article you click on; the archive is where you go when you remember reading something a few months ago about the third innings at Headingley and you'd like to find it again. Or when you'd like to find six other things like it. The free site is whatever has just gone up; the archive is the bound volumes on the shelf, organised properly.</p>
 
     <p>Third is the <strong>simulation tool</strong>, which lets you ask the question every cricket fan has had at the bar at midnight: <em>what if?</em> What if Lara had been in this batting lineup, what if Sri Lanka had had Marshall opening the bowling against Australia, what if the third innings had been twelve overs longer. The simulator is built on the same statistical models that power the analysis on the site, and it will give you genuine answers, which you may or may not want to hear. It is the most fun a spreadsheet has ever been allowed to be.</p>
 
@@ -687,7 +687,7 @@ h1.title em {
 
     <p>And, since you've come this far — one more thing.</p>
 
-    <p>Subscribers also get <strong>Behind the Scenes</strong>, which is the editor's notebook. Pinned notes, half-formed thoughts, drafts in progress, photos from the desk, the occasional cricket ball with words written on it in marker. It's posted irregularly, like all good notebooks. Subscribers can reply, replies become threads, and threads occasionally become arguments about whether Headley really should rank above Bradman, or whether Harry Brook's Test record will look better or worse in twenty years. (The first one: probably not. The second one: ask me again in twenty years.)</p>
+    <p>Paid subscribers also get <strong>Behind the Scenes</strong>, which is the editor's notebook. Pinned notes, half-formed thoughts, drafts in progress, photos from the desk, the occasional cricket ball with words written on it in marker. It's posted irregularly, like all good notebooks. Paid subscribers can reply, replies become threads, and threads occasionally become arguments about whether Headley really should rank above Bradman, or whether Harry Brook's Test record will look better or worse in twenty years. (The first one: probably not. The second one: ask me again in twenty years.)</p>
 
     <p>It's not the headline reason to subscribe. It's the thing that makes subscribing feel less like a transaction and more like a key to a small, noisy room where the writing actually gets made.</p>
 
@@ -714,10 +714,10 @@ h1.title em {
       <div class="tier-price"><strong>$0</strong><span class="per">forever, no signup needed</span></div>
 
       <ul class="tier-list">
-        <li>Every article, every week, in full &mdash; no login</li>
+        <li>Every article in full, every time &mdash; no login</li>
         <li>Narrated audio on the article itself</li>
         <li>Comments on any article <em>(free account)</em></li>
-        <li>The Oracle quiz, first of every month <em>(free account)</em></li>
+        <li>The Oracle quiz, every month <em>(free account)</em></li>
         <li>The Oracle leaderboard <em>(free account)</em></li>
       </ul>
 
@@ -738,7 +738,7 @@ h1.title em {
           <p class="tier-price-intro" id="tier-price-intro">Detecting your pricing&hellip;</p>
 
           <div class="price-options" id="price-options">
-            <!-- Populated by subscribe script based on detected zone -->
+            <!-- Populated by subscribe script in the detected currency -->
           </div>
         </div>
 
@@ -802,7 +802,7 @@ h1.title em {
            an active subscription. Plan switching and cancellation live on
            manage.html. -->
       <div class="already-subscribed-panel" id="already-subscribed-panel" style="display: none;">
-        <p class="already-sub-title">You're already a subscriber.</p>
+        <p class="already-sub-title">You're already a paid subscriber.</p>
         <p class="already-sub-body">
           Your Cricket Times subscription is active &mdash; you have full access to the archive, the simulation tool, data export, behind-the-scenes notes, and everything else.
         </p>
@@ -834,9 +834,8 @@ h1.title em {
 
 <!-- ───────────────────────────────────────────────────────────────────────
      SUBSCRIPTION FLOW
-     - Detects pricing zone (USD / INR) on load
-     - Renders price options for that zone
-     - Shows footnote about the other zone for transparency
+     - Detects the reader's pricing currency on load
+     - Renders price options in that currency
      - Delegates ALL authentication to /login.html (item b, 2026-06-05):
        anonymous Subscribe clicks route to /login.html?mode=signup with a
        returnUrl carrying the selected priceKey (+ zone override if any).
@@ -903,59 +902,161 @@ const alreadySubPanelEl  = document.getElementById('already-subscribed-panel');
 const alreadySubEmailEl  = document.getElementById('already-sub-email');
 const alreadySubSignout  = document.getElementById('already-sub-signout');
 
-// ─── State ────────────────────────────────────────────────────────────────
-let zone = null;          // 'usd' or 'inr'
+// ─── State ──────────────────────────────────────────────────────────────
+//
+// 2026-08-14: this used to be `zone`, one of exactly two values ('usd' |
+// 'inr'). It is now a CURRENCY — one of six — because the Stripe Price
+// objects carry all six amounts in `currency_options` (pricing memo §27) and
+// a "zone" can no longer describe them. An Australian reader is not in the
+// USD zone; they are in AUD.
+let currency = null;      // 'usd' | 'gbp' | 'aud' | 'nzd' | 'inr' | 'zar'
 let selectedPriceKey = null;
 
-// Display catalog. Cloud Function is source of truth for Price IDs and
-// authorisation; amounts here are for rendering only.
-// Amounts updated 2026-08-14 to the current price table. NOTE: the Cloud
-// Function holds the real Stripe Price IDs — these must be recreated in LIVE
-// mode at the same amounts, or the page will display one figure and Stripe
-// will charge another.
-//
-// STILL TO DO before launch: this catalog knows only two zones (usd/inr), but
-// the price table now also carries GBP, AUD, NZD and ZAR, and selling is
-// restricted to an allowlist of countries. Extending detectPricingZone to
-// return a currency (not a zone) and adding the allowlist check is backend
-// work — see the pricing memo, §26–27.
+// Display catalog. The Cloud Function is source of truth for Price IDs and
+// authorisation; amounts here are for rendering only. Every figure below must
+// match the corresponding `currency_options` entry on the two live Stripe
+// Prices (ct_annual_v1 / ct_monthly_v1) — if they drift, the page displays one
+// number and Stripe charges another.
 const CATALOG = {
   usd: [
-    { key: 'usd_monthly',  cadence: 'Monthly',          amount: '$6.99',  per: '/month',
+    { key: 'usd_monthly',  cadence: 'Monthly', amount: '$6.99',     per: '/month',
       detail: 'Billed monthly. Cancel any time.' },
-    { key: 'usd_annual',   cadence: 'Annual',           amount: '$59.99', per: '/year',
+    { key: 'usd_annual',   cadence: 'Annual',  amount: '$59.99',    per: '/year',
       detail: 'Save $24 vs monthly — works out at $5 a month.' },
   ],
-  inr: [
-    { key: 'inr_monthly',  cadence: 'Monthly',          amount: '₹199',   per: '/month',
+  gbp: [
+    { key: 'gbp_monthly',  cadence: 'Monthly', amount: '£5.99',      per: '/month',
       detail: 'Billed monthly. Cancel any time.' },
-    { key: 'inr_annual',   cadence: 'Annual',           amount: '₹1,599', per: '/year',
+    { key: 'gbp_annual',   cadence: 'Annual',  amount: '£49.99',     per: '/year',
+      detail: 'Save £22 vs monthly — works out at £4.17 a month.' },
+  ],
+  aud: [
+    { key: 'aud_monthly',  cadence: 'Monthly', amount: 'A$10.49',   per: '/month',
+      detail: 'Billed monthly. Cancel any time.' },
+    { key: 'aud_annual',   cadence: 'Annual',  amount: 'A$89.99',   per: '/year',
+      detail: 'Save A$36 vs monthly — works out at A$7.50 a month.' },
+  ],
+  nzd: [
+    { key: 'nzd_monthly',  cadence: 'Monthly', amount: 'NZ$11.99',  per: '/month',
+      detail: 'Billed monthly. Cancel any time.' },
+    { key: 'nzd_annual',   cadence: 'Annual',  amount: 'NZ$99.99',  per: '/year',
+      detail: 'Save NZ$44 vs monthly — works out at NZ$8.33 a month.' },
+  ],
+  inr: [
+    { key: 'inr_monthly',  cadence: 'Monthly', amount: '₹199',       per: '/month',
+      detail: 'Billed monthly. Cancel any time.' },
+    { key: 'inr_annual',   cadence: 'Annual',  amount: '₹1,599',     per: '/year',
       detail: 'Save ₹789 vs monthly — works out at ₹133 a month.' },
+  ],
+  zar: [
+    { key: 'zar_monthly',  cadence: 'Monthly', amount: 'R59',       per: '/month',
+      detail: 'Billed monthly. Cancel any time.' },
+    { key: 'zar_annual',   cadence: 'Annual',  amount: 'R499',      per: '/year',
+      detail: 'Save R209 vs monthly — works out at R42 a month.' },
   ],
 };
 
-const ZONE_INTRO = {
+const CURRENCY_INTRO = {
   usd: 'Pricing in <strong>US dollars</strong>.',
+  gbp: 'Pricing in <strong>pounds sterling</strong>.',
+  aud: 'Pricing in <strong>Australian dollars</strong>.',
+  nzd: 'Pricing in <strong>New Zealand dollars</strong>.',
   inr: 'Pricing in <strong>Indian rupees</strong>.',
+  zar: 'Pricing in <strong>South African rand</strong>.',
 };
 
-// Fallback label when detectPricingZone returns no country code — we describe
-// the currency rather than claiming to know where the reader is.
+// Per-month reframe of the annual price. This is the line that gets compared
+// against cheap ad-removal tiers, so it needs to exist in every currency.
 const VALUE_PERMONTH = {
   usd: 'Annual works out at $5 a month — for a paper that publishes all year.',
+  gbp: 'Annual works out at £4.17 a month — for a paper that publishes all year.',
+  aud: 'Annual works out at A$7.50 a month — for a paper that publishes all year.',
+  nzd: 'Annual works out at NZ$8.33 a month — for a paper that publishes all year.',
   inr: 'Annual works out at ₹133 a month — for a paper that publishes all year.',
+  zar: 'Annual works out at R42 a month — for a paper that publishes all year.',
 };
 
-const ZONE_FALLBACK_LABEL = {
+// Shown when the function gives us a currency but no country code — we
+// describe the currency rather than claiming to know where the reader is.
+const CURRENCY_FALLBACK_LABEL = {
   usd: 'your region (US dollars)',
+  gbp: 'the United Kingdom (£)',
+  aud: 'Australia (A$)',
+  nzd: 'New Zealand (NZ$)',
   inr: 'India (₹)',
+  zar: 'South Africa (R)',
 };
+
+// Country → currency. Deliberately a mirror of CURRENCY_BY_COUNTRY in the
+// Cloud Function, NOT an independent source of truth: the server decides what
+// it charges, and this map exists only so the page can render the same figure
+// before the call. Any country not listed sees USD.
+//
+// ⚠️ Keep these two in sync. If they diverge, the reader sees one price and
+// pays another — the failure mode §20.4 of the pricing memo exists to prevent.
+const CURRENCY_BY_COUNTRY = {
+  GB: 'gbp',
+  AU: 'aud',
+  NZ: 'nzd',
+  IN: 'inr',
+  ZA: 'zar',
+};
+
+const KNOWN_CURRENCIES = Object.keys(CATALOG);
+
+// ─── Currency resolution ───────────────────────────────────────────────
+//
+// This page must work against BOTH versions of detectPricingZone, because the
+// backend change (country → currency + allowlist) ships separately. The rule
+// is: never display a currency the server cannot charge.
+//
+//   NEW function  — returns { currency }        → trust it, six currencies live
+//   NEW function  — returns { country } only    → map it, six currencies live
+//   OLD function  — returns { zone: usd|inr }   → use the zone, two currencies
+//
+// The middle case is the one to watch. It is only safe once the server maps
+// country → currency the same way; until then the old function returns `zone`
+// and we fall through to the third case, which is exactly today's behaviour.
+// So this file can be deployed now: nothing changes for anyone until the
+// function starts returning a currency.
+function resolveCurrency(data) {
+  if (!data) return 'usd';
+
+  // 1. Explicit currency from the new function — authoritative.
+  const c = (data.currency || '').toLowerCase();
+  if (KNOWN_CURRENCIES.indexOf(c) !== -1) return c;
+
+  // 2. Legacy two-value zone. Present only on the old function; if the new
+  //    one also emits it for compatibility, `currency` above wins.
+  const z = (data.zone || '').toLowerCase();
+  if (z === 'usd' || z === 'inr') return z;
+
+  // 3. Country code, mapped locally. Reached only when the function has
+  //    stopped sending `zone` — i.e. after the backend change.
+  const country = (data.country || '').toUpperCase();
+  if (CURRENCY_BY_COUNTRY[country]) return CURRENCY_BY_COUNTRY[country];
+
+  return 'usd';
+}
+
+// Dev override: ?currency=aud (or the older ?zone=inr). Bypasses the function
+// entirely so the six price tables can be previewed from any IP.
+//
+// ⚠️ Preview only. The server looks up its own Price ID from its own view of
+// the reader's country, so an override changes what is DISPLAYED and not what
+// would be CHARGED. Harmless — no server-side check can be bypassed from here
+// — but do not use it to talk anyone through a purchase.
+function readCurrencyOverride() {
+  const params = new URLSearchParams(window.location.search);
+  const raw = (params.get('currency') || params.get('zone') || '').toLowerCase();
+  return KNOWN_CURRENCIES.indexOf(raw) !== -1 ? raw : null;
+}
 
 // ─── Render ───────────────────────────────────────────────────────────────
 function renderOptions() {
-  if (!zone) return;
+  if (!currency) return;
 
-  const items = CATALOG[zone];
+  const items = CATALOG[currency];
 
   optionsEl.innerHTML = '';
 
@@ -984,7 +1085,7 @@ function renderOptions() {
   });
 
   // Pre-select annual by default — best balance of value and commitment
-  const defaultKey = zone + '_annual';
+  const defaultKey = currency + '_annual';
   const defaultInput = optionsEl.querySelector('input[value="' + defaultKey + '"]');
   if (defaultInput) {
     defaultInput.checked = true;
@@ -992,12 +1093,10 @@ function renderOptions() {
     subscribeBtn.disabled = false;
   }
 
-  introEl.innerHTML = ZONE_INTRO[zone];
+  introEl.innerHTML = CURRENCY_INTRO[currency];
 
-  // Per-month reframe. The annual figure is the one that gets compared against
-  // cheap ad-removal tiers; the monthly equivalent is the honest answer.
   const pm = document.getElementById('value-permonth');
-  if (pm) pm.textContent = VALUE_PERMONTH[zone] || '';
+  if (pm) pm.textContent = VALUE_PERMONTH[currency] || '';
 }
 
 // ─── Detected country ─────────────────────────────────────────────────────
@@ -1007,7 +1106,7 @@ function renderOptions() {
 // name without us shipping a lookup table.
 function renderDetectedCountry(countryCode) {
   if (!detectedEl || !countryNameEl) return;
-  let label = ZONE_FALLBACK_LABEL[zone] || 'your region';
+  let label = CURRENCY_FALLBACK_LABEL[currency] || 'your region';
   if (countryCode && /^[A-Za-z]{2}$/.test(countryCode)) {
     try {
       const dn = new Intl.DisplayNames([navigator.language || 'en'], { type: 'region' });
@@ -1043,8 +1142,9 @@ function renderDetectedCountry(countryCode) {
 function buildReturnUrl() {
   const ret = new URL('/subscribe.html', window.location.origin);
   if (selectedPriceKey) ret.searchParams.set('pricekey', selectedPriceKey);
-  const z = new URLSearchParams(window.location.search).get('zone');
-  if (z) ret.searchParams.set('zone', z);
+  const params = new URLSearchParams(window.location.search);
+  const ov = params.get('currency') || params.get('zone');
+  if (ov) ret.searchParams.set('currency', ov);
   return ret.pathname + ret.search;
 }
 
@@ -1278,27 +1378,15 @@ if (alreadySubSignout) {
     if (swapped) return;
   }
 
-  // ────────────────────────────────────────────────────────────────────
-  // DEV-ONLY zone override (added 2026-05-11 for Phase 3 INR tier testing
-  // from a US IP). Reading ?zone=usd or ?zone=inr from the URL bypasses
-  // detectPricingZone() entirely. Has no effect when the param is absent.
-  // Safe to leave in production: a curious user toggling zones just sees
-  // different prices, can't bypass any server-side check (Stripe price
-  // IDs are looked up server-side in createCheckoutSession). Remove after
-  // launch if you prefer a cleaner surface.
-  // ────────────────────────────────────────────────────────────────────
-  const urlZoneOverride = (() => {
-    const params = new URLSearchParams(window.location.search);
-    const z = (params.get('zone') || '').toLowerCase();
-    return (z === 'usd' || z === 'inr') ? z : null;
-  })();
+  // Dev override, plus any ?currency= carried back through /login.html.
+  const urlCurrencyOverride = readCurrencyOverride();
 
   // ────────────────────────────────────────────────────────────────────
   // Re-apply a ?pricekey= carried back through the /login.html round-trip
   // (item b). Pre-selects the radio the reader chose before authenticating
   // — and ONLY pre-selects. Checkout is never auto-triggered from URL
-  // state; the reader confirms with a Subscribe click. Keys whose zone
-  // doesn't match the rendered zone are ignored silently (no such radio
+  // state; the reader confirms with a Subscribe click. Keys whose currency
+  // doesn't match the rendered one are ignored silently (no such radio
   // exists, and the server geo-gate is the real enforcement).
   // ────────────────────────────────────────────────────────────────────
   function applyPricekeyFromUrl() {
@@ -1314,22 +1402,24 @@ if (alreadySubSignout) {
 
   try {
     const zoneRes = await detectPricingZone();
-    zone = urlZoneOverride || (zoneRes.data && zoneRes.data.zone) || 'usd';
-    if (urlZoneOverride) {
-      console.log('[subscribe] zone override active: ' + urlZoneOverride + ' (detected was: ' + (zoneRes.data && zoneRes.data.zone) + ')');
+    const detected = resolveCurrency(zoneRes.data);
+    currency = urlCurrencyOverride || detected;
+    if (urlCurrencyOverride) {
+      console.log('[subscribe] currency override active: ' + urlCurrencyOverride +
+                  ' (detected was: ' + detected + ') — DISPLAY ONLY, the server charges what it detects');
     }
     renderOptions();
     // detectPricingZone may or may not return a country code depending on its
     // version; renderDetectedCountry falls back to a currency label if not.
-    renderDetectedCountry(urlZoneOverride ? null : (zoneRes.data && zoneRes.data.country));
+    renderDetectedCountry(urlCurrencyOverride ? null : (zoneRes.data && zoneRes.data.country));
     applyPricekeyFromUrl();
   } catch (err) {
     console.error('Initial pricing fetch failed:', err);
-    zone = urlZoneOverride || 'usd';
+    currency = urlCurrencyOverride || 'usd';
     renderOptions();
     renderDetectedCountry(null);
     applyPricekeyFromUrl();
-    if (!urlZoneOverride) {
+    if (!urlCurrencyOverride) {
       msgEl.textContent = 'Couldn\'t verify live pricing. Showing USD by default — write to ivan@cricketimes.com if this doesn\'t look right.';
       msgEl.className = 'subscribe-msg info';
     }
