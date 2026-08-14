@@ -1,13 +1,24 @@
 /* ═══════════════════════════════════════════════════════════════════════════
-   oracle-engine.css — shared styles for every Test Cricket Oracle edition.
+   oracle-engine.css — shared styles for every Yorker edition.
    Extracted 2026-08-04 from the three near-identical quiz pages.
 
    Loaded by /oracle.html and every /oracle/{id}/index.html. Edit HERE only —
    there is no per-edition copy to keep in sync any more.
 
+   The quiz was called "The Test Cricket Oracle" until 2026-08-14; this
+   filename and the /oracle URLs deliberately kept the old spelling, because
+   renaming them means moving Firestore collections and breaking every share
+   link ever generated. Only reader-facing strings moved.
+
    Removed during extraction: .ml-embedded overrides, .email-wall and
    .pseudonym rules, .score-subscribed-banner. All described markup that the
    newsletter rework deleted.
+
+   Removed 2026-08-14: the .masthead-* and .footer-* blocks. Both styled markup
+   that no longer exists — .masthead was superseded by the shared chrome
+   (ct-nav.js) on 2026-06-05, and the duplicate static <footer class="footer">
+   under it was deleted from all three pages on 2026-08-14. Site chrome is
+   styled by ct-nav.js's own injected sheet; nothing here should restyle it.
    ═══════════════════════════════════════════════════════════════════════════ */
 
 *{margin:0;padding:0;box-sizing:border-box}
@@ -31,41 +42,8 @@ body{
   line-height:1.6;
 }
 
-/* ═══ MASTHEAD (simplified for quiz page) ═══ */
-.masthead{
-  text-align:center;
-  padding:20px 24px 16px;
-  border-bottom:2px solid var(--text);
-}
-.masthead-date{
-  font-family:'Inter',sans-serif;
-  font-size:10.5px;
-  font-weight:500;
-  letter-spacing:1.2px;
-  text-transform:uppercase;
-  color:var(--text3);
-  margin-bottom:6px;
-}
-.masthead-logo{
-  font-family:'Playfair Display',serif;
-  font-size:clamp(30px,6vw,44px);
-  font-weight:700;
-  letter-spacing:-1px;
-  line-height:1.1;
-  color:var(--text);
-  text-decoration:none;
-  display:inline-block;
-}
-.masthead-logo span{ color:var(--accent); }
-.masthead-tagline{
-  font-family:'Inter',sans-serif;
-  font-size:10px;
-  font-weight:500;
-  letter-spacing:2px;
-  text-transform:uppercase;
-  color:var(--text3);
-  margin-top:4px;
-}
+/* MASTHEAD — block deleted 2026-08-14, see header note. The site-wide masthead
+   is rendered and styled by ct-nav.js into <header data-ct-nav="masthead">. */
 
 /* ═══ MAIN CONTAINER ═══ */
 .main{
@@ -779,41 +757,8 @@ body{
   transform:translateX(-50%) translateY(0);
 }
 
-/* ═══ FOOTER ═══ */
-.footer{
-  padding:28px 24px 36px;
-  text-align:center;
-  border-top:2px solid var(--text);
-  margin-top:40px;
-}
-.footer-logo{
-  font-family:'Playfair Display',serif;
-  font-size:20px;
-  font-weight:700;
-  color:var(--text);
-  margin-bottom:4px;
-}
-.footer-logo span{ color:var(--accent); }
-.footer-tagline{
-  font-family:'Inter',sans-serif;
-  font-size:10px;
-  font-weight:500;
-  letter-spacing:2px;
-  text-transform:uppercase;
-  color:var(--text3);
-  margin-bottom:10px;
-}
-.footer-copy{
-  font-family:'Inter',sans-serif;
-  font-size:11px;
-  color:var(--text3);
-  letter-spacing:0.3px;
-}
-.footer-copy a{
-  color:var(--text3);
-  text-decoration:underline;
-}
-.footer-copy a:hover{ color:var(--accent); }
+/* FOOTER — block deleted 2026-08-14, see header note. The site-wide footer is
+   rendered and styled by ct-nav.js into <footer data-ct-nav="footer">. */
 
 /* ═══ RESPONSIVE ═══ */
 @media(max-width:600px){

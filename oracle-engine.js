@@ -145,16 +145,13 @@ let answers = [];             // one entry per question; null = unanswered
 let currentQIndex = 0;        // which question is on screen
 let savedScoreDocId = null;   // Firestore doc ID of the score, once written
 
-// ═══════════════════════════════════════════════════════════════════════════
-// MASTHEAD DATE
-// ═══════════════════════════════════════════════════════════════════════════
-(function setMastheadDate() {
-  const d = new Date();
-  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-  const el = document.getElementById('mastheadDate');
-  if (el) el.textContent = `${days[d.getDay()]}, ${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()} · Vol. I, No. 1`;
-})();
+// MASTHEAD DATE — setMastheadDate() DELETED 2026-08-14. It looked up an
+// #mastheadDate element that has not existed on any quiz page since the
+// 2026-06-05 shared-chrome migration, so it had been a guarded no-op for two
+// months, and it carried a hardcoded "Vol. I, No. 1" that would have been wrong
+// the moment it ever ran again. ct-nav.js renders the real date into
+// .ct-masthead-date. This is the last of the three 2026-06-05 leftovers — the
+// .masthead CSS block went the same day, in oracle-engine.css.
 
 // ═══════════════════════════════════════════════════════════════════════════
 // SCREEN MANAGEMENT
