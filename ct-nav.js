@@ -16,7 +16,7 @@
   'use strict';
 
   // Hrefs are root-absolute [2026-06-05]: the chrome now also renders on
-  // subdirectory pages (/oracle/<edition>/), where relative hrefs would
+  // subdirectory pages (/yorker/<edition>/), where relative hrefs would
   // resolve into the subdirectory and 404.
   var NAV_ITEMS = [
     { href: '/',                label: 'Stories' },
@@ -28,10 +28,12 @@
     { href: '/compare.html',    label: 'Compare' },
     { href: '/simulations.html', label: 'Simulations' },
     // Renamed 2026-08-14: the quiz brand was "Oracle" until CricketArchive's own
-    // Oracle search made the name a collision. URLs, Firestore collections and
-    // localStorage keys deliberately keep the old spelling — only labels moved.
-    { href: '/oracle.html',      label: 'Yorker' },
-    { href: '/oracle-archive.html', label: 'Yorker Archives' },
+    // Oracle search made the name a collision. Labels AND urls moved; the old
+    // /oracle paths were deleted outright, not redirected. Firestore collections,
+    // CT_PAGE_ID values and the ct_oracle_* localStorage keys keep the old
+    // spelling deliberately — those are identifiers, not addresses.
+    { href: '/yorker.html',      label: 'Yorker' },
+    { href: '/yorker-archives.html', label: 'Yorker Archives' },
     // Footer-only [2026-08-14]: the leaderboard sits beside Yorker Archives in the
     // footer without adding a 13th item to the primary bar. See renderPrimary().
     { href: '/yorker-leaderboard.html', label: 'Yorker Leaderboard', footerOnly: true },
@@ -171,10 +173,11 @@
   // ── Detect current page filename ──
   function currentPage() {
     var path = window.location.pathname;
-    // Permanent edition pages (/oracle/<edition>/) highlight the Yorker
-    // nav item [2026-06-05]. The path stayed /oracle/ through the 2026-08-14
-    // rename — every share link ever generated points at it.
-    if (path.indexOf('/oracle/') === 0) return 'oracle.html';
+    // Permanent edition pages (/yorker/<edition>/) highlight the Yorker
+    // nav item [2026-06-05]. The returned value must match the NAV_ITEMS href
+    // filename above — renaming the folder without renaming this string silently
+    // kills the active underline on every edition page.
+    if (path.indexOf('/yorker/') === 0) return 'yorker.html';
     var seg = path.split('/').filter(Boolean).pop() || '';
     // Post index-swap (2026-06-05): the homepage lives at / (index.html).
     // NOTE for the CMS tagline override: the homepage slug is now 'index'

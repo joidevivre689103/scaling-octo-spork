@@ -8,18 +8,18 @@
 //   • the oracleEditions / oracleScores collections, config/currentOracle
 //   • the <meta name="oracle-edition"> tag
 //   • the ct_oracle_{id}_* localStorage prefix in lsKey()  ← see the note there
-//   • the /oracle.html and /oracle/{id}/ URLs
+//   • the /yorker.html and /yorker/{id}/ URLs
 // Renaming any of those is a migration, not a rename.
 //
 // Extracted 2026-08-04 from three near-identical 2,800-line pages
-// (/oracle.html, /oracle/june/, /oracle/inaugural/) which were 98%+ the same
+// (/yorker.html, /yorker/june/, /yorker/inaugural/) which were 98%+ the same
 // file and carried a comment asking whoever edited one to hand-copy the change
 // into the others. That sync had already failed once. This is the fix that
 // file asked for.
 //
 // Per-edition configuration stays in the page, as a meta tag:
-//     <meta name="oracle-edition" content="current">   ← /oracle.html
-//     <meta name="oracle-edition" content="june">      ← /oracle/june/
+//     <meta name="oracle-edition" content="current">   ← /yorker.html
+//     <meta name="oracle-edition" content="june">      ← /yorker/june/
 // resolveEditionRequest() reads it. Nothing else differs between editions.
 //
 // ─── Removed in the same pass (newsletter rework) ───
@@ -89,13 +89,13 @@ const IS_POST_LAUNCH = new Date() >= LAUNCH_DATE;
 // show. The canonical source is a <meta> tag in <head>:
 //
 //   <meta name="oracle-edition" content="inaugural">      → permanent URL for one edition
-//   <meta name="oracle-edition" content="current">        → /oracle.html (reads config/currentOracle)
+//   <meta name="oracle-edition" content="current">        → /yorker.html (reads config/currentOracle)
 //   (no tag)                                              → same as 'current' (back-compat)
 //
-// /oracle.html uses 'current' (or no tag); it fetches the current-pointer
+// /yorker.html uses 'current' (or no tag); it fetches the current-pointer
 // doc to find out which edition to load.
-// /oracle/{id}/index.html pins to a specific edition permanently. Even after
-// the Bowlers edition becomes current, /oracle/inaugural/ continues to serve
+// /yorker/{id}/index.html pins to a specific edition permanently. Even after
+// the Bowlers edition becomes current, /yorker/inaugural/ continues to serve
 // the Inaugural questions, correctly-tagged in share text, etc.
 // ═══════════════════════════════════════════════════════════════════════════
 function resolveEditionRequest() {
@@ -615,8 +615,8 @@ function renderScore(score) {
   // in 2027 still reads unambiguously as "a score on the Inaugural Edition"
   // rather than claiming to be a score on whatever edition is currently live.
   // Edition name is pulled from currentEdition metadata (set by the CMS),
-  // which means when Bowlers is current, /oracle.html shares auto-say
-  // "Bowlers Edition". Permanent-URL pages like /oracle/inaugural/ keep
+  // which means when Bowlers is current, /yorker.html shares auto-say
+  // "Bowlers Edition". Permanent-URL pages like /yorker/inaugural/ keep
   // saying "Inaugural Edition" because they pin to that edition's metadata.
   //
   // The CTA ("Reckon you can do better?") is deliberately band-agnostic: it
@@ -632,8 +632,8 @@ function renderScore(score) {
   const shareLine = IS_POST_LAUNCH
     ? `I scored ${score}/${total} on Yorker, the Cricket Times Test quiz — ${editionTag}. "${band.title}". ${CTA}`
     : `I scored ${score}/${total} on Yorker, the Cricket Times Test quiz — ${editionTag}. "${band.title}". ${CTA}${launchSuffix}`;
-  // Share URL depends on the mode: /oracle.html for the current-mode page,
-  // /oracle/{id}/ for a pinned-edition page. This keeps shares from a
+  // Share URL depends on the mode: /yorker.html for the current-mode page,
+  // /yorker/{id}/ for a pinned-edition page. This keeps shares from a
   // permanent URL pointing at that permanent URL, not the rotating current.
   const editionReq = resolveEditionRequest();
   // [(g) 2026-06-03] Shares ALWAYS point at the edition's permanent URL with
@@ -641,16 +641,16 @@ function renderScore(score) {
   // oracleEdition carve-out honours: it grants the recipient durable access to
   // THIS edition (and only this edition) even after it rotates into the paid
   // archive. Pointing current-mode shares at the permalink (instead of
-  // /oracle.html) also makes them edition-stable: the link still opens the
+  // /yorker.html) also makes them edition-stable: the link still opens the
   // quiz the sharer actually played, not whatever is current when clicked.
-  // PUBLISH-WORKFLOW CONTRACT: the pinned page /oracle/{id}/index.html must be
+  // PUBLISH-WORKFLOW CONTRACT: the pinned page /yorker/{id}/index.html must be
   // deployed BEFORE config/currentOracle points at the edition, or shares
-  // generated in the gap 404. Fallback to /oracle.html only when no edition id
+  // generated in the gap 404. Fallback to /yorker.html only when no edition id
   // is resolvable (should not happen in practice).
   const _shareEditionId = (currentEdition && currentEdition.id) || editionReq.editionId || null;
   const shareUrl = _shareEditionId
-    ? `https://cricketimes.com/oracle/${encodeURIComponent(_shareEditionId)}/?s=1`
-    : 'https://cricketimes.com/oracle.html';
+    ? `https://cricketimes.com/yorker/${encodeURIComponent(_shareEditionId)}/?s=1`
+    : 'https://cricketimes.com/yorker.html';
   // Store the full share text on window so copyShareLink() can read it.
   // We hoist it here rather than inlining because the Copy button was
   // relabelled "Copy" (used to be "Copy Link") — it now copies the full
@@ -831,7 +831,7 @@ function renderPostScoreCta(score, total) {
 // the console before completing the quiz).
 // ═══════════════════════════════════════════════════════════════════════════
 function copyShareLink() {
-  const textToCopy = window._oracleShareText || 'https://cricketimes.com/oracle.html';
+  const textToCopy = window._oracleShareText || 'https://cricketimes.com/yorker.html';
   const fallback = () => {
     // Older browsers: create a temp textarea and execCommand copy
     const ta = document.createElement('textarea');
