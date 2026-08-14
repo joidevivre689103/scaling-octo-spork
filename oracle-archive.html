@@ -18,7 +18,7 @@
 <script src="/feature-flags.js"></script>
 <script src="/prelaunch-guard.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>The Oracle Archive — Cricket Times</title>
+  <title>Yorker Archives — Cricket Times</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400;1,700&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300;1,400&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet" />
@@ -260,8 +260,8 @@
 
 <!-- PAGE HEADER -->
 <div class="page-header">
-  <h1>The Oracle Archive</h1>
-  <p class="deck">Every edition of the Test Cricket Oracle, preserved for the faithful</p>
+  <h1>Yorker Archives</h1>
+  <p class="deck">Every edition of Yorker, preserved for the faithful</p>
   <div class="rule-ornament"><span>✦</span></div>
 </div>
 
@@ -269,7 +269,7 @@
 <main class="oracle-archive-container" id="oracleArchiveContainer">
   <div class="loading-state" id="loadingState">
     <div class="loading-spinner"></div>
-    <p>Consulting the Oracle&hellip;</p>
+    <p>Opening the archive&hellip;</p>
   </div>
 </main>
 
@@ -279,7 +279,12 @@
 <!-- Firebase -->
 <script type="module">
   // ───────────────────────────────────────────────────────────────────────
-  // ORACLE ARCHIVE — self-maintaining edition index [(g) 2026-06-03]
+  // YORKER ARCHIVES — self-maintaining edition index [(g) 2026-06-03]
+  //
+  // Renamed from "The Oracle Archive" 2026-08-14. Reader-facing strings only:
+  // the oracleEditions collection, the config/currentOracle pointer, the
+  // 'oracle-archive' CT_PAGE_ID and featureGates bucket, the .oracle-archive-
+  // container class and the /oracle URLs below all keep the old spelling.
   //
   // Renders entirely from Firestore: the published editions in
   // oracleEditions/ plus the config/currentOracle pointer. Rotation needs
@@ -333,12 +338,12 @@
   function editionCard(ed) {
     const qn = Array.isArray(ed.questions) ? ed.questions.length : 0;
     return `<a class="edition-card" href="/oracle/${encodeURIComponent(ed.id)}/">
-      <h3>${escHtml(ed.name || 'The Test Cricket Oracle')}</h3>
+      <h3>${escHtml(ed.name || 'Yorker')}</h3>
       ${ed.month ? `<div class="meta">${escHtml(ed.month)}</div>` : ''}
       ${ed.theme ? `<div class="theme">${escHtml(ed.theme)}</div>` : ''}
       <div class="foot">
         <span class="qcount">${qn ? qn + ' questions' : 'Edition'}</span>
-        <span class="face">Face the Oracle &rarr;</span>
+        <span class="face">Take this edition &rarr;</span>
       </div>
     </a>`;
   }
@@ -346,7 +351,7 @@
   function currentCard(ed) {
     return `<div class="current-edition">
       <span class="badge">Current Edition</span>
-      <h2>${escHtml(ed.name || 'The Test Cricket Oracle')}</h2>
+      <h2>${escHtml(ed.name || 'Yorker')}</h2>
       ${ed.month ? `<div class="meta">${escHtml(ed.month)}</div>` : ''}
       ${ed.theme ? `<div class="theme">${escHtml(ed.theme)}</div>` : ''}
       <a class="cta" href="/oracle.html">Take this month&rsquo;s quiz &rarr;</a>
@@ -366,10 +371,10 @@
       editions = editionsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
       currentId = pointerSnap.exists() ? (pointerSnap.data().editionId || null) : null;
     } catch (err) {
-      console.error('Oracle archive load error:', err);
+      console.error('Yorker archive load error:', err);
       container.innerHTML = `<div class="empty-state">
         <div class="icon">⚠️</div>
-        <h3>The Oracle is silent</h3>
+        <h3>The archive is silent</h3>
         <p>The archive could not be retrieved. Please try again shortly.</p>
         <p style="font-family:monospace;font-size:12px;margin-top:8px;color:var(--crimson)">${escHtml(err.message)}</p>
       </div>`;
@@ -393,7 +398,7 @@
       html += `<div class="empty-state">
         <div class="icon">🏏</div>
         <h3>The archive awaits</h3>
-        <p>Past editions of the Oracle will be preserved here as new ones are published.${current ? '' : ' No editions found yet.'}</p>
+        <p>Past editions of Yorker will be preserved here as new ones are published.${current ? '' : ' No editions found yet.'}</p>
       </div>`;
     }
     container.innerHTML = html;
