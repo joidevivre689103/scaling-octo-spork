@@ -2,13 +2,16 @@
    oracle-engine.css — shared styles for every Yorker edition.
    Extracted 2026-08-04 from the three near-identical quiz pages.
 
-   Loaded by /oracle.html and every /oracle/{id}/index.html. Edit HERE only —
+   Loaded by /yorker.html and every /yorker/{id}/index.html. Edit HERE only —
    there is no per-edition copy to keep in sync any more.
 
-   The quiz was called "The Test Cricket Oracle" until 2026-08-14; this
-   filename and the /oracle URLs deliberately kept the old spelling, because
-   renaming them means moving Firestore collections and breaking every share
-   link ever generated. Only reader-facing strings moved.
+   The quiz was called "The Test Cricket Oracle" until 2026-08-14, when it was
+   renamed Yorker and the pages moved from /oracle to /yorker (old paths deleted
+   outright, no redirects). THIS FILENAME deliberately did not move: it is an
+   asset path, never in the address bar, and renaming it would mean editing the
+   <link> tag in all three quiz pages for no reader-visible gain. The Firestore
+   collections, CT_PAGE_ID values and ct_oracle_* localStorage keys likewise keep
+   the old spelling — those are identifiers, not addresses.
 
    Removed during extraction: .ml-embedded overrides, .email-wall and
    .pseudonym rules, .score-subscribed-banner. All described markup that the
