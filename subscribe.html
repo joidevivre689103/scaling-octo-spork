@@ -428,21 +428,82 @@ h1.title em {
   margin-left: 2px;
 }
 
-.zone-footnote {
+/* ───── Detected country + correction route ─────
+   Added 2026-08-14. The reader is SHOWN the country we detected but cannot
+   change it here: the price depends on it, so a free picker would let anyone
+   select the cheapest zone. Under Managed Payments there is no backstop —
+   the card country isn't visible until after the charge — so corrections go
+   through a human. Privacy Policy §1.8 describes this exact behaviour. */
+/* ───── What you're actually buying ─────
+   Added 2026-08-14. Cricket Times sits against cricket products whose paid
+   tier is ad-removal (Cricbuzz Plus is ₹199/yr for exactly that). Our free
+   tier carries no ads at all, so the comparison has to be re-framed rather
+   than won on price — this block does it without naming anyone. */
+.value-note {
+  margin: 4px 0 18px;
+  padding: 14px 16px;
+  background: #fffaf3;
+  border-left: 3px solid var(--crimson);
+  border-radius: 2px;
+}
+.value-note p {
   font-family: 'Source Serif 4', serif;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--ink-soft);
+  margin: 0 0 8px;
+}
+.value-note p:last-child { margin-bottom: 0; }
+.value-note strong { font-weight: 600; color: var(--ink); }
+.value-note .permonth {
+  font-family: 'Playfair Display', serif;
   font-style: italic;
-  font-size: 12px;
+  color: var(--ink-mute);
+  font-size: 13.5px;
+}
+
+.zone-detected {
+  font-family: 'Source Serif 4', serif;
+  font-size: 12.5px;
   color: var(--ink-mute);
   line-height: 1.5;
   margin-top: 14px;
   padding-top: 12px;
   border-top: 1px dashed var(--rule);
 }
-.zone-footnote strong {
+.zone-detected-line {
+  font-style: italic;
+  margin: 0;
+}
+.zone-detected-line strong {
   font-style: normal;
   font-weight: 600;
   color: var(--ink-soft);
 }
+.zone-correct-toggle {
+  font-family: 'Source Serif 4', serif;
+  font-style: italic;
+  font-size: 12.5px;
+  color: var(--crimson);
+  background: none;
+  border: none;
+  border-bottom: 1px dotted var(--crimson);
+  padding: 0;
+  margin-left: 4px;
+  cursor: pointer;
+  line-height: inherit;
+}
+.zone-correct-toggle:hover { color: var(--crimson-deep); border-bottom-style: solid; }
+.zone-correct-note {
+  margin-top: 10px;
+  padding: 12px 14px;
+  background: #fffaf3;
+  border: 1px dashed var(--gold);
+  border-radius: 2px;
+}
+.zone-correct-note p { margin: 0 0 8px; font-size: 12.5px; line-height: 1.55; }
+.zone-correct-note p:last-child { margin-bottom: 0; }
+.zone-correct-note a { text-decoration: underline; text-underline-offset: 2px; }
 
 /* Already-subscribed panel — replaces the entire subscribe-flow when the
    signed-in user is already a paid subscriber. Visual aesthetic intentionally
@@ -677,6 +738,12 @@ h1.title em {
           </div>
         </div>
 
+        <div class="value-note" id="value-note">
+          <p><strong>You are not paying to remove ads.</strong> There are none on the free site to remove &mdash; and there never will be. Everything the paper publishes stays open to everyone.</p>
+          <p>What a subscription buys is the part that took longest to build: the searchable <strong>archive</strong>, the <strong>simulator</strong> that runs on the same models as the analysis, and <strong>data export</strong>, so any table you construct here is a table you can take away and work with.</p>
+          <p class="permonth" id="value-permonth"></p>
+        </div>
+
         <ul class="tier-list">
           <li>Everything in the free tier</li>
           <li>The full <strong>article archive</strong>, searchable and browsable</li>
@@ -707,7 +774,20 @@ h1.title em {
 
         <div class="subscribe-msg" id="subscribe-msg" role="status" aria-live="polite"></div>
 
-        <p class="zone-footnote" id="zone-footnote" style="display: none;"></p>
+        <!-- Detected country. Shown, not editable — see the CSS note above and
+             Privacy Policy §1.8. -->
+        <div class="zone-detected" id="zone-detected" style="display: none;">
+          <p class="zone-detected-line">
+            Prices shown for <strong id="zone-country-name">&mdash;</strong>.<button
+              type="button" class="zone-correct-toggle" id="zone-correct-toggle"
+              aria-expanded="false" aria-controls="zone-correct-note">Not right?</button>
+          </p>
+          <div class="zone-correct-note" id="zone-correct-note" hidden>
+            <p>We work this out from your network connection, and it is occasionally wrong &mdash; a VPN, an office network, or a mobile provider routing through another country will all do it.</p>
+            <p>We can&rsquo;t let you change it here, because the price depends on it. Write to <a href="mailto:contact@cricketimes.com?subject=Wrong%20country%20on%20the%20subscribe%20page">contact@cricketimes.com</a>, tell us where you actually are, and we&rsquo;ll put it right by hand.</p>
+            <p>Paid subscriptions are available only in the countries listed in our <a href="/servicearea.html">Service Area</a>. Reading Cricket Times free is open everywhere.</p>
+          </div>
+        </div>
 
         <p class="tier-foot">Cancel any time. Subscriptions are how the work continues.</p>
       </div>
@@ -803,7 +883,10 @@ const introEl      = document.getElementById('tier-price-intro');
 const optionsEl    = document.getElementById('price-options');
 const subscribeBtn = document.getElementById('subscribe-btn');
 const msgEl        = document.getElementById('subscribe-msg');
-const footnoteEl   = document.getElementById('zone-footnote');
+const detectedEl     = document.getElementById('zone-detected');
+const countryNameEl  = document.getElementById('zone-country-name');
+const correctToggle  = document.getElementById('zone-correct-toggle');
+const correctNoteEl  = document.getElementById('zone-correct-note');
 const signinPrompt = document.getElementById('signin-prompt');
 const signinSubmit = document.getElementById('signin-submit');
 
@@ -821,29 +904,46 @@ let selectedPriceKey = null;
 
 // Display catalog. Cloud Function is source of truth for Price IDs and
 // authorisation; amounts here are for rendering only.
+// Amounts updated 2026-08-14 to the current price table. NOTE: the Cloud
+// Function holds the real Stripe Price IDs — these must be recreated in LIVE
+// mode at the same amounts, or the page will display one figure and Stripe
+// will charge another.
+//
+// STILL TO DO before launch: this catalog knows only two zones (usd/inr), but
+// the price table now also carries GBP, AUD, NZD and ZAR, and selling is
+// restricted to an allowlist of countries. Extending detectPricingZone to
+// return a currency (not a zone) and adding the allowlist check is backend
+// work — see the pricing memo, §26–27.
 const CATALOG = {
   usd: [
-    { key: 'usd_monthly',  cadence: 'Monthly',          amount: '$8',  per: '/month',
+    { key: 'usd_monthly',  cadence: 'Monthly',          amount: '$6.99',  per: '/month',
       detail: 'Billed monthly. Cancel any time.' },
-    { key: 'usd_annual',   cadence: 'Annual',           amount: '$72', per: '/year',
-      detail: 'Save $24 vs monthly. Cancel any time.' },
+    { key: 'usd_annual',   cadence: 'Annual',           amount: '$59.99', per: '/year',
+      detail: 'Save $24 vs monthly — works out at $5 a month.' },
   ],
   inr: [
-    { key: 'inr_monthly',  cadence: 'Monthly',          amount: '₹99',  per: '/month',
+    { key: 'inr_monthly',  cadence: 'Monthly',          amount: '₹199',   per: '/month',
       detail: 'Billed monthly. Cancel any time.' },
-    { key: 'inr_annual',   cadence: 'Annual',           amount: '₹899', per: '/year',
-      detail: 'Save ₹289 vs monthly. Cancel any time.' },
+    { key: 'inr_annual',   cadence: 'Annual',           amount: '₹1,599', per: '/year',
+      detail: 'Save ₹789 vs monthly — works out at ₹133 a month.' },
   ],
 };
 
 const ZONE_INTRO = {
-  usd: 'Pricing in <strong>USD</strong> &mdash; for subscribers outside the Indian subcontinent.',
-  inr: 'Pricing in <strong>INR</strong> &mdash; for subscribers in India and the surrounding region.',
+  usd: 'Pricing in <strong>US dollars</strong>.',
+  inr: 'Pricing in <strong>Indian rupees</strong>.',
 };
 
-const ZONE_FOOTNOTE = {
-  usd: 'Subscribing from India, Pakistan, Bangladesh, Nepal, Sri Lanka, or Afghanistan? You\'ll see ₹ pricing when you visit from a network in those countries.',
-  inr: 'Subscribing from outside the subcontinent? You\'ll see USD pricing when you visit from a network elsewhere.',
+// Fallback label when detectPricingZone returns no country code — we describe
+// the currency rather than claiming to know where the reader is.
+const VALUE_PERMONTH = {
+  usd: 'Annual works out at $5 a month — for a paper that publishes all year.',
+  inr: 'Annual works out at ₹133 a month — for a paper that publishes all year.',
+};
+
+const ZONE_FALLBACK_LABEL = {
+  usd: 'your region (US dollars)',
+  inr: 'India (₹)',
 };
 
 // ─── Render ───────────────────────────────────────────────────────────────
@@ -888,8 +988,31 @@ function renderOptions() {
   }
 
   introEl.innerHTML = ZONE_INTRO[zone];
-  footnoteEl.textContent = ZONE_FOOTNOTE[zone];
-  footnoteEl.style.display = '';
+
+  // Per-month reframe. The annual figure is the one that gets compared against
+  // cheap ad-removal tiers; the monthly equivalent is the honest answer.
+  const pm = document.getElementById('value-permonth');
+  if (pm) pm.textContent = VALUE_PERMONTH[zone] || '';
+}
+
+// ─── Detected country ─────────────────────────────────────────────────────
+// Shows what we worked out, and how to tell us if it's wrong. Deliberately
+// read-only: see the CSS note. `country` is the ISO-3166 alpha-2 code from
+// detectPricingZone when it supplies one; Intl.DisplayNames turns it into a
+// name without us shipping a lookup table.
+function renderDetectedCountry(countryCode) {
+  if (!detectedEl || !countryNameEl) return;
+  let label = ZONE_FALLBACK_LABEL[zone] || 'your region';
+  if (countryCode && /^[A-Za-z]{2}$/.test(countryCode)) {
+    try {
+      const dn = new Intl.DisplayNames([navigator.language || 'en'], { type: 'region' });
+      label = dn.of(countryCode.toUpperCase()) || countryCode.toUpperCase();
+    } catch (e) {
+      label = countryCode.toUpperCase();
+    }
+  }
+  countryNameEl.textContent = label;
+  detectedEl.style.display = '';
 }
 
 // ─── Auth handoff to /login.html (item b, 2026-06-05) ─────────────────────
@@ -994,6 +1117,14 @@ async function startCheckout() {
 // ─── Wire up ──────────────────────────────────────────────────────────────
 subscribeBtn.addEventListener('click', startCheckout);
 signinSubmit.addEventListener('click', goToLogin);
+
+if (correctToggle && correctNoteEl) {
+  correctToggle.addEventListener('click', () => {
+    const open = !correctNoteEl.hidden;
+    correctNoteEl.hidden = open;
+    correctToggle.setAttribute('aria-expanded', String(!open));
+  });
+}
 
 if (new URLSearchParams(window.location.search).get('cancelled') === '1') {
   msgEl.textContent = 'Checkout cancelled — no charge was made. Pick a cadence and try again whenever you like.';
@@ -1183,11 +1314,15 @@ if (alreadySubSignout) {
       console.log('[subscribe] zone override active: ' + urlZoneOverride + ' (detected was: ' + (zoneRes.data && zoneRes.data.zone) + ')');
     }
     renderOptions();
+    // detectPricingZone may or may not return a country code depending on its
+    // version; renderDetectedCountry falls back to a currency label if not.
+    renderDetectedCountry(urlZoneOverride ? null : (zoneRes.data && zoneRes.data.country));
     applyPricekeyFromUrl();
   } catch (err) {
     console.error('Initial pricing fetch failed:', err);
     zone = urlZoneOverride || 'usd';
     renderOptions();
+    renderDetectedCountry(null);
     applyPricekeyFromUrl();
     if (!urlZoneOverride) {
       msgEl.textContent = 'Couldn\'t verify live pricing. Showing USD by default — write to ivan@cricketimes.com if this doesn\'t look right.';
