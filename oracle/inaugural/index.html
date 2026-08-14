@@ -21,16 +21,16 @@
      still the original edition id. The 2026-08-14 rename moved reader-facing
      strings only; resolveEditionRequest() in oracle-engine.js reads this
      attribute and matches the id against oracleEditions/{id} in Firestore.
-     This file lives at /oracle/inaugural/ and serves the Inaugural Edition
+     This file lives at /yorker/inaugural/ and serves the Inaugural Edition
      permanently, regardless of which edition is currently set to default
-     at /oracle.html. When a second edition (e.g. Bowlers) ships, share
+     at /yorker.html. When a second edition (e.g. Bowlers) ships, share
      cards from this URL continue to say "Inaugural Edition" because this
      file's meta tag pins to that edition's Firestore doc. -->
 <meta name="oracle-edition" content="inaugural">
 
 <!-- Open Graph / Facebook / WhatsApp / iMessage -->
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://cricketimes.com/oracle/inaugural/">
+<meta property="og:url" content="https://cricketimes.com/yorker/inaugural/">
 <meta property="og:title" content="Yorker — Inaugural Edition">
 <meta property="og:description" content="Inaugural Edition · June 2026. 20 questions. 149 years. Most self-described obsessives score 13/20. Can you do better?">
 <meta property="og:image" content="https://cricketimes.com/quiz-og-image.png">
@@ -40,20 +40,20 @@
 
 <!-- Twitter / X -->
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:url" content="https://cricketimes.com/oracle/inaugural/">
+<meta name="twitter:url" content="https://cricketimes.com/yorker/inaugural/">
 <meta name="twitter:title" content="Yorker — Inaugural Edition">
 <meta name="twitter:description" content="Inaugural Edition · June 2026. 20 questions. 149 years. Most self-described obsessives score 13/20. Can you do better?">
 <meta name="twitter:image" content="https://cricketimes.com/quiz-og-image.png">
 
 <!-- Canonical -->
-<link rel="canonical" href="https://cricketimes.com/oracle/inaugural/">
+<link rel="canonical" href="https://cricketimes.com/yorker/inaugural/">
 
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,300;8..60,400;8..60,500;8..60,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <!-- Firebase: [migrated 2026-06-03, item (g)] compat 9.23.0 removed; this page
      now uses the modular 10.12.5 SDK, imported inside the quiz module script
-     below — same migration as /oracle.html, keeping the near-duplicates in
-     sync. Clears the compat/modular clash behind the injector's /oracle/
+     below — same migration as /yorker.html, keeping the near-duplicates in
+     sync. Clears the compat/modular clash behind the injector's /yorker/
      subpath hold-out. -->
 
 
@@ -67,8 +67,8 @@
      the site-wide masthead + primary nav (ct-nav.js, loaded at end of body).
      The .masthead CSS block above is now unused and setMastheadDate() no-ops
      (it guards on the element existing); cleanup of both is deferred to the
-     oracle-engine.js refactor. NEAR-DUPLICATE: /oracle.html,
-     /oracle/inaugural/ and /oracle/june/ share this body verbatim — a change
+     oracle-engine.js refactor. NEAR-DUPLICATE: /yorker.html,
+     /yorker/inaugural/ and /yorker/june/ share this body verbatim — a change
      here belongs in all three. (The 2026-08-04 extraction moved the LOGIC into
      oracle-engine.js; this markup is still hand-copied.) -->
 <header data-ct-nav="masthead"></header>
