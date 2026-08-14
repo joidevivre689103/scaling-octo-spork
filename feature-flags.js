@@ -311,9 +311,19 @@
     const pageId = window.CT_PAGE_ID;
     if (!pageId) return;                          // [S3-DEV 1] not a target → no-op.
 
-    // ── ORACLE EDITION CARVE-OUT [(g) 2026-06-03] ─────────────────────────
-    // Editorial model for /oracle/{slug}/ permalinks (all share the single
+    // ── EDITION CARVE-OUT [(g) 2026-06-03] ────────────────────────────────
+    // Editorial model for /yorker/{slug}/ permalinks (all share the single
     // pageId 'oracleEdition', PAID bucket):
+    //
+    // [2026-08-14] The path moved /oracle/ -> /yorker/ with the Yorker rename and
+    // THE REGEX BELOW HAD TO MOVE WITH IT. It is matched against location.pathname,
+    // not against the page id, so a rename does not reach it automatically. Left
+    // unchanged it returns slug === null, the entire carve-out is skipped in
+    // silence, and every edition page — including the CURRENT one, which is meant
+    // to be free — falls through to the paid gate. The pageId 'oracleEdition' and
+    // the ct_oracle_grant_* localStorage keys deliberately did NOT move: the first
+    // is a settings/featureGates key, the second would revoke every share grant
+    // already issued to a reader's browser.
     //   (a) the CURRENT edition is free — the gate compares the URL slug to
     //       config/currentOracle, so rotation flips the outgoing edition to
     //       paid automatically, no deploys or gate-map edits;
@@ -330,7 +340,7 @@
     // client-visible and forgeable, and the grant is per-browser — this is a
     // discovery-level paywall by deliberate choice, not an oversight.
     if (pageId === 'oracleEdition') {
-      const m = location.pathname.match(/^\/oracle\/([^\/]+)\//i);
+      const m = location.pathname.match(/^\/yorker\/([^\/]+)\//i);
       const slug = m ? decodeURIComponent(m[1]).toLowerCase() : null;
       if (slug) {
         const grantKey = 'ct_oracle_grant_' + slug;
@@ -362,17 +372,17 @@
           // already satisfied by the time the bootstrap runs. This catch is
           // the only thing standing between a throw and a permanently hidden
           // page. Do not remove it.
-          console.warn('[ct-bootstrap] oracle pointer check failed — falling to paid gate', (e && e.message) || e);
+          console.warn('[ct-bootstrap] edition pointer check failed — falling to paid gate', (e && e.message) || e);
           isCurrent = false;
         }
         if (isCurrent === true) return reveal();
         if (isCurrent === CT_TIMEOUT) {
-          console.warn('[ct-bootstrap] oracle pointer check timed out — falling to paid gate');
+          console.warn('[ct-bootstrap] edition pointer check timed out — falling to paid gate');
         }
       }
       // Not granted, not current → the normal paid gate below decides.
     }
-    // ── end oracle carve-out ──────────────────────────────────────────────
+    // ── end edition carve-out ─────────────────────────────────────────────
 
 
     // Captured out here so the timeout tiebreaker (and denyTarget on the

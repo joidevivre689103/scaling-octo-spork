@@ -65,7 +65,8 @@
      comingsoon.html             — pre-launch landing page
      (index.html removed 2026-06-05 — the root is now the real stories
       homepage and takes the tier check like any gated page)
-     quiz.html, oracle.html      — Test Cricket Oracle
+     quiz.html, yorker.html      — Yorker (the quiz; called "The Test
+                                   Cricket Oracle" until 2026-08-14)
      article.html                — article reader (allowlisted so the
                                    coming-soon "Read the evidence" CTA
                                    works without sign-in; the article
@@ -79,7 +80,7 @@
                                    would have nowhere to send people
                                    when they need to sign in. Auth
                                    primitive is built on top of this.
-     /oracle/{edition}/...       — permanent edition pages
+     /yorker/{edition}/...       — permanent edition pages
    On allowlisted pages, nav is hidden (consistent with original guard).
 
    ─── OWNER BYPASS ─────────────────────────────────────────────────
@@ -95,7 +96,7 @@
    owner-bypass URL works regardless of Firestore reachability and is
    the proper escape hatch if Firestore is down.
 
-   Allowlisted pages (article.html, oracle.html, coming-soon, etc.)
+   Allowlisted pages (article.html, yorker.html, coming-soon, etc.)
    short-circuit synchronously BEFORE any async work, so they render
    instantly even if Firestore is slow or unreachable.
 
@@ -183,12 +184,19 @@
   // serves the real stories homepage, so it must take the tier check like
   // any gated page. Pre-swap, index.html was a redirect stub to comingsoon
   // and had to be allowlisted for its redirect to run un-intercepted.
-  // NOTE: /oracle/<edition>/index.html is unaffected — it matches
+  // NOTE: /yorker/<edition>/index.html is unaffected — it matches
   // ALLOWED_SUBPATHS before the filename matters.
-  const ALLOWED = ['comingsoon.html', 'quiz.html', 'oracle.html', 'article.html', 'login.html'];
-  const HIDE_NAV_ON = ['quiz.html', 'oracle.html', 'article.html'];
-  const ALLOWED_SUBPATHS = ['/oracle/'];
-  const HIDE_NAV_SUBPATHS = ['/oracle/'];
+  // [2026-08-14] oracle.html -> yorker.html, /oracle/ -> /yorker/ with the Yorker
+  // rename. THIS FILE MATCHES ON FILENAME AND PATH, NOT ON CT_PAGE_ID — so it does
+  // not follow a page rename automatically. Leaving the old strings here would have
+  // dropped the quiz off the pre-launch allowlist entirely: every shared quiz link
+  // would fall through to the tier check and bounce a visitor to comingsoon, which
+  // is the one page on the site that is deliberately reachable by strangers.
+  // The old names are NOT kept alongside — those paths were deleted outright.
+  const ALLOWED = ['comingsoon.html', 'quiz.html', 'yorker.html', 'article.html', 'login.html'];
+  const HIDE_NAV_ON = ['quiz.html', 'yorker.html', 'article.html'];
+  const ALLOWED_SUBPATHS = ['/yorker/'];
+  const HIDE_NAV_SUBPATHS = ['/yorker/'];
 
   function matchesSubpath(list) {
     for (let i = 0; i < list.length; i++) {
@@ -222,7 +230,7 @@
   }
 
   // ─── ALLOWLISTED PAGES — short-circuit synchronously ──────────────
-  // Allowlisted pages (coming-soon, article reader, oracle, etc.) render
+  // Allowlisted pages (coming-soon, article reader, the quiz, etc.) render
   // for everyone regardless of tier. Skip the async Firestore check
   // entirely so allowlisted pages keep their original instant render
   // and don't depend on Firestore reachability.
