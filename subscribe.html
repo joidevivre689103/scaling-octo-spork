@@ -436,9 +436,12 @@ h1.title em {
    through a human. Privacy Policy §1.8 describes this exact behaviour. */
 /* ───── What you're actually buying ─────
    Added 2026-08-14. Cricket Times sits against cricket products whose paid
-   tier is ad-removal (Cricbuzz Plus is ₹199/yr for exactly that). Our free
-   tier carries no ads at all, so the comparison has to be re-framed rather
-   than won on price — this block does it without naming anyone. */
+   tier is largely ad-removal. Note the anchor is softer than it first looks:
+   Cricbuzz's ₹199 SKU is the ads-free plan, but there appears to be a fuller
+   Cricbuzz Plus around ₹750/yr — so ₹1,199 is ~1.6x the real comparable, not
+   8x. Our free tier carries no ads at all, so the comparison has to be
+   re-framed rather than won on price — this block does it without naming
+   anyone. See the pricing memo, §31.5. */
 .value-note {
   margin: 4px 0 18px;
   padding: 14px 16px;
@@ -943,10 +946,10 @@ const CATALOG = {
       detail: 'Save NZ$44 vs monthly — works out at NZ$8.33 a month.' },
   ],
   inr: [
-    { key: 'inr_monthly',  cadence: 'Monthly', amount: '₹199',       per: '/month',
+    { key: 'inr_monthly',  cadence: 'Monthly', amount: '₹149',       per: '/month',
       detail: 'Billed monthly. Cancel any time.' },
-    { key: 'inr_annual',   cadence: 'Annual',  amount: '₹1,599',     per: '/year',
-      detail: 'Save ₹789 vs monthly — works out at ₹133 a month.' },
+    { key: 'inr_annual',   cadence: 'Annual',  amount: '₹1,199',     per: '/year',
+      detail: 'Save ₹589 vs monthly — works out at under ₹100 a month.' },
   ],
   zar: [
     { key: 'zar_monthly',  cadence: 'Monthly', amount: 'R59',       per: '/month',
@@ -972,7 +975,7 @@ const VALUE_PERMONTH = {
   gbp: 'Annual works out at £4.17 a month — for a paper that publishes all year.',
   aud: 'Annual works out at A$7.50 a month — for a paper that publishes all year.',
   nzd: 'Annual works out at NZ$8.33 a month — for a paper that publishes all year.',
-  inr: 'Annual works out at ₹133 a month — for a paper that publishes all year.',
+  inr: 'Annual works out at under ₹100 a month — for a paper that publishes all year.',
   zar: 'Annual works out at R42 a month — for a paper that publishes all year.',
 };
 
