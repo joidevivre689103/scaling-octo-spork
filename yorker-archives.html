@@ -4,15 +4,15 @@
   <meta charset="UTF-8" />
 <!-- CT_7G_INJECT:START (auto-injected by deploy tool — do not edit by hand) -->
 <style id="ct-7g-hide">body{visibility:hidden}</style>
-<script>window.CT_PAGE_ID="oracle-archive";</script>
+<script>window.CT_PAGE_ID="yorker-archives";</script>
 <script src="/auth-status.js"></script>
 <script>setTimeout(function(){if(!window.__ctFlagsLoaded){location.replace("/comingsoon.html");}},2500);</script>
 <script src="/ct-tracker.js" async></script>
 <!-- CT_7G_INJECT:END -->
 <!-- NOTE: the deploy tool auto-injects the 7-G gating block (CT_PAGE_ID
-     "oracle-archive" + hidden-body + watchdog + auth-status) immediately
+     "yorker-archives" + hidden-body + watchdog + auth-status) immediately
      after the charset tag on first deploy. Do not hand-write it here.
-     PREREQUISITE: add 'oracle-archive' to the PAID pages bucket in
+     PREREQUISITE: add 'yorker-archives' to the PAID pages bucket in
      settings/featureGates (admin → Access Tiers) BEFORE deploying, or the
      bootstrap fail-closes and redirects everyone, admins included aside. -->
 <script src="/feature-flags.js"></script>
@@ -283,7 +283,7 @@
   //
   // Renamed from "The Oracle Archive" 2026-08-14. Reader-facing strings only:
   // the oracleEditions collection, the config/currentOracle pointer, the
-  // 'oracle-archive' CT_PAGE_ID and featureGates bucket, the .oracle-archive-
+  // .oracle-archive-
   // container class all keep the old spelling. The URLs moved to /yorker on
   // 2026-08-14; the old /oracle paths were DELETED outright, not redirected.
   //
@@ -298,7 +298,7 @@
   // bare getDocs(collection(...)) is denied by rules. Do not remove it.
   //
   // GATING: this page carries no gate code. The injected ctPageBootstrap
-  // handles entry via requireAccess({page:'oracle-archive'}) — the page id
+  // handles entry via requireAccess({page:'yorker-archives'}) — the page id
   // must sit in the PAID bucket of settings/featureGates. Page-gate-first.
   //
   // LINK CONTRACT: archived editions link to /yorker/{id}/ — the pinned
