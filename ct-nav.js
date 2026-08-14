@@ -39,12 +39,19 @@
   // for readers who actually hold paid access — Stripe subscribers AND complimentary
   // (`paidSubscriber` role) readers alike. See revealGatedLinks() for the mechanism
   // and why it fails closed.
+  //
+  // 'Service Area' [2026-08-14] is deliberately NOT gated. It lists the countries in
+  // which paid subscriptions are sold (Terms §5.3), so the readers who most need it
+  // are precisely those who cannot subscribe — gating it would hide it from them.
+  // It sits after Manage Subscription, which means that for a signed-out or
+  // non-paying reader (Manage hidden) it renders immediately after Subscribe.
   var FOOTER_EXTRAS = [
     { href: '/bts.html',                   label: 'Behind the Scenes' },
     { href: '/about.html',                 label: 'About' },
     { href: 'mailto:contact@cricketimes.com', label: 'Contact' },
     { href: '/subscribe.html',             label: 'Subscribe' },
     { href: '/manage.html',                label: 'Manage Subscription', gated: 'paidAccess' },
+    { href: '/servicearea.html',          label: 'Service Area' },
     { href: '/voices.html',                label: 'Voices' },
     { href: '/terms.html',                 label: 'Terms of Service' },
     { href: '/privacy.html',               label: 'Privacy Policy' }
