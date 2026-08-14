@@ -27,8 +27,14 @@
     { href: '/captaincy.html',  label: 'Captaincy' },
     { href: '/compare.html',    label: 'Compare' },
     { href: '/simulations.html', label: 'Simulations' },
-    { href: '/oracle.html',      label: 'Oracle' },
-    { href: '/oracle-archive.html', label: 'Past Oracles' },
+    // Renamed 2026-08-14: the quiz brand was "Oracle" until CricketArchive's own
+    // Oracle search made the name a collision. URLs, Firestore collections and
+    // localStorage keys deliberately keep the old spelling — only labels moved.
+    { href: '/oracle.html',      label: 'Yorker' },
+    { href: '/oracle-archive.html', label: 'Yorker Archives' },
+    // Footer-only [2026-08-14]: the leaderboard sits beside Yorker Archives in the
+    // footer without adding a 13th item to the primary bar. See renderPrimary().
+    { href: '/yorker-leaderboard.html', label: 'Yorker Leaderboard', footerOnly: true },
     { href: '/archive.html',     label: 'Archive' },
     { href: '/audio.html',       label: 'Audio' }
   ];
@@ -93,7 +99,7 @@
     '.ct-nav-inner::-webkit-scrollbar{display:none}',
     // Explicit border:0 override: some pages use border-bottom for their own active-underline, causing a double-line.
     // white-space:nowrap likewise unconditional (same 2026-07-24 reason): without
-    // it a two-word label ("Behind the Scenes", "Past Oracles") wraps mid-item
+    // it a two-word label ("Behind the Scenes", "Yorker Archives") wraps mid-item
     // above the breakpoint instead of the row scrolling.
     '.ct-nav-link{font-family:\'Inter\',sans-serif;font-size:12px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;color:#5a5450;text-decoration:none;padding:14px 14px;position:relative;transition:color 0.2s;white-space:nowrap;border:0;border-bottom:0}',
     '.ct-nav-link:hover{color:#8b0000;border-bottom:0}',
@@ -165,8 +171,9 @@
   // ── Detect current page filename ──
   function currentPage() {
     var path = window.location.pathname;
-    // Permanent edition pages (/oracle/<edition>/) highlight the Oracle
-    // nav item [2026-06-05].
+    // Permanent edition pages (/oracle/<edition>/) highlight the Yorker
+    // nav item [2026-06-05]. The path stayed /oracle/ through the 2026-08-14
+    // rename — every share link ever generated points at it.
     if (path.indexOf('/oracle/') === 0) return 'oracle.html';
     var seg = path.split('/').filter(Boolean).pop() || '';
     // Post index-swap (2026-06-05): the homepage lives at / (index.html).
@@ -204,7 +211,13 @@
   // ── Render primary nav ──
   function renderPrimary(el) {
     var active = currentPage();
-    var inner = NAV_ITEMS.map(function(item) {
+    var inner = NAV_ITEMS.filter(function(item) {
+      // footerOnly items render in the footer only. Added 2026-08-14 so the
+      // Yorker Leaderboard could sit next to Yorker Archives in the footer
+      // without pushing the primary bar to 13 items — the bar already needed
+      // its breakpoint raised at 12 (see the @media note above).
+      return !item.footerOnly;
+    }).map(function(item) {
       // item.href is root-absolute ('/x.html') or '/' for the homepage;
       // currentPage() returns a bare filename ('x.html', 'index.html').
       var hrefFile = item.href === '/' ? 'index.html' : item.href.replace(/^\//, '');

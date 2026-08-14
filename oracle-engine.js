@@ -1,5 +1,15 @@
 // ═════════════════════════════════════════════════════════════════════════════
-// oracle-engine.js — the shared Test Cricket Oracle quiz engine.
+// oracle-engine.js — the shared Yorker quiz engine.
+//
+// RENAMED 2026-08-14: the quiz was "The Test Cricket Oracle" until CricketArchive's
+// own Oracle search made the name a collision. ONLY READER-FACING STRINGS MOVED.
+// Everything an identifier touches deliberately still says oracle:
+//   • this filename, and the <script> tags in the three edition pages
+//   • the oracleEditions / oracleScores collections, config/currentOracle
+//   • the <meta name="oracle-edition"> tag
+//   • the ct_oracle_{id}_* localStorage prefix in lsKey()  ← see the note there
+//   • the /oracle.html and /oracle/{id}/ URLs
+// Renaming any of those is a migration, not a rename.
 //
 // Extracted 2026-08-04 from three near-identical 2,800-line pages
 // (/oracle.html, /oracle/june/, /oracle/inaugural/) which were 98%+ the same
@@ -75,7 +85,7 @@ const IS_POST_LAUNCH = new Date() >= LAUNCH_DATE;
 // ═══════════════════════════════════════════════════════════════════════════
 // EDITION RESOLUTION
 // ═══════════════════════════════════════════════════════════════════════════
-// Each HTML file that serves the Oracle declares which edition it's meant to
+// Each HTML file that serves Yorker declares which edition it's meant to
 // show. The canonical source is a <meta> tag in <head>:
 //
 //   <meta name="oracle-edition" content="inaugural">      → permanent URL for one edition
@@ -99,11 +109,17 @@ function resolveEditionRequest() {
 // LOCALSTORAGE KEYS
 // Per-edition scope: ..._{editionId}. A user who completed Inaugural can
 // still take Bowlers — the single-attempt lock applies to one edition at a
-// time, not to the Oracle overall. Generated lazily via lsKey() once we
+// time, not to the quiz overall. Generated lazily via lsKey() once we
 // know which edition we're dealing with (post-load).
 // ═══════════════════════════════════════════════════════════════════════════
 function lsKey(base) {
   const id = currentEdition?.id || 'unknown';
+  // DO NOT RENAME THIS PREFIX to match the 2026-08-14 Yorker rename. It is the
+  // single-attempt lock: every reader who has already completed an edition is
+  // recorded under ct_oracle_{id}_completed in their own browser. Changing the
+  // prefix orphans all of those records at once, and every one of those readers
+  // is handed a fresh, retakeable quiz — silently breaking the one-score-per-
+  // participant rule the leaderboard depends on. The reader never sees this string.
   return `ct_oracle_${id}_${base}`;
 }
 // Legacy keys preserved (read-only for migration). If we ever see these on
@@ -171,7 +187,7 @@ function escHtml(s) {
 //      content, falling back to config/currentOracle if content === 'current')
 //   2. Fetch oracleEditions/{id} and render
 // The legacy config/launchQuiz path is gone — the CMS migration converts
-// that data into oracleEditions/inaugural. If a deployed Oracle page somehow
+// that data into oracleEditions/inaugural. If a deployed Yorker page somehow
 // hits a Firestore where the migration hasn't been run, it will show the
 // "no quiz published" error rather than silently serving stale data.
 // ═══════════════════════════════════════════════════════════════════════════
@@ -185,7 +201,7 @@ async function loadQuizFromFirestore() {
       // Fetch the current-edition pointer
       const pointerDoc = await getDoc(doc(db, 'config', 'currentOracle'));
       if (!pointerDoc.exists() || !pointerDoc.data().editionId) {
-        showError('No current edition of The Oracle has been set yet. Check back soon.');
+        showError('No current edition of Yorker has been set yet. Check back soon.');
         return;
       }
       editionId = pointerDoc.data().editionId;
@@ -194,7 +210,7 @@ async function loadQuizFromFirestore() {
     // Step 2: Fetch the edition document
     const editionDoc = await getDoc(doc(db, 'oracleEditions', editionId));
     if (!editionDoc.exists()) {
-      showError(`The "${editionId}" edition of The Oracle does not exist.`);
+      showError(`The "${editionId}" edition of Yorker does not exist.`);
       return;
     }
     const editionData = editionDoc.data();
@@ -206,13 +222,13 @@ async function loadQuizFromFirestore() {
     // draft, refuse to render. Admins previewing drafts should use a
     // separate mechanism (e.g. the CMS preview).
     if (editionData.published !== true) {
-      showError('This edition of The Oracle is still being prepared. Check back soon.');
+      showError('This edition of Yorker is still being prepared. Check back soon.');
       return;
     }
 
     currentEdition = {
       id: editionData.id || editionId,
-      name: editionData.name || 'The Test Cricket Oracle',
+      name: editionData.name || 'Yorker',
       month: editionData.month || '',
       theme: editionData.theme || '',
       questions: Array.isArray(editionData.questions) ? editionData.questions : []
@@ -259,7 +275,7 @@ async function loadQuizFromFirestore() {
     // Per-edition keys, so completing Inaugural doesn't block Bowlers etc.
     const completed = safeLS(() => localStorage.getItem(lsKey('completed')), null) === 'true';
     if (completed) {
-      // Returning visitor — show intro with "The Oracle remembers" banner.
+      // Returning visitor — show intro with the welcome-back banner.
       // No retake is offered (single-attempt policy). They can only review.
       showReturnBanner();
       showScreen('intro');
@@ -290,7 +306,7 @@ async function loadQuizFromFirestore() {
 // ═══════════════════════════════════════════════════════════════════════════
 // APPLY EDITION BRANDING
 // Updates page elements that reflect edition-specific info. Called once per
-// load, after the edition has been fetched from Firestore. Keeps the Oracle
+// load, after the edition has been fetched from Firestore. Keeps the Yorker
 // identity consistent across editions without any HTML edits per-edition.
 // ═══════════════════════════════════════════════════════════════════════════
 function applyEditionBranding() {
@@ -301,16 +317,16 @@ function applyEditionBranding() {
 
   // Intro kicker (the small red line above "20 questions. 149 years.")
   const introKicker = document.querySelector('.intro-kicker');
-  if (introKicker) introKicker.textContent = `◆ The Test Cricket Oracle · ${editionLine}`;
+  if (introKicker) introKicker.textContent = `◆ Yorker · ${editionLine}`;
 
   // Browser tab title + meta tags. These matter for share-card previews —
   // a WhatsApp forward of this page shows the title and description baked in
   // at load time (OG meta tags don't update from JS for social crawlers, but
   // they do reflect correctly when a real human clicks through).
-  document.title = `The Test Cricket Oracle — ${editionLine} | Cricket Times`;
+  document.title = `Yorker — ${editionLine} | Cricket Times`;
   const metaDesc = document.querySelector('meta[name="description"]');
   if (metaDesc) metaDesc.setAttribute('content',
-    `The Test Cricket Oracle · ${editionLine}. ${questions.length} questions on 149 years of Test cricket.`);
+    `Yorker · ${editionLine}. ${questions.length} questions on 149 years of Test cricket.`);
 
   // [2026-06-04] Edition-driven intro copy. The headline and stats strip are
   // populated from the LOADED edition's validated question count, so monthly
@@ -553,17 +569,23 @@ function showPreviousScore() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// SCORE BANDS — The Oracle's verdicts.
+// SCORE BANDS — the verdict on your innings.
 // Mapped to spec bands (0–6, 7–11, 12–15, 16–18, 19–20 out of 20 → percentages).
 // Percentage-based so they scale if question count changes in later editions.
+//
+// REWRITTEN 2026-08-14 with the rename, and not optionally. The old bands were
+// an oracle SPEAKING — it bowed, nodded, was impressed, expected more. A yorker
+// is a delivery, not a character: it cannot nod. So the verdicts became outcomes
+// of a delivery rather than moods of a seer, which is also why the bottom band
+// can be the brand word itself. Keep any future band in that register.
 // ═══════════════════════════════════════════════════════════════════════════
 function getScoreBand(score, total) {
   const pct = (score / total) * 100;
-  if (pct >= 95) return { title: 'The Oracle bows',          desc: 'The Oracle has rarely met its match. Please confirm your answer to question 14 was not a fluke.' };
-  if (pct >= 80) return { title: 'The Oracle is impressed',  desc: 'You know your five-fors from your five wickets. Rare company.' };
-  if (pct >= 60) return { title: 'The Oracle nods',          desc: 'A respectable showing. The Oracle has time for you.' };
-  if (pct >= 35) return { title: 'The Oracle expected more', desc: 'You watch the game. The Oracle expects you to read about it too.' };
-  return              { title: 'The Oracle has questions',   desc: 'Did you mean to take a T20 quiz?' };
+  if (pct >= 95) return { title: 'Middled it',           desc: 'Not one got through. Please confirm your answer to question 14 was not a fluke.' };
+  if (pct >= 80) return { title: 'Right off the middle', desc: 'You know your five-fors from your five wickets. Rare company.' };
+  if (pct >= 60) return { title: 'Solid defence',        desc: 'A respectable showing. Nothing got past you that shouldn\'t have.' };
+  if (pct >= 35) return { title: 'Inside edge',          desc: 'You watch the game. Now read about it too.' };
+  return              { title: 'Yorked',                 desc: 'Did you mean to take a T20 quiz?' };
 }
 
 function getPercentileText(score, total) {
@@ -591,26 +613,28 @@ function renderScore(score) {
   document.getElementById('score-band').textContent = band.title;
   document.getElementById('score-band-desc').textContent = band.desc;
 
-  // Build share links — carry the Oracle brand so every share educates another
+  // Build share links — carry the Yorker brand so every share educates another
   // person about the franchise, AND embed the edition tag so a share forwarded
   // in 2027 still reads unambiguously as "a score on the Inaugural Edition"
-  // rather than claiming to be a score on whatever Oracle is currently live.
+  // rather than claiming to be a score on whatever edition is currently live.
   // Edition name is pulled from currentEdition metadata (set by the CMS),
   // which means when Bowlers is current, /oracle.html shares auto-say
   // "Bowlers Edition". Permanent-URL pages like /oracle/inaugural/ keep
   // saying "Inaugural Edition" because they pin to that edition's metadata.
   //
-  // The CTA ("The Oracle doubts you can do better.") is deliberately band-
-  // agnostic: it works whether the user scored 4/20 (mildly self-deprecating)
-  // or 20/20 (wry humble-brag) because the doubt comes from the Oracle, not
-  // the user. That's why there's just one CTA line instead of five
-  // score-specific ones.
-  const editionTag = currentEdition?.name || 'The Test Cricket Oracle';
+  // The CTA ("Reckon you can do better?") is deliberately band-agnostic: it
+  // works whether the user scored 4/20 (mildly self-deprecating) or 20/20 (wry
+  // humble-brag), because it is addressed to the RECIPIENT of the share, not to
+  // the sharer. That's why there's just one CTA line instead of five
+  // score-specific ones. It replaced "The Oracle doubts you can do better." in
+  // the 2026-08-14 rename — the old line needed a speaker, and there isn't one
+  // any more.
+  const editionTag = currentEdition?.name || 'Yorker';
   const launchSuffix = currentEdition?.month ? ` Launching ${currentEdition.month}.` : ' Launching June 2026.';
-  const CTA = 'The Oracle doubts you can do better.';
+  const CTA = 'Reckon you can do better?';
   const shareLine = IS_POST_LAUNCH
-    ? `I scored ${score}/${total} on The Test Cricket Oracle — ${editionTag}. "${band.title}". ${CTA}`
-    : `I scored ${score}/${total} on The Test Cricket Oracle — ${editionTag}. "${band.title}". ${CTA}${launchSuffix}`;
+    ? `I scored ${score}/${total} on Yorker, the Cricket Times Test quiz — ${editionTag}. "${band.title}". ${CTA}`
+    : `I scored ${score}/${total} on Yorker, the Cricket Times Test quiz — ${editionTag}. "${band.title}". ${CTA}${launchSuffix}`;
   // Share URL depends on the mode: /oracle.html for the current-mode page,
   // /oracle/{id}/ for a pinned-edition page. This keeps shares from a
   // permanent URL pointing at that permanent URL, not the rotating current.
