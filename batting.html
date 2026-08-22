@@ -1083,6 +1083,10 @@ function applyInningsDerivedSR() {
     }
     // zeroed when not shown so a hidden figure cannot sort to the top
     p.sr = p.srShown ? p.srRaw : 0;
+    // Avg+SR: the two figures added. Blank wherever SR is blank — there is
+    // nothing to add to — and zeroed there too so it sorts last rather than
+    // sorting on an average masquerading as a combined figure.
+    p.avgSR = p.srShown ? (p.avg || 0) + p.sr : 0;
   });
 
   console.info(`[batting] balls and strike rate taken from D.P; ` +
@@ -1264,14 +1268,17 @@ function slicedPlayers(f) {
       a.perMatch.forEach(v => { if (v >= 2) twoX++; });
       const outs = a.inns - a.no;
       const playedSet = played.get(p.id);
+      const avgV = outs > 0 ? a.runs / outs : 0;
+      const srV  = a.balls >= MIN_BALLS_FOR_SR ? (a.ballsRuns / a.balls) * 100 : 0;
       out.push(Object.assign({}, p, {
         tests: Math.max(a.tests.size, playedSet ? playedSet.size : 0),
         inns: a.inns, no: a.no, runs: a.runs,
         balls: a.balls, ballsRuns: a.ballsRuns, ballsInns: 0,
         hs: a.hs, fifties: a.fifties, hundreds: a.hundreds, doubles: a.doubles, twoX100: twoX,
         from: a.from, to: a.to,
-        avg: outs > 0 ? a.runs / outs : 0,
-        sr: a.balls >= MIN_BALLS_FOR_SR ? (a.ballsRuns / a.balls) * 100 : 0,
+        avg: avgV,
+        sr: srV,
+        avgSR: srV ? avgV + srV : 0,   // blank/zero wherever the slice shows no SR
         mom: null, _sliced: true,
         _eraLabel: eraKey ? (ERA_LABEL[eraKey] || eraKey) : null
       }));
@@ -1330,12 +1337,15 @@ function aggregateInnings(list, label) {
     if (r.runs > hs) { hs = r.runs; hsPid = r.pid; }
   });
   const outs = inns - no;
+  const avgV = outs > 0 ? runs / outs : 0;
+  const srV  = balls > 0 ? (ballsRuns / balls) * 100 : 0;
   return {
     label, players: players.size, tests: tests.size,
     inns, no, runs, balls, ballsRuns, ballsInns,
     noBalls: modernInns === 0,               // wholly pre-1980 → leave BF and SR empty
-    avg: outs > 0 ? runs / outs : 0,
-    sr: balls > 0 ? (ballsRuns / balls) * 100 : 0,
+    avg: avgV,
+    sr: srV,
+    avgSR: srV ? avgV + srV : 0,             // blank wherever SR is blank
     hs, hsName: hsPid !== null ? (PID_NAME[hsPid] || '') : '',
     fifties, hundreds, doubles
   };
@@ -1572,6 +1582,7 @@ function getColsRaw() {
       { key:'hs',         label:'HS',      cls:'num' },
       { key:'avg',        label:'Avg',     cls:'num' },
       { key:'sr',         label:'SR',      cls:'num', tip:PLAYER_BF_TIP },
+      { key:'avgSR',      label:'Avg+SR',  cls:'num', tip:AVGSR_TIP },
       { key:'hundreds',   label:'100s',    cls:'num' },
       { key:'doubles',    label:'200s',    cls:'num', tip:DBL_TIP },
       { key:'twoX100',    label:'2X100S',  cls:'num-center' },
@@ -1584,6 +1595,7 @@ function getColsRaw() {
       { key:'runs',       label:'Runs',    cls:'num' },
       { key:'avg',        label:'Avg',     cls:'num highlight' },
       { key:'sr',         label:'SR',      cls:'num', tip:PLAYER_BF_TIP },
+      { key:'avgSR',      label:'Avg+SR',  cls:'num', tip:AVGSR_TIP },
       { key:'hundreds',   label:'100s',    cls:'num' }
     ];
     case 'sr': return [...base,
@@ -1592,6 +1604,7 @@ function getColsRaw() {
       { key:'runs',       label:'Runs',    cls:'num' },
       { key:'balls',      label:'BF',      cls:'num', tip:PLAYER_BF_TIP },
       { key:'sr',         label:'SR',      cls:'num highlight', tip:PLAYER_BF_TIP },
+      { key:'avgSR',      label:'Avg+SR',  cls:'num', tip:AVGSR_TIP },
       { key:'avg',        label:'Avg',     cls:'num' },
       { key:'hundreds',   label:'100s',    cls:'num' }
     ];
@@ -1640,13 +1653,14 @@ function render() {
       if (c.key === '_rank') return `<td class="${c.cls}">${start + i + 1}</td>`;
       let val = p[c.key];
       if (c.key === 'name') return `<td class="${c.cls}" title="${p.fullName}">${val}</td>`;
-      // No recorded balls (a wholly pre-1980 career) → leave BF and SR empty
-      if (c.key === 'balls' || c.key === 'sr') {
+      // No recorded balls (a wholly pre-1980 career) → leave BF, SR and Avg+SR empty
+      if (c.key === 'balls' || c.key === 'sr' || c.key === 'avgSR') {
         // p.srShown is false with no recorded ball data in the rows, or under
         // MIN_BALLS_FOR_SR — either way there is nothing honest to print
         if (p._sliced ? (!p.balls || p.balls < MIN_BALLS_FOR_SR) : !p.srShown)
           return `<td class="${c.cls}"></td>`;
-        return `<td class="${c.cls}">${c.key === 'sr' ? (p.sr || 0).toFixed(2) : (p.balls || 0).toLocaleString()}</td>`;
+        if (c.key === 'balls') return `<td class="${c.cls}">${(p.balls || 0).toLocaleString()}</td>`;
+        return `<td class="${c.cls}">${(c.key === 'sr' ? (p.sr || 0) : (p.avgSR || 0)).toFixed(2)}</td>`;
       }
       if (c.key === 'avg') val = (typeof val === 'number' && val > 0) ? val.toFixed(2) : '—';
       if (c.key === 'runs' && typeof val === 'number') val = val.toLocaleString();
@@ -1671,6 +1685,15 @@ const PLAYER_BF_TIP = 'Balls faced was not recorded before 1980 — the data is 
               'BF and SR count only the innings that carry ball data, so SR is not diluted by ' +
               'innings whose deliveries were never recorded.';
 
+/* Average and strike rate added together — a rough index of weight of runs
+   against speed of scoring. The two are on different scales and the sum is not
+   a rate of anything, so it is best read as a ranking device rather than a
+   statistic. Blank wherever SR is blank, since there is nothing to add. */
+const AVGSR_TIP = 'Batting average plus strike rate, added together \u2014 a rough index of how ' +
+              'heavily and how quickly a batsman scored. The two are measured on different scales, ' +
+              'so the total is a ranking device rather than a rate of anything. It is left blank ' +
+              'wherever strike rate is blank, since there is nothing to add to the average.';
+
 const AGG_COLS = [
   { key:'label',    label:'Era',     cls:'player-name' },
   { key:'players',  label:'Players', cls:'num' },
@@ -1681,6 +1704,7 @@ const AGG_COLS = [
   { key:'balls',    label:'BF',      cls:'num', tip: BF_TIP },
   { key:'avg',      label:'Avg',     cls:'num' },
   { key:'sr',       label:'SR',      cls:'num', tip: BF_TIP },
+  { key:'avgSR',    label:'Avg+SR',  cls:'num', tip: AVGSR_TIP },
   { key:'hs',       label:'HS',      cls:'num' },
   { key:'doubles',  label:'200s',    cls:'num', tip: DBL_TIP },
   { key:'hundreds', label:'100s',    cls:'num' },
@@ -1746,9 +1770,9 @@ function renderAggregate() {
   const cell = (r, c) => {
     const v = r[c.key];
     if (c.key === 'label') return `<td class="${c.cls}">${v}</td>`;
-    if (c.key === 'balls' || c.key === 'sr') {
+    if (c.key === 'balls' || c.key === 'sr' || c.key === 'avgSR') {
       if (r.noBalls || !r.balls) return `<td class="${c.cls}"></td>`;
-      return `<td class="${c.cls}">${c.key === 'sr' ? v.toFixed(2) : v.toLocaleString()}</td>`;
+      return `<td class="${c.cls}">${c.key === 'balls' ? v.toLocaleString() : v.toFixed(2)}</td>`;
     }
     if (c.key === 'avg') return `<td class="${c.cls}">${v > 0 ? v.toFixed(2) : '—'}</td>`;
     if (c.key === 'hs') {
@@ -1915,6 +1939,7 @@ function exportToExcel() {
       { label:'Balls Faced', fn:r => r.balls || '' },
       { label:'Average',     fn:r => r.avg ? r.avg.toFixed(2) : '' },
       { label:'Strike Rate', fn:r => r.sr ? r.sr.toFixed(2) : '' },
+      { label:'Avg+SR',      fn:r => r.avgSR ? r.avgSR.toFixed(2) : '' },
       { label:'HS',          fn:r => r.hs || '' },
       { label:'HS By',       fn:r => r.hsName || '' },
       { label:'200s',        fn:r => r.doubles },
@@ -1948,6 +1973,7 @@ function exportToExcel() {
     { label:'HS',                 fn:p => p.hs ?? '' },
     { label:'Average',            fn:p => p.avg ? Number(p.avg).toFixed(2) : '' },
     { label:'Strike Rate',        fn:p => p.sr ? Number(p.sr).toFixed(2) : '' },
+    { label:'Avg+SR',             fn:p => p.avgSR ? Number(p.avgSR).toFixed(2) : '' },
     { label:'200s',               fn:p => p.doubles ?? '' },
     { label:'100s',               fn:p => p.hundreds ?? '' },
     { label:'2x100s',             fn:p => p.twoX100 ?? '' },
