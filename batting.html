@@ -98,6 +98,35 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-he
 .fp-reset{font-size:11px;color:var(--accent);cursor:pointer;text-decoration:underline;margin-left:auto}
 .fp-reset:hover{color:var(--text)}
 
+/* ── Export menu (Excel / Google Docs / PDF) ────────────────────────────────
+   One gated trigger, three destinations. The gate (>=2 active filters) sits on
+   the trigger, so it covers every format at once. */
+.exp-wrap{position:relative;margin-left:auto}
+.exp-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;font-family:var(--font-body);font-size:12px;font-weight:600;border:1px solid var(--border);border-radius:4px;background:var(--surface);color:var(--text2);cursor:pointer;transition:background 0.15s,color 0.15s,border-color 0.15s}
+.exp-btn:hover:not(:disabled),.exp-btn.open:not(:disabled){background:var(--accent-dim);color:var(--accent);border-color:var(--accent)}
+.exp-btn:disabled{opacity:0.45;color:var(--text3);cursor:not-allowed}
+.exp-btn svg{stroke:currentColor;fill:none}
+.exp-caret{font-size:10px;line-height:1;color:var(--text3);transition:transform 0.15s,color 0.15s}
+.exp-btn:hover:not(:disabled) .exp-caret,.exp-btn.open .exp-caret{color:var(--accent)}
+.exp-btn.open .exp-caret{transform:rotate(180deg)}
+.exp-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;min-width:246px;background:var(--surface);border:1px solid var(--border);border-radius:5px;box-shadow:0 8px 22px rgba(0,0,0,0.12);z-index:60;overflow:hidden}
+.exp-menu.open{display:block}
+.exp-item{display:flex;align-items:flex-start;gap:9px;width:100%;padding:9px 12px;border:0;border-bottom:1px solid var(--border);background:none;font-family:var(--font-body);font-size:12.5px;color:var(--text);text-align:left;cursor:pointer;transition:background 0.15s,color 0.15s}
+.exp-item:last-child{border-bottom:0}
+.exp-item:hover{background:var(--surface2);color:var(--accent)}
+.exp-item svg{width:14px;height:14px;flex:none;margin-top:2px;stroke:currentColor;fill:none;stroke-width:2}
+.exp-item b{display:block;font-weight:600}
+.exp-item small{display:block;margin-top:1px;font-size:10.5px;color:var(--text3)}
+.exp-item:hover small{color:var(--text2)}
+
+/* Toast — used by the Google Docs export, which has to say what it just did */
+.ct-toast{position:fixed;left:50%;bottom:26px;z-index:9999;max-width:min(540px,92vw);padding:12px 40px 12px 16px;background:var(--text);color:#fff;border-radius:6px;font-family:var(--font-body);font-size:12.5px;line-height:1.55;box-shadow:0 10px 30px rgba(0,0,0,0.28);opacity:0;transform:translateX(-50%) translateY(10px);transition:opacity 0.2s,transform 0.2s}
+.ct-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.ct-toast a{color:#fff;text-decoration:underline}
+.ct-toast a:hover{color:#f0d6cc}
+.ct-toast-x{position:absolute;top:6px;right:8px;padding:2px 6px;border:0;background:none;color:rgba(255,255,255,0.65);font-size:15px;line-height:1;cursor:pointer}
+.ct-toast-x:hover{color:#fff}
+
 /* Multi-select dropdown */
 .ms-wrap{position:relative}
 .fp-group.dim,.tabs.dim{opacity:0.4;pointer-events:none;filter:grayscale(1)}
@@ -190,6 +219,7 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-he
   .stat-cards{grid-template-columns:repeat(3,1fr)}
 }
 @media(max-width:767px){
+  .exp-menu{right:auto;left:0}
   .header{padding:14px 16px}
   .hdr-inner{flex-direction:column;align-items:flex-start;gap:10px}
   .hdr-nav{position:absolute;top:14px;right:16px}
@@ -393,10 +423,27 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-he
         <div class="fp-note" id="fpNote" style="display:none"></div>
         <div class="fp-group" style="display:flex;align-items:flex-end;gap:10px">
           <span class="fp-reset" onclick="resetFilters()">Reset all</span>
-          <button id="exportBtn" onclick="exportToExcel()" title="Select at least 2 filters to enable export" style="margin-left:auto;display:inline-flex;align-items:center;gap:6px;padding:7px 14px;font-family:var(--font-body);font-size:12px;font-weight:600;border:1px solid var(--border);border-radius:4px;background:var(--surface);color:var(--text2);cursor:pointer;transition:all 0.15s;" onmouseover="if(!this.disabled){this.style.background='var(--accent-dim)';this.style.color='var(--accent)';this.style.borderColor='var(--accent)'}" onmouseout="if(!this.disabled){this.style.background='var(--surface)';this.style.color='var(--text2)';this.style.borderColor='var(--border)'}">
-            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            Export to Excel
+          <div class="exp-wrap" id="expWrap">
+          <button id="exportBtn" type="button" class="exp-btn" onclick="toggleExportMenu(event)" aria-haspopup="true" aria-expanded="false" title="Select at least 2 filters to enable export">
+            <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span id="exportBtnLabel">Export</span>
+            <span class="exp-caret" aria-hidden="true">&#9662;</span>
           </button>
+          <div class="exp-menu" id="expMenu" role="menu" aria-labelledby="exportBtn">
+            <button type="button" class="exp-item" role="menuitem" onclick="runExport('excel')">
+              <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="19"/><line x1="15" y1="13" x2="9" y2="19"/></svg>
+              <span><b>Excel</b><small>.xlsx workbook &mdash; one row per record</small></span>
+            </button>
+            <button type="button" class="exp-item" role="menuitem" onclick="runExport('gdocs')">
+              <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>
+              <span><b>Google Docs</b><small>copies the table &mdash; paste straight into a Doc</small></span>
+            </button>
+            <button type="button" class="exp-item" role="menuitem" onclick="runExport('pdf')">
+              <svg viewBox="0 0 24 24"><path d="M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><polyline points="15 2 15 7 20 7"/><path d="M8 15h1.5a1.5 1.5 0 0 0 0-3H8v6"/><path d="M14 18h1.5a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2H14z"/></svg>
+              <span><b>PDF</b><small>landscape, print-ready, headed and paginated</small></span>
+            </button>
+          </div>
+          </div>
         </div>
       </div>
       <div class="fp-tags" id="tagBox"></div>
@@ -1878,20 +1925,11 @@ function updateExportButton(activeCount) {
   const enabled = activeCount >= 2;
   btn.disabled = !enabled;
   if (enabled) {
-    btn.style.opacity = '1';
-    btn.style.cursor = 'pointer';
-    btn.title = 'Download current view as .xlsx — respects active filters';
-    btn.style.background = 'var(--surface)';
-    btn.style.color = 'var(--text2)';
-    btn.style.borderColor = 'var(--border)';
+    btn.title = 'Export the current view \u2014 Excel, Google Docs or PDF, all respecting the active filters';
   } else {
-    btn.style.opacity = '0.45';
-    btn.style.cursor = 'not-allowed';
     const need = Math.max(0, 2 - activeCount);
     btn.title = `Select at least ${need} more filter${need === 1 ? '' : 's'} to enable export`;
-    btn.style.background = 'var(--surface)';
-    btn.style.color = 'var(--text3)';
-    btn.style.borderColor = 'var(--border)';
+    closeExportMenu();      // never leave the menu hanging open over a dead button
   }
 }
 
@@ -1916,106 +1954,438 @@ function resetFilters() {
 }
 
 /* ──────────────────────────────────────────────────────────────────────────
-   Export to Excel
+   Export — Excel (.xlsx), Google Docs, PDF
+
+   All three formats read one shared model, so the columns, the filename and
+   the filter caption can only ever be defined once. Excel writes the same
+   workbook it always did; Google Docs puts a formatted table on the clipboard
+   (plus a .doc file for Drive); PDF renders a headed, paginated landscape
+   table with jsPDF, lazily loaded and with a print-dialog fallback if the CDN
+   is unreachable.
    ────────────────────────────────────────────────────────────────────────── */
-function exportToExcel() {
-  // Gating: refuse if fewer than 2 active filters (defense beyond the disabled button)
+
+/* Column definitions. `num` right-aligns the column in the PDF and the Doc —
+   Excel does that itself from the cell type. */
+const AGG_EXPORT_COLS = [
+  { label:'Era',         fn:r => r.label },
+  { label:'Players',     fn:r => r.players,                     num:true },
+  { label:'Tests',       fn:r => r.tests,                       num:true },
+  { label:'Innings',     fn:r => r.inns,                        num:true },
+  { label:'Not Outs',    fn:r => r.no,                          num:true },
+  { label:'Runs',        fn:r => r.runs,                        num:true },
+  { label:'Balls Faced', fn:r => r.balls || '',                 num:true },
+  { label:'Average',     fn:r => r.avg   ? r.avg.toFixed(2) : '',   num:true },
+  { label:'Strike Rate', fn:r => r.sr    ? r.sr.toFixed(2) : '',    num:true },
+  { label:'Avg+SR',      fn:r => r.avgSR ? r.avgSR.toFixed(2) : '', num:true },
+  { label:'HS',          fn:r => r.hs || '',                    num:true },
+  { label:'HS By',       fn:r => r.hsName || '' },
+  { label:'200s',        fn:r => r.doubles,                     num:true },
+  { label:'100s',        fn:r => r.hundreds,                    num:true },
+  { label:'50s',         fn:r => r.fifties,                     num:true }
+];
+
+const PLAYER_EXPORT_COLS = [
+  { label:'#',           fn:(p,i) => i + 1,                                    num:true },
+  { label:'Player',      fn:p => p.fullName || p.name || '' },
+  { label:'Country',     fn:p => p.country || '' },
+  { label:'Era',         fn:p => p._eraLabel || '' },
+  { label:'From',        fn:p => p.from || '',                                 num:true },
+  { label:'To',          fn:p => p.to || '',                                   num:true },
+  { label:'Tests',       fn:p => p.tests ?? '',                                num:true },
+  { label:'Innings',     fn:p => p.inns ?? '',                                 num:true },
+  { label:'Not Outs',    fn:p => p.no ?? '',                                   num:true },
+  { label:'Runs',        fn:p => p.runs ?? '',                                 num:true },
+  { label:'HS',          fn:p => p.hs ?? '',                                   num:true },
+  { label:'Average',     fn:p => p.avg   ? Number(p.avg).toFixed(2) : '',      num:true },
+  { label:'Strike Rate', fn:p => p.sr    ? Number(p.sr).toFixed(2) : '',       num:true },
+  { label:'Avg+SR',      fn:p => p.avgSR ? Number(p.avgSR).toFixed(2) : '',    num:true },
+  { label:'200s',        fn:p => p.doubles ?? '',                              num:true },
+  { label:'100s',        fn:p => p.hundreds ?? '',                             num:true },
+  { label:'2x100s',      fn:p => p.twoX100 ?? '',                              num:true },
+  { label:'50s',         fn:p => p.fifties ?? '',                              num:true },
+  { label:'MoM',         fn:p => p.mom ?? '',                                  num:true },
+  { label:'Bowl Type',   fn:p => p.bowlType || '' },
+  { label:'Bat Hand',    fn:p => p.batHand || '' }
+];
+
+/* Plain-text twin of renderTags() — the same active filters, without the
+   markup or the click-to-clear handlers, for the caption on a Doc or PDF. */
+function describeFilters() {
+  const f = getFilters();
+  const out = [];
+  if (aggregateMode) out.push('All players');
+  f.eras.forEach(e => out.push(ERA_LABEL[e] || e));
+  f.countries.forEach(c => out.push(c));
+  if (f.ha) out.push(f.ha[0].toUpperCase() + f.ha.slice(1));
+  [['msCity','City'], ['msGround','Ground']].forEach(([id, lab]) => {
+    document.querySelectorAll(`#${id}-drop input[type="checkbox"]:checked`)
+      .forEach(b => out.push(`${lab}: ${b.value}`));
+  });
+  const posLabels = {'1-3':'Top order','4-5':'Middle order','6-7':'Lower middle','8-11':'Tail'};
+  f.pos.forEach(k => out.push(posLabels[k] || k));
+  if (f.tests) out.push(`Tests \u2265${f.tests}`);
+  if (f.inns)  out.push(`Inns \u2265${f.inns}`);
+  if (f.runs)  out.push(`Runs \u2265${f.runs.toLocaleString()}`);
+  if (f.avg)   out.push(`Avg \u2265${f.avg}`);
+  if (f.sr)    out.push(`SR \u2265${f.sr}`);
+  f.opponents.forEach(o => out.push(`vs ${o}`));
+  return out;
+}
+
+/* One model, three writers. Returns null (having explained itself) when the
+   view is not exportable. */
+function buildExportModel() {
   const btn = document.getElementById('exportBtn');
   if (btn && btn.disabled) {
     alert('Please select at least 2 filters before exporting.');
-    return;
+    return null;
   }
-  if (!filtered.length) { alert('No data to export.'); return; }
+  if (!filtered.length) { alert('No data to export.'); return null; }
 
-  // All Players view — export the aggregate rows, not the player list
-  if (aggregateMode) {
-    const AGG_EXPORT = [
-      { label:'Era',         fn:r => r.label },
-      { label:'Players',     fn:r => r.players },
-      { label:'Tests',       fn:r => r.tests },
-      { label:'Innings',     fn:r => r.inns },
-      { label:'Not Outs',    fn:r => r.no },
-      { label:'Runs',        fn:r => r.runs },
-      { label:'Balls Faced', fn:r => r.balls || '' },
-      { label:'Average',     fn:r => r.avg ? r.avg.toFixed(2) : '' },
-      { label:'Strike Rate', fn:r => r.sr ? r.sr.toFixed(2) : '' },
-      { label:'Avg+SR',      fn:r => r.avgSR ? r.avgSR.toFixed(2) : '' },
-      { label:'HS',          fn:r => r.hs || '' },
-      { label:'HS By',       fn:r => r.hsName || '' },
-      { label:'200s',        fn:r => r.doubles },
-      { label:'100s',        fn:r => r.hundreds },
-      { label:'50s',         fn:r => r.fifties }
-    ];
-    const aHeaders = AGG_EXPORT.map(c => c.label);
-    const aRows = (aggRows || []).map(r => AGG_EXPORT.map(c => c.fn(r)));
-    const aws = XLSX.utils.aoa_to_sheet([aHeaders, ...aRows]);
-    aws['!cols'] = AGG_EXPORT.map((c, i) => ({
-      wch: Math.max(c.label.length, ...aRows.map(r => String(r[i]).length)) + 2
-    }));
-    const awb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(awb, aws, 'All Players');
-    XLSX.writeFile(awb, 'cricket-times-batting-all-players.xlsx');
-    return;
-  }
-
-
-  const EXPORT_COLS = [
-    { label:'#',                  fn:(p,i) => i + 1 },
-    { label:'Player',             fn:p => p.fullName || p.name || '' },
-    { label:'Country',            fn:p => p.country || '' },
-    { label:'Era',                fn:p => p._eraLabel || '' },
-    { label:'From',               fn:p => p.from || '' },
-    { label:'To',                 fn:p => p.to || '' },
-    { label:'Tests',              fn:p => p.tests ?? '' },
-    { label:'Innings',            fn:p => p.inns ?? '' },
-    { label:'Not Outs',           fn:p => p.no ?? '' },
-    { label:'Runs',               fn:p => p.runs ?? '' },
-    { label:'HS',                 fn:p => p.hs ?? '' },
-    { label:'Average',            fn:p => p.avg ? Number(p.avg).toFixed(2) : '' },
-    { label:'Strike Rate',        fn:p => p.sr ? Number(p.sr).toFixed(2) : '' },
-    { label:'Avg+SR',             fn:p => p.avgSR ? Number(p.avgSR).toFixed(2) : '' },
-    { label:'200s',               fn:p => p.doubles ?? '' },
-    { label:'100s',               fn:p => p.hundreds ?? '' },
-    { label:'2x100s',             fn:p => p.twoX100 ?? '' },
-    { label:'50s',                fn:p => p.fifties ?? '' },
-    { label:'MoM',                fn:p => p.mom ?? '' },
-    { label:'Bowl Type',          fn:p => p.bowlType || '' },
-    { label:'Bat Hand',           fn:p => p.batHand || '' }
-  ];
-
-  const headers = EXPORT_COLS.map(c => c.label);
-  const rows = filtered.map((p, i) => EXPORT_COLS.map(c => c.fn(p, i)));
-
-  const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
-
-  // Column widths
-  ws['!cols'] = EXPORT_COLS.map((c, i) => {
-    const maxData = Math.max(...rows.map(r => String(r[i]).length));
-    return { wch: Math.max(c.label.length, maxData) + 2 };
-  });
-
-  // Bold header row
-  headers.forEach((_, i) => {
-    const addr = XLSX.utils.encode_cell({ r:0, c:i });
-    if (ws[addr]) ws[addr].s = { font: { bold: true } };
-  });
-
-  const wb = XLSX.utils.book_new();
-
-  // Sheet name from active filters
   const f = getFilters();
+  const filters = describeFilters();
+  const caption = filters.length ? filters.join(' \u00b7 ') : 'No filters applied';
+
+  // All Players view — the aggregate rows, not the player list
+  if (aggregateMode) {
+    const rows = (aggRows || []).map(r => AGG_EXPORT_COLS.map(c => c.fn(r)));
+    if (!rows.length) { alert('No data to export.'); return null; }
+    return {
+      cols: AGG_EXPORT_COLS,
+      headers: AGG_EXPORT_COLS.map(c => c.label),
+      rows,
+      title: 'Batting \u2014 All Players',
+      caption,
+      unit: rows.length === 1 ? 'era' : 'eras',
+      sheetName: 'All Players',
+      base: 'cricket-times-batting-all-players'
+    };
+  }
+
+  const rows = filtered.map((p, i) => PLAYER_EXPORT_COLS.map(c => c.fn(p, i)));
+
+  // Sheet name / filename stem from the active filters
   const parts = ['Batting'];
   if (f.countries.length) parts.push(f.countries.length === 1 ? f.countries[0] : f.countries.length + 'countries');
   if (f.eras.length) parts.push(f.eras.length === 1 ? (ERA_LABEL[f.eras[0]] || f.eras[0]).replace(/[^A-Za-z0-9]/g, '') : f.eras.length + 'eras');
   if (f.ha) parts.push(f.ha);
   if (f.runs) parts.push(f.runs + '+R');
   if (f.avg)  parts.push('Avg' + f.avg);
-  const sheetName = parts.join('_').slice(0, 31);
 
-  XLSX.utils.book_append_sheet(wb, ws, sheetName);
+  return {
+    cols: PLAYER_EXPORT_COLS,
+    headers: PLAYER_EXPORT_COLS.map(c => c.label),
+    rows,
+    title: 'Batting Records',
+    caption,
+    unit: eraSplit() ? (rows.length === 1 ? 'row' : 'rows') : (rows.length === 1 ? 'player' : 'players'),
+    sheetName: parts.join('_').slice(0, 31),
+    base: 'CricketTimes_' + parts.join('_') + '_' + filtered.length + 'players'
+  };
+}
 
-  const fname = 'CricketTimes_' + parts.join('_') + '_' + filtered.length + 'players.xlsx';
-  XLSX.writeFile(wb, fname);
+function exportStamp() {
+  return new Date().toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' });
+}
+
+/* ── Menu plumbing ── */
+function toggleExportMenu(e) {
+  if (e) e.stopPropagation();
+  const btn = document.getElementById('exportBtn');
+  const menu = document.getElementById('expMenu');
+  if (!btn || !menu || btn.disabled) return;
+  const open = !menu.classList.contains('open');
+  menu.classList.toggle('open', open);
+  btn.classList.toggle('open', open);
+  btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+}
+function closeExportMenu() {
+  const btn = document.getElementById('exportBtn');
+  const menu = document.getElementById('expMenu');
+  if (menu) menu.classList.remove('open');
+  if (btn) { btn.classList.remove('open'); btn.setAttribute('aria-expanded', 'false'); }
+}
+document.addEventListener('click', e => {
+  const wrap = document.getElementById('expWrap');
+  if (wrap && !wrap.contains(e.target)) closeExportMenu();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeExportMenu(); });
+
+function runExport(kind) {
+  closeExportMenu();
+  if (kind === 'excel') return exportToExcel();
+  if (kind === 'gdocs') return exportToGoogleDocs();
+  if (kind === 'pdf')   return exportToPDF();
+}
+
+/* The button doubles as the progress indicator while a PDF renders. */
+function setExportBusy(label) {
+  const btn = document.getElementById('exportBtn');
+  const lab = document.getElementById('exportBtnLabel');
+  if (!btn || !lab) return;
+  if (label) { btn.disabled = true; lab.textContent = label; }
+  else { lab.textContent = 'Export'; renderTags(); }   // renderTags restores the gate
+}
+
+/* ── Toast ── */
+let _toastTimer = null;
+function ctToast(html, ms) {
+  document.querySelectorAll('.ct-toast').forEach(t => t.remove());
+  clearTimeout(_toastTimer);
+  const t = document.createElement('div');
+  t.className = 'ct-toast';
+  t.innerHTML = `<button type="button" class="ct-toast-x" aria-label="Dismiss">&times;</button><div>${html}</div>`;
+  t.querySelector('.ct-toast-x').onclick = () => t.remove();
+  document.body.appendChild(t);
+  (window.requestAnimationFrame || (fn => setTimeout(fn, 16)))(() => t.classList.add('show'));
+  _toastTimer = setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 250); }, ms || 12000);
+}
+
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Export to Excel
+   ────────────────────────────────────────────────────────────────────────── */
+function exportToExcel() {
+  const m = buildExportModel();
+  if (!m) return;
+
+  const ws = XLSX.utils.aoa_to_sheet([m.headers, ...m.rows]);
+
+  // Column widths
+  ws['!cols'] = m.cols.map((c, i) => ({
+    wch: Math.max(c.label.length, ...m.rows.map(r => String(r[i]).length)) + 2
+  }));
+
+  // Bold header row
+  m.headers.forEach((_, i) => {
+    const addr = XLSX.utils.encode_cell({ r:0, c:i });
+    if (ws[addr]) ws[addr].s = { font: { bold: true } };
+  });
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, m.sheetName);
+  XLSX.writeFile(wb, m.base + '.xlsx');
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Export to Google Docs
+
+   There is no server-side Drive integration here, and adding one would mean an
+   OAuth consent screen and a Drive scope on every reader — so this does the two
+   things that work from the browser alone:
+
+     1. puts the formatted table on the clipboard as text/html, so a paste into
+        an open Google Doc arrives as a real table, not a wall of text;
+     2. downloads a Word-compatible .doc of the same table, which Drive opens
+        with Google Docs for anyone who would rather keep a file.
+
+   The plain-text half of the clipboard payload is tab-separated, so a paste
+   into Sheets lands in columns too.
+   ────────────────────────────────────────────────────────────────────────── */
+function docTableHtml(m, forPrint) {
+  const esc = v => escHtml(String(v == null ? '' : v));
+  const head = m.headers.map((h, i) =>
+    `<th style="${m.cols[i].num ? 'text-align:right;' : 'text-align:left;'}">${esc(h)}</th>`).join('');
+  const body = m.rows.map(r => '<tr>' + r.map((v, i) =>
+    `<td style="${m.cols[i].num ? 'text-align:right;' : 'text-align:left;'}">${esc(v)}</td>`).join('') + '</tr>').join('');
+
+  return `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+<head><meta charset="utf-8"><title>${esc('Cricket Times \u2014 ' + m.title)}</title>
+<style>
+@page{size:A4 landscape;margin:1.4cm}
+body{font-family:Georgia,'Times New Roman',serif;color:#1a1e26;margin:0}
+h1{font-size:18pt;margin:0 0 2pt;letter-spacing:-0.3pt}
+h2{font-size:12pt;font-weight:normal;color:#8B2500;margin:0 0 6pt}
+p.meta{font-size:8.5pt;color:#555;margin:0 0 10pt}
+table{border-collapse:collapse;width:100%}
+th,td{border:1px solid #d8d3cb;padding:3pt 5pt;font-size:7.5pt;vertical-align:top}
+th{background:#8B2500;color:#fff;font-weight:bold}
+tr:nth-child(even) td{background:#faf7f2}
+p.src{font-size:7.5pt;color:#888;margin-top:10pt}
+${forPrint ? '@media print{body{margin:0}}' : ''}
+</style></head>
+<body>
+<h1>Cricket Times</h1>
+<h2>${esc(m.title)}</h2>
+<p class="meta">${esc(m.caption)}<br>${esc(m.rows.length.toLocaleString() + ' ' + m.unit + ' \u00b7 generated ' + exportStamp())}</p>
+<table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>
+<p class="src">Source: Cricket Times \u2014 cricketimes.com</p>
+</body></html>`;
+}
+
+async function exportToGoogleDocs() {
+  const m = buildExportModel();
+  if (!m) return;
+
+  const html = docTableHtml(m, false);
+  const tsv  = [m.headers.join('\t'), ...m.rows.map(r => r.join('\t'))].join('\n');
+
+  // The file first — it is the half that cannot fail
+  downloadBlob(new Blob(['\ufeff' + html], { type:'application/msword' }), m.base + '.doc');
+
+  let copied = false;
+  try {
+    if (navigator.clipboard && window.ClipboardItem) {
+      await navigator.clipboard.write([new ClipboardItem({
+        'text/html':  new Blob([html], { type:'text/html' }),
+        'text/plain': new Blob([tsv],  { type:'text/plain' })
+      })]);
+      copied = true;
+    }
+  } catch (e) {
+    copied = false;            // clipboard blocked (permissions, or a browser that wants a shorter gesture chain)
+  }
+
+  const open = '<a href="https://docs.google.com/document/create" target="_blank" rel="noopener">Open a blank Google Doc</a>';
+  ctToast(copied
+    ? `Table copied. ${open} and paste (Ctrl/\u2318&nbsp;V) \u2014 it arrives as a real table.<br>
+       A <b>.doc</b> copy was downloaded too; upload it to Drive and choose <i>Open with \u203a Google Docs</i> if you would rather have a file.`
+    : `A <b>.doc</b> copy was downloaded. Upload it to Google Drive and choose <i>Open with \u203a Google Docs</i>.<br>
+       (Your browser blocked the clipboard, so there is nothing to paste \u2014 the file is the way in.)`);
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Export as PDF
+
+   jsPDF and its autoTable plugin are ~400 kB together and most sessions never
+   export, so they load on first use rather than on page load. If the CDN is
+   unreachable the export falls back to a hidden print frame — the reader picks
+   "Save as PDF" as the destination and ends up in the same place.
+   ────────────────────────────────────────────────────────────────────────── */
+const PDF_LIB_URLS = [
+  'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js'
+];
+let _pdfLibs = null;
+function loadScriptOnce(src) {
+  return new Promise((res, rej) => {
+    const el = document.createElement('script');
+    el.src = src;
+    el.onload = () => res();
+    el.onerror = () => rej(new Error('Failed to load ' + src));
+    document.head.appendChild(el);
+  });
+}
+function loadPdfLibs() {
+  if (!_pdfLibs) {
+    _pdfLibs = loadScriptOnce(PDF_LIB_URLS[0])
+      .then(() => loadScriptOnce(PDF_LIB_URLS[1]))
+      .catch(err => { _pdfLibs = null; throw err; });   // let a later attempt retry
+  }
+  return _pdfLibs;
+}
+
+/* jsPDF's built-in fonts speak WinAnsi, which covers Latin-1 and the usual
+   punctuation but not the maths signs the filter captions use — an unmapped
+   glyph comes out as mojibake rather than as nothing, so it has to be caught
+   here and not noticed later in a reader's download. */
+const PDF_CHAR_MAP = { '\u2265':'>=', '\u2264':'<=', '\u2260':'!=', '\u2192':'->', '\u2190':'<-' };
+const PDF_KEEP = /[\u2013\u2014\u2018\u2019\u201C\u201D\u2022\u2026\u20AC\u2122]/;
+function pdfSafe(v) {
+  let t = String(v === null || v === undefined ? '' : v)
+    .replace(/[\u2265\u2264\u2260\u2192\u2190]/g, c => PDF_CHAR_MAP[c]);
+  if (/[^\x20-\x7E\xA0-\xFF]/.test(t)) {
+    t = t.normalize('NFD').replace(/[\u0300-\u036F]/g, '');
+    t = t.replace(/[^\x20-\x7E\xA0-\xFF]/g, c => PDF_KEEP.test(c) ? c : '?');
+  }
+  return t;
+}
+
+/* Fallback: same document, browser's own PDF writer. A hidden iframe rather
+   than a popup, because a popup blocker would eat window.open(). */
+function printToPdf(m) {
+  const frame = document.createElement('iframe');
+  frame.setAttribute('aria-hidden', 'true');
+  frame.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden';
+  document.body.appendChild(frame);
+  const d = frame.contentWindow.document;
+  d.open(); d.write(docTableHtml(m, true)); d.close();
+  setTimeout(() => {
+    try { frame.contentWindow.focus(); frame.contentWindow.print(); } catch (e) { console.error(e); }
+    setTimeout(() => frame.remove(), 1500);
+  }, 350);
+  ctToast('The PDF library did not load, so the print dialog opened instead \u2014 choose <b>Save as PDF</b> as the destination.');
+}
+
+async function exportToPDF() {
+  const m = buildExportModel();
+  if (!m) return;
+
+  if (m.rows.length > 1500 &&
+      !confirm(`This view holds ${m.rows.length.toLocaleString()} rows. Rendering them all into a PDF may take a few seconds and produce a large file.\n\nExport anyway?`)) {
+    return;
+  }
+
+  setExportBusy('Building PDF\u2026');
+  try {
+    await loadPdfLibs();
+  } catch (e) {
+    console.error(e);
+    setExportBusy(false);
+    printToPdf(m);
+    return;
+  }
+
+  try {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation:'landscape', unit:'pt', format:'a4', compress:true });
+    const W = doc.internal.pageSize.getWidth();
+    const H = doc.internal.pageSize.getHeight();
+    const stamp = exportStamp();
+
+    const colStyles = {};
+    m.cols.forEach((c, i) => { if (c.num) colStyles[i] = { halign:'right' }; });
+    const playerCol = m.headers.indexOf('Player');
+    if (playerCol > -1) colStyles[playerCol] = { cellWidth: 78 };
+    const hsByCol = m.headers.indexOf('HS By');
+    if (hsByCol > -1) colStyles[hsByCol] = { cellWidth: 70 };
+
+    doc.autoTable({
+      head: [m.headers.map(pdfSafe)],
+      body: m.rows.map(r => r.map(pdfSafe)),
+      startY: 80,
+      margin: { top:80, left:24, right:24, bottom:34 },
+      styles: { font:'helvetica', fontSize:6.5, cellPadding:2.4, overflow:'linebreak',
+                lineColor:[216,211,203], lineWidth:0.4, textColor:[26,30,38] },
+      headStyles: { fillColor:[139,37,0], textColor:255, fontStyle:'bold', fontSize:6.5, halign:'left' },
+      alternateRowStyles: { fillColor:[250,247,242] },
+      columnStyles: colStyles,
+      didDrawPage: () => {
+        doc.setFont('times', 'bold');   doc.setFontSize(16); doc.setTextColor(26, 30, 38);
+        doc.text('Cricket Times', 24, 34);
+        doc.setFont('times', 'normal'); doc.setFontSize(11); doc.setTextColor(139, 37, 0);
+        doc.text(pdfSafe(m.title), 24, 50);
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(110, 110, 110);
+        const cap = doc.splitTextToSize(pdfSafe(m.caption), W - 48).slice(0, 2);
+        doc.text(cap, 24, 61);
+        doc.setDrawColor(216, 211, 203);
+        doc.line(24, 72, W - 24, 72);
+        doc.setFontSize(7); doc.setTextColor(140, 140, 140);
+        doc.text(pdfSafe(`${m.rows.length.toLocaleString()} ${m.unit} \u00b7 generated ${stamp} \u00b7 cricketimes.com`), 24, H - 16);
+      }
+    });
+
+    const total = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= total; i++) {
+      doc.setPage(i);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(140, 140, 140);
+      doc.text(`Page ${i} of ${total}`, W - 24, H - 16, { align:'right' });
+    }
+
+    doc.save(m.base + '.pdf');
+  } catch (e) {
+    console.error(e);
+    ctToast('The PDF could not be built. Try a narrower filter set, or export to Excel instead.');
+  } finally {
+    setExportBusy(false);
+  }
 }
 
 /* ──────────────────────────────────────────────────────────────────────────
