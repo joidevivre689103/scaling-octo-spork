@@ -17,6 +17,7 @@
 <title>Batting Records – Cricket Times</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="/ct-export.js"></script><!-- shared export engine: xlsx / ods / Sheets / PDF -->
 <style>
 /* ── Reset & Variables ── */
 *{margin:0;padding:0;box-sizing:border-box}
@@ -98,34 +99,12 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-he
 .fp-reset{font-size:11px;color:var(--accent);cursor:pointer;text-decoration:underline;margin-left:auto}
 .fp-reset:hover{color:var(--text)}
 
-/* ── Export menu (Excel / LibreOffice / Google Sheets / PDF) ────────────────
-   One gated trigger, three destinations. The gate (>=2 active filters) sits on
-   the trigger, so it covers every format at once. */
-.exp-wrap{position:relative;margin-left:auto}
-.exp-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;font-family:var(--font-body);font-size:12px;font-weight:600;border:1px solid var(--border);border-radius:4px;background:var(--surface);color:var(--text2);cursor:pointer;transition:background 0.15s,color 0.15s,border-color 0.15s}
-.exp-btn:hover:not(:disabled),.exp-btn.open:not(:disabled){background:var(--accent-dim);color:var(--accent);border-color:var(--accent)}
-.exp-btn:disabled{opacity:0.45;color:var(--text3);cursor:not-allowed}
+/* ── Export trigger ──
+   The menu, its styling and the four writers come from /ct-export.js; only the
+   trigger's own look is page-local so it matches the filter panel. */
+.exp-btn{display:inline-flex;align-items:center;padding:7px 14px;font-family:var(--font-body);font-size:12px;font-weight:600;border:1px solid var(--border);border-radius:4px;background:var(--surface);color:var(--text2);cursor:pointer;transition:background 0.15s,color 0.15s,border-color 0.15s}
+.exp-btn:hover:not(:disabled){background:var(--accent-dim);color:var(--accent);border-color:var(--accent)}
 .exp-btn svg{stroke:currentColor;fill:none}
-.exp-caret{font-size:10px;line-height:1;color:var(--text3);transition:transform 0.15s,color 0.15s}
-.exp-btn:hover:not(:disabled) .exp-caret,.exp-btn.open .exp-caret{color:var(--accent)}
-.exp-btn.open .exp-caret{transform:rotate(180deg)}
-.exp-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;min-width:246px;background:var(--surface);border:1px solid var(--border);border-radius:5px;box-shadow:0 8px 22px rgba(0,0,0,0.12);z-index:60;overflow:hidden}
-.exp-menu.open{display:block}
-.exp-item{display:flex;align-items:flex-start;gap:9px;width:100%;padding:9px 12px;border:0;border-bottom:1px solid var(--border);background:none;font-family:var(--font-body);font-size:12.5px;color:var(--text);text-align:left;cursor:pointer;transition:background 0.15s,color 0.15s}
-.exp-item:last-child{border-bottom:0}
-.exp-item:hover{background:var(--surface2);color:var(--accent)}
-.exp-item svg{width:14px;height:14px;flex:none;margin-top:2px;stroke:currentColor;fill:none;stroke-width:2}
-.exp-item b{display:block;font-weight:600}
-.exp-item small{display:block;margin-top:1px;font-size:10.5px;color:var(--text3)}
-.exp-item:hover small{color:var(--text2)}
-
-/* Toast — used by the Sheets export, which has to say what it just did */
-.ct-toast{position:fixed;left:50%;bottom:26px;z-index:9999;max-width:min(540px,92vw);padding:12px 40px 12px 16px;background:var(--text);color:#fff;border-radius:6px;font-family:var(--font-body);font-size:12.5px;line-height:1.55;box-shadow:0 10px 30px rgba(0,0,0,0.28);opacity:0;transform:translateX(-50%) translateY(10px);transition:opacity 0.2s,transform 0.2s}
-.ct-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-.ct-toast a{color:#fff;text-decoration:underline}
-.ct-toast a:hover{color:#f0d6cc}
-.ct-toast-x{position:absolute;top:6px;right:8px;padding:2px 6px;border:0;background:none;color:rgba(255,255,255,0.65);font-size:15px;line-height:1;cursor:pointer}
-.ct-toast-x:hover{color:#fff}
 
 /* Multi-select dropdown */
 .ms-wrap{position:relative}
@@ -219,7 +198,6 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-he
   .stat-cards{grid-template-columns:repeat(3,1fr)}
 }
 @media(max-width:767px){
-  .exp-menu{right:auto;left:0}
   .header{padding:14px 16px}
   .hdr-inner{flex-direction:column;align-items:flex-start;gap:10px}
   .hdr-nav{position:absolute;top:14px;right:16px}
@@ -423,31 +401,7 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-he
         <div class="fp-note" id="fpNote" style="display:none"></div>
         <div class="fp-group" style="display:flex;align-items:flex-end;gap:10px">
           <span class="fp-reset" onclick="resetFilters()">Reset all</span>
-          <div class="exp-wrap" id="expWrap">
-          <button id="exportBtn" type="button" class="exp-btn" onclick="toggleExportMenu(event)" aria-haspopup="true" aria-expanded="false" title="Select at least 2 filters to enable export">
-            <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            <span id="exportBtnLabel">Export</span>
-            <span class="exp-caret" aria-hidden="true">&#9662;</span>
-          </button>
-          <div class="exp-menu" id="expMenu" role="menu" aria-labelledby="exportBtn">
-            <button type="button" class="exp-item" role="menuitem" onclick="runExport('excel')">
-              <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="19"/><line x1="15" y1="13" x2="9" y2="19"/></svg>
-              <span><b>Excel</b><small>.xlsx workbook &mdash; one row per record</small></span>
-            </button>
-            <button type="button" class="exp-item" role="menuitem" onclick="runExport('ods')">
-              <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="8" x2="21" y2="8"/><line x1="10" y1="8" x2="10" y2="21"/></svg>
-              <span><b>LibreOffice Calc</b><small>.ods spreadsheet &mdash; open format, same columns</small></span>
-            </button>
-            <button type="button" class="exp-item" role="menuitem" onclick="runExport('gsheets')">
-              <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="14" x2="21" y2="14"/><line x1="9" y1="9" x2="9" y2="20"/><line x1="15" y1="9" x2="15" y2="20"/></svg>
-              <span><b>Google Sheets</b><small>copies the table &mdash; paste straight into a Sheet</small></span>
-            </button>
-            <button type="button" class="exp-item" role="menuitem" onclick="runExport('pdf')">
-              <svg viewBox="0 0 24 24"><path d="M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><polyline points="15 2 15 7 20 7"/><path d="M8 15h1.5a1.5 1.5 0 0 0 0-3H8v6"/><path d="M14 18h1.5a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2H14z"/></svg>
-              <span><b>PDF</b><small>landscape, print-ready, headed and paginated</small></span>
-            </button>
-          </div>
-          </div>
+          <button id="exportBtn" type="button" class="exp-btn" style="margin-left:auto" title="Select at least 2 filters to enable export">Export</button>
         </div>
       </div>
       <div class="fp-tags" id="tagBox"></div>
@@ -1924,17 +1878,7 @@ function renderTags() {
    Export gating: at least 2 active filters required
    ────────────────────────────────────────────────────────────────────────── */
 function updateExportButton(activeCount) {
-  const btn = document.getElementById('exportBtn');
-  if (!btn) return;
-  const enabled = activeCount >= 2;
-  btn.disabled = !enabled;
-  if (enabled) {
-    btn.title = 'Export the current view \u2014 Excel, LibreOffice, Google Sheets or PDF, all respecting the active filters';
-  } else {
-    const need = Math.max(0, 2 - activeCount);
-    btn.title = `Select at least ${need} more filter${need === 1 ? '' : 's'} to enable export`;
-    closeExportMenu();      // never leave the menu hanging open over a dead button
-  }
+  CTExport.setFilterCount(activeCount);
 }
 
 function resetFilters() {
@@ -1958,62 +1902,56 @@ function resetFilters() {
 }
 
 /* ──────────────────────────────────────────────────────────────────────────
-   Export — Excel (.xlsx), LibreOffice Calc (.ods), Google Sheets, PDF
+   Export
 
-   Every format reads one shared model, so the columns, the filename and the
-   filter caption can only ever be defined once. Excel and LibreOffice are the
-   same SheetJS workbook written through two different book types; Google
-   Sheets puts the table on the clipboard and downloads a .csv for File ›
-   Import; PDF renders a headed, paginated landscape table with jsPDF, lazily
-   loaded and with a print-dialog fallback if the CDN is unreachable.
+   Columns, captions and filenames live here; the menu, the four writers
+   (Excel, LibreOffice Calc, Google Sheets, PDF) and the copyright notice live
+   in /ct-export.js and are shared with every other stats page.
    ────────────────────────────────────────────────────────────────────────── */
-
-/* Column definitions. `num` right-aligns the column in the PDF and the Doc —
-   Excel does that itself from the cell type. */
 const AGG_EXPORT_COLS = [
   { label:'Era',         fn:r => r.label },
-  { label:'Players',     fn:r => r.players,                     num:true },
-  { label:'Tests',       fn:r => r.tests,                       num:true },
-  { label:'Innings',     fn:r => r.inns,                        num:true },
-  { label:'Not Outs',    fn:r => r.no,                          num:true },
-  { label:'Runs',        fn:r => r.runs,                        num:true },
-  { label:'Balls Faced', fn:r => r.balls || '',                 num:true },
-  { label:'Average',     fn:r => r.avg   ? r.avg.toFixed(2) : '',   num:true },
-  { label:'Strike Rate', fn:r => r.sr    ? r.sr.toFixed(2) : '',    num:true },
-  { label:'Avg+SR',      fn:r => r.avgSR ? r.avgSR.toFixed(2) : '', num:true },
-  { label:'HS',          fn:r => r.hs || '',                    num:true },
+  { label:'Players',     fn:r => r.players },
+  { label:'Tests',       fn:r => r.tests },
+  { label:'Innings',     fn:r => r.inns },
+  { label:'Not Outs',    fn:r => r.no },
+  { label:'Runs',        fn:r => r.runs },
+  { label:'Balls Faced', fn:r => r.balls || '' },
+  { label:'Average',     fn:r => r.avg   ? r.avg.toFixed(2) : '' },
+  { label:'Strike Rate', fn:r => r.sr    ? r.sr.toFixed(2) : '' },
+  { label:'Avg+SR',      fn:r => r.avgSR ? r.avgSR.toFixed(2) : '' },
+  { label:'HS',          fn:r => r.hs || '' },
   { label:'HS By',       fn:r => r.hsName || '' },
-  { label:'200s',        fn:r => r.doubles,                     num:true },
-  { label:'100s',        fn:r => r.hundreds,                    num:true },
-  { label:'50s',         fn:r => r.fifties,                     num:true }
+  { label:'200s',        fn:r => r.doubles },
+  { label:'100s',        fn:r => r.hundreds },
+  { label:'50s',         fn:r => r.fifties }
 ];
 
 const PLAYER_EXPORT_COLS = [
-  { label:'#',           fn:(p,i) => i + 1,                                    num:true },
+  { label:'#',           fn:(p,i) => i + 1 },
   { label:'Player',      fn:p => p.fullName || p.name || '' },
   { label:'Country',     fn:p => p.country || '' },
   { label:'Era',         fn:p => p._eraLabel || '' },
-  { label:'From',        fn:p => p.from || '',                                 num:true },
-  { label:'To',          fn:p => p.to || '',                                   num:true },
-  { label:'Tests',       fn:p => p.tests ?? '',                                num:true },
-  { label:'Innings',     fn:p => p.inns ?? '',                                 num:true },
-  { label:'Not Outs',    fn:p => p.no ?? '',                                   num:true },
-  { label:'Runs',        fn:p => p.runs ?? '',                                 num:true },
-  { label:'HS',          fn:p => p.hs ?? '',                                   num:true },
-  { label:'Average',     fn:p => p.avg   ? Number(p.avg).toFixed(2) : '',      num:true },
-  { label:'Strike Rate', fn:p => p.sr    ? Number(p.sr).toFixed(2) : '',       num:true },
-  { label:'Avg+SR',      fn:p => p.avgSR ? Number(p.avgSR).toFixed(2) : '',    num:true },
-  { label:'200s',        fn:p => p.doubles ?? '',                              num:true },
-  { label:'100s',        fn:p => p.hundreds ?? '',                             num:true },
-  { label:'2x100s',      fn:p => p.twoX100 ?? '',                              num:true },
-  { label:'50s',         fn:p => p.fifties ?? '',                              num:true },
-  { label:'MoM',         fn:p => p.mom ?? '',                                  num:true },
+  { label:'From',        fn:p => p.from || '' },
+  { label:'To',          fn:p => p.to || '' },
+  { label:'Tests',       fn:p => p.tests ?? '' },
+  { label:'Innings',     fn:p => p.inns ?? '' },
+  { label:'Not Outs',    fn:p => p.no ?? '' },
+  { label:'Runs',        fn:p => p.runs ?? '' },
+  { label:'HS',          fn:p => p.hs ?? '' },
+  { label:'Average',     fn:p => p.avg   ? Number(p.avg).toFixed(2) : '' },
+  { label:'Strike Rate', fn:p => p.sr    ? Number(p.sr).toFixed(2) : '' },
+  { label:'Avg+SR',      fn:p => p.avgSR ? Number(p.avgSR).toFixed(2) : '' },
+  { label:'200s',        fn:p => p.doubles ?? '' },
+  { label:'100s',        fn:p => p.hundreds ?? '' },
+  { label:'2x100s',      fn:p => p.twoX100 ?? '' },
+  { label:'50s',         fn:p => p.fifties ?? '' },
+  { label:'MoM',         fn:p => p.mom ?? '' },
   { label:'Bowl Type',   fn:p => p.bowlType || '' },
   { label:'Bat Hand',    fn:p => p.batHand || '' }
 ];
 
 /* Plain-text twin of renderTags() — the same active filters, without the
-   markup or the click-to-clear handlers, for the caption on a Doc or PDF. */
+   markup or the click-to-clear handlers, for the caption on a sheet or PDF. */
 function describeFilters() {
   const f = getFilters();
   const out = [];
@@ -2036,16 +1974,8 @@ function describeFilters() {
   return out;
 }
 
-/* One model, three writers. Returns null (having explained itself) when the
-   view is not exportable. */
 function buildExportModel() {
-  const btn = document.getElementById('exportBtn');
-  if (btn && btn.disabled) {
-    alert('Please select at least 2 filters before exporting.');
-    return null;
-  }
-  if (!filtered.length) { alert('No data to export.'); return null; }
-
+  if (!filtered.length) return null;
   const f = getFilters();
   const filters = describeFilters();
   const caption = filters.length ? filters.join(' \u00b7 ') : 'No filters applied';
@@ -2053,22 +1983,18 @@ function buildExportModel() {
   // All Players view — the aggregate rows, not the player list
   if (aggregateMode) {
     const rows = (aggRows || []).map(r => AGG_EXPORT_COLS.map(c => c.fn(r)));
-    if (!rows.length) { alert('No data to export.'); return null; }
+    if (!rows.length) return null;
     return {
-      cols: AGG_EXPORT_COLS,
-      headers: AGG_EXPORT_COLS.map(c => c.label),
-      rows,
       title: 'Batting \u2014 All Players',
       caption,
       unit: rows.length === 1 ? 'era' : 'eras',
       sheetName: 'All Players',
-      base: 'cricket-times-batting-all-players'
+      base: 'cricket-times-batting-all-players',
+      headers: AGG_EXPORT_COLS.map(c => c.label),
+      rows
     };
   }
 
-  const rows = filtered.map((p, i) => PLAYER_EXPORT_COLS.map(c => c.fn(p, i)));
-
-  // Sheet name / filename stem from the active filters
   const parts = ['Batting'];
   if (f.countries.length) parts.push(f.countries.length === 1 ? f.countries[0] : f.countries.length + 'countries');
   if (f.eras.length) parts.push(f.eras.length === 1 ? (ERA_LABEL[f.eras[0]] || f.eras[0]).replace(/[^A-Za-z0-9]/g, '') : f.eras.length + 'eras');
@@ -2077,356 +2003,17 @@ function buildExportModel() {
   if (f.avg)  parts.push('Avg' + f.avg);
 
   return {
-    cols: PLAYER_EXPORT_COLS,
-    headers: PLAYER_EXPORT_COLS.map(c => c.label),
-    rows,
     title: 'Batting Records',
     caption,
-    unit: eraSplit() ? (rows.length === 1 ? 'row' : 'rows') : (rows.length === 1 ? 'player' : 'players'),
+    unit: eraSplit() ? (filtered.length === 1 ? 'row' : 'rows') : (filtered.length === 1 ? 'player' : 'players'),
     sheetName: parts.join('_').slice(0, 31),
-    base: 'CricketTimes_' + parts.join('_') + '_' + filtered.length + 'players'
+    base: 'CricketTimes_' + parts.join('_') + '_' + filtered.length + 'players',
+    headers: PLAYER_EXPORT_COLS.map(c => c.label),
+    rows: filtered.map((p, i) => PLAYER_EXPORT_COLS.map(c => c.fn(p, i)))
   };
 }
 
-function exportStamp() {
-  return new Date().toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' });
-}
-
-/* ── Menu plumbing ── */
-function toggleExportMenu(e) {
-  if (e) e.stopPropagation();
-  const btn = document.getElementById('exportBtn');
-  const menu = document.getElementById('expMenu');
-  if (!btn || !menu || btn.disabled) return;
-  const open = !menu.classList.contains('open');
-  menu.classList.toggle('open', open);
-  btn.classList.toggle('open', open);
-  btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-}
-function closeExportMenu() {
-  const btn = document.getElementById('exportBtn');
-  const menu = document.getElementById('expMenu');
-  if (menu) menu.classList.remove('open');
-  if (btn) { btn.classList.remove('open'); btn.setAttribute('aria-expanded', 'false'); }
-}
-document.addEventListener('click', e => {
-  const wrap = document.getElementById('expWrap');
-  if (wrap && !wrap.contains(e.target)) closeExportMenu();
-});
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeExportMenu(); });
-
-function runExport(kind) {
-  closeExportMenu();
-  if (kind === 'excel') return exportToExcel();
-  if (kind === 'ods')   return exportToCalc();
-  if (kind === 'gsheets') return exportToGoogleSheets();
-  if (kind === 'pdf')   return exportToPDF();
-}
-
-/* The button doubles as the progress indicator while a PDF renders. */
-function setExportBusy(label) {
-  const btn = document.getElementById('exportBtn');
-  const lab = document.getElementById('exportBtnLabel');
-  if (!btn || !lab) return;
-  if (label) { btn.disabled = true; lab.textContent = label; }
-  else { lab.textContent = 'Export'; renderTags(); }   // renderTags restores the gate
-}
-
-/* ── Toast ── */
-let _toastTimer = null;
-function ctToast(html, ms) {
-  document.querySelectorAll('.ct-toast').forEach(t => t.remove());
-  clearTimeout(_toastTimer);
-  const t = document.createElement('div');
-  t.className = 'ct-toast';
-  t.innerHTML = `<button type="button" class="ct-toast-x" aria-label="Dismiss">&times;</button><div>${html}</div>`;
-  t.querySelector('.ct-toast-x').onclick = () => t.remove();
-  document.body.appendChild(t);
-  (window.requestAnimationFrame || (fn => setTimeout(fn, 16)))(() => t.classList.add('show'));
-  _toastTimer = setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 250); }, ms || 12000);
-}
-
-function downloadBlob(blob, filename) {
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = filename;
-  document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 4000);
-}
-
-/* ──────────────────────────────────────────────────────────────────────────
-   Export to a spreadsheet — Excel (.xlsx) and LibreOffice Calc (.ods)
-
-   Both come out of the same SheetJS workbook; only the book type differs, so
-   the two formats cannot drift apart. Column widths survive into both. Cell
-   styling does not — the community build of SheetJS writes no cell styles to
-   either format, so the bold header below is a hint for builds that support it
-   rather than something to rely on.
-   ────────────────────────────────────────────────────────────────────────── */
-function writeWorkbook(bookType, ext) {
-  const m = buildExportModel();
-  if (!m) return;
-
-  const ws = XLSX.utils.aoa_to_sheet([m.headers, ...m.rows]);
-
-  // Column widths
-  ws['!cols'] = m.cols.map((c, i) => ({
-    wch: Math.max(c.label.length, ...m.rows.map(r => String(r[i]).length)) + 2
-  }));
-
-  // Bold header row
-  m.headers.forEach((_, i) => {
-    const addr = XLSX.utils.encode_cell({ r:0, c:i });
-    if (ws[addr]) ws[addr].s = { font: { bold: true } };
-  });
-
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, m.sheetName);
-  XLSX.writeFile(wb, m.base + ext, { bookType });
-}
-
-function exportToExcel() { writeWorkbook('xlsx', '.xlsx'); }
-function exportToCalc()  { writeWorkbook('ods',  '.ods');  }
-
-/* ──────────────────────────────────────────────────────────────────────────
-   Export to Google Sheets
-
-   There is no server-side Sheets integration here, and adding one would mean
-   an OAuth consent screen and a Drive scope on every reader — so this does the
-   two things that work from the browser alone:
-
-     1. puts the table on the clipboard as text/html, so a paste into an open
-        Sheet lands in cells rather than in one long column, with the numeric
-        columns right-aligned as they arrive;
-     2. downloads a .csv of the same table, for File › Import — the route that
-        keeps working when a browser blocks the clipboard.
-
-   The plain-text half of the clipboard payload is tab-separated, so a paste
-   into a plain text editor still comes out in columns. Sheets will also open
-   the .xlsx from the Excel export directly, which is the better route for
-   anyone who wants the sheet as a file rather than as a paste.
-   ────────────────────────────────────────────────────────────────────────── */
-
-/* The HTML table behind both the clipboard payload and the print fallback.
-   `forPrint` adds the page furniture a printed copy needs and a paste does not. */
-function exportTableHtml(m, forPrint) {
-  const esc = v => escHtml(String(v == null ? '' : v));
-  const head = m.headers.map((h, i) =>
-    `<th style="${m.cols[i].num ? 'text-align:right;' : 'text-align:left;'}">${esc(h)}</th>`).join('');
-  const body = m.rows.map(r => '<tr>' + r.map((v, i) =>
-    `<td style="${m.cols[i].num ? 'text-align:right;' : 'text-align:left;'}">${esc(v)}</td>`).join('') + '</tr>').join('');
-
-  return `<html><head><meta charset="utf-8"><title>${esc('Cricket Times \u2014 ' + m.title)}</title>
-<style>
-@page{size:A4 landscape;margin:1.4cm}
-body{font-family:Georgia,'Times New Roman',serif;color:#1a1e26;margin:0}
-h1{font-size:18pt;margin:0 0 2pt;letter-spacing:-0.3pt}
-h2{font-size:12pt;font-weight:normal;color:#8B2500;margin:0 0 6pt}
-p.meta{font-size:8.5pt;color:#555;margin:0 0 10pt}
-table{border-collapse:collapse;width:100%}
-th,td{border:1px solid #d8d3cb;padding:3pt 5pt;font-size:7.5pt;vertical-align:top}
-th{background:#8B2500;color:#fff;font-weight:bold}
-tr:nth-child(even) td{background:#faf7f2}
-p.src{font-size:7.5pt;color:#888;margin-top:10pt}
-${forPrint ? '@media print{body{margin:0}}' : ''}
-</style></head>
-<body>
-<h1>Cricket Times</h1>
-<h2>${esc(m.title)}</h2>
-<p class="meta">${esc(m.caption)}<br>${esc(m.rows.length.toLocaleString() + ' ' + m.unit + ' \u00b7 generated ' + exportStamp())}</p>
-<table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>
-<p class="src">Source: Cricket Times \u2014 cricketimes.com</p>
-</body></html>`;
-}
-
-/* A clipboard payload for Sheets wants the table on its own — the masthead and
-   the caption would arrive as stray rows above the header and push everything
-   out of alignment. */
-function clipboardTableHtml(m) {
-  const esc = v => escHtml(String(v == null ? '' : v));
-  const head = m.headers.map((h, i) =>
-    `<th style="${m.cols[i].num ? 'text-align:right;' : 'text-align:left;'}background:#8B2500;color:#ffffff;font-weight:bold;">${esc(h)}</th>`).join('');
-  const body = m.rows.map(r => '<tr>' + r.map((v, i) =>
-    `<td style="${m.cols[i].num ? 'text-align:right;' : 'text-align:left;'}">${esc(v)}</td>`).join('') + '</tr>').join('');
-  return `<meta charset="utf-8"><table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
-}
-
-/* RFC 4180: quote anything holding a comma, a quote or a newline, and double
-   up embedded quotes. */
-function csvCell(v) {
-  const t = String(v === null || v === undefined ? '' : v);
-  return /[",\r\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t;
-}
-function buildCsv(m) {
-  return [m.headers.map(csvCell).join(','), ...m.rows.map(r => r.map(csvCell).join(','))].join('\r\n');
-}
-
-async function exportToGoogleSheets() {
-  const m = buildExportModel();
-  if (!m) return;
-
-  const tsv = [m.headers.join('\t'), ...m.rows.map(r => r.join('\t'))].join('\n');
-
-  // The file first — it is the half that cannot fail
-  downloadBlob(new Blob(['\ufeff' + buildCsv(m)], { type:'text/csv;charset=utf-8' }), m.base + '.csv');
-
-  let copied = false;
-  try {
-    if (navigator.clipboard && window.ClipboardItem) {
-      await navigator.clipboard.write([new ClipboardItem({
-        'text/html':  new Blob([clipboardTableHtml(m)], { type:'text/html' }),
-        'text/plain': new Blob([tsv], { type:'text/plain' })
-      })]);
-      copied = true;
-    }
-  } catch (e) {
-    copied = false;            // clipboard blocked (permissions, or a browser that wants a shorter gesture chain)
-  }
-
-  const open = '<a href="https://sheets.new" target="_blank" rel="noopener">Open a blank Google Sheet</a>';
-  ctToast(copied
-    ? `Table copied. ${open} and paste (Ctrl/\u2318&nbsp;V) \u2014 it arrives in cells, header row and all.<br>
-       A <b>.csv</b> copy was downloaded too; use <i>File \u203a Import</i> in Sheets if you would rather start from the file.`
-    : `A <b>.csv</b> copy was downloaded. ${open}, then <i>File \u203a Import \u203a Upload</i>.<br>
-       (Your browser blocked the clipboard, so there is nothing to paste \u2014 the file is the way in.)`);
-}
-
-/* ──────────────────────────────────────────────────────────────────────────
-   Export as PDF
-
-   jsPDF and its autoTable plugin are ~400 kB together and most sessions never
-   export, so they load on first use rather than on page load. If the CDN is
-   unreachable the export falls back to a hidden print frame — the reader picks
-   "Save as PDF" as the destination and ends up in the same place.
-   ────────────────────────────────────────────────────────────────────────── */
-const PDF_LIB_URLS = [
-  'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js'
-];
-let _pdfLibs = null;
-function loadScriptOnce(src) {
-  return new Promise((res, rej) => {
-    const el = document.createElement('script');
-    el.src = src;
-    el.onload = () => res();
-    el.onerror = () => rej(new Error('Failed to load ' + src));
-    document.head.appendChild(el);
-  });
-}
-function loadPdfLibs() {
-  if (!_pdfLibs) {
-    _pdfLibs = loadScriptOnce(PDF_LIB_URLS[0])
-      .then(() => loadScriptOnce(PDF_LIB_URLS[1]))
-      .catch(err => { _pdfLibs = null; throw err; });   // let a later attempt retry
-  }
-  return _pdfLibs;
-}
-
-/* jsPDF's built-in fonts speak WinAnsi, which covers Latin-1 and the usual
-   punctuation but not the maths signs the filter captions use — an unmapped
-   glyph comes out as mojibake rather than as nothing, so it has to be caught
-   here and not noticed later in a reader's download. */
-const PDF_CHAR_MAP = { '\u2265':'>=', '\u2264':'<=', '\u2260':'!=', '\u2192':'->', '\u2190':'<-' };
-const PDF_KEEP = /[\u2013\u2014\u2018\u2019\u201C\u201D\u2022\u2026\u20AC\u2122]/;
-function pdfSafe(v) {
-  let t = String(v === null || v === undefined ? '' : v)
-    .replace(/[\u2265\u2264\u2260\u2192\u2190]/g, c => PDF_CHAR_MAP[c]);
-  if (/[^\x20-\x7E\xA0-\xFF]/.test(t)) {
-    t = t.normalize('NFD').replace(/[\u0300-\u036F]/g, '');
-    t = t.replace(/[^\x20-\x7E\xA0-\xFF]/g, c => PDF_KEEP.test(c) ? c : '?');
-  }
-  return t;
-}
-
-/* Fallback: same document, browser's own PDF writer. A hidden iframe rather
-   than a popup, because a popup blocker would eat window.open(). */
-function printToPdf(m) {
-  const frame = document.createElement('iframe');
-  frame.setAttribute('aria-hidden', 'true');
-  frame.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden';
-  document.body.appendChild(frame);
-  const d = frame.contentWindow.document;
-  d.open(); d.write(exportTableHtml(m, true)); d.close();
-  setTimeout(() => {
-    try { frame.contentWindow.focus(); frame.contentWindow.print(); } catch (e) { console.error(e); }
-    setTimeout(() => frame.remove(), 1500);
-  }, 350);
-  ctToast('The PDF library did not load, so the print dialog opened instead \u2014 choose <b>Save as PDF</b> as the destination.');
-}
-
-async function exportToPDF() {
-  const m = buildExportModel();
-  if (!m) return;
-
-  if (m.rows.length > 1500 &&
-      !confirm(`This view holds ${m.rows.length.toLocaleString()} rows. Rendering them all into a PDF may take a few seconds and produce a large file.\n\nExport anyway?`)) {
-    return;
-  }
-
-  setExportBusy('Building PDF\u2026');
-  try {
-    await loadPdfLibs();
-  } catch (e) {
-    console.error(e);
-    setExportBusy(false);
-    printToPdf(m);
-    return;
-  }
-
-  try {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ orientation:'landscape', unit:'pt', format:'a4', compress:true });
-    const W = doc.internal.pageSize.getWidth();
-    const H = doc.internal.pageSize.getHeight();
-    const stamp = exportStamp();
-
-    const colStyles = {};
-    m.cols.forEach((c, i) => { if (c.num) colStyles[i] = { halign:'right' }; });
-    const playerCol = m.headers.indexOf('Player');
-    if (playerCol > -1) colStyles[playerCol] = { cellWidth: 78 };
-    const hsByCol = m.headers.indexOf('HS By');
-    if (hsByCol > -1) colStyles[hsByCol] = { cellWidth: 70 };
-
-    doc.autoTable({
-      head: [m.headers.map(pdfSafe)],
-      body: m.rows.map(r => r.map(pdfSafe)),
-      startY: 80,
-      margin: { top:80, left:24, right:24, bottom:34 },
-      styles: { font:'helvetica', fontSize:6.5, cellPadding:2.4, overflow:'linebreak',
-                lineColor:[216,211,203], lineWidth:0.4, textColor:[26,30,38] },
-      headStyles: { fillColor:[139,37,0], textColor:255, fontStyle:'bold', fontSize:6.5, halign:'left' },
-      alternateRowStyles: { fillColor:[250,247,242] },
-      columnStyles: colStyles,
-      didDrawPage: () => {
-        doc.setFont('times', 'bold');   doc.setFontSize(16); doc.setTextColor(26, 30, 38);
-        doc.text('Cricket Times', 24, 34);
-        doc.setFont('times', 'normal'); doc.setFontSize(11); doc.setTextColor(139, 37, 0);
-        doc.text(pdfSafe(m.title), 24, 50);
-        doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(110, 110, 110);
-        const cap = doc.splitTextToSize(pdfSafe(m.caption), W - 48).slice(0, 2);
-        doc.text(cap, 24, 61);
-        doc.setDrawColor(216, 211, 203);
-        doc.line(24, 72, W - 24, 72);
-        doc.setFontSize(7); doc.setTextColor(140, 140, 140);
-        doc.text(pdfSafe(`${m.rows.length.toLocaleString()} ${m.unit} \u00b7 generated ${stamp} \u00b7 cricketimes.com`), 24, H - 16);
-      }
-    });
-
-    const total = doc.internal.getNumberOfPages();
-    for (let i = 1; i <= total; i++) {
-      doc.setPage(i);
-      doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(140, 140, 140);
-      doc.text(`Page ${i} of ${total}`, W - 24, H - 16, { align:'right' });
-    }
-
-    doc.save(m.base + '.pdf');
-  } catch (e) {
-    console.error(e);
-    ctToast('The PDF could not be built. Try a narrower filter set, or export to Excel instead.');
-  } finally {
-    setExportBusy(false);
-  }
-}
+CTExport.init({ build: buildExportModel, minFilters: 2 });
 
 /* ──────────────────────────────────────────────────────────────────────────
    Init

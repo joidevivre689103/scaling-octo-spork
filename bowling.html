@@ -17,6 +17,7 @@
 <title>Bowling Records – Cricket Times</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@400;600;700;800&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,400&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="/ct-export.js"></script><!-- shared export engine: xlsx / ods / Sheets / PDF -->
 <style>
 :root{
   --bg:#faf6ef;--surface:#fff;--surface2:#f5f0e8;--surface3:#ede7da;
@@ -384,7 +385,7 @@ td.num.highlight{color:var(--accent);font-weight:700}
 </div>
       <div class="fp-actions">
         <button class="btn btn-ghost" onclick="resetFilters()">Reset</button>
-        <button id="exportBtn" class="btn btn-ghost" onclick="exportToExcel()" title="Select at least 2 filters to enable export" style="margin-left:auto;display:flex;align-items:center;gap:6px;">
+        <button id="exportBtn" type="button" class="btn btn-ghost" title="Select at least 2 filters to enable export" style="margin-left:auto;display:flex;align-items:center;gap:6px;">
           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           Export to Excel
         </button>
@@ -1419,20 +1420,7 @@ function renderTags(){
 
 /* ── Export gating: at least 2 active filters required ── */
 function updateExportButton(activeCount){
-  const btn=document.getElementById('exportBtn');
-  if(!btn) return;
-  const enabled=activeCount>=2;
-  btn.disabled=!enabled;
-  if(enabled){
-    btn.style.opacity='1';
-    btn.style.cursor='pointer';
-    btn.title='Download current view as .xlsx — respects active filters';
-  } else {
-    btn.style.opacity='0.45';
-    btn.style.cursor='not-allowed';
-    const need=Math.max(0,2-activeCount);
-    btn.title=`Select at least ${need} more filter${need===1?'':'s'} to enable export`;
-  }
+  CTExport.setFilterCount(activeCount);
 }
 
 function clearTag(id){
@@ -1653,107 +1641,103 @@ function goPage(pg){
   document.querySelector('.tbl-wrap').scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 
-/* ── Export to Excel ── */
-function exportToExcel(){
-  const btn=document.getElementById('exportBtn');
-  if(btn && btn.disabled){alert('Please select at least 2 filters before exporting.');return;}
-  if(!filtered.length){alert('No data to export.');return;}
+/* ── Export ──
+   Columns and filenames live here; the menu, the four writers and the
+   copyright notice live in /ct-export.js and are shared with every other
+   stats page. */
+const AGG_EXPORT_COLS=[
+  {label:'Era',fn:r=>r.label},{label:'Bowlers',fn:r=>r.bowlers},
+  {label:'Tests',fn:r=>r.tests},{label:'Innings',fn:r=>r.inns},
+  {label:'Overs',fn:r=>r.oversText},{label:'Maidens',fn:r=>r.mdns},
+  {label:'Runs',fn:r=>r.runs},{label:'Wickets',fn:r=>r.wkts},
+  {label:'Average',fn:r=>r.avg?r.avg.toFixed(2):''},
+  {label:'Economy',fn:r=>r.econ?r.econ.toFixed(2):''},
+  {label:'Strike Rate',fn:r=>r.sr?r.sr.toFixed(1):''},
+  {label:'5w',fn:r=>r.five},{label:'10w',fn:r=>r.ten},
+  {label:'Best',fn:r=>r.best},{label:'Best By',fn:r=>r.bestName||''}
+];
 
-  // All Bowlers view — export the aggregate rows, not the bowler list
+const EXPORT_COLS=[
+  {label:'#',         fn:(p,i)=>i+1},
+  {label:'Player',    fn:p=>p.fullName||p.name||''},
+  {label:'Country',   fn:p=>p.country||''},
+  {label:'Era',       fn:p=>p._eraLabel||''},
+  {label:'From',      fn:p=>p.fromYear||''},
+  {label:'To',        fn:p=>p.toYear||''},
+  {label:'Tests',     fn:p=>p.tests??''},
+  {label:'Innings',   fn:p=>p.innings??''},
+  {label:'Overs',     fn:p=>p.overs!=null?Number(p.overs).toFixed(1):''},
+  {label:'Maidens',   fn:p=>p.maidens??''},
+  {label:'Runs',      fn:p=>p.bowlRuns??''},
+  {label:'Wickets',   fn:p=>p.wkts??''},
+  {label:'Average',   fn:p=>p.bowlAvg!=null?Number(p.bowlAvg).toFixed(2):''},
+  {label:'Economy',   fn:p=>p.econ!=null?Number(p.econ).toFixed(2):''},
+  {label:'Strike Rate',fn:p=>p.bowlSR!=null?Number(p.bowlSR).toFixed(1):''},
+  {label:'Best Innings',fn:p=>p.bestBowl||''},
+  {label:'4WI',         fn:p=>p.fourWI??''},
+  {label:'2X4WI',       fn:p=>p.twoX4WI??''},
+  {label:'5-Wicket Hauls',fn:p=>p.fiveWkts??''},
+  {label:'2X5WI',       fn:p=>p.twoX5WI??''},
+  {label:'10-Wicket Hauls',fn:p=>p.tenWkts??''},
+  {label:'Man of Match',fn:p=>p.mom??''},
+  {label:'Batting Avg',fn:p=>p.batAvg!=null?Number(p.batAvg).toFixed(2):''},
+  {label:'Bat Runs',  fn:p=>p.runs??''},
+  {label:'Bat Innings',fn:p=>p.innings??''},
+  {label:'Not Outs',  fn:p=>p.notOuts??''},
+  {label:'High Score',fn:p=>p.highScore??''},
+  {label:'50s',       fn:p=>p.fifties??''},
+  {label:'100s',      fn:p=>p.hundreds??''},
+  {label:'Catches',   fn:p=>p.catches??''},
+  {label:'Stumpings', fn:p=>p.stumpings??''},
+  {label:'Batting Hand',fn:p=>p.hand||''},
+  {label:'Bowl Type', fn:p=>p.bowlType||''}
+];
+
+/* Plain-text twin of the filter tags, for the caption on a PDF or a sheet. */
+function exportCaption(f){
+  const out=[];
+  if(aggregateMode) out.push('All bowlers');
+  if(f.country) out.push(f.country);
+  if(f.era)     out.push(f.era==='pre1900'?'Pre-1900':f.era+'s');
+  if(f.bowlType)out.push(f.bowlType.charAt(0).toUpperCase()+f.bowlType.slice(1));
+  if(f.minWkts>1) out.push('Wkts \u2265'+f.minWkts);
+  return out.length?out.join(' \u00b7 '):'No filters applied';
+}
+
+function buildExportModel(){
+  if(!filtered.length) return null;
+  const f=getFilters();
+  const caption=exportCaption(f);
+
   if(aggregateMode){
-    const A=[
-      {label:'Era',fn:r=>r.label},{label:'Bowlers',fn:r=>r.bowlers},
-      {label:'Tests',fn:r=>r.tests},{label:'Innings',fn:r=>r.inns},
-      {label:'Overs',fn:r=>r.oversText},{label:'Maidens',fn:r=>r.mdns},
-      {label:'Runs',fn:r=>r.runs},{label:'Wickets',fn:r=>r.wkts},
-      {label:'Average',fn:r=>r.avg?r.avg.toFixed(2):''},
-      {label:'Economy',fn:r=>r.econ?r.econ.toFixed(2):''},
-      {label:'Strike Rate',fn:r=>r.sr?r.sr.toFixed(1):''},
-      {label:'5w',fn:r=>r.five},{label:'10w',fn:r=>r.ten},
-      {label:'Best',fn:r=>r.best},{label:'Best By',fn:r=>r.bestName||''}
-    ];
-    const head=A.map(c=>c.label);
-    const body=(aggRows||[]).map(r=>A.map(c=>c.fn(r)));
-    const aws=XLSX.utils.aoa_to_sheet([head,...body]);
-    aws['!cols']=A.map((c,i)=>({wch:Math.max(c.label.length,...body.map(r=>String(r[i]).length))+2}));
-    const awb=XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(awb,aws,'All Bowlers');
-    XLSX.writeFile(awb,'cricket-times-bowling-all-bowlers.xlsx');
-    return;
+    const rows=(aggRows||[]).map(r=>AGG_EXPORT_COLS.map(c=>c.fn(r)));
+    if(!rows.length) return null;
+    return {
+      title:'Bowling \u2014 All Bowlers', caption,
+      unit: rows.length===1?'era':'eras',
+      sheetName:'All Bowlers',
+      base:'cricket-times-bowling-all-bowlers',
+      headers:AGG_EXPORT_COLS.map(c=>c.label), rows
+    };
   }
 
-  // All fields to export (complete, not just visible tab columns)
-  const EXPORT_COLS=[
-    {label:'#',         fn:(p,i)=>i+1},
-    {label:'Player',    fn:p=>p.fullName||p.name||''},
-    {label:'Country',   fn:p=>p.country||''},
-    {label:'Era',       fn:p=>p._eraLabel||''},
-    {label:'From',      fn:p=>p.fromYear||''},
-    {label:'To',        fn:p=>p.toYear||''},
-    {label:'Tests',     fn:p=>p.tests??''},
-    {label:'Innings',   fn:p=>p.innings??''},
-    {label:'Overs',     fn:p=>p.overs!=null?Number(p.overs).toFixed(1):''},
-    {label:'Maidens',   fn:p=>p.maidens??''},
-    {label:'Runs',      fn:p=>p.bowlRuns??''},
-    {label:'Wickets',   fn:p=>p.wkts??''},
-    {label:'Average',   fn:p=>p.bowlAvg!=null?Number(p.bowlAvg).toFixed(2):''},
-    {label:'Economy',   fn:p=>p.econ!=null?Number(p.econ).toFixed(2):''},
-    {label:'Strike Rate',fn:p=>p.bowlSR!=null?Number(p.bowlSR).toFixed(1):''},
-    {label:'Best Innings',fn:p=>p.bestBowl||''},
-    {label:'4WI',         fn:p=>p.fourWI??''},
-    {label:'2X4WI',       fn:p=>p.twoX4WI??''},
-    {label:'5-Wicket Hauls',fn:p=>p.fiveWkts??''},
-    {label:'2X5WI',       fn:p=>p.twoX5WI??''},
-    {label:'10-Wicket Hauls',fn:p=>p.tenWkts??''},
-    {label:'Man of Match',fn:p=>p.mom??''},
-    {label:'Batting Avg',fn:p=>p.batAvg!=null?Number(p.batAvg).toFixed(2):''},
-    {label:'Bat Runs',  fn:p=>p.runs??''},
-    {label:'Bat Innings',fn:p=>p.innings??''},
-    {label:'Not Outs',  fn:p=>p.notOuts??''},
-    {label:'High Score',fn:p=>p.highScore??''},
-    {label:'50s',       fn:p=>p.fifties??''},
-    {label:'100s',      fn:p=>p.hundreds??''},
-    {label:'Catches',   fn:p=>p.catches??''},
-    {label:'Stumpings', fn:p=>p.stumpings??''},
-    {label:'Batting Hand',fn:p=>p.hand||''},
-    {label:'Bowl Type', fn:p=>p.bowlType||''},
-  ];
-
-  const headers=EXPORT_COLS.map(c=>c.label);
-  const rows=filtered.map((p,i)=>EXPORT_COLS.map(c=>c.fn(p,i)));
-
-  const ws=XLSX.utils.aoa_to_sheet([headers,...rows]);
-
-  // Column widths
-  const wscols=EXPORT_COLS.map((c,i)=>{
-    const maxData=Math.max(...rows.map(r=>String(r[i]).length));
-    return{wch:Math.max(c.label.length,maxData)+2};
-  });
-  ws['!cols']=wscols;
-
-  // Style header row bold via cell meta
-  headers.forEach((_,i)=>{
-    const addr=XLSX.utils.encode_cell({r:0,c:i});
-    if(ws[addr]) ws[addr].s={font:{bold:true}};
-  });
-
-  const wb=XLSX.utils.book_new();
-
-  // Build a sheet name from active filters
-  const f=getFilters();
   const parts=['Bowling'];
   if(f.country) parts.push(f.country);
   if(f.era) parts.push(f.era==='pre1900'?'Pre1900':f.era+'s');
   if(f.bowlType) parts.push(f.bowlType.charAt(0).toUpperCase()+f.bowlType.slice(1));
   if(f.minWkts>1) parts.push(f.minWkts+'+W');
-  const sheetName=parts.join('_').slice(0,31);
 
-  XLSX.utils.book_append_sheet(wb,ws,sheetName);
-
-  // File name
-  const fname='CricketTimes_'+parts.join('_')+'_'+filtered.length+'players.xlsx';
-  XLSX.writeFile(wb,fname);
+  return {
+    title:'Bowling Records', caption,
+    unit: filtered.length===1?'bowler':'bowlers',
+    sheetName:parts.join('_').slice(0,31),
+    base:'CricketTimes_'+parts.join('_')+'_'+filtered.length+'players',
+    headers:EXPORT_COLS.map(c=>c.label),
+    rows:filtered.map((p,i)=>EXPORT_COLS.map(c=>c.fn(p,i)))
+  };
 }
+
+CTExport.init({ build: buildExportModel, minFilters: 2 });
 
 /* ── Init ── */
 (async function boot(){

@@ -241,7 +241,7 @@ td.result-cell{text-align:left;font-size:12px}
         </div>
         <div class="fp-group" style="display:flex;align-items:flex-end;gap:12px">
           <span class="fp-reset" onclick="resetFilters()">Reset all</span>
-          <button id="exportBtn" class="fp-export" onclick="exportToExcel()" title="Select at least 2 filters to enable export">
+          <button id="exportBtn" type="button" class="fp-export" title="Select at least 2 filters to enable export">
             <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
             Export to Excel
           </button>
@@ -684,41 +684,33 @@ function renderTags() {
 
 /* ── Export gating: at least 2 active filters required ── */
 function updateExportButton(activeCount){
-  const btn = document.getElementById('exportBtn');
-  if (!btn) return;
-  const enabled = activeCount >= 2;
-  btn.disabled = !enabled;
-  if (enabled) {
-    btn.title = 'Download current view as .xlsx — respects active filters, tab, and sort';
-  } else {
-    const need = Math.max(0, 2 - activeCount);
-    btn.title = `Select at least ${need} more filter${need === 1 ? '' : 's'} to enable export`;
-  }
+  CTExport.setFilterCount(activeCount);
 }
 
-/* ── Export to Excel ──
-   Respects: active tab (column set), all filters (country/era/min tests/min win%/search),
-   current sort key + direction. Exports raw numbers with per-column Excel cell formats. */
+/* ── Export ──
+   Respects the active tab (column set), every filter and the current sort.
+   Raw numbers go out with per-column Excel formats; the menu, the four
+   writers and the copyright notice live in /ct-export.js. */
 const EXPORT_FMT = {
   from: '0', to: '0',
   captTests: '#,##0', tests: '#,##0', wins: '#,##0', losses: '#,##0', draws: '#,##0',
   runs: '#,##0', inns: '#,##0', hundreds: '#,##0', fifties: '#,##0', mom: '#,##0',
   avg: '0.00',
-  // winPct is stored as 0..100 (not fraction), so append a literal % sign rather than using % format
+  // winPct is stored as 0..100 (not a fraction), so append a literal % sign
+  // rather than using a % format
   winPct: '0.0"%"', lossPct: '0.0"%"', drawPct: '0.0"%"'
 };
 
-function exportToExcel(){
-  const btn = document.getElementById('exportBtn');
-  if(btn && btn.disabled){ alert('Please select at least 2 filters before exporting.'); return; }
-  if(typeof XLSX === 'undefined'){ alert('Excel library still loading — please try again in a moment.'); return; }
-  if(!filtered || filtered.length === 0){ alert('No captains match the current filters — nothing to export.'); return; }
+const TAB_LABELS = { tests:'Tests', wins:'Wins', winpct:'Win %', batting:'Batting', mom:'MoM' };
+
+function buildExportModel() {
+  if (!filtered || filtered.length === 0) return null;
 
   const cols = TAB_COLS[currentTab];
   const f = getFilters();
 
-  // Drop UI-only virtual columns (_rank, _wld, _winbar) — their underlying data is already covered
-  // by the explicit wins/losses/draws/winPct columns in the same tab definitions.
+  // Drop UI-only virtual columns (_rank, _wld, _winbar) — their underlying data
+  // is already covered by the explicit wins/losses/draws/winPct columns.
   const exportCols = cols.filter(c => !c.key.startsWith('_'));
   const headers = ['#', ...exportCols.map(c => c.label)];
 
@@ -733,30 +725,19 @@ function exportToExcel(){
     return row;
   });
 
-  const aoa = [headers, ...rows];
-  const ws = XLSX.utils.aoa_to_sheet(aoa);
-
-  // Apply per-column number formats (skip header row and the # column)
-  for (let ci = 0; ci < headers.length; ci++) {
-    const srcKey = ci === 0 ? null : exportCols[ci - 1].key;
-    const fmt = srcKey ? EXPORT_FMT[srcKey] : '0';
-    if (!fmt) continue;
-    for (let ri = 1; ri <= rows.length; ri++) {
-      const addr = XLSX.utils.encode_cell({ r: ri, c: ci });
-      const cell = ws[addr];
-      if (cell && typeof cell.v === 'number') cell.z = fmt;
-    }
-  }
+  // Column index -> Excel number format, for the writer
+  const numFmt = {};
+  exportCols.forEach((c, i) => { if (EXPORT_FMT[c.key]) numFmt[i + 1] = EXPORT_FMT[c.key]; });
 
   const widths = headers.map(h => {
-    if (h === '#') return 5;
-    if (h === 'Player') return 26;
-    if (h === 'Country') return 16;
-    return Math.max(9, h.length + 3);
+    if (h === '#') return { wch: 5 };
+    if (h === 'Player') return { wch: 26 };
+    if (h === 'Country') return { wch: 16 };
+    return { wch: Math.max(9, h.length + 3) };
   });
-  ws['!cols'] = widths.map(wch => ({ wch }));
 
-  const tabLabel = ({ tests:'Tests', wins:'Wins', winpct:'Win %', batting:'Batting', mom:'MoM' })[currentTab] || currentTab;
+  const tabLabel = TAB_LABELS[currentTab] || currentTab;
+  const sortLabel = (exportCols.find(c => c.key === sortKey) || {}).label || sortKey;
 
   const filterLines = [];
   if (f.country)   filterLines.push(['Country', f.country]);
@@ -765,25 +746,16 @@ function exportToExcel(){
   if (f.minWinPct) filterLines.push(['Min Win %', f.minWinPct + '%']);
   if (f.search)    filterLines.push(['Search', f.search]);
 
-  const summaryAoA = [
-    ['Cricket Times — Captaincy Records'],
-    [],
+  const summaryRows = [
     ['View (tab)', tabLabel],
-    ['Sort', (exportCols.find(c => c.key === sortKey) || {}).label || sortKey, '(' + (sortDir === 'desc' ? 'descending' : 'ascending') + ')'],
+    ['Sort', sortLabel + ' (' + (sortDir === 'desc' ? 'descending' : 'ascending') + ')'],
     ['Captains exported', filtered.length],
     ['Exported', new Date().toISOString().replace('T', ' ').slice(0, 19) + ' UTC'],
-    [],
-    ['Filters applied']
-  ];
-  if (filterLines.length) summaryAoA.push(...filterLines);
-  else summaryAoA.push(['(none)']);
+    ['', ''],
+    ['Filters applied', '']
+  ].concat(filterLines.length ? filterLines : [['(none)', '']]);
 
-  const wsSum = XLSX.utils.aoa_to_sheet(summaryAoA);
-  wsSum['!cols'] = [{wch:22},{wch:32},{wch:16}];
-
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, wsSum, 'Summary');
-  XLSX.utils.book_append_sheet(wb, ws, tabLabel.slice(0, 31));
+  const caption = [tabLabel].concat(filterLines.map(l => l[0] + ': ' + l[1])).join(' \u00b7 ');
 
   const parts = ['CT_Captains', tabLabel.replace(/[\s%]/g, '')];
   if (f.country)   parts.push(f.country.replace(/\s+/g, ''));
@@ -791,8 +763,21 @@ function exportToExcel(){
   if (f.minTests)  parts.push('T' + f.minTests);
   if (f.minWinPct) parts.push('W' + f.minWinPct);
   parts.push(new Date().toISOString().slice(0, 10));
-  XLSX.writeFile(wb, parts.join('_') + '.xlsx');
+
+  return {
+    title: 'Captaincy Records \u2014 ' + tabLabel,
+    caption: caption,
+    unit: filtered.length === 1 ? 'captain' : 'captains',
+    base: parts.join('_'),
+    sheets: [
+      { name: 'Summary', role: 'summary', rows: summaryRows, cols: [{wch:22},{wch:32}] },
+      { name: tabLabel.slice(0, 31), role: 'data',
+        headers: headers, rows: rows, cols: widths, numFmt: numFmt }
+    ]
+  };
 }
+
+CTExport.init({ build: buildExportModel, minFilters: 2 });
 
 /* ── Init ── */
 (async function init() {
@@ -809,6 +794,7 @@ function exportToExcel(){
 </script>
 <!-- SheetJS for Excel Export -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="/ct-export.js"></script><!-- shared export engine: xlsx / ods / Sheets / PDF -->
 <script src="ct-nav.js"></script>
 </body>
 </html>

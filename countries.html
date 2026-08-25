@@ -741,7 +741,7 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
             Clear
           </button>
           <div class="filters-spacer"></div>
-          <button id="exportBtn" onclick="exportToExcel()" class="swap-btn" style="display:none" title="Export current view to Excel">
+          <button id="exportBtn" type="button" class="swap-btn" style="display:none" title="Export current view">
             <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             Export
           </button>
@@ -912,7 +912,7 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
           </select>
         </div>
       </div>
-      <button id="impactExportBtn" onclick="exportImpactToExcel()" class="swap-btn" disabled title="Select at least 2 filters to enable export">
+      <button id="impactExportBtn" type="button" class="swap-btn" disabled title="Select at least 2 filters to enable export">
         <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         Export to Excel
       </button>
@@ -2006,9 +2006,12 @@ function renderTable() {
 }
 
 // Export to Excel function
-function exportToExcel(){
+/* ── Head-to-Head export model ──
+   The filter logic below is the same pass renderTable() makes; the menu, the
+   four writers and the copyright notice live in /ct-export.js. */
+function buildH2HExportModel(){
   const t1Set = ms1.get(), t2Set = ms2.get();
-  if(t1Set.length === 0 || t2Set.length === 0 || !currentMatches || currentMatches.length === 0){alert('No matches to export');return;}
+  if(t1Set.length === 0 || t2Set.length === 0 || !currentMatches || currentMatches.length === 0) return null;
 
   const allVsAll = isAllVsAll();
   const t1Name = allVsAll ? 'All countries'
@@ -2020,7 +2023,7 @@ function exportToExcel(){
                : t2Set.length === TEAMS.length ? 'All countries'
                : t2Set.map(c => TEAM_NAMES[c] || c).join(', ');
 
-  // Apply same filters as renderTable
+  // Same filters renderTable applies
   const filter = document.getElementById('filterResult').value;
   const periods = activePeriods();
   const venues = venueSel();
@@ -2034,23 +2037,17 @@ function exportToExcel(){
   if (eras.length)    matches = matches.filter(m => eraOkFor(m, eras));
   if (cities.length)  matches = matches.filter(m => cities.includes(m.venue));
   if (grounds.length) matches = matches.filter(m => grounds.includes(m.ground));
-  if (filter === 'Won') matches = matches.filter(m => m.result === 'Won');
+  if (filter === 'Won')       matches = matches.filter(m => m.result === 'Won');
   else if (filter === 'Lost') matches = matches.filter(m => m.result === 'Lost');
   else if (filter === 'Draw') matches = matches.filter(m => m.result === 'Draw');
 
-  if(matches.length === 0){alert('No matches to export');return;}
+  if(matches.length === 0) return null;
 
   const w1 = matches.filter(m => m.result === 'Won').length;
   const w2 = matches.filter(m => m.result === 'Lost').length;
-  const d = matches.filter(m => m.result === 'Draw').length;
+  const d  = matches.filter(m => m.result === 'Draw').length;
 
-  // Create workbook
-  const wb = XLSX.utils.book_new();
-
-  // Summary sheet
-  const summaryData = [
-    ['Head-to-Head Summary', ''],
-    ['', ''],
+  const summaryRows = [
     ['Side 1', t1Name],
     ['Side 2', t2Name],
     ['Total Matches', matches.length],
@@ -2059,67 +2056,82 @@ function exportToExcel(){
     [allVsAll ? 'Away team wins' : 'Side 2 Wins', w2],
     ['Draws', d],
     ['', ''],
-    [allVsAll ? 'Home win %' : 'Side 1 Win %', matches.length > 0 ? ((w1/matches.length)*100).toFixed(1) + '%' : '—'],
-    [allVsAll ? 'Away win %' : 'Side 2 Win %', matches.length > 0 ? ((w2/matches.length)*100).toFixed(1) + '%' : '—']
+    [allVsAll ? 'Home win %' : 'Side 1 Win %', matches.length > 0 ? ((w1/matches.length)*100).toFixed(1) + '%' : '\u2014'],
+    [allVsAll ? 'Away win %' : 'Side 2 Win %', matches.length > 0 ? ((w2/matches.length)*100).toFixed(1) + '%' : '\u2014']
   ];
 
   // Period breakdown, when two periods are being compared
   if (periods.length === 2) {
     const head1 = allVsAll ? 'Home team wins' : 'Side 1 wins';
     const head2 = allVsAll ? 'Away team wins' : 'Side 2 wins';
-    summaryData.push(['', ''], ['Period Comparison', '']);
-    summaryData.push(['Period', 'Tests', head1, head2, 'Draws', head1 + ' %']);
+    summaryRows.push(['', ''], ['Period Comparison', '']);
+    summaryRows.push(['Period', 'Tests', head1, head2, 'Draws', head1 + ' %']);
     periods.forEach(p => {
       const ms = matches.filter(m => inPeriod(m, p));
       const pw = ms.filter(m => m.result === 'Won').length;
       const pl = ms.filter(m => m.result === 'Lost').length;
       const pd = ms.filter(m => m.result === 'Draw').length;
-      summaryData.push([
+      summaryRows.push([
         p.key + ': ' + periodLabel(p), ms.length, pw, pl, pd,
-        ms.length ? ((pw/ms.length)*100).toFixed(1) + '%' : '—'
+        ms.length ? ((pw/ms.length)*100).toFixed(1) + '%' : '\u2014'
       ]);
     });
   }
-  const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
-  wsSummary['!cols'] = [{wch: 22}, {wch: 40}, {wch: 16}, {wch: 16}, {wch: 10}, {wch: 14}];
-  XLSX.utils.book_append_sheet(wb, wsSummary, 'Summary');
 
-  // Match history sheet
   const twoPeriods = periods.length === 2;
-  const matchData = matches.map(m => {
-    const row = {
-      'Test #': m.test,
-      'Year': m.year,
-      'Match': m.c1 && m.c2 ? (TEAM_NAMES[m.c1] || m.c1) + ' v ' + (TEAM_NAMES[m.c2] || m.c2) : '—',
-      'Venue': m.venue || '—',
-      'Home/Away': m.ha === 'home' ? 'Home' : m.ha === 'away' ? 'Away' : 'Neutral',
-      'Result': m.winner ? (TEAM_NAMES[m.winner] || m.winner) + ' won' : 'Draw',
-      'Margin': normalizeMargin(m.margin) || '—'
-    };
-    if (twoPeriods) row['Period'] = periods.filter(p => inPeriod(m, p)).map(p => p.key).join('\u00b7');
+  const headers = ['Test #','Year','Match','Venue','Home/Away','Result','Margin'];
+  if (twoPeriods) headers.push('Period');
+
+  const rows = matches.map(m => {
+    const row = [
+      m.test,
+      m.year,
+      m.c1 && m.c2 ? (TEAM_NAMES[m.c1] || m.c1) + ' v ' + (TEAM_NAMES[m.c2] || m.c2) : '\u2014',
+      m.venue || '\u2014',
+      m.ha === 'home' ? 'Home' : m.ha === 'away' ? 'Away' : 'Neutral',
+      m.winner ? (TEAM_NAMES[m.winner] || m.winner) + ' won' : 'Draw',
+      normalizeMargin(m.margin) || '\u2014'
+    ];
+    if (twoPeriods) row.push(periods.filter(p => inPeriod(m, p)).map(p => p.key).join('\u00b7'));
     return row;
   });
-  const wsMatches = XLSX.utils.json_to_sheet(matchData);
-  wsMatches['!cols'] = [{wch: 8}, {wch: 6}, {wch: 28}, {wch: 30}, {wch: 10}, {wch: 20}, {wch: 20}, {wch: 8}];
-  XLSX.utils.book_append_sheet(wb, wsMatches, 'Matches');
 
-  // Generate filename
+  const capBits = [t1Name + ' v ' + t2Name];
+  if (venues.length) capBits.push(venues.join('/'));
+  if (eras.length)   capBits.push(eras.length + (eras.length === 1 ? ' era' : ' eras'));
+  if (cities.length) capBits.push(cities.length + (cities.length === 1 ? ' city' : ' cities'));
+  if (grounds.length)capBits.push(grounds.length + (grounds.length === 1 ? ' ground' : ' grounds'));
+  if (filter && filter !== 'All') capBits.push(filter);
+
   const fnameT1 = t1Set.length === 1 ? (TEAM_NAMES[t1Set[0]] || t1Set[0]).replace(/\s+/g,'_') : (t1Set.length === TEAMS.length ? 'All' : t1Set.length + 'teams');
   const fnameT2 = t2Set.length === 1 ? (TEAM_NAMES[t2Set[0]] || t2Set[0]).replace(/\s+/g,'_') : (t2Set.length === TEAMS.length ? 'All' : t2Set.length + 'teams');
-  const fname = fnameT1 + '_vs_' + fnameT2 + '.xlsx';
-  XLSX.writeFile(wb, fname);
+
+  return {
+    title: 'Head-to-Head',
+    caption: capBits.join(' \u00b7 '),
+    unit: rows.length === 1 ? 'match' : 'matches',
+    base: fnameT1 + '_vs_' + fnameT2,
+    sheets: [
+      { name:'Summary', role:'summary', rows: summaryRows,
+        cols: [{wch:22},{wch:40},{wch:16},{wch:16},{wch:10},{wch:14}] },
+      { name:'Matches', role:'data', headers: headers, rows: rows,
+        cols: [{wch:8},{wch:6},{wch:28},{wch:30},{wch:10},{wch:20},{wch:20},{wch:8}] }
+    ]
+  };
 }
+
+var h2hExport = CTExport.init({
+  buttonId: 'exportBtn',
+  build: buildH2HExportModel,
+  minFilters: 0,             // this view gates on having results, not on a filter count
+  hideWhenDisabled: true
+});
 
 // Show/hide export button based on results
 function updateExportButton(){
-  const btn = document.getElementById('exportBtn');
-  if(!btn) return;
   const t1Set = ms1.get(), t2Set = ms2.get();
-  if(t1Set.length > 0 && t2Set.length > 0 && currentMatches && currentMatches.length > 0){
-    btn.style.display = 'inline-flex';
-  } else {
-    btn.style.display = 'none';
-  }
+  const ready = t1Set.length > 0 && t2Set.length > 0 && currentMatches && currentMatches.length > 0;
+  if (h2hExport) h2hExport.setEnabled(ready);
 }
 
 // ═════════════════════════════════════════════════════════════
@@ -2884,154 +2896,71 @@ function countImpactActiveFilters(){
 }
 
 function updateImpactExportButton(){
-  const btn = document.getElementById('impactExportBtn');
-  if (!btn) return;
+  // Two conditions here, not one: enough filters AND a result set to export
   const active = countImpactActiveFilters();
   const hasResults = __impactExportState && __impactExportState.queries.length > 0;
-  const enabled = active >= 2 && hasResults;
-  btn.disabled = !enabled;
-  if (enabled) {
-    btn.title = 'Export current view to Excel';
-  } else if (active < 2) {
-    btn.title = `Select at least ${2 - active} more filter(s) to enable export`;
-  } else {
-    btn.title = 'No results to export';
-  }
+  if (!impactExport) return;
+  if (!hasResults) { impactExport.setEnabled(false, 'No results to export'); return; }
+  impactExport.setFilterCount(active);
 }
 
-function exportImpactToExcel(){
-  const btn = document.getElementById('impactExportBtn');
-  if (btn && btn.disabled) return; // defense layer
-
-  if (!__impactExportState || __impactExportState.queries.length === 0) {
-    alert('No results to export. Pick a country and a milestone first.');
-    return;
-  }
+/* ── Impact Analysis export model ──
+   One sheet per milestone query, plus a comparison sheet when two are being
+   compared. Sheet building stays here; formats and the notice are shared. */
+function buildImpactExportModel(){
+  if (!__impactExportState || __impactExportState.queries.length === 0) return null;
 
   const { queries, results, countryLabel } = __impactExportState;
-  const wb = XLSX.utils.book_new();
 
-  // Summary sheet
-  const summaryData = [
-    ['Impact Analysis Export', ''],
-    ['', ''],
+  const summaryRows = [
     ['Countries', countryLabel],
     ['Milestones', queries.map(q => labelForQuery(q).full).join('  vs  ')],
-    ['', ''],
+    ['', '']
   ];
   queries.forEach((q, i) => {
     const st = results[i];
     const ql = labelForQuery(q);
     const kind = q.kind === 'bat' ? 'Batting' : 'Bowling';
-    summaryData.push([`${kind} · ${ql.full}`, '']);
-    summaryData.push(['  Qualifying matches', st.aggTotal]);
-    summaryData.push(['  Wins', st.aggW]);
-    summaryData.push(['  Losses', st.aggL]);
-    summaryData.push(['  Draws', st.aggD]);
-    summaryData.push(['  Win %', st.aggTotal ? ((st.aggW/st.aggTotal)*100).toFixed(1) + '%' : '—']);
-    summaryData.push(['', '']);
+    summaryRows.push([kind + ': ' + ql.full, (st && st.rows ? st.rows.length : 0) + ' matches']);
   });
-  const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
-  wsSummary['!cols'] = [{wch: 32}, {wch: 40}];
-  XLSX.utils.book_append_sheet(wb, wsSummary, 'Summary');
 
-  // Per-country sheet(s) — one per query
+  const sheets = [{ name:'Summary', role:'summary', rows: summaryRows, cols:[{wch:26},{wch:52}] }];
+
   queries.forEach((q, i) => {
-    const st = results[i];
-    const ql = labelForQuery(q);
+    const st = results[i] || {};
+    const rows = st.rows || [];
     const kind = q.kind === 'bat' ? 'Batting' : 'Bowling';
-    const rows = Array.from(st.perCountry.entries()).map(([code, rec]) => ({
-      'Country': TEAM_NAMES[code] || code,
-      'Code': code,
-      'Qualifying Matches': rec.total,
-      'Wins': rec.W,
-      'Losses': rec.L,
-      'Draws': rec.D,
-      'Win %': rec.total ? ((rec.W/rec.total)*100).toFixed(1) + '%' : '—'
-    }));
-    rows.sort((a, b) => b['Qualifying Matches'] - a['Qualifying Matches']);
-    if (rows.length === 0) {
-      const wsEmpty = XLSX.utils.aoa_to_sheet([['No qualifying matches for the selected countries.']]);
-      XLSX.utils.book_append_sheet(wb, wsEmpty, `${kind} (${i+1})`.slice(0, 31));
+    const name = (kind + ' ' + (i + 1)).slice(0, 31);
+    if (!rows.length) {
+      sheets.push({ name: name, role: i === 0 ? 'data' : 'extra',
+                    headers: ['Result'], rows: [['No qualifying matches for the selected countries.']] });
       return;
     }
-    const ws = XLSX.utils.json_to_sheet(rows);
-    ws['!cols'] = [{wch: 18}, {wch: 6}, {wch: 18}, {wch: 8}, {wch: 8}, {wch: 8}, {wch: 10}];
-    // Sheet names must be ≤31 chars and exclude : \ / ? * [ ]
-    const sheetName = `${kind} - ${ql.short}`.replace(/[:\\/?*\[\]]/g, '').slice(0, 31);
-    XLSX.utils.book_append_sheet(wb, ws, sheetName);
+    const headers = Object.keys(rows[0]);
+    sheets.push({
+      name: name,
+      role: i === 0 ? 'data' : 'extra',
+      headers: headers,
+      rows: rows.map(r => headers.map(h => r[h]))
+    });
   });
 
-  // Combined comparison sheet (only when both milestones selected)
-  if (queries.length === 2) {
-    const sBat = results[0].perCountry, sBow = results[1].perCountry;
-    const codes = new Set([...sBat.keys(), ...sBow.keys()]);
-    const lBat = labelForQuery(queries[0]);
-    const lBow = labelForQuery(queries[1]);
-    const cmpRows = Array.from(codes).map(code => {
-      const b = sBat.get(code), w = sBow.get(code);
-      const bWp = b && b.total ? (b.W/b.total)*100 : null;
-      const wWp = w && w.total ? (w.W/w.total)*100 : null;
-      const delta = (bWp !== null && wWp !== null) ? (bWp - wWp) : null;
-      return {
-        'Country': TEAM_NAMES[code] || code,
-        'Code': code,
-        [`Bat Matches (${lBat.short})`]: b ? b.total : 0,
-        'Bat W': b ? b.W : 0,
-        'Bat L': b ? b.L : 0,
-        'Bat D': b ? b.D : 0,
-        'Bat Win %': bWp !== null ? bWp.toFixed(1) + '%' : '—',
-        [`Bowl Matches (${lBow.short})`]: w ? w.total : 0,
-        'Bowl W': w ? w.W : 0,
-        'Bowl L': w ? w.L : 0,
-        'Bowl D': w ? w.D : 0,
-        'Bowl Win %': wWp !== null ? wWp.toFixed(1) + '%' : '—',
-        'Δ Win % (Bat − Bowl)': delta !== null ? (delta > 0 ? '+' : '') + delta.toFixed(1) + '%' : '—'
-      };
-    });
-    cmpRows.sort((a, b) => (b[`Bat Matches (${lBat.short})`] + b[`Bowl Matches (${lBow.short})`])
-                        - (a[`Bat Matches (${lBat.short})`] + a[`Bowl Matches (${lBow.short})`]));
-    const wsCmp = XLSX.utils.json_to_sheet(cmpRows);
-    XLSX.utils.book_append_sheet(wb, wsCmp, 'Comparison');
-  }
-
-  // Filename
-  const country = (typeof msI !== 'undefined' && msI && msI.size() === 1)
-                    ? (TEAM_NAMES[msI.get()[0]] || msI.get()[0]).replace(/\s+/g, '_')
-                    : (msI.size() === TEAMS.length ? 'AllCountries' : msI.size() + 'countries');
-  const milestone = queries.length === 2 ? 'BatVsBowl' : labelForQuery(queries[0]).short.replace(/[\s\/+]+/g, '_');
-  const fname = `Impact_${country}_${milestone}.xlsx`;
-  XLSX.writeFile(wb, fname);
+  return {
+    title: 'Impact Analysis',
+    caption: countryLabel + ' \u00b7 ' + queries.map(q => labelForQuery(q).full).join(' vs '),
+    unit: 'matches',
+    base: 'CricketTimes_ImpactAnalysis_' + new Date().toISOString().slice(0, 10),
+    sheets: sheets
+  };
 }
 
-// ═════════════════════════════════════════════════════════════
-// Tab switching (H2H ↔ Impact Analysis)
-// ═════════════════════════════════════════════════════════════
-// Buttons carry data-tab="h2h" or "impact"; we toggle .active on buttons
-// and on the corresponding tab-panel whose id is "tab-" + that value.
-// When the user opens the Impact tab for the first time and has a milestone
-// already selected, we re-render to make sure the ladder shows.
-document.querySelectorAll('.tabbar-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const target = btn.dataset.tab;
-    document.querySelectorAll('.tabbar-btn').forEach(b => {
-      const on = b.dataset.tab === target;
-      b.classList.toggle('active', on);
-      b.setAttribute('aria-selected', on ? 'true' : 'false');
-    });
-    document.querySelectorAll('.tab-panel').forEach(p => {
-      p.classList.toggle('active', p.id === 'tab-' + target);
-    });
-    // If Impact tab just became visible and we haven't rendered yet, trigger it.
-    if (target === 'impact') renderImpact();
-  });
+var impactExport = CTExport.init({
+  buttonId: 'impactExportBtn',
+  build: buildImpactExportModel,
+  minFilters: 2
 });
 
-// ═════════════════════════════════════════════════════════════
-// Collapsible Filters card
-// ═════════════════════════════════════════════════════════════
-// Click anywhere on the header row to toggle the `closed` class, which the
-// CSS uses to collapse the body and rotate the chevron.
+
 function toggleFilters(cardId) {
   const card = document.getElementById(cardId);
   if (card) card.classList.toggle('closed');
@@ -3043,6 +2972,7 @@ updateResults();
 
 <!-- SheetJS for Excel Export -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="/ct-export.js"></script><!-- shared export engine: xlsx / ods / Sheets / PDF -->
 
 <footer data-ct-nav="footer"></footer>
 

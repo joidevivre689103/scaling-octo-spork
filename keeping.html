@@ -252,7 +252,7 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-he
         </div>
         <div class="fp-group" style="display:flex;align-items:flex-end;gap:12px">
           <span class="fp-reset" onclick="resetFilters()">Reset all</span>
-          <button id="exportBtn" class="fp-export" onclick="exportToExcel()" title="Select at least 2 filters to enable export">
+          <button id="exportBtn" type="button" class="fp-export" title="Select at least 2 filters to enable export">
             <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
             Export to Excel
           </button>
@@ -720,85 +720,68 @@ function renderTags() {
 
 /* ── Export gating: at least 2 active filters required ── */
 function updateExportButton(activeCount) {
-  const btn = document.getElementById('exportBtn');
-  if (!btn) return;
-  const enabled = activeCount >= 2;
-  btn.disabled = !enabled;
-  if (enabled) {
-    btn.title = 'Download current view as .xlsx — respects active filters and sort';
-  } else {
-    const need = Math.max(0, 2 - activeCount);
-    btn.title = `Select at least ${need} more filter${need === 1 ? '' : 's'} to enable export`;
-  }
+  CTExport.setFilterCount(activeCount);
 }
 
-/* ── Export to Excel ──
-   Exports the full keeper record set (all stats, not just current tab) for
-   players matching the active filters, in the current sort order. */
-function exportToExcel() {
-  const btn = document.getElementById('exportBtn');
-  if (btn && btn.disabled) { alert('Please select at least 2 filters before exporting.'); return; }
-  if (typeof XLSX === 'undefined') { alert('Excel library still loading — please try again in a moment.'); return; }
-  if (!filtered || filtered.length === 0) { alert('No keepers match the current filters — nothing to export.'); return; }
+/* ── Export ──
+   The keeper record set (all stats, not just the current tab) for players
+   matching the active filters, in the current sort order. Columns and
+   filenames live here; the menu, the four writers and the copyright notice
+   live in /ct-export.js and are shared with every other stats page. */
+const EXPORT_COLS = [
+  { label:'#',                 fn:(p,i) => i + 1 },
+  { label:'Player',            fn:p => p.fullName || p.name || '' },
+  { label:'Country',           fn:p => p.country || '' },
+  { label:'From',              fn:p => p.from || '' },
+  { label:'To',                fn:p => p.to || '' },
+  { label:'Tests',             fn:p => p.tests ?? '' },
+  { label:'Tests (WK)',        fn:p => p.wkTests ?? '' },
+  { label:'WK %',              fn:p => p.wkPct != null ? +(p.wkPct * 100).toFixed(1) : '' },
+  { label:'Dismissals',        fn:p => p.dismissals ?? '' },
+  { label:'Catches (WK)',      fn:p => p.catches ?? '' },
+  { label:'Stumpings',         fn:p => p.stumpings ?? '' },
+  { label:'Catches (Field)',   fn:p => p.fldCatches ?? '' },
+  { label:'Catches (Total)',   fn:p => p.totalCatches ?? '' },
+  { label:'Dis/Test',          fn:p => p.disPerTest ?? '' },
+  { label:'St/Test',           fn:p => p.stPerTest ?? '' },
+  { label:'Innings',           fn:p => p.inns ?? '' },
+  { label:'Runs',              fn:p => p.runs ?? '' },
+  { label:'Avg',               fn:p => p.avg ?? '' },
+  { label:'100s',              fn:p => p.hundreds ?? '' },
+  { label:'50s',               fn:p => p.fifties ?? '' },
+  { label:'MoM',               fn:p => p.mom ?? '' }
+];
 
-  const EXPORT_COLS = [
-    { label:'#',                 fn:(p,i) => i + 1 },
-    { label:'Player',            fn:p => p.fullName || p.name || '' },
-    { label:'Country',           fn:p => p.country || '' },
-    { label:'From',              fn:p => p.from || '' },
-    { label:'To',                fn:p => p.to || '' },
-    { label:'Tests',             fn:p => p.tests ?? '' },
-    { label:'Tests (WK)',        fn:p => p.wkTests ?? '' },
-    { label:'WK %',              fn:p => p.wkPct != null ? +(p.wkPct * 100).toFixed(1) : '' },
-    { label:'Dismissals',        fn:p => p.dismissals ?? '' },
-    { label:'Catches (WK)',      fn:p => p.catches ?? '' },
-    { label:'Stumpings',         fn:p => p.stumpings ?? '' },
-    { label:'Catches (Field)',   fn:p => p.fldCatches ?? '' },
-    { label:'Catches (Total)',   fn:p => p.totalCatches ?? '' },
-    { label:'Dis/Test',          fn:p => p.disPerTest ?? '' },
-    { label:'St/Test',           fn:p => p.stPerTest ?? '' },
-    { label:'Innings',           fn:p => p.inns ?? '' },
-    { label:'Runs',              fn:p => p.runs ?? '' },
-    { label:'Avg',               fn:p => p.avg ?? '' },
-    { label:'100s',              fn:p => p.hundreds ?? '' },
-    { label:'50s',               fn:p => p.fifties ?? '' },
-    { label:'MoM',               fn:p => p.mom ?? '' }
-  ];
+function exportCaption(f) {
+  const out = [];
+  if (f.country) out.push(f.country);
+  if (f.era)     out.push(f.era === 'pre1950' ? 'Pre-1950' : f.era + 's');
+  if (f.type)    out.push(f.type === 'full' ? 'Full-time keeper' : 'Part-time keeper');
+  if (f.search)  out.push('Search: ' + f.search);
+  return out.length ? out.join(' \u00b7 ') : 'No filters applied';
+}
 
-  const headers = EXPORT_COLS.map(c => c.label);
-  const rows = filtered.map((p, i) => EXPORT_COLS.map(c => c.fn(p, i)));
-  const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
-
-  // Column widths
-  ws['!cols'] = EXPORT_COLS.map((c, i) => {
-    const maxLen = Math.max(
-      c.label.length,
-      ...rows.map(r => String(r[i] ?? '').length)
-    );
-    return { wch: Math.min(Math.max(maxLen + 2, 8), 32) };
-  });
-
-  // Bold header row
-  for (let i = 0; i < headers.length; i++) {
-    const addr = XLSX.utils.encode_cell({ r:0, c:i });
-    if (ws[addr]) ws[addr].s = { font: { bold: true } };
-  }
-
-  const wb = XLSX.utils.book_new();
-
-  // Sheet name from active filters
+function buildExportModel() {
+  if (!filtered || !filtered.length) return null;
   const f = getFilters();
+
   const parts = ['Fielding'];
   if (f.country) parts.push(f.country);
   if (f.era) parts.push(f.era === 'pre1950' ? 'Pre1950' : f.era + 's');
   if (f.type) parts.push(f.type === 'full' ? 'FullTime' : 'PartTime');
-  let sheetName = parts.join('_').slice(0, 31);
 
-  XLSX.utils.book_append_sheet(wb, ws, sheetName);
-
-  const fname = 'CricketTimes_' + parts.join('_') + '_' + filtered.length + 'keepers.xlsx';
-  XLSX.writeFile(wb, fname);
+  return {
+    title: 'Wicketkeeping Records',
+    caption: exportCaption(f),
+    unit: filtered.length === 1 ? 'keeper' : 'keepers',
+    sheetName: parts.join('_').slice(0, 31),
+    base: 'CricketTimes_' + parts.join('_') + '_' + filtered.length + 'keepers',
+    headers: EXPORT_COLS.map(c => c.label),
+    rows: filtered.map((p, i) => EXPORT_COLS.map(c => c.fn(p, i)))
+  };
 }
+
+CTExport.init({ build: buildExportModel, minFilters: 2 });
 
 /* ── Init ── */
 (async function init() {
@@ -816,6 +799,7 @@ function exportToExcel() {
 </script>
 <!-- SheetJS for Excel Export -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="/ct-export.js"></script><!-- shared export engine: xlsx / ods / Sheets / PDF -->
 <script src="ct-nav.js"></script>
 </body>
 </html>
