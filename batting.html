@@ -98,7 +98,7 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-he
 .fp-reset{font-size:11px;color:var(--accent);cursor:pointer;text-decoration:underline;margin-left:auto}
 .fp-reset:hover{color:var(--text)}
 
-/* ── Export menu (Excel / Google Docs / PDF) ────────────────────────────────
+/* ── Export menu (Excel / LibreOffice / Google Sheets / PDF) ────────────────
    One gated trigger, three destinations. The gate (>=2 active filters) sits on
    the trigger, so it covers every format at once. */
 .exp-wrap{position:relative;margin-left:auto}
@@ -119,7 +119,7 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-he
 .exp-item small{display:block;margin-top:1px;font-size:10.5px;color:var(--text3)}
 .exp-item:hover small{color:var(--text2)}
 
-/* Toast — used by the Google Docs export, which has to say what it just did */
+/* Toast — used by the Sheets export, which has to say what it just did */
 .ct-toast{position:fixed;left:50%;bottom:26px;z-index:9999;max-width:min(540px,92vw);padding:12px 40px 12px 16px;background:var(--text);color:#fff;border-radius:6px;font-family:var(--font-body);font-size:12.5px;line-height:1.55;box-shadow:0 10px 30px rgba(0,0,0,0.28);opacity:0;transform:translateX(-50%) translateY(10px);transition:opacity 0.2s,transform 0.2s}
 .ct-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .ct-toast a{color:#fff;text-decoration:underline}
@@ -434,9 +434,13 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-he
               <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="19"/><line x1="15" y1="13" x2="9" y2="19"/></svg>
               <span><b>Excel</b><small>.xlsx workbook &mdash; one row per record</small></span>
             </button>
-            <button type="button" class="exp-item" role="menuitem" onclick="runExport('gdocs')">
-              <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>
-              <span><b>Google Docs</b><small>copies the table &mdash; paste straight into a Doc</small></span>
+            <button type="button" class="exp-item" role="menuitem" onclick="runExport('ods')">
+              <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="8" x2="21" y2="8"/><line x1="10" y1="8" x2="10" y2="21"/></svg>
+              <span><b>LibreOffice Calc</b><small>.ods spreadsheet &mdash; open format, same columns</small></span>
+            </button>
+            <button type="button" class="exp-item" role="menuitem" onclick="runExport('gsheets')">
+              <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="14" x2="21" y2="14"/><line x1="9" y1="9" x2="9" y2="20"/><line x1="15" y1="9" x2="15" y2="20"/></svg>
+              <span><b>Google Sheets</b><small>copies the table &mdash; paste straight into a Sheet</small></span>
             </button>
             <button type="button" class="exp-item" role="menuitem" onclick="runExport('pdf')">
               <svg viewBox="0 0 24 24"><path d="M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><polyline points="15 2 15 7 20 7"/><path d="M8 15h1.5a1.5 1.5 0 0 0 0-3H8v6"/><path d="M14 18h1.5a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2H14z"/></svg>
@@ -1925,7 +1929,7 @@ function updateExportButton(activeCount) {
   const enabled = activeCount >= 2;
   btn.disabled = !enabled;
   if (enabled) {
-    btn.title = 'Export the current view \u2014 Excel, Google Docs or PDF, all respecting the active filters';
+    btn.title = 'Export the current view \u2014 Excel, LibreOffice, Google Sheets or PDF, all respecting the active filters';
   } else {
     const need = Math.max(0, 2 - activeCount);
     btn.title = `Select at least ${need} more filter${need === 1 ? '' : 's'} to enable export`;
@@ -1954,14 +1958,14 @@ function resetFilters() {
 }
 
 /* ──────────────────────────────────────────────────────────────────────────
-   Export — Excel (.xlsx), Google Docs, PDF
+   Export — Excel (.xlsx), LibreOffice Calc (.ods), Google Sheets, PDF
 
-   All three formats read one shared model, so the columns, the filename and
-   the filter caption can only ever be defined once. Excel writes the same
-   workbook it always did; Google Docs puts a formatted table on the clipboard
-   (plus a .doc file for Drive); PDF renders a headed, paginated landscape
-   table with jsPDF, lazily loaded and with a print-dialog fallback if the CDN
-   is unreachable.
+   Every format reads one shared model, so the columns, the filename and the
+   filter caption can only ever be defined once. Excel and LibreOffice are the
+   same SheetJS workbook written through two different book types; Google
+   Sheets puts the table on the clipboard and downloads a .csv for File ›
+   Import; PDF renders a headed, paginated landscape table with jsPDF, lazily
+   loaded and with a print-dialog fallback if the CDN is unreachable.
    ────────────────────────────────────────────────────────────────────────── */
 
 /* Column definitions. `num` right-aligns the column in the PDF and the Doc —
@@ -2114,7 +2118,8 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeExportM
 function runExport(kind) {
   closeExportMenu();
   if (kind === 'excel') return exportToExcel();
-  if (kind === 'gdocs') return exportToGoogleDocs();
+  if (kind === 'ods')   return exportToCalc();
+  if (kind === 'gsheets') return exportToGoogleSheets();
   if (kind === 'pdf')   return exportToPDF();
 }
 
@@ -2150,9 +2155,15 @@ function downloadBlob(blob, filename) {
 }
 
 /* ──────────────────────────────────────────────────────────────────────────
-   Export to Excel
+   Export to a spreadsheet — Excel (.xlsx) and LibreOffice Calc (.ods)
+
+   Both come out of the same SheetJS workbook; only the book type differs, so
+   the two formats cannot drift apart. Column widths survive into both. Cell
+   styling does not — the community build of SheetJS writes no cell styles to
+   either format, so the bold header below is a hint for builds that support it
+   rather than something to rely on.
    ────────────────────────────────────────────────────────────────────────── */
-function exportToExcel() {
+function writeWorkbook(bookType, ext) {
   const m = buildExportModel();
   if (!m) return;
 
@@ -2171,33 +2182,41 @@ function exportToExcel() {
 
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, m.sheetName);
-  XLSX.writeFile(wb, m.base + '.xlsx');
+  XLSX.writeFile(wb, m.base + ext, { bookType });
 }
 
+function exportToExcel() { writeWorkbook('xlsx', '.xlsx'); }
+function exportToCalc()  { writeWorkbook('ods',  '.ods');  }
+
 /* ──────────────────────────────────────────────────────────────────────────
-   Export to Google Docs
+   Export to Google Sheets
 
-   There is no server-side Drive integration here, and adding one would mean an
-   OAuth consent screen and a Drive scope on every reader — so this does the two
-   things that work from the browser alone:
+   There is no server-side Sheets integration here, and adding one would mean
+   an OAuth consent screen and a Drive scope on every reader — so this does the
+   two things that work from the browser alone:
 
-     1. puts the formatted table on the clipboard as text/html, so a paste into
-        an open Google Doc arrives as a real table, not a wall of text;
-     2. downloads a Word-compatible .doc of the same table, which Drive opens
-        with Google Docs for anyone who would rather keep a file.
+     1. puts the table on the clipboard as text/html, so a paste into an open
+        Sheet lands in cells rather than in one long column, with the numeric
+        columns right-aligned as they arrive;
+     2. downloads a .csv of the same table, for File › Import — the route that
+        keeps working when a browser blocks the clipboard.
 
    The plain-text half of the clipboard payload is tab-separated, so a paste
-   into Sheets lands in columns too.
+   into a plain text editor still comes out in columns. Sheets will also open
+   the .xlsx from the Excel export directly, which is the better route for
+   anyone who wants the sheet as a file rather than as a paste.
    ────────────────────────────────────────────────────────────────────────── */
-function docTableHtml(m, forPrint) {
+
+/* The HTML table behind both the clipboard payload and the print fallback.
+   `forPrint` adds the page furniture a printed copy needs and a paste does not. */
+function exportTableHtml(m, forPrint) {
   const esc = v => escHtml(String(v == null ? '' : v));
   const head = m.headers.map((h, i) =>
     `<th style="${m.cols[i].num ? 'text-align:right;' : 'text-align:left;'}">${esc(h)}</th>`).join('');
   const body = m.rows.map(r => '<tr>' + r.map((v, i) =>
     `<td style="${m.cols[i].num ? 'text-align:right;' : 'text-align:left;'}">${esc(v)}</td>`).join('') + '</tr>').join('');
 
-  return `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
-<head><meta charset="utf-8"><title>${esc('Cricket Times \u2014 ' + m.title)}</title>
+  return `<html><head><meta charset="utf-8"><title>${esc('Cricket Times \u2014 ' + m.title)}</title>
 <style>
 @page{size:A4 landscape;margin:1.4cm}
 body{font-family:Georgia,'Times New Roman',serif;color:#1a1e26;margin:0}
@@ -2220,22 +2239,43 @@ ${forPrint ? '@media print{body{margin:0}}' : ''}
 </body></html>`;
 }
 
-async function exportToGoogleDocs() {
+/* A clipboard payload for Sheets wants the table on its own — the masthead and
+   the caption would arrive as stray rows above the header and push everything
+   out of alignment. */
+function clipboardTableHtml(m) {
+  const esc = v => escHtml(String(v == null ? '' : v));
+  const head = m.headers.map((h, i) =>
+    `<th style="${m.cols[i].num ? 'text-align:right;' : 'text-align:left;'}background:#8B2500;color:#ffffff;font-weight:bold;">${esc(h)}</th>`).join('');
+  const body = m.rows.map(r => '<tr>' + r.map((v, i) =>
+    `<td style="${m.cols[i].num ? 'text-align:right;' : 'text-align:left;'}">${esc(v)}</td>`).join('') + '</tr>').join('');
+  return `<meta charset="utf-8"><table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
+}
+
+/* RFC 4180: quote anything holding a comma, a quote or a newline, and double
+   up embedded quotes. */
+function csvCell(v) {
+  const t = String(v === null || v === undefined ? '' : v);
+  return /[",\r\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t;
+}
+function buildCsv(m) {
+  return [m.headers.map(csvCell).join(','), ...m.rows.map(r => r.map(csvCell).join(','))].join('\r\n');
+}
+
+async function exportToGoogleSheets() {
   const m = buildExportModel();
   if (!m) return;
 
-  const html = docTableHtml(m, false);
-  const tsv  = [m.headers.join('\t'), ...m.rows.map(r => r.join('\t'))].join('\n');
+  const tsv = [m.headers.join('\t'), ...m.rows.map(r => r.join('\t'))].join('\n');
 
   // The file first — it is the half that cannot fail
-  downloadBlob(new Blob(['\ufeff' + html], { type:'application/msword' }), m.base + '.doc');
+  downloadBlob(new Blob(['\ufeff' + buildCsv(m)], { type:'text/csv;charset=utf-8' }), m.base + '.csv');
 
   let copied = false;
   try {
     if (navigator.clipboard && window.ClipboardItem) {
       await navigator.clipboard.write([new ClipboardItem({
-        'text/html':  new Blob([html], { type:'text/html' }),
-        'text/plain': new Blob([tsv],  { type:'text/plain' })
+        'text/html':  new Blob([clipboardTableHtml(m)], { type:'text/html' }),
+        'text/plain': new Blob([tsv], { type:'text/plain' })
       })]);
       copied = true;
     }
@@ -2243,11 +2283,11 @@ async function exportToGoogleDocs() {
     copied = false;            // clipboard blocked (permissions, or a browser that wants a shorter gesture chain)
   }
 
-  const open = '<a href="https://docs.google.com/document/create" target="_blank" rel="noopener">Open a blank Google Doc</a>';
+  const open = '<a href="https://sheets.new" target="_blank" rel="noopener">Open a blank Google Sheet</a>';
   ctToast(copied
-    ? `Table copied. ${open} and paste (Ctrl/\u2318&nbsp;V) \u2014 it arrives as a real table.<br>
-       A <b>.doc</b> copy was downloaded too; upload it to Drive and choose <i>Open with \u203a Google Docs</i> if you would rather have a file.`
-    : `A <b>.doc</b> copy was downloaded. Upload it to Google Drive and choose <i>Open with \u203a Google Docs</i>.<br>
+    ? `Table copied. ${open} and paste (Ctrl/\u2318&nbsp;V) \u2014 it arrives in cells, header row and all.<br>
+       A <b>.csv</b> copy was downloaded too; use <i>File \u203a Import</i> in Sheets if you would rather start from the file.`
+    : `A <b>.csv</b> copy was downloaded. ${open}, then <i>File \u203a Import \u203a Upload</i>.<br>
        (Your browser blocked the clipboard, so there is nothing to paste \u2014 the file is the way in.)`);
 }
 
@@ -2306,7 +2346,7 @@ function printToPdf(m) {
   frame.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden';
   document.body.appendChild(frame);
   const d = frame.contentWindow.document;
-  d.open(); d.write(docTableHtml(m, true)); d.close();
+  d.open(); d.write(exportTableHtml(m, true)); d.close();
   setTimeout(() => {
     try { frame.contentWindow.focus(); frame.contentWindow.print(); } catch (e) { console.error(e); }
     setTimeout(() => frame.remove(), 1500);
