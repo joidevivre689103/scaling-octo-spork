@@ -48,7 +48,6 @@
 const BRAND = {
   owner:  'Cricket Times',
   site:   'cricketimes.com',
-  entity: 'Dreamers LLC',
   terms:  'Personal and internal use only. Not for redistribution, republication or resale without written permission.',
   attribution: 'none',       // 'none' | 'subscriber'
   watermark: true            // the diagonal wash across each PDF page
@@ -400,7 +399,7 @@ Instance.prototype.writeWorkbook = function (fmt) {
   wb.Props = {
     Title:    BRAND.owner + ' \u2014 ' + (m.title || 'Export'),
     Author:   BRAND.owner,
-    Company:  BRAND.entity,
+    Company:  BRAND.owner,   // the legal entity is deliberately not named in exports
     Subject:  m.caption || '',
     Comments: legalLines().join(' | '),
     CreatedDate: new Date()
