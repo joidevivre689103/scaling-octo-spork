@@ -881,7 +881,7 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
   </div><!-- /tab-panel h2h -->
 
   <!-- ═══════════════════════ Impact Analysis Tab ═══════════════════════ -->
-  <div class="tab-panel" id="tab-impact">
+  <div class="tab-panel" id="tab-impact" role="tabpanel">
 
   <!-- Filters Card (collapsible) -->
   <div class="filters-card" id="impactFilters">
@@ -2982,6 +2982,13 @@ function buildImpactExportModel(){
   if (!__impactExportState || __impactExportState.queries.length === 0) return null;
 
   const { queries, results, countryLabel } = __impactExportState;
+  const pctOf = (n, tot) => tot ? +((n / tot) * 100).toFixed(1) : null;
+  const kindOf = q => q.kind === 'bat' ? 'Batting' : 'Bowling';
+  // Same per-country records the page renders (analyseQuery -> perCountry),
+  // biggest sample first, the way the on-page table is sorted.
+  const countryRows = st => Array.from((st && st.perCountry) || new Map())
+    .map(([code, r]) => ({ code, ...r }))
+    .sort((x, y) => y.total - x.total);
 
   const summaryRows = [
     ['Countries', countryLabel],
@@ -2989,37 +2996,72 @@ function buildImpactExportModel(){
     ['', '']
   ];
   queries.forEach((q, i) => {
-    const st = results[i];
-    const ql = labelForQuery(q);
-    const kind = q.kind === 'bat' ? 'Batting' : 'Bowling';
-    summaryRows.push([kind + ': ' + ql.full, (st && st.rows ? st.rows.length : 0) + ' matches']);
+    const st = results[i] || {};
+    const tot = st.aggTotal || 0;
+    summaryRows.push(
+      [kindOf(q) + ': ' + labelForQuery(q).full, tot + (tot === 1 ? ' match' : ' matches')],
+      ['  Won',   (st.aggW || 0) + (tot ? ' (' + pctOf(st.aggW, tot) + '%)' : '')],
+      ['  Lost',  (st.aggL || 0) + (tot ? ' (' + pctOf(st.aggL, tot) + '%)' : '')],
+      ['  Drawn', (st.aggD || 0) + (tot ? ' (' + pctOf(st.aggD, tot) + '%)' : '')],
+      ['', '']
+    );
   });
 
-  const sheets = [{ name:'Summary', role:'summary', rows: summaryRows, cols:[{wch:26},{wch:52}] }];
+  const sheets = [{ name:'Summary', role:'summary', rows: summaryRows, cols:[{wch:40},{wch:52}] }];
+  const perCountryHeaders = ['Country', 'Code', 'Qualifying matches', 'Won', 'Lost', 'Drawn', 'Win %'];
 
   queries.forEach((q, i) => {
     const st = results[i] || {};
-    const rows = st.rows || [];
-    const kind = q.kind === 'bat' ? 'Batting' : 'Bowling';
-    const name = (kind + ' ' + (i + 1)).slice(0, 31);
+    const rows = countryRows(st);
+    const name = (kindOf(q) + ' - ' + labelForQuery(q).short).replace(/[\\\/?*\[\]:]/g, '').slice(0, 31);
     if (!rows.length) {
       sheets.push({ name: name, role: i === 0 ? 'data' : 'extra',
                     headers: ['Result'], rows: [['No qualifying matches for the selected countries.']] });
       return;
     }
-    const headers = Object.keys(rows[0]);
+    const body = rows.map(r => [TEAM_NAMES[r.code] || r.code, r.code, r.total, r.W, r.L, r.D, pctOf(r.W, r.total)]);
+    if (rows.length > 1) {
+      body.push(['All selected', '', st.aggTotal, st.aggW, st.aggL, st.aggD, pctOf(st.aggW, st.aggTotal)]);
+    }
     sheets.push({
       name: name,
       role: i === 0 ? 'data' : 'extra',
-      headers: headers,
-      rows: rows.map(r => headers.map(h => r[h]))
+      headers: perCountryHeaders,
+      rows: body,
+      cols: [{wch:16},{wch:6},{wch:18},{wch:7},{wch:7},{wch:7},{wch:8}]
     });
   });
 
+  // Both milestones picked -> the side-by-side table the page shows, with the delta
+  if (queries.length === 2) {
+    const [sBat, sBow] = results;
+    const codes = new Set([...(sBat.perCountry || new Map()).keys(), ...(sBow.perCountry || new Map()).keys()]);
+    const rows = Array.from(codes).map(code => {
+      const b = sBat.perCountry.get(code), w = sBow.perCountry.get(code);
+      const bp = b && b.total ? pctOf(b.W, b.total) : null;
+      const wp = w && w.total ? pctOf(w.W, w.total) : null;
+      return { code, b, w, bp, wp, n: (b ? b.total : 0) + (w ? w.total : 0),
+               delta: bp !== null && wp !== null ? +(bp - wp).toFixed(1) : null };
+    }).sort((x, y) => y.n - x.n);
+    sheets.push({
+      name: 'Comparison',
+      role: 'extra',
+      headers: ['Country', 'Bat matches', 'Bat W', 'Bat L', 'Bat D', 'Bat win %',
+                'Bowl matches', 'Bowl W', 'Bowl L', 'Bowl D', 'Bowl win %', 'Delta (bat - bowl)'],
+      rows: rows.map(r => [
+        TEAM_NAMES[r.code] || r.code,
+        r.b ? r.b.total : '', r.b ? r.b.W : '', r.b ? r.b.L : '', r.b ? r.b.D : '', r.bp === null ? '' : r.bp,
+        r.w ? r.w.total : '', r.w ? r.w.W : '', r.w ? r.w.L : '', r.w ? r.w.D : '', r.wp === null ? '' : r.wp,
+        r.delta === null ? '' : r.delta
+      ]),
+      cols: [{wch:16},{wch:11},{wch:6},{wch:6},{wch:6},{wch:9},{wch:12},{wch:7},{wch:7},{wch:7},{wch:10},{wch:16}]
+    });
+  }
+
   return {
     title: 'Impact Analysis',
-    caption: countryLabel + ' \u00b7 ' + queries.map(q => labelForQuery(q).full).join(' vs '),
-    unit: 'matches',
+    caption: countryLabel + ' · ' + queries.map(q => labelForQuery(q).full).join(' vs '),
+    unit: 'countries',
     base: 'CricketTimes_ImpactAnalysis_' + new Date().toISOString().slice(0, 10),
     sheets: sheets
   };
@@ -3031,6 +3073,35 @@ var impactExport = CTExport.init({
   minFilters: 2
 });
 
+
+// ── Top-level tabs (Head-to-Head / Impact Analysis) ──
+// The URL hash follows the tab (#impact), so a shared link or a reload
+// opens on the same tab. replaceState keeps the Back button for real pages.
+function showTab(name, updateHash) {
+  const btn = document.getElementById('tab-btn-' + name);
+  const panel = document.getElementById('tab-' + name);
+  if (!btn || !panel) return;
+  document.querySelectorAll('.tabbar-btn').forEach(b => {
+    const on = b === btn;
+    b.classList.toggle('active', on);
+    b.setAttribute('aria-selected', on ? 'true' : 'false');
+  });
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p === panel));
+  // Close any picker left open on the tab being hidden
+  document.querySelectorAll('.ms-panel.ms-open').forEach(p => {
+    p.classList.remove('ms-open');
+    if (p.previousElementSibling) p.previousElementSibling.classList.remove('ms-open');
+  });
+  if (updateHash) {
+    try { history.replaceState(null, '', name === 'h2h' ? location.pathname + location.search : '#' + name); }
+    catch (e) { /* non-fatal */ }
+  }
+}
+document.querySelectorAll('.tabbar-btn').forEach(b => {
+  b.addEventListener('click', () => showTab(b.dataset.tab, true));
+});
+if (location.hash === '#impact') showTab('impact', false);
+window.addEventListener('hashchange', () => showTab(location.hash === '#impact' ? 'impact' : 'h2h', false));
 
 function toggleFilters(cardId) {
   const card = document.getElementById(cardId);
