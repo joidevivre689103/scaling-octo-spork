@@ -2200,62 +2200,65 @@ function marginFromResult(res) {
   return '';
 }
 
-// \u2500\u2500 Match dates \u2500\u2500
-// D.DT holds the dates, but the link from a match to its date isn't one of
-// the documented D.M slots, so it is detected once at load:
-//   - D.DT keyed by test number (object, or array indexed by test #), or
-//   - D.DT a lookup list pointed at by one of the undocumented m[] slots.
-// A candidate only wins if the date it yields contains that match's year
-// for at least 95% of Tests \u2014 so a wrong guess shows dashes, never
-// wrong dates. The chosen route is logged to the console.
+// ── Match dates ──
+// D.DT is a de-duplicated list of day strings; each match points at its entry
+// via m[10] (Test #1 -> DT[0] = "15,16,17,19 March 1877", Test #2635 ->
+// DT[386], the last entry). Most strings carry no year and many no month
+// ("2,3,4" is Test #3, 2-4 Jan 1879), so the month is looked up from
+// whichever field reproduces the known months of Tests 1, 3, 4 and 5
+// (Mar 1877, Jan 1879, Sep 1880, Dec 1881). Year lives in its own column.
+const MONTH_ABBR = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const MONTH_RE = /\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?/i;
+const KNOWN_MONTH = { 1: 2, 3: 0, 4: 8, 5: 11 };   // test # -> month index (0 = Jan)
+
 let __dateOf = null;   // (testKey, m) => display string | ''
 
-function fmtMatchDate(v) {
-  if (v === null || v === undefined || v === '') return '';
-  if (typeof v === 'number') {
-    const n = String(Math.trunc(v));
-    if (/^\d{8}$/.test(n)) {                       // yyyymmdd
-      const d = new Date(Date.UTC(+n.slice(0,4), +n.slice(4,6) - 1, +n.slice(6,8)));
-      return isNaN(d) ? n : d.toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric', timeZone:'UTC' });
-    }
-    return n;
-  }
-  return String(v).trim();
-}
-
-function dateHasYear(v, y) {
-  return typeof y === 'number' && fmtMatchDate(v).indexOf(String(y)) !== -1;
+function monthIndexOf(v) {
+  if (typeof v === 'number') return (v >= 1 && v <= 12) ? v - 1 : -1;
+  const hit = MONTH_RE.exec(String(v == null ? '' : v));
+  return hit ? MONTH_ABBR.findIndex(a => a.toLowerCase() === hit[1].toLowerCase()) : -1;
 }
 
 function resolveDateSource(D) {
   __dateOf = () => '';
-  const DT = D && D.DT;
-  if (!DT || !D.M) { console.warn('[countries] No D.DT in data \u2014 Date column will be blank.'); return; }
-  const keys = Object.keys(D.M);
-  const score = get => {
-    let ok = 0, seen = 0;
-    keys.forEach(k => { const m = D.M[k]; if (!m) return; seen++; if (dateHasYear(get(k, m), m[7])) ok++; });
-    return seen ? ok / seen : 0;
+  const DT = D && D.DT, M = D && D.M;
+  if (!Array.isArray(DT) || !M) { console.warn('[countries] D.DT missing - Date column blank.'); return; }
+
+  // 1. Which m[] slot indexes DT. m[10] is the observed one; the check is
+  //    that Test #1 lands on a March 1877 string.
+  const okDay = i => M[1] && typeof DT[M[1][i]] === 'string' &&
+                     DT[M[1][i]].indexOf('1877') !== -1 && monthIndexOf(DT[M[1][i]]) === 2;
+  let di = okDay(10) ? 10 : -1;
+  for (let i = 0; di < 0 && i <= 20; i++) if (okDay(i)) di = i;
+  if (di < 0) { console.warn('[countries] Could not find the D.DT index in D.M - Date column blank.'); return; }
+
+  // 2. Where the month lives, for strings that don't name one: try every
+  //    m[] slot, raw (1-12) or as an index into any top-level string list.
+  const lists = Object.keys(D).filter(k => k !== 'DT' && Array.isArray(D[k]) &&
+                                          D[k].length && typeof D[k][0] === 'string');
+  const sources = [];
+  for (let i = 0; i <= 20; i++) {
+    if (i === di) continue;
+    sources.push({ name: 'm[' + i + ']', get: m => m[i] });
+    lists.forEach(k => sources.push({ name: 'D.' + k + '[m[' + i + ']]', get: m => D[k][m[i]] }));
+  }
+  const known = Object.keys(KNOWN_MONTH).filter(t => M[t]);
+  const monthSrc = known.length >= 3
+    ? sources.find(src => known.every(t => monthIndexOf(src.get(M[t])) === KNOWN_MONTH[t]))
+    : null;
+
+  __dateOf = (k, m) => {
+    const raw = DT[m[di]];
+    if (raw == null || raw === '') return '';
+    const txt = String(raw);
+    let mi = monthIndexOf(txt);
+    if (mi < 0 && monthSrc) mi = monthIndexOf(monthSrc.get(m));
+    const days = txt.replace(/\b(1[89]|20)\d\d\b/g, '').replace(MONTH_RE, '')
+                    .split(/[,\s]+/).filter(Boolean).join(', ');
+    return mi >= 0 ? (days + ' ' + MONTH_ABBR[mi]).trim() : days;
   };
-  const candidates = [{ name: 'D.DT[testNumber]', get: k => DT[k] }];
-  if (Array.isArray(DT)) {
-    const known = new Set([0,1,2,3,7,8,13,14,15,16,17,18,19,20]);
-    for (let i = 0; i <= 20; i++) {
-      if (known.has(i)) continue;
-      candidates.push({ name: 'D.DT[m[' + i + ']]', get: (k, m) => DT[m[i]] });
-    }
-  }
-  let best = null;
-  candidates.forEach(c => { const sc = score(c.get); if (!best || sc > best.sc) best = { ...c, sc }; });
-  if (best && best.sc >= 0.95) {
-    __dateOf = (k, m) => fmtMatchDate(best.get(k, m));
-    console.info(`[countries] Match dates via ${best.name} (${(best.sc*100).toFixed(1)}% agree with year).`);
-  } else {
-    const sample = Array.isArray(DT) ? DT.slice(0, 3) : Object.entries(DT).slice(0, 3);
-    console.warn('[countries] Could not map D.DT to matches \u2014 Date column will be blank.',
-                 { isArray: Array.isArray(DT), length: Array.isArray(DT) ? DT.length : Object.keys(DT).length,
-                   sample, bestGuess: best && best.name, agreement: best && best.sc });
-  }
+  if (monthSrc) console.info(`[countries] Match dates: D.DT[m[${di}]], month from ${monthSrc.name}.`);
+  else console.warn(`[countries] Match dates: D.DT[m[${di}]], but no month source found - some dates show days only.`);
 }
 
 function buildH2HFromData(D) {
