@@ -280,6 +280,11 @@ td.result-cell{text-align:left;font-size:12px}
 <footer data-ct-nav="footer"></footer>
 
 <!-- data.js removed (Phase 3 §3): dataset now loaded via CTData from the gated serveDerivedData endpoint -->
+<!-- SheetJS + shared export engine. Must load BEFORE the main script below:
+     it calls CTExport.init() at top level, and if CTExport is undefined the
+     whole script aborts before init() runs, so the page never loads its data. -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="/ct-export.js"></script><!-- shared export engine: xlsx / ods / Sheets / PDF -->
 <script>
 /* ── D.P index map ── */
 const IDX = {
@@ -792,9 +797,6 @@ CTExport.init({ build: buildExportModel, minFilters: 2 });
   applyFilters();
 })();
 </script>
-<!-- SheetJS for Excel Export -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="/ct-export.js"></script><!-- shared export engine: xlsx / ods / Sheets / PDF -->
 <script src="ct-nav.js"></script>
 </body>
 </html>
