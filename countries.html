@@ -863,6 +863,7 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
           <tr>
             <th>Test #</th>
             <th>Year</th>
+            <th>Date</th>
             <th id="thPeriod" style="display:none">Period</th>
             <th class="left" id="thMatch" style="display:none">Match</th>
             <th class="left">Venue</th>
@@ -1475,7 +1476,7 @@ function buildAllVsAllMatches() {
         const home = (vc === c1 || vc === c2) ? vc : null;
         if (home === c2) { c1 = opp; c2 = me; }   // list the host first
         out.push({
-          test: m.test, year: m.year, venue: m.venue, ground: m.ground, margin: m.margin,
+          test: m.test, year: m.year, date: m.date, venue: m.venue, ground: m.ground, margin: m.margin,
           bazEng: m.bazEng, bazOther: m.bazOther,
           c1: c1, c2: c2, winner: winner,
           ha: home ? 'home' : 'neutral',
@@ -1965,6 +1966,7 @@ function renderTable() {
     return `<tr>
       <td>${m.test}</td>
       <td>${m.year}</td>
+      <td style="white-space:nowrap;color:var(--text2)">${m.date || '\u2014'}</td>
       <td${twoPeriods ? ' style="font-weight:700;color:var(--text3)"' : ' style="display:none"'}>${periodTag}</td>
       <td class="left"${multiSide ? '' : ' style="display:none"'}>${matchup}</td>
       <td class="left">${m.venue || '—'}</td>
@@ -2085,13 +2087,14 @@ function buildH2HExportModel(){
   }
 
   const twoPeriods = periods.length === 2;
-  const headers = ['Test #','Year','Match','Venue','Home/Away','Result','Margin'];
+  const headers = ['Test #','Year','Date','Match','Venue','Home/Away','Result','Margin'];
   if (twoPeriods) headers.push('Period');
 
   const rows = matches.map(m => {
     const row = [
       m.test,
       m.year,
+      m.date || '\u2014',
       m.c1 && m.c2 ? (TEAM_NAMES[m.c1] || m.c1) + ' v ' + (TEAM_NAMES[m.c2] || m.c2) : '\u2014',
       m.venue || '\u2014',
       m.ha === 'home' ? 'Home' : m.ha === 'away' ? 'Away' : 'Neutral',
@@ -2121,7 +2124,7 @@ function buildH2HExportModel(){
       { name:'Summary', role:'summary', rows: summaryRows,
         cols: [{wch:22},{wch:40},{wch:16},{wch:16},{wch:10},{wch:14}] },
       { name:'Matches', role:'data', headers: headers, rows: rows,
-        cols: [{wch:8},{wch:6},{wch:28},{wch:30},{wch:10},{wch:20},{wch:20},{wch:8}] }
+        cols: [{wch:8},{wch:6},{wch:14},{wch:28},{wch:30},{wch:10},{wch:20},{wch:20},{wch:8}] }
     ]
   };
 }
@@ -2197,8 +2200,67 @@ function marginFromResult(res) {
   return '';
 }
 
+// \u2500\u2500 Match dates \u2500\u2500
+// D.DT holds the dates, but the link from a match to its date isn't one of
+// the documented D.M slots, so it is detected once at load:
+//   - D.DT keyed by test number (object, or array indexed by test #), or
+//   - D.DT a lookup list pointed at by one of the undocumented m[] slots.
+// A candidate only wins if the date it yields contains that match's year
+// for at least 95% of Tests \u2014 so a wrong guess shows dashes, never
+// wrong dates. The chosen route is logged to the console.
+let __dateOf = null;   // (testKey, m) => display string | ''
+
+function fmtMatchDate(v) {
+  if (v === null || v === undefined || v === '') return '';
+  if (typeof v === 'number') {
+    const n = String(Math.trunc(v));
+    if (/^\d{8}$/.test(n)) {                       // yyyymmdd
+      const d = new Date(Date.UTC(+n.slice(0,4), +n.slice(4,6) - 1, +n.slice(6,8)));
+      return isNaN(d) ? n : d.toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric', timeZone:'UTC' });
+    }
+    return n;
+  }
+  return String(v).trim();
+}
+
+function dateHasYear(v, y) {
+  return typeof y === 'number' && fmtMatchDate(v).indexOf(String(y)) !== -1;
+}
+
+function resolveDateSource(D) {
+  __dateOf = () => '';
+  const DT = D && D.DT;
+  if (!DT || !D.M) { console.warn('[countries] No D.DT in data \u2014 Date column will be blank.'); return; }
+  const keys = Object.keys(D.M);
+  const score = get => {
+    let ok = 0, seen = 0;
+    keys.forEach(k => { const m = D.M[k]; if (!m) return; seen++; if (dateHasYear(get(k, m), m[7])) ok++; });
+    return seen ? ok / seen : 0;
+  };
+  const candidates = [{ name: 'D.DT[testNumber]', get: k => DT[k] }];
+  if (Array.isArray(DT)) {
+    const known = new Set([0,1,2,3,7,8,13,14,15,16,17,18,19,20]);
+    for (let i = 0; i <= 20; i++) {
+      if (known.has(i)) continue;
+      candidates.push({ name: 'D.DT[m[' + i + ']]', get: (k, m) => DT[m[i]] });
+    }
+  }
+  let best = null;
+  candidates.forEach(c => { const sc = score(c.get); if (!best || sc > best.sc) best = { ...c, sc }; });
+  if (best && best.sc >= 0.95) {
+    __dateOf = (k, m) => fmtMatchDate(best.get(k, m));
+    console.info(`[countries] Match dates via ${best.name} (${(best.sc*100).toFixed(1)}% agree with year).`);
+  } else {
+    const sample = Array.isArray(DT) ? DT.slice(0, 3) : Object.entries(DT).slice(0, 3);
+    console.warn('[countries] Could not map D.DT to matches \u2014 Date column will be blank.',
+                 { isArray: Array.isArray(DT), length: Array.isArray(DT) ? DT.length : Object.keys(DT).length,
+                   sample, bestGuess: best && best.name, agreement: best && best.sc });
+  }
+}
+
 function buildH2HFromData(D) {
   const h = {};
+  if (!__dateOf) resolveDateSource(D);
   Object.keys(D.M).forEach(k => {
     const m = D.M[k], t = parseInt(k, 10);
     const n1 = D.T[m[2]], n2 = D.T[m[3]];
@@ -2213,6 +2275,7 @@ function buildH2HFromData(D) {
     }
     const isDraw = drawn || winner === null;
     const venue = D.C[m[0]], year = m[7];
+    const date = __dateOf ? __dateOf(k, m) : '';
     const ground = (D.G && D.G[m[1]]) || '';
     const inBaz = !!(BAZ_WINDOW && t >= BAZ_WINDOW.fromTest && t <= BAZ_WINDOW.toTest);
     const hasEng = (c1 === 'ENG' || c2 === 'ENG');
@@ -2227,7 +2290,7 @@ function buildH2HFromData(D) {
       else if (winner === me) { r = 'Won'; b.wins++; }
       else { r = 'Lost'; b.losses++; }
       b.total++;
-      b.matches.push({ test: t, year: year, venue: venue, ground: ground, result: r, margin: margin,
+      b.matches.push({ test: t, year: year, date: date, venue: venue, ground: ground, result: r, margin: margin,
                        bazEng: inBaz && hasEng, bazOther: inBaz && !hasEng });
     });
   });
