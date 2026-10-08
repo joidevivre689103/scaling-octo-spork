@@ -819,12 +819,20 @@
     const season = m && m.seasonsPaid ? Math.min(Math.max(m.seasonsPaid, 1), SEASONS_TO_CAP) : null;
 
     // Cap number + season rows: only when the membership record exists.
-    const showMember = !!(m && m.capNumber);
-    ["cap-label", "cap-row", "season-label", "season-row"].forEach(id =>
-      document.getElementById(id).style.display = showMember ? "" : "none");
-    if (showMember) {
+    // The cap number is kept for life, even if every paid season was later
+    // refunded, so show it whenever it exists; the season row only when at
+    // least one season is paid (never "Season null of 7").
+    const showCap = !!(m && m.capNumber);
+    const showSeason = showCap && !!season;
+    ["cap-label", "cap-row"].forEach(id =>
+      document.getElementById(id).style.display = showCap ? "" : "none");
+    ["season-label", "season-row"].forEach(id =>
+      document.getElementById(id).style.display = showSeason ? "" : "none");
+    if (showCap) {
       document.getElementById("cap-number").textContent = "#" + m.capNumber;
       document.getElementById("cap-debut").textContent = fmtDebut(m.debutAt);
+    }
+    if (showSeason) {
       document.getElementById("season-name").textContent = `Season ${season} of ${SEASONS_TO_CAP}`;
       const left = SEASONS_TO_CAP - season;
       document.getElementById("season-sub").textContent = left === 0
