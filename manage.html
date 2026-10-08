@@ -935,7 +935,6 @@
   async function handleCancelClick() {
     const periodEnd = fmtDateUnix(currentSub.currentPeriodEnd);
     const bodyHtml = `
-      <p>Turn off renewal?</p>
       <ul>
         <li>You'll keep full access until <strong>${periodEnd}</strong>.</li>
         <li>You won't be charged again.</li>
@@ -966,7 +965,6 @@
 
   async function handleResumeClick() {
     const bodyHtml = `
-      <p>Turn renewal back on?</p>
       <ul>
         <li>Your subscription continues without interruption.</li>
         <li>It renews on its existing date, at your next season's lower price.</li>
