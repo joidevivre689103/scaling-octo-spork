@@ -793,14 +793,12 @@
     // Step (c): swap form for signed-in panel when authenticated.
     // Try to upgrade tier label from subscriptions/{userId}.priceKey;
     // failures are silent (default "Subscriber" label is fine).
-    const TIER_LABELS = {
-      usd_monthly:  'Monthly Subscriber',
-      usd_annual:   'Annual Subscriber',
-      usd_founding: 'Founding Member',
-      inr_monthly:  'Monthly Subscriber',
-      inr_annual:   'Annual Subscriber',
-      inr_founding: 'Founding Member'
-    };
+    // 2026-10-07: annual-only loyalty pricing — one plan in seven currencies.
+    // Monthly and founding keys are gone; the label is the same everywhere.
+    const TIER_LABELS = {};
+    ['usd', 'cad', 'gbp', 'aud', 'nzd', 'inr', 'zar'].forEach(function (c) {
+      TIER_LABELS[c + '_annual'] = 'Subscriber';
+    });
 
     function emailToUserId(email) {
       // Mirrors the userId convention used by the webhook:

@@ -178,7 +178,6 @@
   .badge.active     { color: var(--success); }
   .badge.scheduled  { color: var(--gold); }
   .badge.past-due   { color: var(--crimson); }
-  .badge.founding   { color: var(--gold); border-color: var(--gold-soft); background: #fcf6e6; }
 
   /* ── Plan summary grid ─────────────────────────────────────────────── */
   .plan-grid {
@@ -398,7 +397,7 @@
 
 <main class="container">
   <h1 class="page-title">Manage your subscription</h1>
-  <p class="page-sub">Switch plans, schedule cancellation, or resume a pending cancellation.</p>
+  <p class="page-sub">Your cap number, your season, next season&rsquo;s price, and whether you renew.</p>
 
   <!-- ─── Loading state ─── -->
   <div id="state-loading" class="state active">
@@ -453,10 +452,10 @@
   <!-- ─── Loaded state ─── -->
   <div id="state-loaded" class="state">
 
-    <!-- Cancellation-pending notice (only shown when cancelAtPeriodEnd is true) -->
+    <!-- Renewal-off notice (only shown when cancelAtPeriodEnd is true) -->
     <div id="cancel-pending-notice" class="notice warn" style="display:none">
-      <strong>Cancellation scheduled.</strong>
-      Your subscription will end on <span id="cancel-end-date">—</span>. You'll keep full access until then. Change your mind?
+      <strong>Renewal is off.</strong>
+      Your subscription ends on <span id="cancel-end-date">—</span>. You'll keep full access until then, and your cap number and seasons stay yours if you come back later. Change your mind?
       <span id="cancel-pending-resume-cta"></span>
     </div>
 
@@ -466,22 +465,33 @@
       Your most recent renewal payment didn't go through. Stripe will retry automatically over the next few days. If those retries fail, your subscription will be cancelled.
     </div>
 
-    <!-- Current plan card -->
+    <!-- Membership card (2026-10-07: annual-only loyalty pricing).
+         Cap number and season come from members/{emailKey}, written by the
+         webhook. Until that doc exists the cap and season rows stay hidden and
+         the page still works off subscriptions/{emailKey}. -->
     <div class="card">
       <div class="card-head">
-        <h2>Current plan</h2>
+        <h2>Your membership</h2>
         <span id="status-badge" class="badge active">Active</span>
       </div>
       <div class="card-body">
         <dl class="plan-grid">
-          <dt>Plan</dt>
-          <dd>
-            <span id="plan-name" class="plan-name">—</span>
-            <span id="founding-badge" class="badge founding" style="display:none; margin-left:10px; vertical-align: middle;">Founding member</span>
-            <div id="plan-price" class="plan-price">—</div>
+          <dt id="cap-label" style="display:none">Cap number</dt>
+          <dd id="cap-row" style="display:none">
+            <span id="cap-number" class="plan-name">—</span>
+            <div id="cap-debut" class="plan-price">—</div>
           </dd>
 
-          <dt>Next bill</dt>
+          <dt id="season-label" style="display:none">Season</dt>
+          <dd id="season-row" style="display:none">
+            <span id="season-name" class="plan-name">—</span>
+            <div id="season-sub" class="plan-price">—</div>
+          </dd>
+
+          <dt>This season</dt>
+          <dd id="plan-price">—</dd>
+
+          <dt id="next-bill-label">Next renewal</dt>
           <dd id="next-bill">—</dd>
 
           <dt>Account</dt>
@@ -490,33 +500,16 @@
       </div>
     </div>
 
-    <!-- Switch plan card -->
-    <div class="card" id="switch-plan-card">
-      <div class="card-head">
-        <h2>Switch plan</h2>
-      </div>
-      <div class="card-body">
-        <p id="switch-plan-intro">
-          You can change between Monthly and Annual at any time. An upgrade bills the prorated difference today; a downgrade gives you a credit balance that's applied automatically to future invoices.
-        </p>
-        <div id="switch-plan-btn-row" class="btn-row">
-          <!-- Populated dynamically: a single button to swap to the alternative non-founding tier -->
-        </div>
-        <p id="switch-plan-locked" style="display:none; color: var(--ink-muted); font-style: italic; margin-top: 0;">
-          Plan changes are paused while a cancellation is scheduled. Resume your subscription first if you'd like to switch plans.
-        </p>
-      </div>
-    </div>
-
-    <!-- Cancel card -->
+    <!-- Renewal card -->
     <div class="card" id="cancel-card">
       <div class="card-head">
-        <h2>Cancel subscription</h2>
+        <h2>Renewal</h2>
       </div>
       <div class="card-body">
-        <p>Cancellation takes effect at the end of your current billing period. You'll keep full access until then, and you can change your mind any time before that date.</p>
+        <p>Your subscription renews automatically once a year, at your next season&rsquo;s lower price. We&rsquo;ll remind you a month before.</p>
+        <p>If you turn renewal off, you keep full access until the end of the season you&rsquo;ve paid for and won&rsquo;t be charged again. Your cap number and seasons stay yours, so if you come back later you carry on where you stopped. You can turn renewal back on any time before then.</p>
         <div class="btn-row">
-          <button id="cancel-btn" class="btn danger" type="button">Schedule cancellation</button>
+          <button id="cancel-btn" class="btn danger" type="button">Turn off renewal</button>
         </div>
       </div>
     </div>
@@ -646,38 +639,32 @@
   // on click, not at load. Covered by Phase 3 Test 4.
   const functions = getFunctions(app, "us-central1");
 
-  // Callable refs
-  const swapPlanFn       = httpsCallable(functions, "swapPlan");
+  // Callable refs. swapPlan retired 2026-10-07 — there is only one plan.
   const cancelSubFn      = httpsCallable(functions, "cancelSubscription");
   const resumeSubFn      = httpsCallable(functions, "resumeSubscription");
 
-  // ── Plan metadata (display-only; canonical pricing lives in Stripe) ──
+  // ── Season prices (display-only; canonical pricing lives in Stripe) ──
   //
-  // These are the human-readable labels and display prices for each priceKey.
-  // The server never reads from this; it's purely for rendering the UI.
-  const PLAN_DISPLAY = {
-    usd_monthly:  { name: "Monthly",        price: "$8 / month",       cadence: "month" },
-    usd_annual:   { name: "Annual",         price: "$72 / year",       cadence: "year"  },
-    usd_founding: { name: "Founding Annual",price: "$48 / year",       cadence: "year",  founding: true },
-    inr_monthly:  { name: "Monthly",        price: "₹99 / month",      cadence: "month" },
-    inr_annual:   { name: "Annual",         price: "₹899 / year",      cadence: "year"  },
-    inr_founding: { name: "Founding Annual",price: "₹599 / year",      cadence: "year",  founding: true },
+  // Annual-only loyalty pricing: season 1 is the full price, each later season
+  // is 5% of the season-1 price lower, and after season 7 the reader is capped
+  // for life and never charged again. MUST match LADDER in subscribe.html and
+  // the seven season Prices in Stripe (ct_season_1 … ct_season_7).
+  const LADDER = {
+    usd: ["$59.99", "$56.99", "$53.99", "$50.99", "$47.99", "$44.99", "$41.99"],
+    cad: ["C$69.99", "C$66.49", "C$62.99", "C$59.49", "C$55.99", "C$52.49", "C$48.99"],
+    gbp: ["£49.99", "£47.49", "£44.99", "£42.49", "£39.99", "£37.49", "£34.99"],
+    aud: ["A$89.99", "A$85.49", "A$80.99", "A$76.49", "A$71.99", "A$67.49", "A$62.99"],
+    nzd: ["NZ$99.99", "NZ$94.99", "NZ$89.99", "NZ$84.99", "NZ$79.99", "NZ$74.99", "NZ$69.99"],
+    inr: ["₹1,000", "₹950", "₹900", "₹850", "₹800", "₹750", "₹700"],
+    zar: ["R500", "R475", "R450", "R425", "R400", "R375", "R350"],
   };
+  const SEASONS_TO_CAP = 7;
 
-  // For each zone, what's the non-founding alternative to swap to?
-  // Monthly ↔ Annual within currency. Founding users can swap to either
-  // Monthly or Annual, but for simplicity we present the "main" alternative
-  // (Annual at standard price) and Monthly as the other option.
-  function alternativePlans(currentPriceKey) {
-    const cfg = PLAN_DISPLAY[currentPriceKey];
-    if (!cfg) return [];
-    const zone = currentPriceKey.split("_")[0]; // "usd" or "inr"
-    const cadence = cfg.cadence;
-    // Offer the OTHER cadence as the swap target. Founding users get Monthly
-    // (since Founding is already annual) — clean single-button UX.
-    if (cadence === "month") return [`${zone}_annual`];
-    if (cadence === "year")  return [`${zone}_monthly`];
-    return [];
+  // priceKey is "<currency>_annual" (e.g. "inr_annual"); the currency prefix is
+  // all this page needs. Legacy keys from test mode fall back to USD display.
+  function currencyOf(sub) {
+    const c = (sub.currency || (sub.priceKey || "").split("_")[0] || "").toLowerCase();
+    return LADDER[c] ? c : "usd";
   }
 
   // ── State helpers ────────────────────────────────────────────────────
@@ -729,7 +716,27 @@
 
   // ── Subscription load ────────────────────────────────────────────────
   let currentSub = null; // last-loaded subscription doc data
+  let currentMember = null; // members/{emailKey}: capNumber, seasonsPaid, debutAt
   let currentUser = null;
+
+  // members/{emailKey} — cap number and season count, written only by the
+  // Stripe webhook (owner-read in firestore.rules). Missing or unreadable is
+  // not an error: the page simply hides the cap and season rows.
+  async function loadMember(emailKey) {
+    try {
+      const snap = await getDoc(doc(db, "members", emailKey));
+      return snap.exists() ? snap.data() : null;
+    } catch (err) {
+      console.warn("Could not read membership record:", err);
+      return null;
+    }
+  }
+
+  function fmtDebut(ts) {
+    if (!ts) return "";
+    const d = typeof ts.toDate === "function" ? ts.toDate() : new Date(ts);
+    return isNaN(d) ? "" : "Debut " + d.toLocaleDateString(undefined, { month: "long", year: "numeric" });
+  }
 
   // Does this reader hold complimentary access (the 'paidSubscriber' role in
   // settings/userTypes) rather than a Stripe subscription? Added 2026-07-18
@@ -746,12 +753,16 @@
   // If they move to userRoles/{emailKey} (Option A), just repoint the doc path.
   // Either way this is a FOURTH place entitlement is decided — add it to the
   // three-places parity list when that work is scoped.
+  //
+  // UPDATED 2026-10-07: switched to the ID-token custom claim, matching
+  // subscribe.html. settings/userTypes became admin-read-only with item #4
+  // (2026-07-27), so the old getDoc was denied for every reader and a
+  // complimentary reader fell through to "no subscription found".
   async function hasComplimentaryAccess(user) {
     try {
-      const key = (user.email || "").toLowerCase().replace(/[.@]/g, "_");
-      if (!key) return false;
-      const snap = await getDoc(doc(db, "settings", "userTypes"));
-      return snap.exists() && snap.data()[key] === "paidSubscriber";
+      let res = await user.getIdTokenResult();
+      if (!res.claims.role) res = await user.getIdTokenResult(true);
+      return res.claims.role === "paidSubscriber";
     } catch (err) {
       console.warn("Could not check complimentary access:", err);
       return false;
@@ -786,6 +797,7 @@
         return;
       }
       currentSub = data;
+      currentMember = await loadMember(emailKey);
       renderLoaded(user, data);
       showState("state-loaded");
     } catch (err) {
@@ -798,12 +810,33 @@
 
   // ── Render the loaded state ──────────────────────────────────────────
   function renderLoaded(user, sub) {
-    const priceKey = sub.priceKey;
-    const cfg = PLAN_DISPLAY[priceKey] || { name: priceKey || "Unknown plan", price: "" };
+    const cur = currencyOf(sub);
+    const ladder = LADDER[cur];
+    const m = currentMember;
+    // Season being paid for right now: seasonsPaid counts paid seasons,
+    // including the current one. Clamp to 1..7 so a missing or odd value can
+    // never index off the ladder.
+    const season = m && m.seasonsPaid ? Math.min(Math.max(m.seasonsPaid, 1), SEASONS_TO_CAP) : null;
 
-    document.getElementById("plan-name").textContent = cfg.name;
-    document.getElementById("plan-price").textContent = cfg.price;
-    document.getElementById("founding-badge").style.display = sub.isFounding ? "inline-block" : "none";
+    // Cap number + season rows: only when the membership record exists.
+    const showMember = !!(m && m.capNumber);
+    ["cap-label", "cap-row", "season-label", "season-row"].forEach(id =>
+      document.getElementById(id).style.display = showMember ? "" : "none");
+    if (showMember) {
+      document.getElementById("cap-number").textContent = "#" + m.capNumber;
+      document.getElementById("cap-debut").textContent = fmtDebut(m.debutAt);
+      document.getElementById("season-name").textContent = `Season ${season} of ${SEASONS_TO_CAP}`;
+      const left = SEASONS_TO_CAP - season;
+      document.getElementById("season-sub").textContent = left === 0
+        ? "Your seventh season. After this one you're capped for life."
+        : `${left} more season${left === 1 ? "" : "s"} and you're capped for life.`;
+    }
+
+    // This season's price. Without a season count we can't know where on the
+    // ladder the reader is, so say nothing rather than show a wrong figure.
+    document.getElementById("plan-price").textContent =
+      season ? `${ladder[season - 1]} a year` : "—";
+
     document.getElementById("account-email").textContent = user.email || "—";
     document.getElementById("meta-email").textContent = user.email || "—";
 
@@ -812,7 +845,7 @@
     badge.className = "badge";
     if (sub.cancelAtPeriodEnd) {
       badge.classList.add("scheduled");
-      badge.textContent = "Cancellation scheduled";
+      badge.textContent = "Renewal off";
     } else if (sub.status === "past_due") {
       badge.classList.add("past-due");
       badge.textContent = "Past due";
@@ -821,61 +854,46 @@
       badge.textContent = "Active";
     }
 
-    // Next bill / period end
-    document.getElementById("next-bill").textContent =
-      sub.cancelAtPeriodEnd
-        ? `Access ends ${fmtDateUnix(sub.currentPeriodEnd)}`
-        : fmtDateUnix(sub.currentPeriodEnd);
+    // Next renewal: date plus the next season's (lower) price, or the end of
+    // access if renewal is off, or the cap if this is season 7.
+    const nextLabel = document.getElementById("next-bill-label");
+    const nextEl = document.getElementById("next-bill");
+    const endDate = fmtDateUnix(sub.currentPeriodEnd);
+    if (sub.cancelAtPeriodEnd) {
+      nextLabel.textContent = "Access until";
+      nextEl.textContent = endDate;
+    } else if (season === SEASONS_TO_CAP) {
+      nextLabel.textContent = "On " + endDate;
+      nextEl.textContent = "You're capped for life. Nothing more to pay.";
+    } else if (season) {
+      nextLabel.textContent = "Next renewal";
+      nextEl.textContent = `${endDate} · Season ${season + 1} at ${ladder[season]}`;
+    } else {
+      nextLabel.textContent = "Next renewal";
+      nextEl.textContent = endDate;
+    }
 
     // Past-due notice
     document.getElementById("past-due-notice").style.display =
       sub.status === "past_due" ? "block" : "none";
 
-    // Cancel-pending notice + resume CTA
+    // Renewal-off notice + turn-back-on CTA
     const cancelNotice = document.getElementById("cancel-pending-notice");
     if (sub.cancelAtPeriodEnd) {
       cancelNotice.style.display = "block";
-      document.getElementById("cancel-end-date").textContent = fmtDateUnix(sub.currentPeriodEnd);
+      document.getElementById("cancel-end-date").textContent = endDate;
       const ctaSpan = document.getElementById("cancel-pending-resume-cta");
-      ctaSpan.innerHTML = '<br><br><button type="button" class="btn gold" id="resume-btn">Resume my subscription</button>';
+      ctaSpan.innerHTML = '<br><br><button type="button" class="btn gold" id="resume-btn">Turn renewal back on</button>';
       document.getElementById("resume-btn").onclick = handleResumeClick;
     } else {
       cancelNotice.style.display = "none";
     }
 
-    // Switch-plan card
-    const switchRow = document.getElementById("switch-plan-btn-row");
-    const switchLocked = document.getElementById("switch-plan-locked");
-    switchRow.innerHTML = "";
-    if (sub.cancelAtPeriodEnd) {
-      // Don't allow plan swaps while a cancellation is pending — would be
-      // a confusing UX (proration math against a sub that's about to die).
-      switchRow.style.display = "none";
-      switchLocked.style.display = "block";
-    } else {
-      switchRow.style.display = "flex";
-      switchLocked.style.display = "none";
-      const alts = alternativePlans(priceKey);
-      if (alts.length === 0) {
-        switchRow.innerHTML = '<p style="color: var(--ink-muted); font-style: italic; margin: 0;">No alternative plan available in your region.</p>';
-      } else {
-        alts.forEach(altKey => {
-          const altCfg = PLAN_DISPLAY[altKey];
-          if (!altCfg) return;
-          const btn = document.createElement("button");
-          btn.type = "button";
-          btn.className = "btn gold";
-          btn.textContent = `Switch to ${altCfg.name} — ${altCfg.price}`;
-          btn.onclick = () => handleSwapClick(altKey, altCfg);
-          switchRow.appendChild(btn);
-        });
-      }
-    }
-
-    // Cancel card: hide if cancellation already scheduled (the cancel-pending
-    // notice up top has its own Resume CTA; we don't show "Cancel" twice).
+    // Renewal card: hide when renewal is already off (the notice up top has
+    // its own turn-back-on button), and in season 7, when there is no further
+    // renewal to turn off.
     document.getElementById("cancel-card").style.display =
-      sub.cancelAtPeriodEnd ? "none" : "block";
+      (sub.cancelAtPeriodEnd || season === SEASONS_TO_CAP) ? "none" : "block";
   }
 
   // ── Refresh after a mutation: poll the subscription doc until the webhook
@@ -914,63 +932,27 @@
   }
 
   // ── Action handlers ──────────────────────────────────────────────────
-  async function handleSwapClick(newPriceKey, altCfg) {
-    const currentCfg = PLAN_DISPLAY[currentSub.priceKey] || {};
-    const isUpgrade =
-      (currentCfg.cadence === "month" && altCfg.cadence === "year");
-    const bodyHtml = `
-      <p>Switch from <strong>${currentCfg.name || currentSub.priceKey}</strong> to <strong>${altCfg.name}</strong> (${altCfg.price})?</p>
-      <ul>
-        <li>${isUpgrade
-          ? "You'll be charged the prorated difference for the rest of your current period today, then renew at the standard annual rate."
-          : "The unused portion of your current plan will become a credit balance on your account, applied automatically to future invoices until used up. After that, your card will be charged the normal monthly fee."}</li>
-        <li>Your new plan takes effect immediately.</li>
-        ${currentSub.isFounding ? "<li>Your Founding Member badge stays with you regardless. The Founding discount is tied specifically to the Founding Annual tier — once you've moved to a different tier, the discount no longer applies and you can't switch back to Founding pricing later.</li>" : ""}
-      </ul>
-    `;
-    showModal({
-      title: `Switch to ${altCfg.name}?`,
-      bodyHtml,
-      confirmLabel: "Confirm switch",
-      confirmKind: "gold",
-      onConfirm: async () => {
-        try {
-          showState("state-loading");
-          await swapPlanFn({ newPriceKey });
-          toast("Plan switched. Updating your record…");
-          showState("state-loaded");
-          await refreshUntilChanged(currentUser, d => d.priceKey === newPriceKey);
-          toast(`You're now on the ${altCfg.name} plan.`);
-        } catch (err) {
-          console.error("swapPlan failed:", err);
-          showState("state-loaded");
-          toast(humanizeError(err), "error");
-        }
-      }
-    });
-  }
-
   async function handleCancelClick() {
-    const cfg = PLAN_DISPLAY[currentSub.priceKey] || {};
     const periodEnd = fmtDateUnix(currentSub.currentPeriodEnd);
     const bodyHtml = `
-      <p>Schedule cancellation of your <strong>${cfg.name || currentSub.priceKey}</strong> subscription?</p>
+      <p>Turn off renewal?</p>
       <ul>
         <li>You'll keep full access until <strong>${periodEnd}</strong>.</li>
         <li>You won't be charged again.</li>
-        <li>You can resume any time before that date — no penalty, no re-signup.</li>
+        <li>Your cap number and seasons stay yours. If you come back later, you carry on where you stopped.</li>
+        <li>You can turn renewal back on any time before that date.</li>
       </ul>
     `;
     showModal({
-      title: "Schedule cancellation?",
+      title: "Turn off renewal?",
       bodyHtml,
-      confirmLabel: "Schedule cancellation",
+      confirmLabel: "Turn off renewal",
       confirmKind: "danger",
       onConfirm: async () => {
         try {
           showState("state-loading");
           await cancelSubFn({});
-          toast("Cancellation scheduled.");
+          toast("Renewal turned off.");
           showState("state-loaded");
           await refreshUntilChanged(currentUser, d => d.cancelAtPeriodEnd === true);
         } catch (err) {
@@ -984,22 +966,22 @@
 
   async function handleResumeClick() {
     const bodyHtml = `
-      <p>Resume your subscription? Your scheduled cancellation will be reversed.</p>
+      <p>Turn renewal back on?</p>
       <ul>
-        <li>Your plan continues without interruption.</li>
-        <li>Your next renewal will go ahead on its existing date.</li>
+        <li>Your subscription continues without interruption.</li>
+        <li>It renews on its existing date, at your next season's lower price.</li>
       </ul>
     `;
     showModal({
-      title: "Resume subscription?",
+      title: "Turn renewal back on?",
       bodyHtml,
-      confirmLabel: "Resume",
+      confirmLabel: "Turn renewal on",
       confirmKind: "gold",
       onConfirm: async () => {
         try {
           showState("state-loading");
           await resumeSubFn({});
-          toast("Subscription resumed.");
+          toast("Renewal is back on.");
           showState("state-loaded");
           await refreshUntilChanged(currentUser, d => d.cancelAtPeriodEnd !== true);
         } catch (err) {

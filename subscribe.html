@@ -449,8 +449,8 @@ h1.title em {
    Added 2026-08-14. Cricket Times sits against cricket products whose paid
    tier is largely ad-removal. Note the anchor is softer than it first looks:
    Cricbuzz's ₹199 SKU is the ads-free plan, but there appears to be a fuller
-   Cricbuzz Plus around ₹750/yr — so ₹1,199 is ~1.6x the real comparable, not
-   8x. Our free tier carries no ads at all, so the comparison has to be
+   Cricbuzz Plus around ₹750/yr — so ₹1,000 is ~1.3x the real comparable, not
+   5x. Our free tier carries no ads at all, so the comparison has to be
    re-framed rather than won on price — this block does it without naming
    anyone. See the pricing memo, §31.5. */
 .value-note {
@@ -643,6 +643,81 @@ h1.title em {
 }
 .subscribe-msg.error { color: var(--crimson); }
 .subscribe-msg.info { color: var(--ink-soft); }
+
+/* ───── Loyalty ladder (added 2026-10-07) ─────
+   One annual price that falls 5% of the season-1 price every season, and is
+   free from season 8 ("capped for life"). The amounts are rendered from LADDER
+   in the script and MUST match the seven season Prices in Stripe
+   (lookup keys ct_season_1 … ct_season_7). */
+.ladder {
+  margin: 4px 0 18px;
+  padding: 16px 16px 14px;
+  background: #fffaf3;
+  border: 1px solid var(--rule-soft);
+  border-radius: 2px;
+}
+.ladder-title {
+  font-family: 'Playfair Display', serif;
+  font-weight: 600;
+  font-size: 17px;
+  color: var(--ink);
+  margin: 0 0 4px;
+  text-wrap: balance;
+}
+.ladder-title em { font-style: italic; font-weight: 400; color: var(--crimson); }
+.ladder-sub {
+  font-family: 'Source Serif 4', serif;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  margin: 0 0 12px;
+}
+.ladder-grid {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+  gap: 6px;
+}
+.ladder-step {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 7px 8px;
+  border: 1px solid var(--rule-soft);
+  border-radius: 2px;
+  background: var(--paper);
+  min-width: 0;
+}
+.ladder-step .season {
+  font-family: 'Special Elite', monospace;
+  font-size: 9.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+}
+.ladder-step .amt {
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.ladder-step.first { border-color: var(--crimson); }
+.ladder-step.first .amt { color: var(--crimson); }
+.ladder-step.capped { border-style: dashed; border-color: var(--gold); background: #fffdf7; }
+.ladder-step.capped .amt { color: var(--gold); font-style: italic; }
+.ladder-cap {
+  font-family: 'Source Serif 4', serif;
+  font-size: 13px;
+  font-style: italic;
+  line-height: 1.5;
+  color: var(--ink-mute);
+  margin: 12px 0 0;
+  padding-top: 10px;
+  border-top: 1px dashed var(--rule);
+}
+.ladder-cap strong { font-style: normal; font-weight: 600; color: var(--ink-soft); }
 </style>
 </head>
 <body>
@@ -756,6 +831,17 @@ h1.title em {
           </div>
         </div>
 
+        <!-- Loyalty ladder (2026-10-07). Amounts filled in by the script in the
+             detected currency; see LADDER. -->
+        <div class="ladder" id="ladder">
+          <p class="ladder-title">Cheaper every season. <em>Seven seasons and you&rsquo;re capped for life.</em></p>
+          <p class="ladder-sub">Each year you stay, your price falls. After your seventh season you never pay again.</p>
+          <ol class="ladder-grid" id="ladder-grid" aria-label="Price by season">
+            <!-- Populated by subscribe script -->
+          </ol>
+          <p class="ladder-cap">Every subscriber gets a <strong>Cricket Times cap number</strong>, in the order they join &mdash; the way a Test cricketer does on debut. It&rsquo;s yours for good, and so are your seasons: leave and come back, and you carry on where you stopped.</p>
+        </div>
+
         <div class="value-note" id="value-note">
           <p><strong>What a subscription buys is the part that took longest to build.</strong> Every <strong>statistical tool</strong> on the site &mdash; batting, bowling, keeping, captaincy, country head-to-heads, player comparison &mdash; filterable by era, opposition and venue. The searchable <strong>archive</strong>. The <strong>simulator</strong>, running on the same models as the analysis. And <strong>data export</strong>, so any table you build here is a table you can take away and work with.</p>
           <p class="permonth" id="value-permonth"></p>
@@ -808,20 +894,20 @@ h1.title em {
           </div>
         </div>
 
-        <p class="tier-foot">Cancel any time. Subscriptions are how the work continues.</p>
+        <p class="tier-foot">Renews automatically each year at your next season&rsquo;s lower price, with a reminder a month before. Turn off renewal or cancel any time from your account. Not for you? A full refund within 30 days of your first payment.</p>
       </div>
 
       <!-- Already-subscribed panel (added 2026-05-11). Hidden by default.
            Replaces #subscribe-flow above when the signed-in user already has
-           an active subscription. Plan switching and cancellation live on
-           manage.html. -->
+           an active subscription. Cap number, season and renewal settings live
+           on manage.html. -->
       <div class="already-subscribed-panel" id="already-subscribed-panel" style="display: none;">
         <p class="already-sub-title">You're already a paid subscriber.</p>
         <p class="already-sub-body">
           Your Cricket Times subscription is active &mdash; you have full access to the archive, the simulation tool, data export, behind-the-scenes notes, and everything else.
         </p>
         <p class="already-sub-body">
-          To switch plans or cancel, head to your <a href="/manage.html">subscription management page</a>.
+          Your cap number, your season, next season&rsquo;s price and your renewal settings are on your <a href="/manage.html">subscription page</a>.
         </p>
         <p class="already-sub-foot">
           Signed in as <span id="already-sub-email">&nbsp;</span> &middot;
@@ -927,54 +1013,39 @@ let currency = null;      // 'usd' | 'cad' | 'gbp' | 'aud' | 'nzd' | 'inr' | 'za
 let selectedPriceKey = null;
 
 // Display catalog. The Cloud Function is source of truth for Price IDs and
-// authorisation; amounts here are for rendering only. Every figure below must
-// match the corresponding `currency_options` entry on the two live Stripe
-// Prices (ct_annual_v1 / ct_monthly_v1) — if they drift, the page displays one
-// number and Stripe charges another.
-const CATALOG = {
-  usd: [
-    { key: 'usd_monthly',  cadence: 'Monthly', amount: '$6.99',     per: '/month',
-      detail: 'Billed monthly. Cancel any time.' },
-    { key: 'usd_annual',   cadence: 'Annual',  amount: '$59.99',    per: '/year',
-      detail: 'Save $24 vs monthly — works out at $5 a month.' },
-  ],
-  cad: [
-    { key: 'cad_monthly',  cadence: 'Monthly', amount: 'C$8.49',    per: '/month',
-      detail: 'Billed monthly. Cancel any time.' },
-    { key: 'cad_annual',   cadence: 'Annual',  amount: 'C$69.99',   per: '/year',
-      detail: 'Save C$31 vs monthly — works out at C$5.83 a month.' },
-  ],
-  gbp: [
-    { key: 'gbp_monthly',  cadence: 'Monthly', amount: '£5.99',      per: '/month',
-      detail: 'Billed monthly. Cancel any time.' },
-    { key: 'gbp_annual',   cadence: 'Annual',  amount: '£49.99',     per: '/year',
-      detail: 'Save £22 vs monthly — works out at £4.17 a month.' },
-  ],
-  aud: [
-    { key: 'aud_monthly',  cadence: 'Monthly', amount: 'A$10.49',   per: '/month',
-      detail: 'Billed monthly. Cancel any time.' },
-    { key: 'aud_annual',   cadence: 'Annual',  amount: 'A$89.99',   per: '/year',
-      detail: 'Save A$36 vs monthly — works out at A$7.50 a month.' },
-  ],
-  nzd: [
-    { key: 'nzd_monthly',  cadence: 'Monthly', amount: 'NZ$11.99',  per: '/month',
-      detail: 'Billed monthly. Cancel any time.' },
-    { key: 'nzd_annual',   cadence: 'Annual',  amount: 'NZ$99.99',  per: '/year',
-      detail: 'Save NZ$44 vs monthly — works out at NZ$8.33 a month.' },
-  ],
-  inr: [
-    { key: 'inr_monthly',  cadence: 'Monthly', amount: '₹149',       per: '/month',
-      detail: 'Billed monthly. Cancel any time.' },
-    { key: 'inr_annual',   cadence: 'Annual',  amount: '₹1,199',     per: '/year',
-      detail: 'Save ₹589 vs monthly — works out at under ₹100 a month.' },
-  ],
-  zar: [
-    { key: 'zar_monthly',  cadence: 'Monthly', amount: 'R59',       per: '/month',
-      detail: 'Billed monthly. Cancel any time.' },
-    { key: 'zar_annual',   cadence: 'Annual',  amount: 'R499',      per: '/year',
-      detail: 'Save R209 vs monthly — works out at R42 a month.' },
-  ],
+// authorisation; amounts here are for rendering only.
+//
+// 2026-10-07 — annual only, with loyalty pricing. There is no monthly plan.
+// A new subscriber always starts at season 1. Each renewal moves them to the
+// next season's Price, 5% of the season-1 price lower each time, and after the
+// seventh paid season the subscription ends and they are a Life Member
+// ("capped for life").
+//
+// The priceKey sent to createCheckoutSession is unchanged (`usd_annual` etc.):
+// the server reads the reader's season count and picks the season Price
+// itself, so this page never decides what a returning reader pays.
+//
+// ⚠️ Every figure in LADDER must match the `currency_options` amounts on the
+// seven season Prices in Stripe (lookup keys ct_season_1 … ct_season_7).
+// If they drift, the page displays one number and Stripe charges another.
+// LADDER[currency][0] is the season-1 price shown in the price box.
+const LADDER = {
+  usd: ['$59.99', '$56.99', '$53.99', '$50.99', '$47.99', '$44.99', '$41.99'],
+  cad: ['C$69.99', 'C$66.49', 'C$62.99', 'C$59.49', 'C$55.99', 'C$52.49', 'C$48.99'],
+  gbp: ['£49.99', '£47.49', '£44.99', '£42.49', '£39.99', '£37.49', '£34.99'],
+  aud: ['A$89.99', 'A$85.49', 'A$80.99', 'A$76.49', 'A$71.99', 'A$67.49', 'A$62.99'],
+  nzd: ['NZ$99.99', 'NZ$94.99', 'NZ$89.99', 'NZ$84.99', 'NZ$79.99', 'NZ$74.99', 'NZ$69.99'],
+  inr: ['₹1,000', '₹950', '₹900', '₹850', '₹800', '₹750', '₹700'],
+  zar: ['R500', 'R475', 'R450', 'R425', 'R400', 'R375', 'R350'],
 };
+
+const CATALOG = {};
+Object.keys(LADDER).forEach((c) => {
+  CATALOG[c] = [
+    { key: c + '_annual', cadence: 'Annual', amount: LADDER[c][0], per: '/year',
+      detail: 'Your first season. The price falls every year you stay.' },
+  ];
+});
 
 const CURRENCY_INTRO = {
   usd: 'Pricing in <strong>US dollars</strong>.',
@@ -989,31 +1060,24 @@ const CURRENCY_INTRO = {
 // Per-month reframe of the annual price. This is the line that gets compared
 // against cheap ad-removal tiers, so it needs to exist in every currency.
 const VALUE_PERMONTH = {
-  usd: 'Annual works out at $5 a month — for a paper that publishes all year.',
-  cad: 'Annual works out at C$5.83 a month — for a paper that publishes all year.',
-  gbp: 'Annual works out at £4.17 a month — for a paper that publishes all year.',
-  aud: 'Annual works out at A$7.50 a month — for a paper that publishes all year.',
-  nzd: 'Annual works out at NZ$8.33 a month — for a paper that publishes all year.',
-  inr: 'Annual works out at under ₹100 a month — for a paper that publishes all year.',
-  zar: 'Annual works out at R42 a month — for a paper that publishes all year.',
+  usd: 'Under $5 a month in your first season, and less every season after — for a paper that publishes all year.',
+  cad: 'Under C$6 a month in your first season, and less every season after — for a paper that publishes all year.',
+  gbp: 'Under £4.20 a month in your first season, and less every season after — for a paper that publishes all year.',
+  aud: 'A$7.50 a month in your first season, and less every season after — for a paper that publishes all year.',
+  nzd: 'Under NZ$8.50 a month in your first season, and less every season after — for a paper that publishes all year.',
+  inr: 'Under ₹84 a month in your first season, and less every season after — for a paper that publishes all year.',
+  zar: 'Under R42 a month in your first season, and less every season after — for a paper that publishes all year.',
 };
 
-// Shown when the function gives us a currency but no country code — we
-// describe the currency rather than claiming to know where the reader is.
-// Tax-behaviour disclosure. Only the two `exclusive` currencies need one:
-// USD and CAD are charged with tax added at checkout, every other currency is
-// tax-inclusive and the figure shown is the figure paid. Pricing memo §6.1 and
-// §9.3. The wording differs because the tax differs — a US reader may see
-// nothing at all (most states do not tax this product), a Canadian always sees
-// GST or HST.
+// Tax (2026-10-07): every price is TAX-INCLUSIVE, USD and CAD included. The
+// figure shown is the figure paid; any VAT, GST or sales tax comes out of it.
+// This replaces the August arrangement where USD and CAD had tax added at
+// checkout.
 //
-// ⚠️ Keep this map keyed to `tax_behavior` on the live Stripe Prices. If a
-// currency is ever flipped to inclusive, its line here must go, or the page
-// promises a tax that never arrives.
-const TAX_NOTE = {
-  usd: 'Prices exclude sales tax, which is added at checkout where your state requires it.',
-  cad: 'Prices exclude GST/HST, which is added at checkout.',
-};
+// ⚠️ Keep this in step with `tax_behavior: 'inclusive'` on every currency of
+// every season Price in Stripe. If any currency is ever set to exclusive, this
+// line becomes untrue for it.
+const TAX_NOTE_ALL = 'The price shown includes any tax. It&rsquo;s what you pay.';
 
 const CURRENCY_FALLBACK_LABEL = {
   usd: 'your region (US dollars)',
@@ -1133,10 +1197,30 @@ function renderOptions() {
   }
 
   introEl.innerHTML = CURRENCY_INTRO[currency] +
-    (TAX_NOTE[currency] ? ' <span class="tax-note">' + TAX_NOTE[currency] + '</span>' : '');
+    ' <span class="tax-note">' + TAX_NOTE_ALL + '</span>';
 
   const pm = document.getElementById('value-permonth');
   if (pm) pm.textContent = VALUE_PERMONTH[currency] || '';
+
+  renderLadder();
+}
+
+// Season-by-season price list, seasons 1–7 then "Free" from season 8.
+function renderLadder() {
+  const grid = document.getElementById('ladder-grid');
+  if (!grid || !LADDER[currency]) return;
+  grid.innerHTML = '';
+  LADDER[currency].forEach((amt, i) => {
+    const li = document.createElement('li');
+    li.className = 'ladder-step' + (i === 0 ? ' first' : '');
+    li.innerHTML = '<span class="season">Season ' + (i + 1) + '</span>' +
+                   '<span class="amt">' + amt + '</span>';
+    grid.appendChild(li);
+  });
+  const capped = document.createElement('li');
+  capped.className = 'ladder-step capped';
+  capped.innerHTML = '<span class="season">Season 8+</span><span class="amt">Free</span>';
+  grid.appendChild(capped);
 }
 
 // ─── Detected country ─────────────────────────────────────────────────────
@@ -1198,7 +1282,7 @@ function goToLogin() {
 // ─── Checkout ─────────────────────────────────────────────────────────────
 async function startCheckout() {
   if (!selectedPriceKey) {
-    msgEl.textContent = 'Please choose a billing cadence.';
+    msgEl.textContent = 'Pricing hasn’t loaded yet. Please wait a moment and try again.';
     msgEl.className = 'subscribe-msg error';
     return;
   }
@@ -1240,7 +1324,7 @@ async function startCheckout() {
         if (swapped) return;
       }
       userMessage = (err.message || 'You already have an active subscription.') +
-        ' Visit /manage.html to manage your plan.';
+        ' Visit /manage.html to see your subscription.';
     } else if (code === 'functions/permission-denied') {
       userMessage = err.message || 'This pricing isn\'t available from your location.';
     } else if (code === 'functions/unauthenticated') {
@@ -1272,7 +1356,7 @@ if (correctToggle && correctNoteEl) {
 }
 
 if (new URLSearchParams(window.location.search).get('cancelled') === '1') {
-  msgEl.textContent = 'Checkout cancelled — no charge was made. Pick a cadence and try again whenever you like.';
+  msgEl.textContent = 'Checkout cancelled — no charge was made. Subscribe again whenever you like.';
   msgEl.className = 'subscribe-msg info';
 }
 
