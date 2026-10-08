@@ -648,7 +648,7 @@ h1.title em {
    One annual price that falls 5% of the season-1 price every season, and is
    free from season 8 ("capped for life"). The amounts are rendered from LADDER
    in the script and MUST match the seven season Prices in Stripe
-   (lookup keys ct_season_1 … ct_season_7). */
+   (lookup keys season_1 … season_7). */
 .ladder {
   margin: 4px 0 18px;
   padding: 16px 16px 14px;
@@ -839,7 +839,7 @@ h1.title em {
           <ol class="ladder-grid" id="ladder-grid" aria-label="Price by season">
             <!-- Populated by subscribe script -->
           </ol>
-          <p class="ladder-cap">Every subscriber gets a <strong>Cricket Times cap number</strong>, in the order they join &mdash; the way a Test cricketer does on debut. It&rsquo;s yours for good, and so are your seasons: leave and come back, and you carry on where you stopped.</p>
+          <p class="ladder-cap">Every subscriber gets a <strong>cap number</strong>, in the order they join &mdash; the way a Test cricketer does on debut. It&rsquo;s yours for good, and so are your seasons: leave and come back, and you carry on where you stopped.</p>
         </div>
 
         <div class="value-note" id="value-note">
@@ -1026,7 +1026,7 @@ let selectedPriceKey = null;
 // itself, so this page never decides what a returning reader pays.
 //
 // ⚠️ Every figure in LADDER must match the `currency_options` amounts on the
-// seven season Prices in Stripe (lookup keys ct_season_1 … ct_season_7).
+// seven season Prices in Stripe (lookup keys season_1 … season_7).
 // If they drift, the page displays one number and Stripe charges another.
 // LADDER[currency][0] is the season-1 price shown in the price box.
 const LADDER = {
