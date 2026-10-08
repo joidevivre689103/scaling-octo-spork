@@ -454,8 +454,8 @@
 
     <!-- Renewal-off notice (only shown when cancelAtPeriodEnd is true) -->
     <div id="cancel-pending-notice" class="notice warn" style="display:none">
-      <strong>Renewal is off.</strong>
-      Your subscription ends on <span id="cancel-end-date">—</span>. You'll keep full access until then, and your cap number and seasons stay yours if you come back later. Change your mind?
+      <strong>Your subscription is cancelled.</strong>
+      It ends on <span id="cancel-end-date">—</span>. You'll keep full access until then, and your cap number and seasons stay yours if you come back later. Change your mind?
       <span id="cancel-pending-resume-cta"></span>
     </div>
 
@@ -503,13 +503,14 @@
     <!-- Renewal card -->
     <div class="card" id="cancel-card">
       <div class="card-head">
-        <h2>Renewal</h2>
+        <h2>Renewal and cancelling</h2>
       </div>
       <div class="card-body">
         <p>Your subscription renews automatically once a year, at your next season&rsquo;s lower price. You&rsquo;ll get a reminder email before each renewal, and the date and amount are always shown above.</p>
-        <p>If you turn renewal off, you keep full access until the end of the season you&rsquo;ve paid for and won&rsquo;t be charged again. Your cap number and seasons stay yours, so if you come back later you carry on where you stopped. You can turn renewal back on any time before then.</p>
+        <p>You can cancel at any time. You keep full access until the end of the season you&rsquo;ve paid for and won&rsquo;t be charged again. Your cap number and seasons stay yours, so if you come back later you carry on where you stopped. You can undo it any time before then.</p>
+        <p id="refund-note" style="display:none">Within 30 days of your first payment? Write to <a href="mailto:contact@cricketimes.com?subject=Refund%20request">contact@cricketimes.com</a> and we&rsquo;ll refund it in full. Your subscription then ends straight away.</p>
         <div class="btn-row">
-          <button id="cancel-btn" class="btn danger" type="button">Turn off renewal</button>
+          <button id="cancel-btn" class="btn danger" type="button">Cancel subscription</button>
         </div>
       </div>
     </div>
@@ -853,7 +854,7 @@
     badge.className = "badge";
     if (sub.cancelAtPeriodEnd) {
       badge.classList.add("scheduled");
-      badge.textContent = "Renewal off";
+      badge.textContent = "Cancelled";
     } else if (sub.status === "past_due") {
       badge.classList.add("past-due");
       badge.textContent = "Past due";
@@ -881,6 +882,13 @@
       nextEl.textContent = endDate;
     }
 
+    // 30-day refund note (Terms 5.4): first season only, within 30 days of
+    // the first payment (the debut), and only if no season was ever refunded.
+    const debut = m && m.debutAt ? (typeof m.debutAt.toDate === "function" ? m.debutAt.toDate() : new Date(m.debutAt)) : null;
+    const inRefundWindow = !!(m && m.seasonsPaid === 1 && !(m.refundedSeasons || []).length &&
+      debut && !isNaN(debut) && (Date.now() - debut.getTime()) < 30 * 86400 * 1000);
+    document.getElementById("refund-note").style.display = inRefundWindow ? "" : "none";
+
     // Past-due notice
     document.getElementById("past-due-notice").style.display =
       sub.status === "past_due" ? "block" : "none";
@@ -891,7 +899,7 @@
       cancelNotice.style.display = "block";
       document.getElementById("cancel-end-date").textContent = endDate;
       const ctaSpan = document.getElementById("cancel-pending-resume-cta");
-      ctaSpan.innerHTML = '<br><br><button type="button" class="btn gold" id="resume-btn">Turn renewal back on</button>';
+      ctaSpan.innerHTML = '<br><br><button type="button" class="btn gold" id="resume-btn">Keep my subscription</button>';
       document.getElementById("resume-btn").onclick = handleResumeClick;
     } else {
       cancelNotice.style.display = "none";
@@ -947,19 +955,19 @@
         <li>You'll keep full access until <strong>${periodEnd}</strong>.</li>
         <li>You won't be charged again.</li>
         <li>Your cap number and seasons stay yours. If you come back later, you carry on where you stopped.</li>
-        <li>You can turn renewal back on any time before that date.</li>
+        <li>You can undo this any time before that date.</li>
       </ul>
     `;
     showModal({
-      title: "Turn off renewal?",
+      title: "Cancel your subscription?",
       bodyHtml,
-      confirmLabel: "Turn off renewal",
+      confirmLabel: "Cancel subscription",
       confirmKind: "danger",
       onConfirm: async () => {
         try {
           showState("state-loading");
           await cancelSubFn({});
-          toast("Renewal turned off.");
+          toast("Subscription cancelled. You keep access until the end of your season.");
           showState("state-loaded");
           await refreshUntilChanged(currentUser, d => d.cancelAtPeriodEnd === true);
         } catch (err) {
@@ -979,15 +987,15 @@
       </ul>
     `;
     showModal({
-      title: "Turn renewal back on?",
+      title: "Keep your subscription?",
       bodyHtml,
-      confirmLabel: "Turn renewal on",
+      confirmLabel: "Keep my subscription",
       confirmKind: "gold",
       onConfirm: async () => {
         try {
           showState("state-loading");
           await resumeSubFn({});
-          toast("Renewal is back on.");
+          toast("Your subscription will carry on.");
           showState("state-loaded");
           await refreshUntilChanged(currentUser, d => d.cancelAtPeriodEnd !== true);
         } catch (err) {
