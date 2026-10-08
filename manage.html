@@ -506,7 +506,7 @@
         <h2>Renewal</h2>
       </div>
       <div class="card-body">
-        <p>Your subscription renews automatically once a year, at your next season&rsquo;s lower price. We&rsquo;ll remind you a month before.</p>
+        <p>Your subscription renews automatically once a year, at your next season&rsquo;s lower price. You&rsquo;ll get a reminder email before each renewal, and the date and amount are always shown above.</p>
         <p>If you turn renewal off, you keep full access until the end of the season you&rsquo;ve paid for and won&rsquo;t be charged again. Your cap number and seasons stay yours, so if you come back later you carry on where you stopped. You can turn renewal back on any time before then.</p>
         <div class="btn-row">
           <button id="cancel-btn" class="btn danger" type="button">Turn off renewal</button>
@@ -648,7 +648,7 @@
   // Annual-only loyalty pricing: season 1 is the full price, each later season
   // is 5% of the season-1 price lower, and after season 7 the reader is capped
   // for life and never charged again. MUST match LADDER in subscribe.html and
-  // the seven season Prices in Stripe (ct_season_1 … ct_season_7).
+  // the seven season Prices in Stripe (season_1 … season_7).
   const LADDER = {
     usd: ["$59.99", "$56.99", "$53.99", "$50.99", "$47.99", "$44.99", "$41.99"],
     cad: ["C$69.99", "C$66.49", "C$62.99", "C$59.49", "C$55.99", "C$52.49", "C$48.99"],

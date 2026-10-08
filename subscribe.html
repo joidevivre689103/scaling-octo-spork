@@ -648,7 +648,7 @@ h1.title em {
    One annual price that falls 5% of the season-1 price every season, and is
    free from season 8 ("capped for life"). The amounts are rendered from LADDER
    in the script and MUST match the seven season Prices in Stripe
-   (lookup keys ct_season_1 … ct_season_7). */
+   (lookup keys season_1 … season_7). */
 .ladder {
   margin: 4px 0 18px;
   padding: 16px 16px 14px;
@@ -839,7 +839,7 @@ h1.title em {
           <ol class="ladder-grid" id="ladder-grid" aria-label="Price by season">
             <!-- Populated by subscribe script -->
           </ol>
-          <p class="ladder-cap">Every subscriber gets a <strong>Cricket Times cap number</strong>, in the order they join &mdash; the way a Test cricketer does on debut. It&rsquo;s yours for good, and so are your seasons: leave and come back, and you carry on where you stopped.</p>
+          <p class="ladder-cap">Every subscriber gets a <strong>cap number</strong>, in the order they join &mdash; the way a Test cricketer does on debut. It&rsquo;s yours for good, and so are your seasons: leave and come back, and you carry on where you stopped.</p>
         </div>
 
         <div class="value-note" id="value-note">
@@ -894,7 +894,7 @@ h1.title em {
           </div>
         </div>
 
-        <p class="tier-foot">Renews automatically each year at your next season&rsquo;s lower price, with a reminder a month before. Turn off renewal or cancel any time from your account. Not for you? A full refund within 30 days of your first payment.</p>
+        <p class="tier-foot">Renews automatically each year at your next season&rsquo;s lower price, with a reminder email before each renewal. Turn off renewal or cancel any time from your account. Not for you? A full refund within 30 days of your first payment.</p>
       </div>
 
       <!-- Already-subscribed panel (added 2026-05-11). Hidden by default.
@@ -1026,7 +1026,7 @@ let selectedPriceKey = null;
 // itself, so this page never decides what a returning reader pays.
 //
 // ⚠️ Every figure in LADDER must match the `currency_options` amounts on the
-// seven season Prices in Stripe (lookup keys ct_season_1 … ct_season_7).
+// seven season Prices in Stripe (lookup keys season_1 … season_7).
 // If they drift, the page displays one number and Stripe charges another.
 // LADDER[currency][0] is the season-1 price shown in the price box.
 const LADDER = {
@@ -1327,6 +1327,9 @@ async function startCheckout() {
         ' Visit /manage.html to see your subscription.';
     } else if (code === 'functions/permission-denied') {
       userMessage = err.message || 'This pricing isn\'t available from your location.';
+    } else if (code === 'functions/failed-precondition') {
+      // e.g. seven seasons paid — capped for life, nothing to buy.
+      userMessage = err.message || 'There\'s nothing to buy on this account.';
     } else if (code === 'functions/unauthenticated') {
       // Auth state evaporated between page load and the call (signed out in
       // another tab, token revoked). Route to login; selection survives in
@@ -1537,6 +1540,14 @@ if (alreadySubSignout) {
     // version; renderDetectedCountry falls back to a currency label if not.
     renderDetectedCountry(urlCurrencyOverride ? null : (zoneRes.data && zoneRes.data.country));
     applyPricekeyFromUrl();
+    // Outside the Service Area (2026-10-07): the server refuses checkout, so
+    // say so up front instead of letting the reader find out at the button.
+    // `available` is absent on the old function — treat absent as available.
+    if (!urlCurrencyOverride && zoneRes.data && zoneRes.data.available === false) {
+      subscribeBtn.disabled = true;
+      msgEl.innerHTML = 'Paid subscriptions aren&rsquo;t available in your country yet &mdash; see the <a href="/servicearea.html">Service Area</a>. Reading Cricket Times stays free everywhere.';
+      msgEl.className = 'subscribe-msg info';
+    }
   } catch (err) {
     console.error('Initial pricing fetch failed:', err);
     currency = urlCurrencyOverride || 'usd';
