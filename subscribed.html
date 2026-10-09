@@ -590,7 +590,8 @@
         <span id="independenceLine">Your subscription helps keep all of it independent.</span>
       </p>
       <p class="muted" id="receiptNote">
-        A receipt is on its way to your inbox from Stripe. If anything looks
+        A receipt is on its way to your inbox from Link, which handles our
+        payments. If anything looks
         amiss with your subscription, write to
         <a href="mailto:ivan@cricketimes.com">ivan@cricketimes.com</a>
         and I&rsquo;ll sort it out personally.
@@ -605,11 +606,6 @@
       <a href="stories.html" class="btn btn-primary">Read the latest</a>
       <a href="archive.html" class="btn btn-secondary">Open the archive</a>
     </div>
-
-    <!-- Stripe session id, shown small and quiet -->
-    <p class="receipt hidden" id="receiptLine">
-      Reference: <span class="receipt-id" id="receiptId"></span>
-    </p>
 
     <!-- Closing flourish -->
     <div class="closing">
@@ -631,21 +627,14 @@
   <script>
   (function(){
     // ────────────────────────────────────────────────────────────
-    // Stripe session_id from URL — shown as a quiet receipt line.
-    // Absence is fine; the page is still useful as a generic
-    // welcome page if reached directly.
+    // Stripe session_id from URL. No longer shown to the reader
+    // (2026-10-09: it meant nothing to them, and support finds a
+    // payment by email address); still used below for the
+    // just-paid checks. Absence is fine; the page is still useful
+    // as a generic welcome page if reached directly.
     // ────────────────────────────────────────────────────────────
     const params = new URLSearchParams(window.location.search);
     const sessionId = params.get('session_id') || '';
-
-    if (sessionId) {
-      const line = document.getElementById('receiptLine');
-      const id   = document.getElementById('receiptId');
-      if (line && id) {
-        id.textContent = sessionId;
-        line.classList.remove('hidden');
-      }
-    }
 
     // ────────────────────────────────────────────────────────────
     // Page framing (added 2026-06-05, found in (b) testing).
