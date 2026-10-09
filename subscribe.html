@@ -644,6 +644,49 @@ h1.title em {
 .subscribe-msg.error { color: var(--crimson); }
 .subscribe-msg.info { color: var(--ink-soft); }
 
+/* ───── Renewal terms + consent (2026-10-09) ─────
+   Sits directly above the Subscribe button: the auto-renewal terms have to be
+   clear and conspicuous next to the thing the reader clicks. Not italic and
+   not muted — this is the one block on the page that must be read. */
+.renewal-terms {
+  margin: 18px 0 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  background: var(--paper);
+  text-align: left;
+}
+.renewal-terms-text {
+  font-family: 'Source Serif 4', serif;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--ink);
+  margin: 0 0 12px;
+}
+.renewal-terms-text strong { font-weight: 600; }
+.renewal-consent {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+.renewal-consent input {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  margin: 1px 0 0;
+  accent-color: var(--ink);
+  cursor: pointer;
+}
+.renewal-consent a,
+.renewal-terms-text a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+.renewal-terms.needs-consent {
+  border-color: var(--crimson);
+}
+
 /* ───── Loyalty ladder (added 2026-10-07) ─────
    One annual price that falls 5% of the season-1 price every season, and is
    free from season 8 ("capped for life"). The amounts are rendered from LADDER
@@ -873,6 +916,22 @@ h1.title em {
           </div>
         </div>
 
+        <!-- Renewal terms + consent (2026-10-09). Automatic-renewal laws want the
+             terms clear and conspicuous IMMEDIATELY beside the button, and the
+             reader's affirmative consent to them. The figures are filled in by
+             renderRenewalTerms() from LADDER, so they always match the price box.
+             CONSENT_VERSION in the script names this wording; the server records
+             it with the purchase, so change both together. -->
+        <div class="renewal-terms" id="renewal-terms">
+          <p class="renewal-terms-text" id="renewal-terms-text">
+            Renews automatically every year until you cancel.
+          </p>
+          <label class="renewal-consent" for="renewal-consent">
+            <input type="checkbox" id="renewal-consent" required>
+            <span>I understand my subscription <strong>renews automatically each year</strong> at the next season&rsquo;s price until I cancel, and I agree to the <a href="/terms.html#s5" target="_blank" rel="noopener">Terms of Service</a>.</span>
+          </label>
+        </div>
+
         <button type="button" class="tier-cta subscribe-btn" id="subscribe-btn" disabled>
           Subscribe
         </button>
@@ -894,7 +953,6 @@ h1.title em {
           </div>
         </div>
 
-        <p class="tier-foot">Renews automatically each year at your next season&rsquo;s lower price, with a reminder email before each renewal. Cancel any time from your account page. Not for you? A full refund within 30 days of your first payment.</p>
       </div>
 
       <!-- Already-subscribed panel (added 2026-05-11). Hidden by default.
@@ -991,6 +1049,16 @@ const detectedEl     = document.getElementById('zone-detected');
 const countryNameEl  = document.getElementById('zone-country-name');
 const correctToggle  = document.getElementById('zone-correct-toggle');
 const correctNoteEl  = document.getElementById('zone-correct-note');
+const renewalTermsEl   = document.getElementById('renewal-terms');
+const renewalTextEl    = document.getElementById('renewal-terms-text');
+const renewalConsentEl = document.getElementById('renewal-consent');
+
+// Names the exact renewal wording the reader agreed to. The server refuses a
+// checkout that doesn't carry an accepted consent with a version it knows
+// (ACCEPTED_CONSENT_VERSIONS in functions/checkout.js) and records it on the
+// purchase. Change the checkbox or terms wording → bump this AND add the new
+// value on the server, deploying the server first.
+const CONSENT_VERSION = 'renewal-2026-10-09';
 const signinPrompt = document.getElementById('signin-prompt');
 const signinSubmit = document.getElementById('signin-submit');
 
@@ -1203,6 +1271,35 @@ function renderOptions() {
   if (pm) pm.textContent = VALUE_PERMONTH[currency] || '';
 
   renderLadder();
+  renderRenewalTerms();
+}
+
+// The renewal terms beside the button, with this reader's real figures:
+// what they pay today, when it renews, and what the renewal costs. Written
+// for a new subscriber (season 1), which is who reaches this page.
+function renewalDateText() {
+  const d = new Date();
+  d.setFullYear(d.getFullYear() + 1);
+  const opts = { day: 'numeric', month: 'long', year: 'numeric' };
+  try {
+    return d.toLocaleDateString(navigator.language || 'en-GB', opts);
+  } catch (e) {
+    try { return d.toLocaleDateString('en-GB', opts); } catch (e2) { return d.toDateString(); }
+  }
+}
+
+function renderRenewalTerms() {
+  if (!renewalTextEl || !LADDER[currency]) return;
+  const today = LADDER[currency][0];
+  const next  = LADDER[currency][1];
+  renewalTextEl.innerHTML =
+    'You pay <strong>' + today + '</strong> today for one year. ' +
+    'Your subscription <strong>renews automatically</strong> on <strong>' + renewalDateText() + '</strong> at <strong>' + next + '</strong>, ' +
+    'and every year after at the next season&rsquo;s lower price, until you cancel. ' +
+    'After seven paid seasons it stops and you never pay again. ' +
+    'We email you about a month before each renewal. ' +
+    'Cancel online any time on your <a href="/manage.html">subscription page</a>; you keep access to the end of the year you&rsquo;ve paid for. ' +
+    'Not for you? A full refund of your first payment within 30 days, which ends your access.';
 }
 
 // Season-by-season price list, seasons 1–7 then "Free" from season 8.
@@ -1295,6 +1392,17 @@ async function startCheckout() {
     return;
   }
 
+  // Affirmative consent to the renewal terms. Checked here rather than by
+  // disabling the button, because several paths re-enable the button and a
+  // reader who can't tell why it's greyed out is worse off than one told.
+  if (!renewalConsentEl || !renewalConsentEl.checked) {
+    if (renewalTermsEl) renewalTermsEl.classList.add('needs-consent');
+    msgEl.textContent = 'Please tick the box to confirm you’ve read how renewal works.';
+    msgEl.className = 'subscribe-msg error';
+    if (renewalConsentEl) renewalConsentEl.focus();
+    return;
+  }
+
   subscribeBtn.disabled = true;
   subscribeBtn.innerHTML = '<span class="btn-spinner"></span>Redirecting to Stripe…';
   msgEl.textContent = '';
@@ -1304,6 +1412,7 @@ async function startCheckout() {
     const res = await createCheckoutSession({
       priceKey: selectedPriceKey,
       origin: window.location.origin,
+      consent: { renewal: true, version: CONSENT_VERSION },
     });
     if (res.data && res.data.url) {
       window.location.href = res.data.url;
@@ -1348,6 +1457,17 @@ async function startCheckout() {
 
 // ─── Wire up ──────────────────────────────────────────────────────────────
 subscribeBtn.addEventListener('click', startCheckout);
+if (renewalConsentEl) {
+  renewalConsentEl.addEventListener('change', () => {
+    if (renewalConsentEl.checked && renewalTermsEl) {
+      renewalTermsEl.classList.remove('needs-consent');
+      if (msgEl.classList.contains('error')) {
+        msgEl.textContent = '';
+        msgEl.className = 'subscribe-msg';
+      }
+    }
+  });
+}
 signinSubmit.addEventListener('click', goToLogin);
 
 if (correctToggle && correctNoteEl) {
