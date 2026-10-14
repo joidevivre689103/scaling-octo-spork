@@ -948,7 +948,7 @@ h1.title em {
           </p>
           <div class="zone-correct-note" id="zone-correct-note" hidden>
             <p>We work this out from your network connection, and it is occasionally wrong &mdash; a VPN, an office network, or a mobile provider routing through another country will all do it.</p>
-            <p>We can&rsquo;t let you change it here, because the price depends on it. Write to <a href="mailto:contact@cricketimes.com?subject=Wrong%20country%20on%20the%20subscribe%20page">contact@cricketimes.com</a>, tell us where you actually are, and we&rsquo;ll put it right by hand.</p>
+            <p>We can&rsquo;t let you change it here, because the price depends on it. Write to <a href="mailto:contact@thegrassbank.com?subject=Wrong%20country%20on%20the%20subscribe%20page">contact@thegrassbank.com</a>, tell us where you actually are, and we&rsquo;ll put it right by hand.</p>
             <p>Paid subscriptions are available only in the countries listed in our <a href="/servicearea.html">Service Area</a>. Reading Cricket Times free is open everywhere.</p>
           </div>
         </div>
@@ -1446,7 +1446,7 @@ async function startCheckout() {
       goToLogin();
       return;
     } else {
-      userMessage = 'Something went wrong starting checkout. Please try again, or write to ivan@cricketimes.com.';
+      userMessage = 'Something went wrong starting checkout. Please try again, or write to ivan@thegrassbank.com.';
     }
     msgEl.textContent = userMessage;
     msgEl.className = 'subscribe-msg error';
@@ -1675,7 +1675,7 @@ if (alreadySubSignout) {
     renderDetectedCountry(null);
     applyPricekeyFromUrl();
     if (!urlCurrencyOverride) {
-      msgEl.textContent = 'Couldn\'t verify live pricing. Showing USD by default — write to ivan@cricketimes.com if this doesn\'t look right.';
+      msgEl.textContent = 'Couldn\'t verify live pricing. Showing USD by default — write to ivan@thegrassbank.com if this doesn\'t look right.';
       msgEl.className = 'subscribe-msg info';
     }
   }
