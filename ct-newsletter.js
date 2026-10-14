@@ -94,7 +94,7 @@
              'You\u2019ll join the list once you click it.',
     errBadEmail: 'That doesn\u2019t look like a valid email address.',
     errFailed:   'That didn\u2019t go through. Try again, or write to ' +
-                 'ivan@cricketimes.com.'
+                 'ivan@thegrassbank.com.'
   };
 
   var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

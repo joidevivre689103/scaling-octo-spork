@@ -56,7 +56,7 @@
   var FOOTER_EXTRAS = [
     { href: '/bts.html',                   label: 'Behind the Scenes' },
     { href: '/about.html',                 label: 'About' },
-    { href: 'mailto:contact@cricketimes.com', label: 'Contact' },
+    { href: 'mailto:contact@thegrassbank.com', label: 'Contact' },
     { href: '/subscribe.html',             label: 'Subscribe' },
     { href: '/manage.html',                label: 'Manage Subscription', gated: 'paidAccess' },
     { href: '/servicearea.html',          label: 'Service Area' },

@@ -440,7 +440,7 @@
       </div>
 
       <div class="card-footer">
-        Need help? Write to <a href="mailto:ivan@cricketimes.com">ivan@cricketimes.com</a>
+        Need help? Write to <a href="mailto:ivan@thegrassbank.com">ivan@thegrassbank.com</a>
       </div>
 
     </div>
@@ -683,7 +683,7 @@
         case 'auth/invalid-email':
           return 'That doesn\u2019t look like a valid email address.';
         case 'auth/user-disabled':
-          return 'This account has been disabled. Write to ivan@cricketimes.com for help.';
+          return 'This account has been disabled. Write to ivan@thegrassbank.com for help.';
         case 'auth/user-not-found':
         case 'auth/wrong-password':
         case 'auth/invalid-credential':
@@ -1108,7 +1108,7 @@
         const msg =
           code === 'auth/expired-action-code' ? 'This reset link has expired.' :
           code === 'auth/invalid-action-code' ? 'This reset link is invalid or has already been used.' :
-          code === 'auth/user-disabled' ? 'This account has been disabled. Contact ivan@cricketimes.com.' :
+          code === 'auth/user-disabled' ? 'This account has been disabled. Contact ivan@thegrassbank.com.' :
           'We couldn\u2019t verify this reset link.';
         showMsg('reset-confirm', 'error', msg);
       }
