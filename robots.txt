@@ -31,4 +31,4 @@ Disallow: /models.html
 Disallow: /backsim.html
 Disallow: /batting-records.html
 
-Sitemap: https://cricketimes.com/sitemap.xml
+Sitemap: https://thegrassbank.com/sitemap.xml

@@ -272,13 +272,15 @@
         if (err && err.name === 'AbortError') {
           throw CTDataError('timeout', 'serveDerivedData timed out (possible cold start).');
         }
-        // A failed fetch with no status is almost always the apex-only CORS rule:
-        // the function echoes Access-Control-Allow-Origin: https://cricketimes.com
-        // ONLY. A page served from www. / *.web.app / a preview host passes auth
-        // then dies here. Serve every migrated page from https://cricketimes.com
-        // exactly, or widen ALLOWED_ORIGIN in the function.
+        // A failed fetch with no status is almost always a CORS origin mismatch:
+        // the function echoes Access-Control-Allow-Origin only for the hosts in
+        // ALLOWED_ORIGINS in serveDerivedData.js (thegrassbank.com, its www.,
+        // and the cricketimes.com hosts kept while that domain forwards). A page
+        // served from *.web.app / a preview host passes auth then dies here.
+        // Serve every migrated page from https://thegrassbank.com, or widen
+        // ALLOWED_ORIGINS in the function.
         throw CTDataError('network',
-          'serveDerivedData unreachable -- likely a CORS origin mismatch (this page must be served from https://cricketimes.com exactly).');
+          'serveDerivedData unreachable -- likely a CORS origin mismatch (this page must be served from https://thegrassbank.com).');
       }
     );
   }
