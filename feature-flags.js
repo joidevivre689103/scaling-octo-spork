@@ -1,6 +1,6 @@
 /* feature-flags.js
  * --------------------------------------------------------------------------
- * Cricket Times — Feature Flags + Tier-based Access Control
+ * The Grass Bank — Feature Flags + Tier-based Access Control
  *
  * Single source of truth for "who can see what" across the site. Combines:
  *   - config/featureFlags.site.minimumTier  → site-wide access gate

@@ -563,7 +563,7 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
   .ic-aggregate .ic-headline{font-size:28px}
 }
 
-/* ═══ Cricket Times Masthead & Nav ═══ */
+/* ═══ The Grass Bank Masthead & Nav ═══ */
 .ct-masthead{text-align:center;padding:20px 24px 16px;border-bottom:2px solid var(--text);position:relative;background:var(--bg)}
 .ct-masthead-date{font-family:'Inter',sans-serif;font-size:11px;font-weight:500;letter-spacing:1.2px;text-transform:uppercase;color:var(--text3);margin-bottom:8px}
 .ct-masthead-logo{font-family:'Playfair Display',serif;font-size:clamp(36px,8vw,58px);font-weight:700;letter-spacing:-1px;line-height:1.1}
@@ -3062,7 +3062,7 @@ function buildImpactExportModel(){
     title: 'Impact Analysis',
     caption: countryLabel + ' · ' + queries.map(q => labelForQuery(q).full).join(' vs '),
     unit: 'countries',
-    base: 'CricketTimes_ImpactAnalysis_' + new Date().toISOString().slice(0, 10),
+    base: 'TheGrassBank_ImpactAnalysis_' + new Date().toISOString().slice(0, 10),
     sheets: sheets
   };
 }
@@ -3122,7 +3122,7 @@ updateResults();
 function shareCountries(e) {
   const btn = e.currentTarget;
   const url = window.location.href;
-  const title = 'Cricket Times — Country vs Country';
+  const title = 'The Grass Bank — Country vs Country';
 
   if (navigator.share) {
     navigator.share({ title, url }).catch(() => {});

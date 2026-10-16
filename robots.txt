@@ -1,4 +1,4 @@
-# Cricket Times — robots.txt
+# The Grass Bank — robots.txt
 # Well-behaved crawlers respect these disallow rules.
 # Does NOT prevent access — only prevents indexing.
 

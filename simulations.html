@@ -674,7 +674,7 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
     <p style="margin-top:8px"><strong>Team aggregates.</strong> <em>Batting Strength</em> = position-weighted sum of the XI's batting ratings (top-order batters count ~3× more than the tail). <em>Bowling Strength</em> = sum of the top-5 bowling ratings in the XI.</p>
     <p style="margin-top:8px"><strong>Match outcome.</strong> Three-way logistic on <code>D = (A_bat − B_bow) + (A_bow − B_bat)</code>, plus home effect and a bat-first effect (the decision made at the toss — which team chose to bat first). Fit on <span id="calibN">~2,500</span> historical Tests. Out-of-the-box calibration: log-loss <span id="calibLogLoss">0.97</span> (vs <span id="calibLogLossBase">1.10</span> uniform baseline), Brier <span id="calibBrier">0.58</span> (vs <span id="calibBrierBase">0.67</span>).</p>
     <p style="margin-top:8px"><strong>Known v1 quirks.</strong> XI reconstruction drops ~3% of historical Tests where country-matching fails (e.g. ICC World XI). Empty slots default to a below-average filler (0.5 bat, 0 bow). All documented in <code>sim_model.json</code>.</p>
-    <p style="margin-top:12px;padding-top:10px;border-top:1px dotted var(--border);font-size:12px;color:var(--text3)"><strong style="color:var(--text2)">Data files:</strong> the ratings and match model are pipeline artifacts served from Cricket Times' authenticated data endpoint, not fetched as public files. The accuracy figures above come from a separate published calibration file. <span id="dataFilesGen"></span></p>
+    <p style="margin-top:12px;padding-top:10px;border-top:1px dotted var(--border);font-size:12px;color:var(--text3)"><strong style="color:var(--text2)">Data files:</strong> the ratings and match model are pipeline artifacts served from The Grass Bank's authenticated data endpoint, not fetched as public files. The accuracy figures above come from a separate published calibration file. <span id="dataFilesGen"></span></p>
   </div>
 </main>
 </div>
@@ -711,7 +711,7 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
 
 <!-- ═══ sim-engine.js (inlined for single-file page) ═══ -->
 <script>
-/* Cricket Times Simulation Engine v1 — browser runtime
+/* The Grass Bank Simulation Engine v1 — browser runtime
    Pure functions. Loads sim_ratings.json + sim_model.json. */
 (function(global){
   "use strict";

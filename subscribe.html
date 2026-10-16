@@ -12,7 +12,7 @@
 <!-- CT_7G_INJECT:END -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Subscribe — The Grass Bank</title>
-<meta name="description" content="Why Cricket Times exists, what's free, what subscribing gets you, and the newsletter — sign up for any of them.">
+<meta name="description" content="Why The Grass Bank exists, what's free, what subscribing gets you, and the newsletter — sign up for any of them.">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -446,7 +446,7 @@ h1.title em {
    the card country isn't visible until after the charge — so corrections go
    through a human. Privacy Policy §1.8 describes this exact behaviour. */
 /* ───── What you're actually buying ─────
-   Added 2026-08-14. Cricket Times sits against cricket products whose paid
+   Added 2026-08-14. The Grass Bank sits against cricket products whose paid
    tier is largely ad-removal. Note the anchor is softer than it first looks:
    Cricbuzz's ₹199 SKU is the ads-free plan, but there appears to be a fuller
    Cricbuzz Plus around ₹750/yr — so ₹1,000 is ~1.3x the real comparable, not
@@ -777,7 +777,7 @@ h1.title em {
 
     <p class="lede">Every other sport has, somewhere on the internet, a place where people who love it gather to think out loud. Football has a hundred. Basketball has thirty. American football has — oh, you'd better believe it — a stat for the third Tuesday of October. Cricket, the most absurdly varied and most quietly cerebral game in any language, deserves more places than it has. We made one of them.</p>
 
-    <p>Cricket Times is for people who think about cricket the way other people think about jazz: with affection, with arguments, and with the conviction that the music is more interesting than the marketing.</p>
+    <p>The Grass Bank is for people who think about cricket the way other people think about jazz: with affection, with arguments, and with the conviction that the music is more interesting than the marketing.</p>
 
     <p>The heart of the paper is Test cricket — the long form, the five-day mystery, the format where a session can turn on a single ball and a career can be defined by an hour before tea on the fourth afternoon. That's the truth, and we won't pretend otherwise. But cricket is bigger than its longest form, and the paper goes wherever the game is interesting. <em>Selectively rather than dutifully</em>, as the editor likes to say. You can love something a lot and something a little less, but it is still love.</p>
 
@@ -785,7 +785,7 @@ h1.title em {
 
     <hr class="section-break">
 
-    <p>The free part of Cricket Times is not a tease. It's the writing — every article, in full, with the narrated audio sitting on the piece itself. No login, no email, nothing to wait for. If you came here from a friend's link or a Google search and never sign up for anything, you'll still read it exactly as it was meant to be read.</p>
+    <p>The free part of The Grass Bank is not a tease. It's the writing — every article, in full, with the narrated audio sitting on the piece itself. No login, no email, nothing to wait for. If you came here from a friend's link or a Google search and never sign up for anything, you'll still read it exactly as it was meant to be read.</p>
 
     <p>A free account — a minute, an email address, no card — adds the two things that have to know who you are: <strong>commenting</strong> on articles, and the <strong>Yorker</strong> quiz every month, with its leaderboard. Both stay free permanently. Signing up is about identity, not payment.</p>
 
@@ -797,7 +797,7 @@ h1.title em {
 
     <hr class="section-break">
 
-    <p>Because someone has to keep the lights on, and the someone is — well, hi. It's me, Ivan. One person, one passion, one site, and a non-trivial monthly bill from the various services that quietly hold the whole thing together — hosting, domains, email, the database, the audio pipeline, a handful of others nobody thinks about until they stop working. The paid tier is how Cricket Times keeps existing on the days when the writing is hard and the bills don't stop arriving.</p>
+    <p>Because someone has to keep the lights on, and the someone is — well, hi. It's me, Ivan. One person, one passion, one site, and a non-trivial monthly bill from the various services that quietly hold the whole thing together — hosting, domains, email, the database, the audio pipeline, a handful of others nobody thinks about until they stop working. The paid tier is how The Grass Bank keeps existing on the days when the writing is hard and the bills don't stop arriving.</p>
 
     <p>Subscriptions are also how the paper grows beyond one person — and if you write about cricket and would like to be read here, the <a href="about.html">about page</a> has more on that.</p>
 
@@ -949,7 +949,7 @@ h1.title em {
           <div class="zone-correct-note" id="zone-correct-note" hidden>
             <p>We work this out from your network connection, and it is occasionally wrong &mdash; a VPN, an office network, or a mobile provider routing through another country will all do it.</p>
             <p>We can&rsquo;t let you change it here, because the price depends on it. Write to <a href="mailto:contact@thegrassbank.com?subject=Wrong%20country%20on%20the%20subscribe%20page">contact@thegrassbank.com</a>, tell us where you actually are, and we&rsquo;ll put it right by hand.</p>
-            <p>Paid subscriptions are available only in the countries listed in our <a href="/servicearea.html">Service Area</a>. Reading Cricket Times free is open everywhere.</p>
+            <p>Paid subscriptions are available only in the countries listed in our <a href="/servicearea.html">Service Area</a>. Reading The Grass Bank free is open everywhere.</p>
           </div>
         </div>
 
@@ -962,7 +962,7 @@ h1.title em {
       <div class="already-subscribed-panel" id="already-subscribed-panel" style="display: none;">
         <p class="already-sub-title">You're already a paid subscriber.</p>
         <p class="already-sub-body">
-          Your Cricket Times subscription is active &mdash; you have full access to the archive, the simulation tool, data export, behind-the-scenes notes, and everything else.
+          Your Grass Bank subscription is active &mdash; you have full access to the archive, the simulation tool, data export, behind-the-scenes notes, and everything else.
         </p>
         <p class="already-sub-body">
           Your cap number, your season, next season&rsquo;s price and your renewal settings are on your <a href="/manage.html">subscription page</a>.
@@ -1028,7 +1028,7 @@ const firestore = getFirestore(app);
 const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 if (isLocal) {
   connectFunctionsEmulator(functions, '127.0.0.1', 5001);
-  console.log('[Cricket Times] Using local Functions emulator at 127.0.0.1:5001');
+  console.log('[The Grass Bank] Using local Functions emulator at 127.0.0.1:5001');
 }
 
 const detectPricingZone       = httpsCallable(functions, 'detectPricingZone');
@@ -1570,7 +1570,7 @@ async function maybeShowAlreadySubscribedPanel(user) {
       const bodyEls = alreadySubPanelEl.querySelectorAll('.already-sub-body');
       if (titleEl) titleEl.textContent = "You already have full access.";
       if (bodyEls[0]) bodyEls[0].textContent =
-        "You've been given complimentary access to Cricket Times — the archive, the simulation tool, data export, behind-the-scenes notes, and everything else. There's nothing to pay.";
+        "You've been given complimentary access to The Grass Bank — the archive, the simulation tool, data export, behind-the-scenes notes, and everything else. There's nothing to pay.";
       if (bodyEls[1]) bodyEls[1].textContent =
         "There's no plan or billing attached to a complimentary account, so there's nothing to manage. If you'd rather move to a paid subscription, get in touch.";
     }
@@ -1665,7 +1665,7 @@ if (alreadySubSignout) {
     // `available` is absent on the old function — treat absent as available.
     if (!urlCurrencyOverride && zoneRes.data && zoneRes.data.available === false) {
       subscribeBtn.disabled = true;
-      msgEl.innerHTML = 'Paid subscriptions aren&rsquo;t available in your country yet &mdash; see the <a href="/servicearea.html">Service Area</a>. Reading Cricket Times stays free everywhere.';
+      msgEl.innerHTML = 'Paid subscriptions aren&rsquo;t available in your country yet &mdash; see the <a href="/servicearea.html">Service Area</a>. Reading The Grass Bank stays free everywhere.';
       msgEl.className = 'subscribe-msg info';
     }
   } catch (err) {

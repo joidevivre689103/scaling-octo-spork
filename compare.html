@@ -649,7 +649,7 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
 .header{display:none !important}
 header.header{display:none !important}
 
-/* ═══ Cricket Times Masthead & Nav ═══ */
+/* ═══ The Grass Bank Masthead & Nav ═══ */
 .ct-masthead{text-align:center;padding:20px 24px 16px;border-bottom:2px solid var(--text);position:relative;background:var(--bg)}
 .ct-masthead-date{font-family:'Inter',sans-serif;font-size:11px;font-weight:500;letter-spacing:1.2px;text-transform:uppercase;color:var(--text3);margin-bottom:8px}
 .ct-masthead-logo{font-family:'Playfair Display',serif;font-size:clamp(36px,8vw,58px);font-weight:700;letter-spacing:-1px;line-height:1.1}
@@ -3533,7 +3533,7 @@ function exportToExcel(){
 
   // Main sheet builder
   function buildSheet(ws, statsArr, sheetTitle, fStr, incBat, incBowl, incField){
-    XLSX.utils.sheet_add_aoa(ws, [['Cricket Times — Test Cricket Comparison'],['View: '+sheetTitle+' | '+fStr],[]], {origin:'A1'});
+    XLSX.utils.sheet_add_aoa(ws, [['The Grass Bank — Test Cricket Comparison'],['View: '+sheetTitle+' | '+fStr],[]], {origin:'A1'});
     let r = 4;
     if(incBat)  r = writeSection(ws, incBowl||incField?'BATTING':null, batHdr,  statsArr, batRow,  r, batCW);
     if(incBowl) r = writeSection(ws, incBat ||incField?'BOWLING':null, bowlHdr, statsArr, bowlRow, r, bowlCW);

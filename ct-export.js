@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════════════
-   ct-export.js — shared export engine for the Cricket Times stats pages
+   ct-export.js — shared export engine for the Grass Bank stats pages
 
    One module, four formats, five pages. Every stats page used to carry its own
    exportToExcel(); this replaces all of them, so columns, gate, filename
@@ -61,7 +61,7 @@ const STAMP  = () => new Date().toLocaleDateString('en-GB', { day:'numeric', mon
    does NOT do: it never reads the signed-in user. Nothing about the reader
    reaches the file. */
 function attributionLabel() {
-  return BRAND.attribution === 'subscriber' ? 'a Cricket Times subscriber' : null;
+  return BRAND.attribution === 'subscriber' ? 'a Grass Bank subscriber' : null;
 }
 /* Shorter form, for the watermark, where the sentence would not fit. */
 function attributionMark() {
@@ -375,7 +375,7 @@ Instance.prototype.model = function () {
   if (!m) { alert('No data to export.'); return null; }
   const d = dataSheet(m);
   if (!d || !d.rows || !d.rows.length) { alert('No data to export.'); return null; }
-  if (!m.base) m.base = 'CricketTimes_export';
+  if (!m.base) m.base = 'TheGrassBank_export';
   if (!m.unit) m.unit = d.rows.length === 1 ? 'row' : 'rows';
   return m;
 };

@@ -155,7 +155,7 @@ td.num.highlight{color:var(--accent);font-weight:700}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
 
-/* ═══ Cricket Times Masthead & Nav ═══ */
+/* ═══ The Grass Bank Masthead & Nav ═══ */
 .ct-masthead{text-align:center;padding:20px 24px 16px;border-bottom:2px solid var(--text1);position:relative;background:var(--bg)}
 .ct-masthead-date{font-family:'Inter',sans-serif;font-size:11px;font-weight:500;letter-spacing:1.2px;text-transform:uppercase;color:var(--text3);margin-bottom:8px}
 .ct-masthead-logo{font-family:'Playfair Display',serif;font-size:clamp(36px,8vw,58px);font-weight:700;letter-spacing:-1px;line-height:1.1}
@@ -201,7 +201,7 @@ td.num.highlight{color:var(--accent);font-weight:700}
 </head>
 <body>
 
-<!-- ═══ Cricket Times Masthead ═══ -->
+<!-- ═══ The Grass Bank Masthead ═══ -->
 <header data-ct-nav="masthead"></header>
 <nav data-ct-nav="primary"></nav>
 
@@ -1731,7 +1731,7 @@ function buildExportModel(){
     title:'Bowling Records', caption,
     unit: filtered.length===1?'bowler':'bowlers',
     sheetName:parts.join('_').slice(0,31),
-    base:'CricketTimes_'+parts.join('_')+'_'+filtered.length+'players',
+    base:'TheGrassBank_'+parts.join('_')+'_'+filtered.length+'players',
     headers:EXPORT_COLS.map(c=>c.label),
     rows:filtered.map((p,i)=>EXPORT_COLS.map(c=>c.fn(p,i)))
   };

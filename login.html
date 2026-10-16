@@ -455,12 +455,12 @@
   </main>
 
   <div class="page-foot">
-    &copy; <span id="year"></span> Cricket Times · <a href="/about.html">About</a>
+    &copy; <span id="year"></span> The Grass Bank · <a href="/about.html">About</a>
   </div>
 
   <script type="module">
     // -------------------------------------------------------------------
-    // Cricket Times — universal login page
+    // The Grass Bank — universal login page
     // Spec: cricket-times-login-spec.docx §9.2
     // Build item (a). Foundation for items (b)/(c) downstream.
     //
@@ -513,7 +513,7 @@
     /**
      * Encode an email into a Firestore-safe key.
      *
-     * Convention across the Cricket Times codebase: lowercase, then replace
+     * Convention across the Grass Bank codebase: lowercase, then replace
      * '.' and '@' with '_'. Matches:
      *   - firestore.rules emailKey() helper (uses regex `\\.` → '_')
      *   - prelaunch-guard.js line ~261 (`email.toLowerCase().replace(/[.@]/g, '_')`)

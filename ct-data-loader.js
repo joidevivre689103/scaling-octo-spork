@@ -1,5 +1,5 @@
 /* ============================================================================
- * ct-data-loader.js  —  Cricket Times shared derived-data loader (Phase 3, §3)
+ * ct-data-loader.js  —  The Grass Bank shared derived-data loader (Phase 3, §3)
  * ----------------------------------------------------------------------------
  * Replaces the public, unauthenticated data path
  *     fetch('data.json.gz')  +  manual DecompressionStream      (countries.html)
@@ -527,7 +527,7 @@
     if (kind === 'access') {
       return {
         title: 'We couldn\u2019t confirm your access',
-        body:  'This data is part of a Cricket Times subscription. Try again \u2014 if it keeps happening, check that your subscription is active.',
+        body:  'This data is part of a Grass Bank subscription. Try again \u2014 if it keeps happening, check that your subscription is active.',
         link:  { href: opts.subscribeUrl || '/subscribe.html', label: 'Check my subscription', primary: false },
         retry: true
       };

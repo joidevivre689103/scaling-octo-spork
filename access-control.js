@@ -1,6 +1,6 @@
 /* access-control.js
  * --------------------------------------------------------------------------
- * Single source of truth for page-access rules across Cricket Times.
+ * Single source of truth for page-access rules across The Grass Bank.
  *
  * Loaded by every gated page (and by prelaunch-guard.js) BEFORE any other
  * gating logic runs. Exposes:
@@ -26,7 +26,7 @@
  * to revisit a cohort-based system instead.
  *
  * ─── PHILOSOPHY (decided 2026-04-29) ─────────────────────────────────────
- * Cricket Times follows "Philosophy A" for content access:
+ * The Grass Bank follows "Philosophy A" for content access:
  *   - Direct content URLs (article.html?id=N, oracle.html, etc.) are
  *     PERMANENTLY PUBLIC — preserves shared-link integrity, supports SEO,
  *     and treats top-of-funnel readers as future subscribers, not enemies.

@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════
-   CRICKET TIMES — PRE-LAUNCH GUARD (v2: tier-based access)
+   THE GRASS BANK — PRE-LAUNCH GUARD (v2: tier-based access)
    ───────────────────────────────────────────────────────────────────
    Loaded on every public page of the site via:
      <script src="/feature-flags.js"></script>

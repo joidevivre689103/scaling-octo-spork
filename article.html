@@ -1411,7 +1411,7 @@ function renderArticle(container, article, related) {
 
   const relatedHTML = related.length > 0 ? `
     <div class="related-section">
-      <h3 class="related-title">More from Cricket Times</h3>
+      <h3 class="related-title">More from The Grass Bank</h3>
       <div class="related-grid">
         ${related.map((r, i) => `
           <a href="article.html?id=${r.id}" class="related-card">
@@ -1456,7 +1456,7 @@ function renderArticle(container, article, related) {
             <div class="author-avatar">${esc(authorInitials)}</div>
             <div class="author-info">
               <span class="author-name">${esc(article.author)}</span>
-              <span class="author-role">Cricket Times ${esc(categoryLabel)}</span>
+              <span class="author-role">The Grass Bank ${esc(categoryLabel)}</span>
             </div>
           </div>
           <div class="meta-separator"></div>
@@ -1668,7 +1668,7 @@ function renderArticleBody(article) {
     <p class="first-paragraph">${esc(summary)}</p>
     <p>This story is developing. Full coverage and in-depth analysis will be published shortly
        as more details become available from our correspondents on the ground.</p>
-    <p>Cricket Times is committed to delivering comprehensive reporting on every aspect of
+    <p>The Grass Bank is committed to delivering comprehensive reporting on every aspect of
        Test cricket. Our editorial team works around the clock to bring you the most accurate
        and insightful coverage of the game's oldest and most revered format.</p>
     <blockquote>Test cricket remains the ultimate examination of skill, temperament,
@@ -1682,7 +1682,7 @@ function showNotFound(container) {
     <div class="article-not-found">
       <h2>Article Not Found</h2>
       <p>The article you're looking for may have been removed, or the link may be outdated.</p>
-      <a href="stories.html">← Back to Cricket Times</a>
+      <a href="stories.html">← Back to The Grass Bank</a>
     </div>`;
 }
 
@@ -1721,8 +1721,8 @@ function renderWithdrawn(container, article) {
           </svg>
         </div>
         <h2>This article was withdrawn</h2>
-        <p>Cricket Times preserves the URL so links from elsewhere on the web don't break, but the original content is no longer published here.</p>
-        <a href="stories.html" class="withdrawn-back-link">← Back to Cricket Times</a>
+        <p>The Grass Bank preserves the URL so links from elsewhere on the web don't break, but the original content is no longer published here.</p>
+        <a href="stories.html" class="withdrawn-back-link">← Back to The Grass Bank</a>
       </div>
     </main>`;
 }
@@ -2082,7 +2082,7 @@ function renderComments() {
     html += '  <textarea id="commentText" placeholder="Write your comment…" maxlength="2000"></textarea>';
     html += '  <label class="comment-disclaimer">';
     html += '    <input type="checkbox" id="commentDisclaimer">';
-    html += '    <span class="comment-disclaimer-text">I agree that Cricket Times reserves the right to delete my comment(s) if deemed inappropriate, irrelevant, offensive, or for any other reason whatsoever.</span>';
+    html += '    <span class="comment-disclaimer-text">I agree that The Grass Bank reserves the right to delete my comment(s) if deemed inappropriate, irrelevant, offensive, or for any other reason whatsoever.</span>';
     html += '  </label>';
     html += '  <div class="comment-form-footer">';
     html += '    <span class="comment-word-count" id="commentWordCount">0 / ' + MAX_WORDS + ' words</span>';

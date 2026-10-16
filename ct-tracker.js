@@ -1,5 +1,5 @@
 /*
- * Cricket Times — engagement tracker (ct-tracker.js) — FIREBASE-ONLY build
+ * The Grass Bank — engagement tracker (ct-tracker.js) — FIREBASE-ONLY build
  * =======================================================================
  * First-party tracker for signed-in subscribers. Captures:
  *   • page views (incl. SPA route changes)
@@ -84,7 +84,7 @@
   // -------------------------------------------------------------- identity ---
   // The Firebase ID token proves who the user is. We cache it and refresh
   // periodically; the token (not email/uid) travels with each flush.
-  // Cricket Times standardized on the MODULAR Firebase SDK (10.12.5), so there
+  // The Grass Bank standardized on the MODULAR Firebase SDK (10.12.5), so there
   // is usually NO window.firebase (compat) global on reader pages. We reuse the
   // page's already-initialized modular app via getApp() and read the ID token
   // from there. A compat fallback is kept for any page still on the old global.
@@ -103,7 +103,7 @@
   // window: no batch flushes until identity is known (a real token, or a
   // definitive signed-out), and the once-per-session event waits for it.
   var authResolved = false;
-  // Firebase modular SDK URLs — pinned to 10.12.5 to match Cricket Times'
+  // Firebase modular SDK URLs — pinned to 10.12.5 to match The Grass Bank's
   // per-file SDK pinning. The literal "firebasejs/10.12.5" strings below mean
   // the standard `grep firebasejs/X.Y.Z` bump sweep catches THIS file too, so
   // the tracker stays in lockstep with every other SDK-importing file on a bump.

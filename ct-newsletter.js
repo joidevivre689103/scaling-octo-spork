@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════════════
-   ct-newsletter.js — The Cricket Times Dispatch signup, canonical component
+   ct-newsletter.js — The Grass Bank Dispatch signup, canonical component
    ───────────────────────────────────────────────────────────────────────────
    ONE implementation, ONE injection point, used on every surface that asks
    for an email address. Drop a placeholder anywhere:
@@ -73,7 +73,7 @@
     'https://assets.mailerlite.com/jsonp/2259944/forms/184395234410497566/subscribe';
 
   var COPY = {
-    kicker:  'The Cricket Times Dispatch',
+    kicker:  'The Grass Bank Dispatch',
     heading: 'Get new analysis in your inbox',
     dek:     'Summaries of our latest stories and statistical deep dives, ' +
              'sent when new pieces are published.',
@@ -193,7 +193,7 @@
 
     host.className = 'ct-nl' + (compact ? ' ct-nl--compact' : '');
     host.setAttribute('role', 'region');
-    host.setAttribute('aria-label', 'Subscribe to The Cricket Times Dispatch');
+    host.setAttribute('aria-label', 'Subscribe to The Grass Bank Dispatch');
 
     var head = '';
     if (!compact) head += '<p class="ct-nl__kicker">' + COPY.kicker + '</p>';
