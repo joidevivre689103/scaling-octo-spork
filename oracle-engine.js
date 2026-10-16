@@ -630,8 +630,8 @@ function renderScore(score) {
   const launchSuffix = currentEdition?.month ? ` Launching ${currentEdition.month}.` : ' Launching June 2026.';
   const CTA = 'Reckon you can do better?';
   const shareLine = IS_POST_LAUNCH
-    ? `I scored ${score}/${total} on Yorker, the Cricket Times Test quiz — ${editionTag}. "${band.title}". ${CTA}`
-    : `I scored ${score}/${total} on Yorker, the Cricket Times Test quiz — ${editionTag}. "${band.title}". ${CTA}${launchSuffix}`;
+    ? `I scored ${score}/${total} on Yorker, The Grass Bank's Test quiz — ${editionTag}. "${band.title}". ${CTA}`
+    : `I scored ${score}/${total} on Yorker, The Grass Bank's Test quiz — ${editionTag}. "${band.title}". ${CTA}${launchSuffix}`;
   // Share URL depends on the mode: /yorker.html for the current-mode page,
   // /yorker/{id}/ for a pinned-edition page. This keeps shares from a
   // permanent URL pointing at that permanent URL, not the rotating current.
@@ -647,10 +647,13 @@ function renderScore(score) {
   // deployed BEFORE config/currentOracle points at the edition, or shares
   // generated in the gap 404. Fallback to /yorker.html only when no edition id
   // is resolvable (should not happen in practice).
+  // [rebrand 2026-10-16] Share URLs use location.origin rather than a
+  // hardcoded domain, so they follow the site's primary domain
+  // (thegrassbank.com) without another edit if the name changes again.
   const _shareEditionId = (currentEdition && currentEdition.id) || editionReq.editionId || null;
   const shareUrl = _shareEditionId
-    ? `https://cricketimes.com/yorker/${encodeURIComponent(_shareEditionId)}/?s=1`
-    : 'https://cricketimes.com/yorker.html';
+    ? `${location.origin}/yorker/${encodeURIComponent(_shareEditionId)}/?s=1`
+    : `${location.origin}/yorker.html`;
   // Store the full share text on window so copyShareLink() can read it.
   // We hoist it here rather than inlining because the Copy button was
   // relabelled "Copy" (used to be "Copy Link") — it now copies the full
@@ -831,7 +834,7 @@ function renderPostScoreCta(score, total) {
 // the console before completing the quiz).
 // ═══════════════════════════════════════════════════════════════════════════
 function copyShareLink() {
-  const textToCopy = window._oracleShareText || 'https://cricketimes.com/yorker.html';
+  const textToCopy = window._oracleShareText || `${location.origin}/yorker.html`;
   const fallback = () => {
     // Older browsers: create a temp textarea and execCommand copy
     const ta = document.createElement('textarea');
