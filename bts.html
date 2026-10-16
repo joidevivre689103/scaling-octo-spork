@@ -601,7 +601,7 @@ setPersistence(auth, browserLocalPersistence);
 
 // ADMIN_EMAILS REMOVED 2026-08-07. Its only consumer was displayName(), which
 // bylined those two addresses as "IJ" at write time. Bylines now resolve from
-// publicProfiles/{uid} and the editor accent keys off CT_PRIMARY_UID, so the
+// publicProfiles/{uid} and the editor accent keys off CT_EDITOR_UIDS, so the
 // list identified nobody and gated nothing — an address list kept in a
 // front-end file for a job that no longer existed. It had already been demoted
 // from gating by item (g) on 2026-06-03; this removes the last of it.
@@ -676,7 +676,7 @@ function toast(msg) {
  * own; do not reintroduce a stored name to shorten it.
  *
  * The 'IJ' special case is gone with the email lookup. The maroon accent in
- * authorMarkup() already keys off CT_PRIMARY_UID, which is the same signal
+ * authorMarkup() already keys off CT_EDITOR_UIDS, which is the same signal
  * without needing an address to test.
  * ======================================================================== */
 const _btsProfileCache = new Map();   // uid -> displayName | null
@@ -713,10 +713,16 @@ function bylineFor(uid, legacy) {
 //
 // A document with no authorUid (should not exist — both write paths have
 // always set it) simply renders without the accent rather than throwing.
-const CT_PRIMARY_UID = 'A8OVKwU4s6ZutaWiEnk3IUKrDtz2';   // ivan@cricketimes.com
+// [2026-10-16] Now a set: the Grass Bank rebrand added ivan@thegrassbank.com
+// (byline "IV") as the primary editorial account. The old cricketimes account
+// stays in the set so its existing "IJ" posts keep their accent.
+const CT_EDITOR_UIDS = new Set([
+  'A8OVKwU4s6ZutaWiEnk3IUKrDtz2',   // ivan@cricketimes.com  — "IJ"
+  'u9PUjBqW0MVnEFQxccQmyfZTUCI2'    // ivan@thegrassbank.com — "IV"
+]);
 function authorMarkup(name, uid) {
   const safe = escapeHtml(name || 'Member');
-  return (uid && uid === CT_PRIMARY_UID)
+  return (uid && CT_EDITOR_UIDS.has(uid))
     ? `<span class="author-ct">${safe}</span>`
     : safe;
 }
