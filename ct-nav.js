@@ -72,6 +72,9 @@
   var BRAND_NAME = 'The Grass Bank';
   var TAGLINE = 'where every number has a heartbeat';
   var DESCRIPTOR = 'A Journal of Cricket';
+  // Two-tone name, carried over from the Cricket Times masthead: ink, with the
+  // last word in crimson (the span is styled by .ct-masthead-logo span).
+  var BRAND_HTML = 'The Grass <span>Bank</span>';
 
   // Firestore project for CMS-driven tagline override. See applyTaglineOverride().
   var FIRESTORE_PROJECT = 'hitwicket-cba02';
@@ -93,7 +96,7 @@
     // Tagline: italic serif, sentence case, sits tight under the name.
     '.ct-masthead-tagline{font-family:\'Playfair Display\',serif;font-style:italic;font-weight:400;font-size:clamp(15px,2.4vw,19px);letter-spacing:0;text-transform:none;color:#4a453e;margin-top:4px}',
     // Descriptor: small spaced caps, the edition line.
-    '.ct-masthead-descriptor{font-family:\'Inter\',sans-serif;font-size:10.5px;font-weight:500;letter-spacing:3px;text-transform:uppercase;color:#8a8176;margin-top:10px}',
+    '.ct-masthead-descriptor{font-family:\'Inter\',sans-serif;font-size:10.5px;font-weight:500;letter-spacing:3px;text-transform:uppercase;color:#8b0000;margin-top:10px}',
 
     // Primary nav
     '.ct-nav-bar{border-bottom:1px solid #e5e0d8;background:#fff;position:sticky;top:0;z-index:100}',
@@ -216,7 +219,7 @@
     el.className = 'ct-masthead';
     el.innerHTML =
       '<div class="ct-masthead-date">' + esc(todayString()) + '</div>' +
-      '<div class="ct-masthead-logo"><a href="/">' + esc(BRAND_NAME) + '</a></div>' +
+      '<div class="ct-masthead-logo"><a href="/">' + BRAND_HTML + '</a></div>' +
       '<div class="ct-masthead-tagline">' + esc(TAGLINE) + '</div>' +
       '<div class="ct-masthead-descriptor">' + esc(DESCRIPTOR) + '</div>';
   }
@@ -252,7 +255,7 @@
     el.innerHTML =
       '<div class="ct-footer-inner">' +
         '<div class="ct-footer-top">' +
-          '<div class="ct-footer-brand"><a href="/">' + esc(BRAND_NAME) + '</a></div>' +
+          '<div class="ct-footer-brand"><a href="/">' + BRAND_HTML + '</a></div>' +
           '<nav class="ct-footer-nav">' + links + '</nav>' +
         '</div>' +
         '<div class="ct-footer-bottom">' +
