@@ -72,6 +72,9 @@
   var BRAND_NAME = 'The Grass Bank';
   var TAGLINE = 'where every number has a heartbeat';
   var DESCRIPTOR = 'A Journal of Cricket';
+  // Two-tone name, carried over from the Cricket Times masthead: ink, with the
+  // last word in crimson (the span is styled by .ct-masthead-logo span).
+  var BRAND_HTML = 'The Grass <span>Bank</span>';
 
   // Firestore project for CMS-driven tagline override. See applyTaglineOverride().
   var FIRESTORE_PROJECT = 'hitwicket-cba02';
@@ -84,16 +87,19 @@
     'body{background:#fdfaf3}',
 
     // Masthead
+    // Child rules are scoped under .ct-masthead (2026-10-16) so they outrank the
+    // leftover per-page .ct-masthead-* rules on the stats pages, which uppercased
+    // the tagline and set the logo span in italic 400.
     '.ct-masthead{text-align:center;padding:20px 24px 16px;border-bottom:2px solid #1a1917;position:relative;background:#fdfaf3}',
-    '.ct-masthead-date{font-family:\'Inter\',sans-serif;font-size:11px;font-weight:500;letter-spacing:1.2px;text-transform:uppercase;color:#8a8176;margin-bottom:8px}',
-    '.ct-masthead-logo{font-family:\'Playfair Display\',serif;font-size:clamp(36px,8vw,58px);font-weight:700;font-style:normal;letter-spacing:-1px;line-height:1.05}',
-    '.ct-masthead-logo a{text-decoration:none;color:#1a1917}',
+    '.ct-masthead .ct-masthead-date{font-family:\'Inter\',sans-serif;font-size:11px;font-weight:500;letter-spacing:1.2px;text-transform:uppercase;color:#8a8176;margin-bottom:8px}',
+    '.ct-masthead .ct-masthead-logo{font-family:\'Playfair Display\',serif;font-size:clamp(36px,8vw,58px);font-weight:700;font-style:normal;letter-spacing:-1px;line-height:1.05}',
+    '.ct-masthead .ct-masthead-logo a{text-decoration:none;color:#1a1917}',
     // Explicit font-style+font-weight overrides: some pages set italic/400 on this span.
-    '.ct-masthead-logo span{color:#8b0000;font-style:normal;font-weight:700}',
+    '.ct-masthead .ct-masthead-logo span{color:#8b0000;font-style:normal;font-weight:700}',
     // Tagline: italic serif, sentence case, sits tight under the name.
-    '.ct-masthead-tagline{font-family:\'Playfair Display\',serif;font-style:italic;font-weight:400;font-size:clamp(15px,2.4vw,19px);letter-spacing:0;text-transform:none;color:#4a453e;margin-top:4px}',
+    '.ct-masthead .ct-masthead-tagline{font-family:\'Playfair Display\',serif;font-style:italic;font-weight:400;font-size:clamp(15px,2.4vw,19px);letter-spacing:0;text-transform:none;color:#4a453e;margin-top:4px}',
     // Descriptor: small spaced caps, the edition line.
-    '.ct-masthead-descriptor{font-family:\'Inter\',sans-serif;font-size:10.5px;font-weight:500;letter-spacing:3px;text-transform:uppercase;color:#8a8176;margin-top:10px}',
+    '.ct-masthead .ct-masthead-descriptor{font-family:\'Inter\',sans-serif;font-size:10.5px;font-weight:500;letter-spacing:3px;text-transform:uppercase;color:#8b0000;margin-top:10px}',
 
     // Primary nav
     '.ct-nav-bar{border-bottom:1px solid #e5e0d8;background:#fff;position:sticky;top:0;z-index:100}',
@@ -216,7 +222,7 @@
     el.className = 'ct-masthead';
     el.innerHTML =
       '<div class="ct-masthead-date">' + esc(todayString()) + '</div>' +
-      '<div class="ct-masthead-logo"><a href="/">' + esc(BRAND_NAME) + '</a></div>' +
+      '<div class="ct-masthead-logo"><a href="/">' + BRAND_HTML + '</a></div>' +
       '<div class="ct-masthead-tagline">' + esc(TAGLINE) + '</div>' +
       '<div class="ct-masthead-descriptor">' + esc(DESCRIPTOR) + '</div>';
   }
@@ -252,7 +258,7 @@
     el.innerHTML =
       '<div class="ct-footer-inner">' +
         '<div class="ct-footer-top">' +
-          '<div class="ct-footer-brand"><a href="/">' + esc(BRAND_NAME) + '</a></div>' +
+          '<div class="ct-footer-brand"><a href="/">' + BRAND_HTML + '</a></div>' +
           '<nav class="ct-footer-nav">' + links + '</nav>' +
         '</div>' +
         '<div class="ct-footer-bottom">' +
