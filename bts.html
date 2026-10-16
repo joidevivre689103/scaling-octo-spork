@@ -87,7 +87,7 @@ a:hover { text-decoration: underline; }
 .masthead h1 {
   font-family: 'Playfair Display', serif;
   font-weight: 800;
-  font-size: clamp(34px, 6vw, 58px);
+  font-size: clamp(28px, 4.5vw, 42px);
   letter-spacing: -0.01em;
   line-height: 1;
   color: var(--ink);
@@ -480,8 +480,12 @@ button.btn:disabled { opacity: 0.5; cursor: not-allowed; }
 </head>
 <body>
 
+<!-- Shared Grass Bank masthead + nav (2026-10-16); the notebook header below
+     is now the page's section title, not the site masthead. -->
+<header data-ct-nav="masthead"></header>
+<nav data-ct-nav="primary"></nav>
+
 <header class="masthead">
-  <div class="crest"><a href="index.html">← The Grass Bank</a></div>
   <div class="user-pill hidden" id="userPill">
     <span id="userEmail"></span>
     <button class="signout" id="signOutBtn">Sign out</button>
