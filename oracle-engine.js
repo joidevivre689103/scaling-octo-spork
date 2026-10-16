@@ -320,7 +320,7 @@ function applyEditionBranding() {
   // a WhatsApp forward of this page shows the title and description baked in
   // at load time (OG meta tags don't update from JS for social crawlers, but
   // they do reflect correctly when a real human clicks through).
-  document.title = `Yorker — ${editionLine} | Cricket Times`;
+  document.title = `Yorker — ${editionLine} | The Grass Bank`;
   const metaDesc = document.querySelector('meta[name="description"]');
   if (metaDesc) metaDesc.setAttribute('content',
     `Yorker · ${editionLine}. ${questions.length} questions on 149 years of Test cricket.`);
