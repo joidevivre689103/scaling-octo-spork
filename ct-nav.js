@@ -1,9 +1,9 @@
 /* ═══════════════════════════════════════════════════════════════════
-   Cricket Times — Shared Chrome Include
+   The Grass Bank — Shared Chrome Include
 
    Single source of truth for site-wide masthead, primary nav, and
    footer. Renders into any element tagged with:
-     data-ct-nav="masthead"   → masthead with date/logo/tagline
+     data-ct-nav="masthead"   → masthead with date/name/tagline/descriptor
      data-ct-nav="primary"    → 12-item nav bar
      data-ct-nav="footer"     → footer with nav + copyright
 
@@ -65,7 +65,13 @@
     { href: '/privacy.html',               label: 'Privacy Policy' }
   ];
 
-  var TAGLINE = 'The Definitive Voice of Test Cricket';
+  // Brand — renamed from Cricket Times on 2026-10-16. The masthead stacks three
+  // lines, each with one job: the NAME (large, Playfair), the TAGLINE directly
+  // under it in italics so "where" reads straight off the name, and the
+  // DESCRIPTOR in small spaced caps like a newspaper's edition line.
+  var BRAND_NAME = 'The Grass Bank';
+  var TAGLINE = 'where every number has a heartbeat';
+  var DESCRIPTOR = 'A Journal of Cricket';
 
   // Firestore project for CMS-driven tagline override. See applyTaglineOverride().
   var FIRESTORE_PROJECT = 'hitwicket-cba02';
@@ -80,11 +86,14 @@
     // Masthead
     '.ct-masthead{text-align:center;padding:20px 24px 16px;border-bottom:2px solid #1a1917;position:relative;background:#fdfaf3}',
     '.ct-masthead-date{font-family:\'Inter\',sans-serif;font-size:11px;font-weight:500;letter-spacing:1.2px;text-transform:uppercase;color:#8a8176;margin-bottom:8px}',
-    '.ct-masthead-logo{font-family:\'Playfair Display\',serif;font-size:clamp(36px,8vw,58px);font-weight:700;font-style:normal;letter-spacing:-1px;line-height:1.1}',
+    '.ct-masthead-logo{font-family:\'Playfair Display\',serif;font-size:clamp(36px,8vw,58px);font-weight:700;font-style:normal;letter-spacing:-1px;line-height:1.05}',
     '.ct-masthead-logo a{text-decoration:none;color:#1a1917}',
     // Explicit font-style+font-weight overrides: some pages set italic/400 on this span.
     '.ct-masthead-logo span{color:#8b0000;font-style:normal;font-weight:700}',
-    '.ct-masthead-tagline{font-family:\'Inter\',sans-serif;font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:#8a8176;margin-top:6px}',
+    // Tagline: italic serif, sentence case, sits tight under the name.
+    '.ct-masthead-tagline{font-family:\'Playfair Display\',serif;font-style:italic;font-weight:400;font-size:clamp(15px,2.4vw,19px);letter-spacing:0;text-transform:none;color:#4a453e;margin-top:4px}',
+    // Descriptor: small spaced caps, the edition line.
+    '.ct-masthead-descriptor{font-family:\'Inter\',sans-serif;font-size:10.5px;font-weight:500;letter-spacing:3px;text-transform:uppercase;color:#8a8176;margin-top:10px}',
 
     // Primary nav
     '.ct-nav-bar{border-bottom:1px solid #e5e0d8;background:#fff;position:sticky;top:0;z-index:100}',
@@ -125,7 +134,7 @@
     '.ct-footer-top{display:flex;justify-content:flex-start;align-items:baseline;gap:48px;flex-wrap:wrap;padding-bottom:32px;border-bottom:1px solid rgba(255,255,255,0.1);margin-bottom:24px}',
     '.ct-footer-brand{font-family:\'Playfair Display\',serif;font-size:28px;font-weight:700;color:#fff;white-space:nowrap;letter-spacing:-0.5px;line-height:1}',
     // Brand link styling — uniform white treatment against dark background. The masthead
-    // uses crimson for "Times" because the cream backdrop provides contrast; on the dark
+    // used crimson for "Times" (pre-rebrand) because the cream backdrop provides contrast; on the dark
     // footer, crimson reads muddy, so both halves stay white here.
     '.ct-footer-brand a{text-decoration:none;color:#fff}',
     '.ct-footer-brand span{color:#fff;font-style:normal;font-weight:700}',
@@ -157,7 +166,7 @@
     var link = document.createElement('link');
     link.id = 'ct-nav-fonts';
     link.rel = 'stylesheet';
-    link.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap';
+    link.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,400&display=swap';
     (document.head || document.documentElement).appendChild(link);
   }
 
@@ -207,8 +216,9 @@
     el.className = 'ct-masthead';
     el.innerHTML =
       '<div class="ct-masthead-date">' + esc(todayString()) + '</div>' +
-      '<div class="ct-masthead-logo"><a href="/">Cricket <span>Times</span></a></div>' +
-      '<div class="ct-masthead-tagline">' + esc(TAGLINE) + '</div>';
+      '<div class="ct-masthead-logo"><a href="/">' + esc(BRAND_NAME) + '</a></div>' +
+      '<div class="ct-masthead-tagline">' + esc(TAGLINE) + '</div>' +
+      '<div class="ct-masthead-descriptor">' + esc(DESCRIPTOR) + '</div>';
   }
 
   // ── Render primary nav ──
@@ -242,12 +252,12 @@
     el.innerHTML =
       '<div class="ct-footer-inner">' +
         '<div class="ct-footer-top">' +
-          '<div class="ct-footer-brand"><a href="/">Cricket <span>Times</span></a></div>' +
+          '<div class="ct-footer-brand"><a href="/">' + esc(BRAND_NAME) + '</a></div>' +
           '<nav class="ct-footer-nav">' + links + '</nav>' +
         '</div>' +
         '<div class="ct-footer-bottom">' +
           '<div class="ct-footer-legal">' +
-            '<span class="ct-footer-copy">&copy; 2026 Cricket Times. All rights reserved.</span>' +
+            '<span class="ct-footer-copy">&copy; 2026 ' + esc(BRAND_NAME) + '. All rights reserved.</span>' +
             '<span class="ct-footer-notice">Site code, content, and design may not be copied or republished without permission.</span>' +
           '</div>' +
           '<span class="ct-footer-attrib">' +
