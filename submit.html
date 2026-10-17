@@ -77,8 +77,10 @@
       try { await deleteObject(ref(storage, path)); } catch(e) { /* ignore */ }
     };
   </script>
-  <!-- reCAPTCHA v3 -->
-  <script src="https://www.google.com/recaptcha/api.js?render=6LfFiYUsAAAAAJs2WPi4hp0yK0NbBkKEamwXzR_Y"></script>
+  <!-- [2026-10-17] reCAPTCHA v3 removed. The token was never verified by any
+       function, and the key only allowed the old github.io domain, so on
+       thegrassbank.com it failed and returned nothing. Spam protection here is
+       the required sign-in plus the honeypot fields. -->
   <style>
     :root {
       --cream: #f5f0e8;
@@ -1002,17 +1004,8 @@
 
 <script>
 // ── SPAM PROTECTION ──────────────────────────────────────────────────────────
-const RECAPTCHA_SITE_KEY = '6LfFiYUsAAAAAJs2WPi4hp0yK0NbBkKEamwXzR_Y';
-
-async function getRecaptchaToken(action) {
-  return new Promise((resolve) => {
-    if (!window.grecaptcha) { resolve(null); return; }
-    window.grecaptcha.ready(() => {
-      window.grecaptcha.execute(RECAPTCHA_SITE_KEY, { action })
-        .then(resolve).catch(() => resolve(null));
-    });
-  });
-}
+// Sign-in is required to submit (since 2026-08-07) and the honeypot fields below
+// catch simple bots. reCAPTCHA was removed 2026-10-17 (see the note in <head>).
 
 function isHoneypotFilled(id) {
   return (document.getElementById(id)?.value || '').trim().length > 0;
@@ -1226,7 +1219,6 @@ document.getElementById('submitQuizBtn').addEventListener('click', async () => {
   btn.disabled = true;
   btn.textContent = 'Submitting…';
 
-  const recaptchaToken = await getRecaptchaToken('submit_quiz');
 
   const data = {
     type: 'quiz',
@@ -1254,7 +1246,6 @@ document.getElementById('submitQuizBtn').addEventListener('click', async () => {
       noPlagiarism: true,
       publishConsent: true
     },
-    recaptchaToken,
     status: 'pending',
     submittedAt: window._fsTimestamp ? window._fsTimestamp() : new Date().toISOString()
   };
@@ -1394,7 +1385,6 @@ document.getElementById('submitArtBtn').addEventListener('click', async () => {
   btn.disabled = true;
   btn.textContent = 'Submitting…';
 
-  const recaptchaToken = await getRecaptchaToken('submit_article');
 
   // Upload docx to Firebase Storage first
   let docStoragePath = null;
@@ -1434,7 +1424,6 @@ document.getElementById('submitArtBtn').addEventListener('click', async () => {
       noPlagiarism: true,
       publishConsent: true
     },
-    recaptchaToken,
     status: 'pending',
     submittedAt: window._fsTimestamp ? window._fsTimestamp() : new Date().toISOString()
   };
