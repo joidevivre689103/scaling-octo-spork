@@ -1139,6 +1139,8 @@ body{
 </div>
 
 
+<!-- [2026-10-17] Forgot password → our own sendPasswordReset function (see file header). -->
+<script src="/ct-password-reset.js"></script>
 <script>
 // Masthead date — dynamic so it always shows current day
 (function(){
@@ -1346,12 +1348,11 @@ body{
     }
     setLoginMsg('info', 'Sending reset email…');
     try {
-      await ensureFirebase();
-      await firebase.auth().sendPasswordResetEmail(email);
+      await window.ctSendPasswordReset(email);
       setLoginMsg('success', 'If that address has an account, a password reset email is on its way. Check your spam folder too.');
     } catch (e) {
       console.error('Password reset failed:', e);
-      setLoginMsg('error', friendlyError(e));
+      setLoginMsg('error', e.message);
     }
   };
 
