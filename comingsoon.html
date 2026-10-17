@@ -6,13 +6,13 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>The Grass Bank — Coming Soon</title>
-<meta name="description" content="Test cricket, examined properly. 149 years of Test cricket analysed with the care the format deserves — every match since 1877, every player, every era. Launching soon.">
+<meta name="description" content="Test cricket, examined properly. Every match since 1877, every player, every era — analysed with the care the format deserves. Launching soon.">
 
 <!-- Open Graph / Facebook / WhatsApp / iMessage -->
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://thegrassbank.com/">
 <meta property="og:title" content="The Grass Bank — Test cricket, examined properly.">
-<meta property="og:description" content="149 years of Test cricket, analysed with the care the format deserves. Every match since 1877, every player, every era — indexed, comparable, and written about with opinions. Launching soon.">
+<meta property="og:description" content="Test cricket since 1877, analysed with the care the format deserves. Every match, every player, every era — indexed, comparable, and written about with opinions. Launching soon.">
 <meta property="og:image" content="https://thegrassbank.com/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -22,7 +22,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:url" content="https://thegrassbank.com/">
 <meta name="twitter:title" content="The Grass Bank — Test cricket, examined properly.">
-<meta name="twitter:description" content="149 years of Test cricket, analysed with the care the format deserves. Launching soon.">
+<meta name="twitter:description" content="Test cricket since 1877, analysed with the care the format deserves. Launching soon.">
 <meta name="twitter:image" content="https://thegrassbank.com/og-image.png">
 
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,300;8..60,400;8..60,500;8..60,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -970,7 +970,7 @@ body{
       Test cricket, examined <em>properly</em>.
     </h1>
     <p class="hero-dek">
-      149 years of Test cricket, analysed with the care the format deserves. Every match since 1877, every player, every era — indexed, comparable, and written about with opinions.
+      <span data-test-years>149</span> years of Test cricket, analysed with the care the format deserves. Every match since 1877, every player, every era — indexed, comparable, and written about with opinions.
     </p>
     <p class="hero-flagship">
       <span class="hero-flagship-label">Our first piece of analysis:</span>
@@ -987,7 +987,7 @@ body{
   <section class="cta-block quiz-block">
     <div class="quiz-card">
       <div class="cta-label">◆ Take the Quiz</div>
-      <h2 class="cta-title">20 questions. 149 years.<br>How well do you actually know the format?</h2>
+      <h2 class="cta-title">20 questions. <span data-test-years>149</span> years.<br>How well do you actually know the format?</h2>
       <p class="cta-sub">
         We built the Test cricket quiz for people who think they know Test cricket. Most self-described obsessives score 13/20. Can you do better?
       </p>
@@ -1377,6 +1377,9 @@ body{
 })();
 </script>
 
+<!-- [2026-10-17] Fill the years-of-Test-cricket count (first Test 1877) so the
+     copy never goes stale. The "149" in each span is the pre-JS fallback. -->
+<script>document.querySelectorAll('[data-test-years]').forEach(function(el){el.textContent=String(new Date().getFullYear()-1877);});</script>
 <script src="/ct-newsletter.js" defer></script>
 </body>
 </html>

@@ -82,6 +82,15 @@ const auth = getAuth(_app);
 const LAUNCH_DATE = new Date('2026-06-01T00:00:00');
 const IS_POST_LAUNCH = new Date() >= LAUNCH_DATE;
 
+// [2026-10-17] Years of Test cricket, counted from the first Test (March 1877).
+// Computed so "149 years" can't go stale — it reads 150 from 1 January 2027.
+// Every on-page mention is a <span data-test-years> placeholder in the edition
+// pages (pre-JS fallback text), filled below. Static meta/OG copy can't run JS,
+// so those say "since 1877" instead.
+const FIRST_TEST_YEAR = 1877;
+const TEST_YEARS = new Date().getFullYear() - FIRST_TEST_YEAR;
+document.querySelectorAll('[data-test-years]').forEach(el => { el.textContent = String(TEST_YEARS); });
+
 // ═══════════════════════════════════════════════════════════════════════════
 // EDITION RESOLUTION
 // ═══════════════════════════════════════════════════════════════════════════
@@ -312,7 +321,7 @@ function applyEditionBranding() {
     ? `${currentEdition.name} · ${currentEdition.month}`
     : currentEdition.name;
 
-  // Intro kicker (the small red line above "20 questions. 149 years.")
+  // Intro kicker (the small red line above "20 questions. {TEST_YEARS} years.")
   const introKicker = document.querySelector('.intro-kicker');
   if (introKicker) introKicker.textContent = `◆ Yorker · ${editionLine}`;
 
@@ -323,7 +332,7 @@ function applyEditionBranding() {
   document.title = `Yorker — ${editionLine} | The Grass Bank`;
   const metaDesc = document.querySelector('meta[name="description"]');
   if (metaDesc) metaDesc.setAttribute('content',
-    `Yorker · ${editionLine}. ${questions.length} questions on 149 years of Test cricket.`);
+    `Yorker · ${editionLine}. ${questions.length} questions on ${TEST_YEARS} years of Test cricket.`);
 
   // [2026-06-04] Edition-driven intro copy. The headline and stats strip are
   // populated from the LOADED edition's validated question count, so monthly
@@ -333,7 +342,7 @@ function applyEditionBranding() {
   const _qn = questions.length;
   const _mins = Math.max(2, Math.round(_qn * 0.35));
   const _headline = document.querySelector('.intro-headline');
-  if (_headline) _headline.innerHTML = _qn + ' questions.<br>149 years.';
+  if (_headline) _headline.innerHTML = _qn + ' questions.<br>' + TEST_YEARS + ' years.';
   const _statNums = document.querySelectorAll('.intro-stat .intro-stat-num');
   if (_statNums.length >= 2) {
     _statNums[0].textContent = String(_qn);
@@ -801,7 +810,7 @@ function renderPostScoreCta(score, total) {
     html = `
       <div class="post-score-cta">
         <div class="post-score-cta-kicker">\u25c6 Keep Exploring</div>
-        <h3>The archive has 149 years of this.</h3>
+        <h3>The archive has ${TEST_YEARS} years of this.</h3>
         <p>
           Settle the next argument the same way. Browse every Test, every player,
           every era \u2014 or dive into this week's long-form piece.
