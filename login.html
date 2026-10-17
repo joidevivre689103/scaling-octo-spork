@@ -458,6 +458,8 @@
     &copy; <span id="year"></span> The Grass Bank · <a href="/about.html">About</a>
   </div>
 
+  <!-- [2026-10-17] Forgot password → our own sendPasswordReset function (see file header). -->
+  <script src="/ct-password-reset.js"></script>
   <script type="module">
     // -------------------------------------------------------------------
     // The Grass Bank — universal login page
@@ -475,7 +477,6 @@
       getAuth,
       signInWithEmailAndPassword,
       createUserWithEmailAndPassword,
-      sendPasswordResetEmail,
       signOut,
       onAuthStateChanged,
       verifyPasswordResetCode,
@@ -1049,18 +1050,18 @@
 
       setBtnLoading(btn, true, 'Send reset link');
       try {
-        await sendPasswordResetEmail(auth, email);
+        await window.ctSendPasswordReset(email);
         setBtnLoading(btn, false, 'Send reset link');
         // Deliberately generic — don't leak whether the email exists.
         showMsg('reset', 'success', 'If an account exists for this email, a reset link has been sent. Check your inbox (and spam folder).');
       } catch (err) {
         setBtnLoading(btn, false, 'Send reset link');
-        // Most reset errors (e.g. user-not-found) should still show the generic
-        // success message to avoid email enumeration. Only show the error for
-        // network/invalid-email/too-many-requests.
+        // ctSendPasswordReset already answers success for an unknown address
+        // (no enumeration); it only rejects for a malformed address, a failed
+        // send, or no network — each with reader-ready text in err.message.
         const code = err && err.code ? err.code : '';
-        if (['auth/invalid-email','auth/too-many-requests','auth/network-request-failed','auth/missing-email'].includes(code)) {
-          showMsg('reset', 'error', authErrorMessage(err));
+        if (['reset/invalid-argument','reset/unavailable','reset/network'].includes(code)) {
+          showMsg('reset', 'error', err.message);
         } else {
           console.error('[login] reset (suppressed):', err);
           showMsg('reset', 'success', 'If an account exists for this email, a reset link has been sent. Check your inbox (and spam folder).');
