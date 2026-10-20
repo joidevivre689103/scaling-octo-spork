@@ -935,7 +935,7 @@ body{
     <div class="success-banner-text">
       <div class="success-banner-title">Almost there — check your email</div>
       <div class="success-banner-body">
-        Thanks for subscribing! We've sent a <strong>confirmation email</strong>. Click the link inside to finish signing up. (Can't find it? Check your spam folder.)
+        Thanks for signing up! We've sent a <strong>confirmation email</strong>. Click the link inside to finish signing up. (Can't find it? Check your spam folder.)
       </div>
     </div>
   </div>
@@ -1061,7 +1061,7 @@ body{
       <!-- Overlay shown when user just subscribed to free tier -->
       <div class="subscribed-overlay">
         <span class="subscribed-overlay-icon">✓</span>
-        <span class="subscribed-overlay-text">You're subscribed</span>
+        <span class="subscribed-overlay-text">You're signed up</span>
       </div>
 
       <div class="signup-label">◆ Join the Launch List</div>
@@ -1094,7 +1094,7 @@ body{
       Drop your email and you'll get three things: the flagship analysis the day it publishes, the quiz the day it opens, and one short note when the site goes live. Nothing else.
     </p>
     <a href="#signup-free" class="cta-button">
-      Subscribe <span class="arrow">↑</span>
+      Sign up <span class="arrow">↑</span>
     </a>
     <div class="cta-fineprint">One email a week at most. Usually less.</div>
   </section>
@@ -1169,7 +1169,7 @@ body{
   const titleEl = banner.querySelector('.success-banner-title');
   const bodyEl = banner.querySelector('.success-banner-body');
   if (titleEl) titleEl.textContent = 'Almost there — check your email';
-  if (bodyEl) bodyEl.innerHTML = 'Thanks for subscribing! We\'ve sent a <strong>confirmation email</strong>. Click the link inside to finish signing up. (Can\'t find it? Check your spam folder.)';
+  if (bodyEl) bodyEl.innerHTML = 'Thanks for signing up! We\'ve sent a <strong>confirmation email</strong>. Click the link inside to finish signing up. (Can\'t find it? Check your spam folder.)';
   if (freeSection) freeSection.classList.add('subscribed');
 
   // Show top banner
@@ -1180,7 +1180,7 @@ body{
   document.querySelectorAll('.cta-button').forEach(btn => {
     if (btn.closest('.quiz-card')) return;
     btn.setAttribute('href', '#successBanner');
-    btn.innerHTML = '✓ Subscribed — Check Your Email';
+    btn.innerHTML = '✓ Signed up — Check Your Email';
   });
 })();
 

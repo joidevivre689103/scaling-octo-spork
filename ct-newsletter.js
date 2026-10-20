@@ -73,7 +73,9 @@
     'https://assets.mailerlite.com/jsonp/2259944/forms/184395234410497566/subscribe';
 
   var COPY = {
-    kicker:  'The Grass Bank Dispatch',
+    // [2026-10-20] Wording rule: 'subscribe'/'subscription' means the PAID tier
+    // only; the newsletter is 'the Dispatch', which readers 'sign up' for.
+    kicker:  'The Grass Bank Dispatch \u00b7 Free newsletter',
     heading: 'Get new analysis in your inbox',
     dek:     'Summaries of our latest stories and statistical deep dives, ' +
              'sent when new pieces are published.',
@@ -81,7 +83,7 @@
     nameOptional: 'optional',
     namePlaceholder: 'e.g. Jay, or Cover Drive',
     emailLabel:   'Email address',
-    button:  'Subscribe',
+    button:  'Sign up',
     // The confirm sentence is doing real work twice: it is the informed-consent
     // statement, and it tells readers to expect the email — which is the
     // cheapest available fix for unconfirmed signups.
@@ -89,7 +91,7 @@
     fineProcessor: 'Your email is handled by MailerLite \u2014 see our ',
     privacyHref:   '/privacy.html',
     privacyText:   'privacy policy',
-    working: 'Subscribing\u2026',
+    working: 'Signing up\u2026',
     success: 'Check your inbox \u2014 we\u2019ve sent a link to confirm. ' +
              'You\u2019ll join the list once you click it.',
     errBadEmail: 'That doesn\u2019t look like a valid email address.',
@@ -193,7 +195,7 @@
 
     host.className = 'ct-nl' + (compact ? ' ct-nl--compact' : '');
     host.setAttribute('role', 'region');
-    host.setAttribute('aria-label', 'Subscribe to The Grass Bank Dispatch');
+    host.setAttribute('aria-label', 'Sign up for The Grass Bank Dispatch, the free newsletter');
 
     var head = '';
     if (!compact) head += '<p class="ct-nl__kicker">' + COPY.kicker + '</p>';
