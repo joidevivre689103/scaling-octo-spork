@@ -900,13 +900,13 @@ body.articles-loading .analysis-section{ visibility:hidden; }
 <section style="background:var(--surface2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:48px 24px;">
   <div style="max-width:600px;margin:0 auto;">
     <div class="ct-newsletter-block">
-      <span class="nl-kicker">The Grass Bank Dispatch</span>
+      <span class="nl-kicker">The Grass Bank Dispatch &middot; Free newsletter</span>
       <h3>Get new analysis in your inbox</h3>
-      <p>Subscribe for summaries of our latest stories and statistical deep dives, delivered to your inbox when new pieces are published.</p>
+      <p>Sign up for summaries of our latest stories and statistical deep dives, delivered to your inbox when new pieces are published.</p>
       <form id="ct-nl-form" novalidate>
         <div class="nl-row">
           <input type="email" id="ct-nl-email" placeholder="your@email.com" required autocomplete="email" />
-          <button type="submit" id="ct-nl-btn">Subscribe</button>
+          <button type="submit" id="ct-nl-btn">Sign up</button>
         </div>
         <p class="nl-note">No spam. Unsubscribe anytime. &nbsp;·&nbsp; <a href="subscribe.html">Full signup &amp; privacy info</a></p>
         <div class="nl-msg" id="ct-nl-msg"></div>
@@ -1672,10 +1672,10 @@ document.addEventListener('DOMContentLoaded', () => {
     payload.append('ajax','1');
     fetch(FORM_ACTION,{method:'POST',body:payload})
       .then(function(res){
-        if(res.ok){form.innerHTML='<p class="nl-msg success" style="display:block;margin:0;">✓ Subscribed! You\'ll hear from us with the next dispatch.</p>';}
+        if(res.ok){form.innerHTML='<p class="nl-msg success" style="display:block;margin:0;">Check your inbox — we\'ve sent a link to confirm. You\'ll join the list once you click it.</p>';}
         else{throw new Error();}
       })
-      .catch(function(){msg.className='nl-msg error';msg.textContent='Something went wrong. Try the full signup page.';btn.disabled=false;btn.textContent='Subscribe';});
+      .catch(function(){msg.className='nl-msg error';msg.textContent='Something went wrong. Try the full signup page.';btn.disabled=false;btn.textContent='Sign up';});
   });
 }());
 </script>
