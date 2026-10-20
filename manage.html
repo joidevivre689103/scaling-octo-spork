@@ -601,16 +601,16 @@
      Application logic
      ═══════════════════════════════════════════════════════════════════ -->
 <script type="module">
-  import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+  import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js";
   import {
     getAuth, onAuthStateChanged, signOut
-  } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+  } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js";
   import {
     getFirestore, doc, getDoc
-  } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+  } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js";
   import {
     getFunctions, httpsCallable
-  } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-functions.js";
+  } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-functions.js";
 
   // ── Firebase config ───────────────────────────────────────────────────
   // API key is intentionally public (security is via Firestore rules).
@@ -1085,7 +1085,7 @@
      it awaits CTFeatureFlags.firebaseReady and reuses the app feature-flags.js
      already created — the same app this page's own module gets from
      `getApps().length ? getApp() : initializeApp(...)` at line ~641. One app,
-     three consumers. It pins the same SDK version (10.12.5) as this page, so
+     three consumers. It pins the same SDK version (13.0.0) as this page, so
      the dynamic imports resolve to the already-fetched module graph.
 
      CHECK THE src BELOW BEFORE DEPLOYING. "/ct-nav.js" is the expected served

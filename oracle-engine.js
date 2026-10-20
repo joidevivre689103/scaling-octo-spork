@@ -49,11 +49,11 @@
 // bottom of this script.
 // ═══════════════════════════════════════════════════════════════════════════
 import { initializeApp, getApps, getApp }
-  from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
+  from 'https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js';
 import { getFirestore, collection, doc, getDoc, addDoc, setDoc }
-  from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
+  from 'https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js';
 import { getAuth }
-  from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
+  from 'https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js';
 
 const _fbConfig = {
   apiKey: "AIzaSyBnfn9hK0y-p6nvIZ_AwoJnWD7DfDuIQd4",

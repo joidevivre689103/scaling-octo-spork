@@ -32,13 +32,13 @@
   // round-trip, and a reminder to keep the two lists in lockstep (PARITY).
   var ALLOWED = { data: 1, ratings: 1, model: 1 };
 
-  // Pages run the MODULAR Firebase SDK (10.12.5) -- there is no compat `firebase`
+  // Pages run the MODULAR Firebase SDK (13.0.0) -- there is no compat `firebase`
   // global. feature-flags.js owns init and exposes window.CTFeatureFlags.firebaseReady
   // (-> the FirebaseApp). We reach auth via getAuth(app), which is idempotent per app,
   // so we share the exact same instance (and persisted session) the bootstrap uses.
   // Must stay pinned to the SAME version as feature-flags.js (cross-version SDK objects
   // fail type-checks).
-  var FB_AUTH_URL = 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
+  var FB_AUTH_URL = 'https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js';
 
   var AUTH_WAIT_MS       = 8000;   // wait this long for auth state to resolve
   var REQUEST_TIMEOUT_MS = 30000;  // generous: first call may hit a cold start (minInstances:0)

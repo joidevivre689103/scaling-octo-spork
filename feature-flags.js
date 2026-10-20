@@ -91,14 +91,14 @@
   // it lives in the file that survives.
   //
   // SDK VERSION DISCIPLINE — READ THIS BEFORE BUMPING:
-  //   The Firebase JS SDK version (10.12.5) is duplicated across every
+  //   The Firebase JS SDK version (13.0.0) is duplicated across every
   //   file that touches Firebase — pages, helpers, this file. That is
   //   intentional: each consumer is independently versioned so pages can
   //   be migrated one at a time. Cross-version Firestore objects fail
   //   type-check silently (collection()/doc() from one version produce
   //   objects another version's getDocs() rejects). To bump:
   //
-  //     1. `grep -r "firebasejs/10\.12\.5"` to enumerate every file.
+  //     1. `grep -r "firebasejs/13\.0\.0"` to enumerate every file.
   //     2. Update every match to the new version in one commit.
   //     3. Bulk-deploy via github-deploy-tool.html.
   //     4. Spot-check login.html, bts.html, and one stats page.
@@ -127,7 +127,7 @@
   // transition deploy). Throwing the second time would deadlock the page.
   const firebaseReady = (async () => {
     const { initializeApp, getApps, getApp } = await import(
-      'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js'
+      'https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js'
     );
     return getApps().length ? getApp() : initializeApp(FIREBASE_CONFIG);
   })();
@@ -360,7 +360,7 @@
           // fast loads are unaffected; see matching change in the main gate.
           isCurrent = await withTimeout(5000, async () => {
             const app = await firebaseReady;
-            const fs = await import('https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js');
+            const fs = await import('https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js');
             const snap = await fs.getDoc(fs.doc(fs.getFirestore(app), 'config', 'currentOracle'));
             return snap.exists() && String(snap.data().editionId || '').toLowerCase() === slug;
           });
@@ -410,8 +410,8 @@
       verdict = await withTimeout(5000, async () => {
         const app = await firebaseReady;                                   // 2
         const [fs, au] = await Promise.all([
-          import('https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js'),
-          import('https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js')
+          import('https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js'),
+          import('https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js')
         ]);
         // [S3-DEV 3] Build db/auth here. The contract assumed feature-flags.js
         //   already exposed db/auth handles; it never did — every helper takes
@@ -627,7 +627,7 @@
     try {
       const app = await firebaseReady;
       const { getAuth } = await import(
-        'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js'
+        'https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js'
       );
       return getAuth(app).currentUser || null;
     } catch (e) {
@@ -1025,7 +1025,7 @@
     }
     // Modular SDK — lazy-import getDoc/doc
     const { getDoc, doc } = await import(
-      'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js'
+      'https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js'
     );
     const snap = await getDoc(doc(db, collectionPath, docPath));
     return snap.exists() ? snap.data() : null;

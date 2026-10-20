@@ -1239,8 +1239,8 @@ body{
 
   async function ensureFirebase() {
     if (window.firebase && window.firebase.auth) return;
-    await loadScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js');
-    await loadScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js');
+    await loadScript('https://www.gstatic.com/firebasejs/13.0.0/firebase-app-compat.js');
+    await loadScript('https://www.gstatic.com/firebasejs/13.0.0/firebase-auth-compat.js');
     if (!firebase.apps.length) firebase.initializeApp(FB_CONFIG);
   }
 

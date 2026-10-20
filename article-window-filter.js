@@ -47,7 +47,7 @@
       } else if (db) {
         // Modular SDK — caller passes the modular db; we lazy-import getDoc/doc
         const { getDoc, doc } = await import(
-          'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js'
+          'https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js'
         );
         const snap = await getDoc(doc(db, 'config', 'site'));
         if (snap.exists()) data = snap.data();

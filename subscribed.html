@@ -628,9 +628,9 @@
   <footer data-ct-nav="footer"></footer>
 
   <!-- Firebase compat SDK (matches site convention) -->
-  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/13.0.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/13.0.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore-compat.js"></script>
 
   <script>
   (function(){
@@ -1085,7 +1085,7 @@
           const snap = await db.collection('subscriptions').doc(userKey).get();
           // NOTE: compat SDK here — snap.exists is a PROPERTY (no parens),
           // unlike modular where it's a method. This page is deliberately
-          // still on compat 10.13.2 (not a gated page; 7.4 didn't touch it).
+          // on compat 13.0.0 (not a gated page; 7.4 didn't touch it).
           if (snap && snap.exists) {
             const data = snap.data() || {};
             const status = String(data.status || '').toLowerCase();

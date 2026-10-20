@@ -701,8 +701,8 @@ body.articles-loading .analysis-section{ visibility:hidden; }
 }
 </style>
 <script type="module">
-  import { initializeApp, getApp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
-  import { getFirestore, collection, getDocs, query, orderBy, where } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
+  import { initializeApp, getApp } from 'https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js';
+  import { getFirestore, collection, getDocs, query, orderBy, where } from 'https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js';
   const firebaseConfig = {
     apiKey: "AIzaSyBnfn9hK0y-p6nvIZ_AwoJnWD7DfDuIQd4",
     authDomain: "hitwicket-cba02.firebaseapp.com",
@@ -1040,7 +1040,7 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
     let attempts = 0;
     while (!window._fsDb && attempts++ < 20) await new Promise(r => setTimeout(r, 100));
     if (!window._fsDb) return;
-    const { getDoc, doc } = await import('https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js');
+    const { getDoc, doc } = await import('https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js');
     const snap = await getDoc(doc(window._fsDb, 'config', 'ticker'));
     if (!snap.exists()) return;
     const data = snap.data();
@@ -1262,7 +1262,7 @@ function resetSnippetTimer() { startSnippetTimer(); }
     let attempts = 0;
     while (!window._fsDb && attempts++ < 20) await new Promise(r => setTimeout(r, 100));
     if (!window._fsDb) return;
-    const { getDoc, doc } = await import('https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js');
+    const { getDoc, doc } = await import('https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js');
     const snap = await getDoc(doc(window._fsDb, 'config', 'snippets'));
     if (!snap.exists()) return;
     const data = snap.data();
@@ -1301,7 +1301,7 @@ function resetSnippetTimer() { startSnippetTimer(); }
     let sectionEnabled = true;
     let rotateEnabled  = false;
     try {
-      const { getDoc, doc } = await import('https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js');
+      const { getDoc, doc } = await import('https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js');
       const cfgSnap = await getDoc(doc(fsDb, 'config', 'voices'));
       if (cfgSnap.exists()) {
         if (cfgSnap.data().enabled === false) return;
@@ -1494,7 +1494,7 @@ function toggleArticleAudio(btn) {
     let attempts = 0;
     while (!window._fsDb && attempts++ < 20) await new Promise(r => setTimeout(r, 100));
     if (!window._fsDb) return;
-    const { getDoc, doc } = await import('https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js');
+    const { getDoc, doc } = await import('https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js');
     const snap = await getDoc(doc(window._fsDb, 'config', 'quiz'));
     if (!snap.exists()) return;
     const data = snap.data();

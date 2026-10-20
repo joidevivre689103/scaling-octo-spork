@@ -565,22 +565,22 @@ button.btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 <div class="toast" id="toast"></div>
 
-<!-- Firebase Modular SDK (10.12.5) -->
+<!-- Firebase Modular SDK (13.0.0) -->
 <script type="module">
 import { initializeApp, getApps, getApp }
-  from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
+  from 'https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js';
 import {
   getAuth, setPersistence, browserLocalPersistence,
   onAuthStateChanged, signInWithEmailAndPassword, signOut
-} from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
+} from 'https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js';
 import {
   getFirestore, collection, doc, getDoc, getDocs,
   addDoc, updateDoc, query, where, orderBy, limit,
   onSnapshot, serverTimestamp, increment, writeBatch
-} from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
+} from 'https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js';
 import {
   getStorage, ref as storageRef, uploadBytes, getDownloadURL
-} from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-storage.js';
+} from 'https://www.gstatic.com/firebasejs/13.0.0/firebase-storage.js';
 
 /* =====================================================================
    FIREBASE INIT
