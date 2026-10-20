@@ -418,7 +418,11 @@
     console.log('[guard-debug] role returned by getUserRole:', role);
     console.log('[guard-debug] isPaid returned by getUserIsPaid:', isPaid);
 
-    const hasAccess = window.CTFeatureFlags.hasPaidAccess(role, isPaid, minimumTier);
+    // [2026-10-20] Granted paid access (role 'paidSubscriber', admin label
+    // "Paid access (granted)") counts as paid here, as it already does on the
+    // paid pages and in serveDerivedData. getUserIsPaid() is Stripe-only, so
+    // before this a comped reader was sent to comingsoon until launch.
+    const hasAccess = window.CTFeatureFlags.hasPaidAccess(role, isPaid || role === 'paidSubscriber', minimumTier);
     console.log('[guard-debug] hasPaidAccess(', role, ',', isPaid, ',', minimumTier, ') →', hasAccess);
 
     return hasAccess;
