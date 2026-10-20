@@ -466,13 +466,13 @@
     // Spec: cricket-times-login-spec.docx §9.2
     // Build item (a). Foundation for items (b)/(c) downstream.
     //
-    // Firebase SDK: modular 10.12.5 (standardized across gated pages per
+    // Firebase SDK: modular 13.0.0 (standardized across gated pages per
     // sub-task 7.4). Coexists with prelaunch-guard.js's default app init
     // via getApps()/getApp() guard.
     // -------------------------------------------------------------------
 
     import { initializeApp, getApps, getApp } from
-      "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+      "https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js";
     import {
       getAuth,
       signInWithEmailAndPassword,
@@ -481,14 +481,14 @@
       onAuthStateChanged,
       verifyPasswordResetCode,
       confirmPasswordReset
-    } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+    } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js";
     import {
       getFirestore,
       doc,
       getDoc,
       setDoc,
       serverTimestamp
-    } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+    } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js";
 
     // Firebase config — public API key is intentionally exposed per project
     // convention; security is enforced via Firestore rules, not key secrecy.

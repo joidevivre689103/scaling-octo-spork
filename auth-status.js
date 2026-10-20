@@ -70,7 +70,7 @@
     return true;
   }
 
-  var SDK = 'https://www.gstatic.com/firebasejs/10.12.5/';
+  var SDK = 'https://www.gstatic.com/firebasejs/13.0.0/';
   var FIREBASE_CONFIG = {
     apiKey: 'AIzaSyBnfn9hK0y-p6nvIZ_AwoJnWD7DfDuIQd4',
     authDomain: 'hitwicket-cba02.firebaseapp.com',

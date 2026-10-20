@@ -99,7 +99,7 @@
    * needs an explicit https://*.cricketimes.com/* entry. Two lists, two shapes. */
   var RECAPTCHA_SITE_KEY = '6LfPGYEtAAAAAOy4SJRnsSxdImyfVczWtNV3_k44';
 
-  var FB_APPCHECK_URL   = 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app-check.js';
+  var FB_APPCHECK_URL   = 'https://www.gstatic.com/firebasejs/13.0.0/firebase-app-check.js';
   var APPCHECK_TIMEOUT_MS = 5000;
   var DEBUG_FLAG_KEY      = 'ct-appcheck-debug';
 

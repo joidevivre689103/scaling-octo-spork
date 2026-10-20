@@ -298,7 +298,7 @@
    * (per the AT LAUNCH checklist, this file is removed; feature-flags.js
    * stays and continues to own init for any post-launch consumer).
    *
-   * SDK strategy: modular Firebase 10.12.5 (matching feature-flags.js
+   * SDK strategy: modular Firebase 13.0.0 (matching feature-flags.js
    * and the rest of the gated surface). Imports are URL-cached by the
    * browser so other scripts on the page importing the same URL get the
    * same module instance — no duplicate code download.
@@ -334,9 +334,9 @@
 
     let getApp, getAuth, onAuthStateChanged, getFirestore;
     try {
-      ({ getApp } = await import('https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js'));
-      ({ getAuth, onAuthStateChanged } = await import('https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js'));
-      ({ getFirestore } = await import('https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js'));
+      ({ getApp } = await import('https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js'));
+      ({ getAuth, onAuthStateChanged } = await import('https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js'));
+      ({ getFirestore } = await import('https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js'));
     } catch (e) {
       console.warn('[prelaunch-guard] failed to load Firebase modular SDK:', e?.message || e);
       return false;

@@ -1002,12 +1002,12 @@ h1.title em {
      - Calls createCheckoutSession Cloud Function and redirects to Stripe
 ─────────────────────────────────────────────────────────────────────── -->
 <script type="module">
-import { initializeApp, getApps, getApp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
+import { initializeApp, getApps, getApp } from 'https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js';
 import {
   getAuth, onAuthStateChanged, signOut
-} from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
-import { getFunctions, httpsCallable, connectFunctionsEmulator } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-functions.js';
-import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
+} from 'https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js';
+import { getFunctions, httpsCallable, connectFunctionsEmulator } from 'https://www.gstatic.com/firebasejs/13.0.0/firebase-functions.js';
+import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js';
 
 // Firebase config — same project as the rest of the site (hitwicket-cba02).
 // API key is public by design; security via Firestore rules.

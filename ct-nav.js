@@ -373,9 +373,9 @@
   // this adds no network cost on a page that has loaded feature-flags.js, and
   // guarantees we're not mixing SDK versions against the same FirebaseApp
   // (the cross-version Firestore/Auth gotcha in the 7.5 notes).
-  // On a version bump this file is caught by `grep -r "firebasejs/10\.12\.5"`.
-  var FB_FIRESTORE_URL = 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
-  var FB_AUTH_URL      = 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
+  // On a version bump this file is caught by `grep -r "firebasejs/13\.0\.0"`.
+  var FB_FIRESTORE_URL = 'https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js';
+  var FB_AUTH_URL      = 'https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js';
 
   function whenFlagsReady(cb) {
     var waited = 0;
