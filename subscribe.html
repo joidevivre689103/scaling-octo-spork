@@ -1615,8 +1615,16 @@ if (alreadySubSignout) {
   // Keep the signin-prompt-hide-on-signin behaviour from the original code.
   // (With no in-page auth left this only matters for multi-tab signin, but
   // it's harmless and correct.)
+  //
+  // If the signed-in ACCOUNT changes after load (sign-in/out or a switch in
+  // another tab, or via the top-bar control), reload so every panel is rebuilt
+  // for the new account. Without this the already-subscribed panel kept the
+  // account it was built for — seen 2026-10-20: top bar showing one account,
+  // the panel saying "Signed in as" another and that it was a paid subscriber.
+  const initialUid = initialUser ? initialUser.uid : null;
   onAuthStateChanged(auth, (user) => {
     if (user) signinPrompt.style.display = 'none';
+    if ((user ? user.uid : null) !== initialUid) window.location.reload();
   });
 
   // If user is signed in AND already a paid subscriber, swap UI and stop.
