@@ -212,6 +212,39 @@
     font-style: italic;
   }
 
+  /* Road to life membership (2026-10-20): debut -> end of season 7, ticked
+     at each season boundary. */
+  .life-track {
+    position: relative;
+    height: 10px;
+    margin: 6px 0 8px;
+    background: var(--cream-2);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .life-fill {
+    position: absolute; inset: 0 auto 0 0;
+    width: 0;
+    background: var(--crimson);
+    border-radius: 6px 0 0 6px;
+  }
+  .life-tick {
+    position: absolute; top: 0; bottom: 0;
+    width: 1px;
+    background: var(--rule);
+  }
+  .life-caption {
+    color: var(--ink-soft);
+    font-style: italic;
+    font-size: 15px;
+  }
+  .region-note {
+    color: var(--ink-muted);
+    font-style: italic;
+    font-size: 14px;
+  }
+
   /* ── Notice strips ─────────────────────────────────────────────────── */
   .notice {
     padding: 14px 18px;
@@ -496,11 +529,25 @@
             <div id="season-sub" class="plan-price">—</div>
           </dd>
 
+          <dt id="life-label" style="display:none">Road to life</dt>
+          <dd id="life-row" style="display:none">
+            <div class="life-track" role="progressbar" aria-label="Progress to life membership" aria-valuemin="0" aria-valuemax="100" id="life-track">
+              <div class="life-fill" id="life-fill"></div>
+            </div>
+            <div class="life-caption" id="life-caption">—</div>
+          </dd>
+
           <dt>This season</dt>
           <dd id="plan-price">—</dd>
 
           <dt id="next-bill-label">Next renewal</dt>
           <dd id="next-bill">—</dd>
+
+          <dt id="region-label" style="display:none">Priced for</dt>
+          <dd id="region-row" style="display:none">
+            <span id="region-text">—</span>
+            <div class="region-note">Set by where you subscribed from. Moved country? Write to ivan@thegrassbank.com.</div>
+          </dd>
 
           <dt>Account</dt>
           <dd id="account-email" class="email">—</dd>
@@ -741,6 +788,65 @@
     }
   }
 
+  // Road to life membership (2026-10-20). Life membership starts when the
+  // seventh season ends: the current period's end plus the seasons still to
+  // pay. The bar runs from the debut (first payment) to that day, ticked at
+  // each season boundary. Hidden when the season count is unknown.
+  function renderLifeProgress(sub, m, season) {
+    const show = !!season && !!sub.currentPeriodEnd;
+    ["life-label", "life-row"].forEach(id =>
+      document.getElementById(id).style.display = show ? "" : "none");
+    if (!show) return;
+    const periodEnd = new Date(sub.currentPeriodEnd * 1000);
+    const life = new Date(periodEnd);
+    life.setFullYear(life.getFullYear() + (SEASONS_TO_CAP - season));
+    let start = m && m.debutAt ? (typeof m.debutAt.toDate === "function" ? m.debutAt.toDate() : new Date(m.debutAt)) : null;
+    if (!start || isNaN(start)) { start = new Date(periodEnd); start.setFullYear(start.getFullYear() - season); }
+    const span = life - start;
+    const frac = span > 0 ? Math.min(1, Math.max(0, (Date.now() - start) / span)) : 1;
+
+    const track = document.getElementById("life-track");
+    track.querySelectorAll(".life-tick").forEach(t => t.remove());
+    for (let i = 1; i < SEASONS_TO_CAP; i++) {
+      const t = document.createElement("span");
+      t.className = "life-tick";
+      t.style.left = (100 * i / SEASONS_TO_CAP) + "%";
+      track.appendChild(t);
+    }
+    document.getElementById("life-fill").style.width = (frac * 100).toFixed(1) + "%";
+    track.setAttribute("aria-valuenow", Math.round(frac * 100));
+
+    const lifeText = life.toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" });
+    let caption;
+    if (Date.now() >= life) {
+      caption = "You're capped for life. Nothing more to pay.";
+    } else {
+      const months = Math.max(0, (life.getFullYear() - new Date().getFullYear()) * 12 + (life.getMonth() - new Date().getMonth()));
+      const y = Math.floor(months / 12), mo = months % 12;
+      const left = [y ? `${y} year${y === 1 ? "" : "s"}` : "", mo ? `${mo} month${mo === 1 ? "" : "s"}` : ""].filter(Boolean).join(", ") || "under a month";
+      caption = `Free for life from ${lifeText} · ${left} to go.`;
+      if (sub.cancelAtPeriodEnd) caption += " Paused while renewal is off — your seasons stay yours if you come back.";
+    }
+    document.getElementById("life-caption").textContent = caption;
+  }
+
+  // Region the price was set for (2026-10-20): the country the checkout came
+  // from (ipCountry on subscriptions/{emailKey}, written by the webhook) and
+  // the currency charged. Country is omitted if the record predates it.
+  function renderRegion(sub, cur) {
+    let country = null, currency = null;
+    try {
+      if (sub.ipCountry) country = new Intl.DisplayNames(["en"], { type: "region" }).of(String(sub.ipCountry).toUpperCase());
+    } catch (_) { country = sub.ipCountry || null; }
+    try {
+      if (cur) currency = new Intl.DisplayNames(["en"], { type: "currency" }).of(cur.toUpperCase()) + " (" + cur.toUpperCase() + ")";
+    } catch (_) { currency = cur ? cur.toUpperCase() : null; }
+    const text = [country, currency].filter(Boolean).join(" · ");
+    ["region-label", "region-row"].forEach(id =>
+      document.getElementById(id).style.display = text ? "" : "none");
+    if (text) document.getElementById("region-text").textContent = text;
+  }
+
   function fmtDebut(ts) {
     if (!ts) return "";
     const d = typeof ts.toDate === "function" ? ts.toDate() : new Date(ts);
@@ -848,6 +954,9 @@
         ? "Your seventh season. After this one you're capped for life."
         : `${left} more season${left === 1 ? "" : "s"} and you're capped for life.`;
     }
+
+    renderLifeProgress(sub, m, season);
+    renderRegion(sub, cur);
 
     // This season's price. Without a season count we can't know where on the
     // ladder the reader is, so say nothing rather than show a wrong figure.
