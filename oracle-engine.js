@@ -33,9 +33,12 @@
 // only because MailerLite redirected every edition back to one hardcoded URL).
 //
 // The newsletter invitation now lives on the score screen, after the reveal,
-// as the standard site-wide component (ct-newsletter.js). Score documents are
-// always anonymous; identity for the future leaderboard comes from the
-// account, not from the quiz.
+// as the standard site-wide component (ct-newsletter.js). Identity for the
+// future leaderboard comes from the account, not from the quiz.
+//
+// [2026-10-21] LOGIN TO PLAY. A free account is now required to play; anonymous
+// score documents are no longer written. One score per account per edition, at
+// oracleScores/{uid}_{editionId}. See writeScoreDocument().
 // ═════════════════════════════════════════════════════════════════════════════
 // ═══════════════════════════════════════════════════════════════════════════
 // FIREBASE INIT — same project as CMS (hitwicket-cba02)
@@ -50,9 +53,9 @@
 // ═══════════════════════════════════════════════════════════════════════════
 import { initializeApp, getApps, getApp }
   from 'https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js';
-import { getFirestore, collection, doc, getDoc, addDoc, setDoc }
+import { getFirestore, doc, getDoc, setDoc }
   from 'https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js';
-import { getAuth }
+import { getAuth, onAuthStateChanged }
   from 'https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js';
 
 const _fbConfig = {
@@ -65,13 +68,24 @@ const _fbConfig = {
 };
 const _app = getApps().length ? getApp() : initializeApp(_fbConfig);
 const db = getFirestore(_app);
-// Added 2026-08-07 for the score document's uid. Read at write time via
-// auth.currentUser rather than subscribed via onAuthStateChanged: the quiz gates
-// nothing on identity, so there is no UI to hold back while auth resolves, and a
-// reader who finishes a quiz has been on the page long enough for the token to
-// have settled. If currentUser is null the score is simply anonymous, which is
-// the correct outcome for a signed-out visitor either way.
+// LOGIN TO PLAY — 2026-10-21, item (6) pre-launch half.
+// Yorker now needs a (free) account to play. Anonymous play is over: the 2026-08-07
+// note here said "the quiz gates nothing on identity", and that is no longer true,
+// so the engine now WAITS for the first auth answer before routing to a screen.
+// authReady resolves once with the user or null; null means definitively signed
+// out, not still checking.
 const auth = getAuth(_app);
+const authReady = new Promise(resolve => {
+  const unsub = onAuthStateChanged(auth, user => { unsub(); resolve(user || null); });
+});
+let currentUser = null;       // set from authReady in loadQuizFromFirestore()
+
+// One score document per account per edition, at a FIXED id. The id is the lock:
+// firestore.rules allows CREATE on this path and denies UPDATE, so a second
+// attempt from any device is refused by the server, not just by this browser.
+function scoreDocId() {
+  return `${currentUser.uid}_${currentEdition.id}`;
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // LAUNCH DATE TOGGLE
@@ -129,6 +143,14 @@ function lsKey(base) {
   // prefix orphans all of those records at once, and every one of those readers
   // is handed a fresh, retakeable quiz — silently breaking the one-score-per-
   // participant rule the leaderboard depends on. The reader never sees this string.
+  //
+  // [2026-10-21] Since login-to-play, these keys are a CACHE, not the lock. The
+  // lock is oracleScores/{uid}_{editionId}, which the rules let an account create
+  // once. On load, syncLockWithAccount() makes this browser agree with that doc:
+  // a doc restores the completed state here (so a second device shows the score),
+  // and no doc clears a stale `completed` left by an anonymous play from before
+  // the change or by a different account on a shared browser. The prefix still
+  // must not change — `answers` holds in-progress play across a refresh.
   return `ct_oracle_${id}_${base}`;
 }
 // Legacy keys preserved (read-only for migration). If we ever see these on
@@ -269,13 +291,21 @@ async function loadQuizFromFirestore() {
     // Apply edition-specific branding to the page (kicker, title, etc.)
     applyEditionBranding();
 
-    // ═══════════════════════════════════════════════════════════════════════
-    // Post-MailerLite-redirect path: if the URL has ?subscribed=quiz, the user
-    // just came back from MailerLite's form submission. Restore their quiz
-    // state from localStorage and jump to the score screen with the banner.
-    // If this fires, we stop here — don't want to also show the intro or the
-    // completed-visitor banner.
-    // ═══════════════════════════════════════════════════════════════════════
+    // Question counts on the intro and progress meter — set before any branch
+    // below returns, so the signed-out intro shows the right numbers too.
+    document.getElementById('progress-total').textContent = questions.length;
+    document.getElementById('score-total').textContent    = questions.length;
+
+    // [2026-10-21] Login to play. A signed-out visitor sees the intro with a
+    // sign-in button in place of Start. (The comment that sat here described a
+    // ?subscribed=quiz MailerLite return path that was removed on 2026-08-04.)
+    currentUser = await authReady;
+    if (!currentUser) {
+      showSignInToPlay();
+      showScreen('intro');
+      return;
+    }
+    await syncLockWithAccount();
 
     // Check for saved state: completed or in-progress.
     // Per-edition keys, so completing Inaugural doesn't block Bowlers etc.
@@ -299,9 +329,6 @@ async function loadQuizFromFirestore() {
       } catch(e) { /* ignore */ }
     }
 
-    // Update question total on intro & progress meter
-    document.getElementById('progress-total').textContent = questions.length;
-    document.getElementById('score-total').textContent    = questions.length;
     showScreen('intro');
   } catch(e) {
     console.error('Quiz load error:', e);
@@ -363,6 +390,69 @@ function showReturnBanner() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// SIGN IN TO PLAY  [2026-10-21]
+// Swaps the intro's Start button for a link to login.html, which sends the
+// reader back here afterwards. returnUrl carries the query string too, so a
+// shared link's ?s=1 marker (the share grant) survives the round trip.
+// login.html's safeReturnUrl() accepts same-origin paths only.
+// Done here rather than in markup so the three edition pages stay untouched.
+// ═══════════════════════════════════════════════════════════════════════════
+function showSignInToPlay() {
+  const btn = document.querySelector('#screen-intro .btn-big');
+  if (!btn) return;
+  const link = document.createElement('a');
+  link.className = btn.className;
+  link.href = '/login.html?returnUrl=' + encodeURIComponent(location.pathname + location.search);
+  link.innerHTML = 'Sign in to play <span>→</span>';
+  btn.replaceWith(link);
+
+  const note = document.createElement('p');
+  note.className = 'intro-dek';
+  note.style.marginTop = '14px';
+  note.textContent = 'Yorker is free. You just need an account.';
+  link.after(note);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SYNC THE LOCK WITH THE ACCOUNT  [2026-10-21]
+// See the note in lsKey(). Reads the reader's own score doc (rules allow a
+// reader to get only docs whose id starts with their own uid).
+//   doc exists  → mirror it into localStorage, so this browser shows the
+//                 already-played banner even if they played on another device
+//   no doc      → clear any `completed` here: it is from an anonymous play
+//                 before login-to-play, or from another account on this browser
+//   read failed → leave localStorage alone; the server still refuses a second
+//                 score, and completeAndShowScore() handles that refusal
+// ═══════════════════════════════════════════════════════════════════════════
+async function syncLockWithAccount() {
+  try {
+    const snap = await getDoc(doc(db, 'oracleScores', scoreDocId()));
+    if (snap.exists()) {
+      rememberCompleted(snap.data());
+    } else if (safeLS(() => localStorage.getItem(lsKey('completed')), null) === 'true') {
+      safeLS(() => {
+        localStorage.removeItem(lsKey('completed'));
+        localStorage.removeItem(lsKey('score'));
+        localStorage.removeItem(lsKey('answers'));
+      }, null);
+    }
+  } catch (e) {
+    console.warn('Could not check for an existing Yorker score:', e);
+  }
+}
+
+// Writes a recorded score into the localStorage cache. `score` in localStorage
+// is the CORRECT COUNT (what renderScore shows as n/total), not the doc's
+// `score` field, which is correctCount × 5 for the leaderboard.
+function rememberCompleted(d) {
+  safeLS(() => {
+    localStorage.setItem(lsKey('completed'), 'true');
+    localStorage.setItem(lsKey('score'), String(d.correctCount));
+    if (Array.isArray(d.answers)) localStorage.setItem(lsKey('answers'), JSON.stringify(d.answers));
+  }, null);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // START
 // Single-attempt enforcement: once a user has completed this edition, there
 // is no retake. The welcome-back banner only shows "See your score". If
@@ -370,6 +460,12 @@ function showReturnBanner() {
 // wipe localStorage.
 // ═══════════════════════════════════════════════════════════════════════════
 function startQuiz() {
+  // Login to play. The signed-out intro has no Start button, so this only
+  // fires if something calls startQuiz() directly.
+  if (!currentUser) {
+    location.href = '/login.html?returnUrl=' + encodeURIComponent(location.pathname + location.search);
+    return;
+  }
   // Block start if the user has already completed this edition
   const completed = safeLS(() => localStorage.getItem(lsKey('completed')), null) === 'true';
   if (completed) {
@@ -455,83 +551,124 @@ function nextQuestion() {
 
 // ═══════════════════════════════════════════════════════════════════════════
 // WRITE SCORE DOCUMENT
-// Writes one doc to oracleScores.
+// Writes the reader's one doc to oracleScores/{uid}_{editionId}.
 //
-// SHAPE CHANGED 2026-08-07. It previously wrote `email: null`, `pseudonym: null`
-// and `isStaff: false`, justified as "retained for backward compatibility with
-// existing documents". That reason expired the same day: email and pseudonym
-// were stripped from every existing oracleScores document during the privacy
-// sweep, so there is nothing left to be compatible with, and writing them only
-// recreated two empty fields shaped like the retired email wall. isStaff was
-// hardcoded false and never read.
+// History kept short: 2026-08-07 dropped email/pseudonym/isStaff and made the
+// uid the only identity (no name is stored — the leaderboard resolves names
+// server-side, because users/{uid} is owner-or-admin). 2026-10-21, login to
+// play: the doc id is now FIXED per account and edition and written with
+// setDoc, not addDoc. firestore.rules allows create and denies update, so a
+// second attempt is refused by the server from any device. `anonymous` is
+// always false now; the field stays because existing docs carry it and the
+// leaderboard filters on it.
 //
-// IDENTITY IS NOW THE uid AND NOTHING ELSE. Signed in -> store the uid; signed
-// out -> store nothing identifying. No name is captured or stored here,
-// deliberately: a stored display name is a second copy that goes stale when the
-// reader renames and outlives their account when it is closed, which is the
-// exact class of defect the August sweep existed to remove. The leaderboard
-// resolves names from users/{uid} SERVER-SIDE into a derived public document —
-// it cannot resolve them in the browser, because users/{uid} is owner-or-admin
-// and one reader may not read another's displayName.
+// `answers` is new: the picked option per question. It lets a second device
+// show the full ball-by-ball breakdown, and it is what server-side grading
+// (the deferred answer-key precondition in item (6)) would re-check.
 //
-// `anonymous` is now DERIVED from whether a user is signed in, not passed in.
-// It was a parameter with exactly one caller that always passed true, i.e. a
-// constant wearing a variable's clothes. It is the field the leaderboard
-// filters on, so it needs to mean something.
+// The write must be ACKNOWLEDGED before the reader's attempt counts. Offline,
+// Firestore queues a write and the promise never settles, so it is raced
+// against a timeout; a timed-out write that lands later is picked up on the
+// retry (the retry is refused as a duplicate, and the recorded doc is read).
 // ═══════════════════════════════════════════════════════════════════════════
+const SCORE_WRITE_TIMEOUT_MS = 15000;
+
 async function writeScoreDocument() {
-  if (!currentEdition) return;  // safety — shouldn't happen
+  if (!currentEdition || !currentUser) throw new Error('not-ready');
   if (savedScoreDocId) return;  // already written this session
 
   const correctCount = computeScore();
   const score = correctCount * 5;  // per v2 §6: 5 points per correct answer
 
-  // Handle for this one submission — random per attempt, so it identifies a
-  // submission and NOT a person. Do not build anything person-shaped on it.
+  // Handle for this one submission. Identifies a submission, not a person.
   const sessionId = 'sess_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 8);
-
-  const user = auth.currentUser;
 
   const scoreDoc = {
     sessionId,
-    uid: user ? user.uid : null,
+    uid: currentUser.uid,
     editionId: currentEdition.id,
     editionName: currentEdition.name,  // denormalised for leaderboard display without a join
     correctCount,
     score,
     total: questions.length,
-    anonymous: !user,
+    answers: answers.slice(),
+    anonymous: false,
     timestamp: new Date().toISOString()
   };
 
+  const id = scoreDocId();
+  let timer;
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => reject(new Error('timeout')), SCORE_WRITE_TIMEOUT_MS);
+  });
   try {
-    const docRef = await addDoc(collection(db, 'oracleScores'), scoreDoc);
-    savedScoreDocId = docRef.id;
-    console.log('Score written:', docRef.id);
-  } catch (e) {
-    console.warn('Score write failed:', e);
-    // Re-throw so callers can choose whether to surface the failure
-    throw e;
+    await Promise.race([setDoc(doc(db, 'oracleScores', id), scoreDoc), timeout]);
+    savedScoreDocId = id;
+  } finally {
+    clearTimeout(timer);
   }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
 // COMPLETE AND SHOW SCORE
-// The single completion path. There is no email gate and no skip path — the
-// header that used to sit here described "users who refuse the email gate" and
-// a "✓ You're subscribed" banner, both of which left with the wall in the
-// 2026-08-04 rework. It is rewritten rather than amended because a comment
-// describing two routes, directly above a body that says "single completion
-// path", is worse than no comment at all.
+// The single completion path. Order matters, and is the fix for the bug noted
+// in item (6): WRITE FIRST, THEN LOCK. The ct_oracle_* lock and the reveal only
+// happen after the score is recorded. Setting the lock first meant a failed
+// write spent the reader's one attempt and left no score.
 //
-// The score is written for analytics and, once a reader is signed in, for the
-// leaderboard. Non-blocking: the score renders whether or not the write lands.
+// If the write fails, the reader stays on the last question with a message
+// and presses Finish again; their answers are kept. Before showing that
+// message we check whether a score is already recorded — the write may have
+// landed after the timeout, or they finished this edition on another device
+// first — and if so, the RECORDED score is shown, since that is the one that
+// counts.
 // ═══════════════════════════════════════════════════════════════════════════
-function completeAndShowScore() {
-  writeScoreDocument()
-    .catch(e => console.warn('Score write failed (non-blocking):', e));
+let completing = false;
 
-  finalizeAndShowScore();
+async function completeAndShowScore() {
+  if (completing) return;
+  completing = true;
+  const nextBtn = document.getElementById('next-btn');
+  nextBtn.disabled = true;
+  nextBtn.textContent = 'Saving…';
+  setSaveError('');
+
+  try {
+    await writeScoreDocument();
+    finalizeAndShowScore();
+  } catch (e) {
+    console.warn('Score write failed:', e);
+    let recorded = null;
+    try {
+      const snap = await getDoc(doc(db, 'oracleScores', scoreDocId()));
+      if (snap.exists()) recorded = snap.data();
+    } catch (_) { /* fall through to the retry message */ }
+
+    if (recorded) {
+      rememberCompleted(recorded);
+      showPreviousScore();
+    } else {
+      renderQuestion();  // restores the Finish button
+      setSaveError("Your score hasn't been saved yet. Check your connection and press Finish again.");
+    }
+  } finally {
+    completing = false;
+  }
+}
+
+function setSaveError(msg) {
+  let el = document.getElementById('save-error');
+  if (!el) {
+    if (!msg) return;
+    el = document.createElement('p');
+    el.id = 'save-error';
+    el.setAttribute('role', 'alert');
+    el.style.cssText = 'margin:14px 0 0;color:var(--accent);font-size:0.95rem;';
+    const row = document.querySelector('#screen-quiz .nav-row');
+    if (row) row.after(el); else return;
+  }
+  el.textContent = msg;
+  el.style.display = msg ? '' : 'none';
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -548,7 +685,8 @@ function finalizeAndShowScore() {
   const score = computeScore();
 
   // Persist completion — per-edition keys, so completing Inaugural doesn't
-  // block the user from taking Bowlers when it ships.
+  // block the user from taking Bowlers when it ships. Only ever reached after
+  // the score doc is acknowledged (see completeAndShowScore).
   safeLS(() => {
     localStorage.setItem(lsKey('completed'), 'true');
     localStorage.setItem(lsKey('score'), String(score));
