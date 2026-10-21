@@ -67,13 +67,11 @@
       homepage and takes the tier check like any gated page)
      quiz.html, yorker.html      — Yorker (the quiz; called "The Test
                                    Cricket Oracle" until 2026-08-14)
-     article.html                — article reader (allowlisted so the
-                                   coming-soon "Read the evidence" CTA
-                                   works without sign-in; the article
-                                   page itself has its own inline
-                                   preview gate while content is being
-                                   finalised — see article.html for
-                                   the temporary password screen)
+     (article.html removed 2026-10-21 — it had been allowlisted for the
+      coming-soon "Read the evidence" link and hidden behind a client-side
+      password that sat in the public source. It now takes the tier check
+      like any gated page, and the link is off coming-soon until the
+      five-for article is ready.)
      login.html                  — universal auth surface (build item
                                    (a), spec §9.2). Must be reachable
                                    unauthenticated, otherwise the gate
@@ -96,7 +94,7 @@
    owner-bypass URL works regardless of Firestore reachability and is
    the proper escape hatch if Firestore is down.
 
-   Allowlisted pages (article.html, yorker.html, coming-soon, etc.)
+   Allowlisted pages (yorker.html, coming-soon, etc.)
    short-circuit synchronously BEFORE any async work, so they render
    instantly even if Firestore is slow or unreachable.
 
@@ -193,8 +191,8 @@
   // would fall through to the tier check and bounce a visitor to comingsoon, which
   // is the one page on the site that is deliberately reachable by strangers.
   // The old names are NOT kept alongside — those paths were deleted outright.
-  const ALLOWED = ['comingsoon.html', 'quiz.html', 'yorker.html', 'article.html', 'login.html'];
-  const HIDE_NAV_ON = ['quiz.html', 'yorker.html', 'article.html'];
+  const ALLOWED = ['comingsoon.html', 'quiz.html', 'yorker.html', 'login.html'];
+  const HIDE_NAV_ON = ['quiz.html', 'yorker.html'];
   const ALLOWED_SUBPATHS = ['/yorker/'];
   const HIDE_NAV_SUBPATHS = ['/yorker/'];
 

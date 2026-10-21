@@ -791,7 +791,7 @@ function renderPostScoreCta(score, total) {
     html = `
       <div class="post-score-cta">
         <div class="post-score-cta-kicker">\u25c6 What Happens Next</div>
-        <h3>The site opens in June 2026.</h3>
+        <h3>The site opens soon.</h3>
         <p>
           The full archive, the tools and the long-form writing go live then.
           The Dispatch above is how you'll hear about it.
@@ -799,9 +799,6 @@ function renderPostScoreCta(score, total) {
         <div class="post-score-cta-row">
           <a href="/comingsoon.html" class="btn btn-primary">
             Back to Home <span>\u2192</span>
-          </a>
-          <a href="/article.html?id=five-for-evidence" class="btn btn-ghost">
-            Read Our First Piece
           </a>
         </div>
       </div>
