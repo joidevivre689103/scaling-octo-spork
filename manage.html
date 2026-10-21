@@ -1089,15 +1089,12 @@
     } else if (season) {
       nextLabel.textContent = "Next renewal";
       nextEl.textContent = `${endDate} · Season ${season + 1} at ${ladder[season]}`;
-      // Loyalty discount (2026-10-20): the saving against this season, and
-      // the total off the first-year price, which grows every season.
+      // Loyalty discount (2026-10-20): kept to one short line. Every step on
+      // the ladder is the same size, so "and every season" is exact.
       const saving = priceNum(ladder[season - 1]) - priceNum(ladder[season]);
-      const pctNext = Math.round(100 * (1 - priceNum(ladder[season]) / priceNum(ladder[0])));
-      const pctLast = Math.round(100 * (1 - priceNum(ladder[SEASONS_TO_CAP - 1]) / priceNum(ladder[0])));
       appendLoyaltyNote(nextEl,
-        `<strong>${fmtMoneyLike(ladder[0], saving)} less</strong> than this season — your loyalty discount. `
-        + `That's ${pctNext}% off your first-year price, rising every season you stay: `
-        + `${pctLast}% off by season ${SEASONS_TO_CAP}, then free for life.`, true);
+        `<strong>${fmtMoneyLike(ladder[0], saving)} less</strong> than this season, and every season. `
+        + `Free for life after season ${SEASONS_TO_CAP}.`, true);
     } else {
       nextLabel.textContent = "Next renewal";
       nextEl.textContent = endDate;
