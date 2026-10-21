@@ -1198,62 +1198,6 @@ body{
 </style>
 </head>
 <body>
-<!-- ── PREVIEW GATE — remove when the linked article is finished ── -->
-<!-- This gate exists because article.html is intentionally allowlisted by
-     prelaunch-guard.js (so the coming-soon CTA "Read the evidence" works
-     without sign-in). Until the linked article is fully authored, this
-     password screen prevents random visitors who guess at article URLs
-     from seeing draft content. Remove the entire block (between the two
-     marker comments) once the article is ready for general access. -->
-<style>
-#previewGate{position:fixed;inset:0;z-index:99999;background:#1a1410;display:flex;align-items:center;justify-content:center;font-family:'Source Serif 4',Georgia,serif}
-#previewGate.hidden{display:none}
-.pg-box{background:#faf7f2;border:1px solid #c8b89a;border-top:3px solid #8b1a1a;padding:2.5rem 2rem;max-width:360px;width:90%;text-align:center}
-.pg-logo{font-family:'Playfair Display',Georgia,serif;font-size:1.8rem;font-weight:700;color:#8b1a1a;margin-bottom:0.25rem}
-.pg-sub{font-size:0.72rem;letter-spacing:0.15em;text-transform:uppercase;color:#8a7a6a;margin-bottom:1.75rem}
-.pg-label{font-size:0.65rem;letter-spacing:0.15em;text-transform:uppercase;color:#3d3530;display:block;margin-bottom:0.5rem;text-align:left}
-.pg-input{width:100%;border:1px solid #c8b89a;padding:0.7rem 0.9rem;font-family:'Source Serif 4',Georgia,serif;font-size:0.95rem;color:#1a1410;background:#fff;outline:none;margin-bottom:0.75rem}
-.pg-input:focus{border-color:#8b1a1a}
-.pg-btn{width:100%;background:#8b1a1a;color:#f5f0e8;border:none;padding:0.8rem;font-family:'Playfair Display',Georgia,serif;font-size:0.9rem;font-weight:600;cursor:pointer;letter-spacing:0.05em}
-.pg-btn:hover{background:#a02020}
-.pg-error{color:#8b1a1a;font-size:0.75rem;margin-top:0.5rem;min-height:1em}
-.pg-note{font-size:0.65rem;color:#8a7a6a;margin-top:1rem;line-height:1.6}
-</style>
-<div id="previewGate">
-  <div class="pg-box">
-    <div class="pg-logo">The Grass Bank</div>
-    <div class="pg-sub">Preview Access</div>
-    <label class="pg-label" for="pgPw">Password</label>
-    <input type="password" id="pgPw" class="pg-input" placeholder="Enter preview password" onkeydown="if(event.key==='Enter')pgUnlock()" autocomplete="current-password" />
-    <button class="pg-btn" onclick="pgUnlock()">Enter</button>
-    <div class="pg-error" id="pgError"></div>
-    <p class="pg-note">This site is under construction.<br/>Public launch coming soon.</p>
-  </div>
-</div>
-<script>
-(function(){
-  const PG_PASSWORD = 'cricketimes2026';
-  const PG_KEY = 'ct_preview_auth';
-  function pgUnlock() {
-    const val = document.getElementById('pgPw').value;
-    if (val === PG_PASSWORD) {
-      localStorage.setItem(PG_KEY, '1');
-      document.getElementById('previewGate').classList.add('hidden');
-    } else {
-      const err = document.getElementById('pgError');
-      err.textContent = 'Incorrect password.';
-      document.getElementById('pgPw').value = '';
-      document.getElementById('pgPw').focus();
-      setTimeout(() => { err.textContent = ''; }, 2500);
-    }
-  }
-  window.pgUnlock = pgUnlock;
-  if (localStorage.getItem(PG_KEY) === '1') {
-    document.getElementById('previewGate').classList.add('hidden');
-  }
-}());
-</script>
-<!-- ── END PREVIEW GATE ── -->
 
 <div id="copyToast">🔗 Link copied to clipboard</div>
 
