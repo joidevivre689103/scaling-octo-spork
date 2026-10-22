@@ -290,6 +290,20 @@
   #ladder-label, #ladder-row { grid-column: 1 / -1; }
   #ladder-label { margin-top: 10px; }
 
+  /* Switch to annual (2026-10-22) */
+  .switch-consent {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    margin-top: 14px;
+    font-size: 15px;
+    line-height: 1.45;
+    cursor: pointer;
+  }
+  .switch-consent input { flex: 0 0 auto; width: 18px; height: 18px; margin: 2px 0 0; accent-color: var(--ink); cursor: pointer; }
+  .switch-consent a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+  .switch-consent.needs-consent { outline: 1px solid var(--crimson); outline-offset: 6px; }
+
   /* ── Notice strips ─────────────────────────────────────────────────── */
   .notice {
     padding: 14px 18px;
@@ -551,6 +565,13 @@
       Your most recent renewal payment didn't go through. Stripe will retry automatically over the next few days. If those retries fail, your subscription will be cancelled.
     </div>
 
+    <!-- Pending monthly → annual switch (2026-10-22) -->
+    <div id="switch-pending-notice" class="notice warn" style="display:none">
+      <strong>Switching to annual.</strong>
+      <span id="switch-pending-text">—</span>
+      <br><br><button type="button" class="btn ghost" id="keep-monthly-btn">Stay on monthly</button>
+    </div>
+
     <!-- Membership card (2026-10-07: annual-only loyalty pricing).
          Cap number and season come from members/{emailKey}, written by the
          webhook. Until that doc exists the cap and season rows stay hidden and
@@ -582,7 +603,7 @@
             <div class="life-caption" id="life-caption">—</div>
           </dd>
 
-          <dt>This season</dt>
+          <dt id="plan-label">This season</dt>
           <dd id="plan-price">—</dd>
 
           <dt id="next-bill-label">Next renewal</dt>
@@ -606,15 +627,33 @@
       </div>
     </div>
 
+    <!-- Switch to annual (2026-10-22): monthly subscribers only -->
+    <div class="card" id="switch-card" style="display:none">
+      <div class="card-head">
+        <h2>Switch to annual</h2>
+      </div>
+      <div class="card-body">
+        <p id="switch-offer">—</p>
+        <p id="switch-terms">—</p>
+        <label class="switch-consent" id="switch-consent-label" for="switch-consent">
+          <input type="checkbox" id="switch-consent">
+          <span>I understand my subscription will then <strong>renew automatically each year</strong> at the next season&rsquo;s price until I cancel, and I agree to the <a href="/terms.html#s5" target="_blank" rel="noopener">Terms of Service</a>.</span>
+        </label>
+        <div class="btn-row">
+          <button id="switch-btn" class="btn gold" type="button">Switch to annual</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Renewal card -->
     <div class="card" id="cancel-card">
       <div class="card-head">
         <h2>Renewal and cancelling</h2>
       </div>
       <div class="card-body">
-        <p>Your subscription renews automatically once a year, at your next season&rsquo;s lower price. You&rsquo;ll get a reminder email before each renewal, and the date and amount are always shown above.</p>
-        <p>You can cancel at any time. You keep full access until the end of the season you&rsquo;ve paid for and won&rsquo;t be charged again. Your cap number and seasons stay yours, so if you come back later you carry on where you stopped. You can undo it any time before then.</p>
-        <p id="refund-note" style="display:none">Within 30 days of your first payment? Write to <a href="mailto:contact@thegrassbank.com?subject=Refund%20request">contact@thegrassbank.com</a> and we&rsquo;ll refund it in full. Your subscription then ends straight away.</p>
+        <p id="renewal-explainer">Your subscription renews automatically once a year, at your next season&rsquo;s lower price. You&rsquo;ll get a reminder email before each renewal, and the date and amount are always shown above.</p>
+        <p id="cancel-explainer">You can cancel at any time. You keep full access until the end of the season you&rsquo;ve paid for and won&rsquo;t be charged again. Your cap number and seasons stay yours, so if you come back later you carry on where you stopped. You can undo it any time before then.</p>
+        <p id="refund-note" style="display:none">Within 30 days of your first annual payment? Write to <a href="mailto:contact@thegrassbank.com?subject=Refund%20request">contact@thegrassbank.com</a> and we&rsquo;ll refund it in full. Your subscription then ends straight away.</p>
         <div class="btn-row">
           <button id="cancel-btn" class="btn danger" type="button">Cancel subscription</button>
         </div>
@@ -746,9 +785,17 @@
   // on click, not at load. Covered by Phase 3 Test 4.
   const functions = getFunctions(app, "us-central1");
 
-  // Callable refs. swapPlan retired 2026-10-07 — there is only one plan.
+  // Callable refs. swapPlan retired 2026-10-07; switchToAnnual / keepMonthly
+  // added 2026-10-22 for the monthly plan.
   const cancelSubFn      = httpsCallable(functions, "cancelSubscription");
   const resumeSubFn      = httpsCallable(functions, "resumeSubscription");
+  const switchToAnnualFn = httpsCallable(functions, "switchToAnnual");
+  const keepMonthlyFn    = httpsCallable(functions, "keepMonthly");
+
+  // Names the wording of the switch-to-annual checkbox. The server
+  // (ACCEPTED_SWITCH_CONSENT_VERSIONS in manageSubscription.js) refuses a
+  // switch without it. Change the wording → bump this AND the server.
+  const SWITCH_CONSENT_VERSION = "switch-annual-2026-10-22";
 
   // ── Season prices (display-only; canonical pricing lives in Stripe) ──
   //
@@ -767,8 +814,17 @@
   };
   const SEASONS_TO_CAP = 7;
 
-  // priceKey is "<currency>_annual" (e.g. "inr_annual"); the currency prefix is
-  // all this page needs. Legacy keys from test mode fall back to USD display.
+  // Monthly plan (2026-10-22). Flat, tax-inclusive. MUST match MONTHLY in
+  // subscribe.html and the Stripe Price with lookup key `monthly`.
+  const MONTHLY = {
+    usd: "$7", cad: "C$8", gbp: "£6", aud: "A$10", nzd: "NZ$12", inr: "₹99", zar: "R60",
+  };
+  function isMonthly(sub) {
+    return sub.plan === "monthly" || /_monthly$/.test(sub.priceKey || "");
+  }
+
+  // priceKey is "<currency>_annual" or "<currency>_monthly"; the currency
+  // prefix is all this page needs. Legacy keys from test mode fall back to USD.
   function currencyOf(sub) {
     const c = (sub.currency || (sub.priceKey || "").split("_")[0] || "").toLowerCase();
     return LADDER[c] ? c : "usd";
@@ -1014,6 +1070,8 @@
 
   // ── Render the loaded state ──────────────────────────────────────────
   function renderLoaded(user, sub) {
+    if (isMonthly(sub)) { renderLoadedMonthly(user, sub); return; }
+    resetPlanSpecificUi();
     const cur = currencyOf(sub);
     const ladder = LADDER[cur];
     const m = currentMember;
@@ -1130,6 +1188,122 @@
       (sub.cancelAtPeriodEnd || season === SEASONS_TO_CAP) ? "none" : "block";
   }
 
+  // ── Plan-specific UI (2026-10-22) ─────────────────────────────────────
+  // renderLoaded draws the annual view; renderLoadedMonthly the monthly one.
+  // Both start from the same markup, so each puts back what the other changes.
+  function resetPlanSpecificUi() {
+    document.getElementById("plan-label").textContent = "This season";
+    document.getElementById("switch-card").style.display = "none";
+    document.getElementById("switch-pending-notice").style.display = "none";
+    document.getElementById("renewal-explainer").textContent =
+      "Your subscription renews automatically once a year, at your next season\u2019s lower price. You\u2019ll get a reminder email before each renewal, and the date and amount are always shown above.";
+    document.getElementById("cancel-explainer").textContent =
+      "You can cancel at any time. You keep full access until the end of the season you\u2019ve paid for and won\u2019t be charged again. Your cap number and seasons stay yours, so if you come back later you carry on where you stopped. You can undo it any time before then.";
+  }
+
+  function renderLoadedMonthly(user, sub) {
+    const cur = currencyOf(sub);
+    const ladder = LADDER[cur];
+    const monthly = MONTHLY[cur];
+    const m = currentMember;
+    // A returning annual reader keeps their cap number and seasons; switching
+    // back to annual carries on from their next season.
+    const seasonsPaid = m && Number.isInteger(m.seasonsPaid) ? Math.max(0, m.seasonsPaid) : 0;
+    const nextSeason = Math.min(seasonsPaid + 1, SEASONS_TO_CAP);
+    const annualPrice = ladder[nextSeason - 1];
+    const endDate = fmtDateUnix(sub.currentPeriodEnd);
+    const pending = sub.pendingPlan === "annual";
+
+    const showCap = !!m && Number.isInteger(m.capNumber) && m.capNumber >= 0;
+    ["cap-label", "cap-row"].forEach(id =>
+      document.getElementById(id).style.display = showCap ? "" : "none");
+    if (showCap) {
+      document.getElementById("cap-number").textContent = "#" + m.capNumber;
+      document.getElementById("cap-debut").textContent = fmtDebut(m.debutAt);
+    }
+    ["season-label", "season-row", "life-label", "life-row", "ladder-label", "ladder-row"].forEach(id =>
+      document.getElementById(id).style.display = "none");
+    renderRegion(sub, cur);
+
+    document.getElementById("plan-label").textContent = "Plan";
+    document.getElementById("plan-price").textContent = `Monthly · ${monthly} a month`;
+    document.getElementById("account-email").textContent = user.email || "—";
+    document.getElementById("meta-email").textContent = user.email || "—";
+
+    const badge = document.getElementById("status-badge");
+    badge.className = "badge";
+    if (sub.cancelAtPeriodEnd) { badge.classList.add("scheduled"); badge.textContent = "Cancelled"; }
+    else if (sub.status === "past_due") { badge.classList.add("past-due"); badge.textContent = "Past due"; }
+    else { badge.classList.add("active"); badge.textContent = "Active"; }
+
+    const nextLabel = document.getElementById("next-bill-label");
+    const nextEl = document.getElementById("next-bill");
+    if (sub.cancelAtPeriodEnd) {
+      nextLabel.textContent = "Access until";
+      nextEl.textContent = endDate;
+    } else if (pending) {
+      nextLabel.textContent = "Next payment";
+      nextEl.textContent = `${endDate} · ${annualPrice} for season ${nextSeason} (annual)`;
+    } else {
+      nextLabel.textContent = "Next payment";
+      nextEl.textContent = `${endDate} · ${monthly}`;
+    }
+
+    document.getElementById("refund-note").style.display = "none";
+    document.getElementById("past-due-notice").style.display =
+      sub.status === "past_due" ? "block" : "none";
+
+    // Renewal-off notice + turn-back-on CTA (same as annual).
+    const cancelNotice = document.getElementById("cancel-pending-notice");
+    if (sub.cancelAtPeriodEnd) {
+      cancelNotice.style.display = "block";
+      document.getElementById("cancel-end-date").textContent = endDate;
+      document.getElementById("cancel-pending-resume-cta").innerHTML =
+        '<br><br><button type="button" class="btn gold" id="resume-btn">Keep my subscription</button>';
+      document.getElementById("resume-btn").onclick = handleResumeClick;
+    } else {
+      cancelNotice.style.display = "none";
+    }
+
+    // Pending switch notice.
+    const pendingNotice = document.getElementById("switch-pending-notice");
+    pendingNotice.style.display = pending ? "block" : "none";
+    if (pending) {
+      document.getElementById("switch-pending-text").textContent =
+        `On ${fmtDateUnix(sub.pendingPlanStartsAt || sub.currentPeriodEnd)} you'll pay ${annualPrice} for season ${nextSeason}, `
+        + `instead of your monthly payment. Nothing changes before then.`;
+    }
+
+    // Switch offer: active monthly, renewal on, nothing pending.
+    const canSwitch = !pending && sub.status === "active" && seasonsPaid < SEASONS_TO_CAP;
+    document.getElementById("switch-card").style.display = canSwitch ? "block" : "none";
+    if (canSwitch) {
+      const num = (x) => Number(String(x).replace(/[^0-9.]/g, ""));
+      const yearOfMonthly = num(monthly) * 12;
+      const saving = yearOfMonthly - num(annualPrice);
+      document.getElementById("switch-offer").innerHTML =
+        `<strong>${annualPrice} a year</strong> instead of ${fmtMoneyLike(monthly, yearOfMonthly)} on monthly`
+        + (saving > 0 ? ` &mdash; ${fmtMoneyLike(ladder[0], saving)} less.` : ".")
+        + ` Cheaper every season you stay, and free for life after season ${SEASONS_TO_CAP}.`
+        + (showCap ? "" : " You also get your cap number.");
+      document.getElementById("switch-terms").textContent =
+        `Annual starts on ${endDate}, when your next monthly payment is due. Nothing is charged today. `
+        + `You'll then pay ${annualPrice} for season ${nextSeason}, and it renews each year at the next season's price until you cancel.`;
+      const consent = document.getElementById("switch-consent");
+      if (sub.cancelAtPeriodEnd) {
+        document.getElementById("switch-terms").textContent += " Switching also turns renewal back on.";
+      }
+      consent.checked = false;
+    }
+
+    document.getElementById("renewal-explainer").textContent = pending
+      ? `Your plan switches to annual on ${fmtDateUnix(sub.pendingPlanStartsAt || sub.currentPeriodEnd)}. From then it renews automatically once a year, at your next season\u2019s price.`
+      : "Your subscription renews automatically every month at the same price. The date and amount of your next payment are always shown above.";
+    document.getElementById("cancel-explainer").textContent =
+      "You can cancel at any time. You keep full access until the end of the month you\u2019ve paid for and won\u2019t be charged again. Monthly payments aren\u2019t refundable. You can undo it any time before then.";
+    document.getElementById("cancel-card").style.display = sub.cancelAtPeriodEnd ? "none" : "block";
+  }
+
   // ── Refresh after a mutation: poll the subscription doc until the webhook
   //    has written, or give up after a few seconds. We retry up to 5 times
   //    at 800ms intervals (= 4 seconds total), which comfortably covers
@@ -1168,11 +1342,14 @@
   // ── Action handlers ──────────────────────────────────────────────────
   async function handleCancelClick() {
     const periodEnd = fmtDateUnix(currentSub.currentPeriodEnd);
+    const monthly = isMonthly(currentSub);
+    const hasCap = !!currentMember && Number.isInteger(currentMember.capNumber);
     const bodyHtml = `
       <ul>
         <li>You'll keep full access until <strong>${periodEnd}</strong>.</li>
         <li>You won't be charged again.</li>
-        <li>Your cap number and seasons stay yours. If you come back later, you carry on where you stopped.</li>
+        ${monthly && currentSub.pendingPlan === "annual" ? "<li>Your switch to annual is cancelled too.</li>" : ""}
+        ${!monthly || hasCap ? "<li>Your cap number and seasons stay yours. If you come back later, you carry on where you stopped.</li>" : ""}
         <li>You can undo this any time before that date.</li>
       </ul>
     `;
@@ -1185,7 +1362,7 @@
         try {
           showState("state-loading");
           await cancelSubFn({});
-          toast("Subscription cancelled. You keep access until the end of your season.");
+          toast("Subscription cancelled. You keep access until " + periodEnd + ".");
           showState("state-loaded");
           await refreshUntilChanged(currentUser, d => d.cancelAtPeriodEnd === true);
         } catch (err) {
@@ -1198,7 +1375,12 @@
   }
 
   async function handleResumeClick() {
-    const bodyHtml = `
+    const bodyHtml = isMonthly(currentSub) ? `
+      <ul>
+        <li>Your subscription continues without interruption.</li>
+        <li>It renews on its existing date, at ${MONTHLY[currencyOf(currentSub)]} a month.</li>
+      </ul>
+    ` : `
       <ul>
         <li>Your subscription continues without interruption.</li>
         <li>It renews on its existing date, at your next season's lower price.</li>
@@ -1225,6 +1407,47 @@
     });
   }
 
+  async function handleSwitchClick() {
+    const consent = document.getElementById("switch-consent");
+    const label = document.getElementById("switch-consent-label");
+    if (!consent.checked) {
+      label.classList.add("needs-consent");
+      toast("Please tick the box to confirm you've read how annual renewal works.", "error");
+      consent.focus();
+      return;
+    }
+    label.classList.remove("needs-consent");
+    const btn = document.getElementById("switch-btn");
+    btn.disabled = true;
+    try {
+      const res = await switchToAnnualFn({ consent: { renewal: true, version: SWITCH_CONSENT_VERSION } });
+      const startsAt = res.data && res.data.startsAt;
+      toast("Done. Annual starts on " + fmtDateUnix(startsAt) + ". We've emailed you the details.");
+      // The function writes the pending switch itself, so this is quick.
+      await refreshUntilChanged(currentUser, d => d.pendingPlan === "annual", 6, 700);
+    } catch (err) {
+      console.error("switchToAnnual failed:", err);
+      toast(humanizeError(err), "error");
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  async function handleKeepMonthlyClick() {
+    const btn = document.getElementById("keep-monthly-btn");
+    btn.disabled = true;
+    try {
+      await keepMonthlyFn({});
+      toast("You're staying on monthly.");
+      await refreshUntilChanged(currentUser, d => d.pendingPlan !== "annual", 6, 700);
+    } catch (err) {
+      console.error("keepMonthly failed:", err);
+      toast(humanizeError(err), "error");
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
   // Map HttpsError codes to user-friendly messages. Falls back to
   // err.message for unknown cases — our function messages are already
   // written to be customer-facing.
@@ -1242,6 +1465,11 @@
 
   // ── Wire up event handlers ───────────────────────────────────────────
   document.getElementById("cancel-btn").addEventListener("click", handleCancelClick);
+  document.getElementById("switch-btn").addEventListener("click", handleSwitchClick);
+  document.getElementById("keep-monthly-btn").addEventListener("click", handleKeepMonthlyClick);
+  document.getElementById("switch-consent").addEventListener("change", (e) => {
+    if (e.target.checked) document.getElementById("switch-consent-label").classList.remove("needs-consent");
+  });
 
   document.getElementById("signout-link").addEventListener("click", async (e) => {
     e.preventDefault();
