@@ -31,7 +31,6 @@
   <script type="module">
     import { initializeApp, getApp, getApps } from 'https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js';
     import { getFirestore, collection, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js';
-    import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'https://www.gstatic.com/firebasejs/13.0.0/firebase-storage.js';
     import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js';
 
     const firebaseConfig = {
@@ -50,7 +49,6 @@
     // shares their auth state rather than starting a second, empty one.
     const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
     const db = getFirestore(app);
-    const storage = getStorage(app);
     const auth = getAuth(app);
 
     // Expose to global scope for non-module script
@@ -80,17 +78,6 @@
       if (typeof window._ctOnAuth === 'function') window._ctOnAuth(user);
     });
 
-    // Storage helpers
-    window._uploadSubmissionDoc = async (file, submissionId) => {
-      const path = `submissions/${submissionId}/${file.name}`;
-      const storageRef = ref(storage, path);
-      await uploadBytes(storageRef, file, { contentType: file.type });
-      const url = await getDownloadURL(storageRef);
-      return { path, url };
-    };
-    window._deleteSubmissionDoc = async (path) => {
-      try { await deleteObject(ref(storage, path)); } catch(e) { /* ignore */ }
-    };
   </script>
   <!-- [2026-10-17] reCAPTCHA v3 removed. The token was never verified by any
        function, and the key only allowed the old github.io domain, so on
@@ -227,11 +214,16 @@
        handler clears the inline value rather than setting 'block', so this
        grid is what takes over. Setting it to 'block' would silently undo the
        two-column layout. */
+    /* [2026-10-21] One column: the article module is gone, so the quiz card
+       is the only card. Kept as a grid so the inline-display note above still
+       holds; capped in width so a single card doesn't stretch to 1080px. */
     #submitModules {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr;
       gap: 36px;
       align-items: start;
+      max-width: 760px;
+      margin: 0 auto;
     }
 
     /* ── MODULE CARD ── */
@@ -502,7 +494,7 @@
     }
     .add-question-btn:hover { border-color: var(--red); color: var(--red); background: rgba(181,23,30,0.03); }
 
-    /* ── ARTICLE UPLOAD ── */
+    /* ── CONTRIBUTOR FIELDS + DECLARATIONS ── */
     .contributor-fields { margin-bottom: 20px; }
 
     .declarations {
@@ -546,53 +538,6 @@
       text-transform: uppercase;
       color: var(--ink);
       margin-bottom: 2px;
-    }
-
-    /* ── FILE DROP ZONE ── */
-    .file-zone {
-      border: 2px dashed var(--border);
-      padding: 28px 20px;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.2s;
-      background: var(--cream);
-      position: relative;
-    }
-    .file-zone:hover, .file-zone.drag-over {
-      border-color: var(--ink);
-      background: rgba(26,18,8,0.04);
-    }
-    .file-zone.has-file {
-      border-color: var(--gold);
-      background: rgba(201,168,76,0.07);
-    }
-    .file-zone input[type="file"] {
-      position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
-    }
-    .file-icon {
-      font-size: 32px;
-      margin-bottom: 10px;
-      display: block;
-    }
-    .file-zone-label {
-      font-family: 'Playfair Display', serif;
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--ink);
-      display: block;
-      margin-bottom: 4px;
-    }
-    .file-zone-sub {
-      font-size: 12px;
-      color: var(--ink-light);
-      display: block;
-    }
-    .file-name-display {
-      font-size: 13px;
-      color: var(--ink);
-      font-weight: 600;
-      margin-top: 8px;
-      display: none;
     }
 
     /* ── SUBMIT BUTTONS ── */
@@ -728,7 +673,7 @@
 <div class="page-header">
   <div class="kicker">Contribute to The Grass Bank</div>
   <h2>Submit Your Content</h2>
-  <p class="deck">Share your cricket knowledge with our readers — from quizzes to long-form analysis, every submission is reviewed by our editorial team.</p>
+  <p class="deck">Write a quiz for our readers. Every submission is read by our editors.</p>
 </div>
 
 <!-- MAIN LAYOUT -->
@@ -755,9 +700,8 @@
     <div id="authSignedOut" style="display:none">
       <div class="auth-gate-title">Sign in to submit</div>
       <p class="auth-gate-text">
-        Quizzes and articles are published under your name, so contributions come
-        from an account rather than an email address. It takes a moment, and it
-        also means you can follow what happens to your submission.
+        Quizzes are published under your name, so they come from an account
+        rather than an email address.
       </p>
       <a class="auth-gate-btn" id="authSignInBtn" href="/login.html">Sign in or create an account</a>
     </div>
@@ -773,7 +717,6 @@
         <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></svg>
       </div>
       <div class="module-title-wrap">
-        <div class="module-num">Module I</div>
         <div class="module-title">Cricket Quiz Submission</div>
       </div>
     </div>
@@ -842,8 +785,8 @@
         Add Question
       </button>
 
-      <!-- Declarations — ADDED 2026-08-07. The article module has required these
-           four since it was built; the quiz module did not, so submitted quiz
+      <!-- Declarations — ADDED 2026-08-07. The (now removed) article module had
+           required these four since it was built; the quiz module did not, so submitted quiz
            questions could be approved and published to the site with no consent
            to publish, no originality warranty and no plagiarism check. Same four
            declarations, worded for questions rather than a document. -->
@@ -894,118 +837,10 @@
     </div>
   </div>
 
-  <!-- ── MODULE 2: ARTICLE SUBMISSION ── -->
-  <div class="module-card">
-    <div class="module-header">
-      <div class="module-icon">
-        <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
-      </div>
-      <div class="module-title-wrap">
-        <div class="module-num">Module II</div>
-        <div class="module-title">Article Submission</div>
-      </div>
-    </div>
-    <div class="module-body">
-      <p class="module-desc">Submit a long-form article, match report, or cricket essay. Upload a .docx file after completing the contributor details and declarations below.</p>
-
-      <div class="section-divider"><span>Contributor Details</span></div>
-
-      <div class="contributor-fields">
-        <div class="field-row">
-          <div class="field-group">
-            <label>Full Name <span class="req">*</span></label>
-            <input type="text" id="artName" placeholder="Your full name" />
-            <div class="field-error" id="artNameErr">Please enter your full name.</div>
-          </div>
-          <div class="field-group">
-            <label>Email Address <span class="req">*</span></label>
-            <input type="email" id="artEmail" placeholder="email@example.com" />
-            <div class="field-error" id="artEmailErr">Please enter a valid email.</div>
-            <div class="privacy-note">Your email is used solely for editorial correspondence and is not shared with third parties.</div>
-          </div>
-        </div>
-        <div class="field-row">
-          <div class="field-group">
-            <label>Article Title <span class="req">*</span></label>
-            <input type="text" id="artTitle" placeholder="Working title of your article" />
-            <div class="field-error" id="artTitleErr">Please enter an article title.</div>
-          </div>
-          <div class="field-group">
-            <label>Category</label>
-            <select id="artCategory">
-              <option value="">Select category</option>
-              <option>Match Report</option>
-              <option>Player Profile</option>
-              <option>Historical Essay</option>
-              <option>Tactical Analysis</option>
-              <option>Opinion &amp; Commentary</option>
-              <option>Statistics &amp; Records</option>
-              <option>Tour Diary</option>
-            </select>
-          </div>
-        </div>
-        <div class="field-group">
-          <label>Short Bio / Credentials</label>
-          <textarea id="artBio" placeholder="Tell us briefly about yourself and your cricket background…" rows="2"></textarea>
-        </div>
-      </div>
-
-      <div class="section-divider"><span>Declarations</span></div>
-
-      <p style="font-size:13px;color:var(--ink-light);margin-bottom:12px;font-style:italic;">All boxes must be checked before uploading your document.</p>
-
-      <div class="declarations" id="declarationsList">
-        <label class="declaration-item" id="decl0">
-          <input type="checkbox" class="decl-check" data-idx="0" onchange="updateDeclState(0)" />
-          <div class="declaration-text">
-            <strong>Original Authorship</strong>
-            This is my original content, written solely by me.
-          </div>
-        </label>
-        <label class="declaration-item" id="decl1">
-          <input type="checkbox" class="decl-check" data-idx="1" onchange="updateDeclState(1)" />
-          <div class="declaration-text">
-            <strong>Not AI-Generated</strong>
-            This article has not been generated by artificial intelligence tools, in whole or in part.
-          </div>
-        </label>
-        <label class="declaration-item" id="decl2">
-          <input type="checkbox" class="decl-check" data-idx="2" onchange="updateDeclState(2)" />
-          <div class="declaration-text">
-            <strong>No Plagiarism</strong>
-            I have not plagiarised any information, passages, or ideas in this document.
-          </div>
-        </label>
-        <label class="declaration-item" id="decl3">
-          <input type="checkbox" class="decl-check" data-idx="3" onchange="updateDeclState(3)" />
-          <div class="declaration-text">
-            <strong>Publication Consent</strong>
-            I permit The Grass Bank to publish this content on their platform with appropriate editorial edits, while retaining attribution to me as the author.
-          </div>
-        </label>
-      </div>
-
-      <div class="section-divider"><span>Upload Document</span></div>
-
-      <div class="file-zone" id="fileZone">
-        <input type="file" id="fileInput" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" onchange="onFileSelect(event)" />
-        <span class="file-icon">📄</span>
-        <span class="file-zone-label">Drop your .docx file here</span>
-        <span class="file-zone-sub">or click to browse — Word documents only (.docx)</span>
-        <div class="file-name-display" id="fileNameDisplay"></div>
-      </div>
-      <div class="field-error" id="artFileErr" style="display:none;">Please upload a .docx file.</div>
-      <div class="field-error" id="artDeclErr" style="display:none;color:var(--red);">Please check all four declaration boxes before uploading.</div>
-
-      <div class="progress-wrap"><div class="progress-bar" id="artProgress"></div></div>
-
-      <button class="submit-btn" id="submitArtBtn" type="button">
-        <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
-        Submit Article for Review
-      </button>
-      <div class="hp-field" aria-hidden="true"><input type="text" id="artHp" name="art_website" tabindex="-1" autocomplete="off"></div>
-    </div>
-  </div>
+  <!-- MODULE 2 (article upload) REMOVED 2026-10-21. It was never used:
+       contributor articles arrive through author-cms.html into `articles`.
+       Its Storage path (submissions/{id}/{file}) is closed in storage.rules and
+       `article` is no longer an allowed submission type in firestore.rules. -->
 
   </div><!-- /submitModules -->
 
@@ -1073,7 +908,7 @@ window._ctOnAuth = function (user) {
   const email = ctUser.email || '';
   const name  = ctUser.displayName || '';
 
-  [['quizEmail', 'quizAuthor'], ['artEmail', 'artName']].forEach(([emailId, nameId]) => {
+  [['quizEmail', 'quizAuthor']].forEach(([emailId, nameId]) => {
     const emailEl = document.getElementById(emailId);
     if (emailEl) {
       emailEl.value = email;
@@ -1164,10 +999,8 @@ function escHtml(s) {
 }
 
 /* Quiz declarations — ADDED 2026-08-07, mirroring the article module's
- * declChecked/updateDeclState/allDeclChecked trio. Kept as a SEPARATE array
- * rather than sharing the article one: the two modules sit on the same page and
- * can be filled in independently, so one shared array would let ticking the
- * article boxes silently satisfy the quiz gate. */
+ * declChecked trio. (The article module was removed 2026-10-21; the quiz
+ * names keep their q- prefix.) */
 const quizDeclChecked = [false, false, false, false];
 
 function updateQuizDeclState(idx) {
@@ -1252,7 +1085,7 @@ document.getElementById('submitQuizBtn').addEventListener('click', async () => {
       options: q.options.filter(o => o.trim()),
       correctIndex: q.correct
     })),
-    // Recorded on the document, matching the article path. The client gate is
+    // Recorded on the document (as the removed article path also did). The client gate is
     // what the submitter sees; this is the record that they made the
     // declaration, which is the part that matters when the quiz is published.
     declarations: {
@@ -1295,182 +1128,6 @@ function resetQuizForm() {
   if (declErr) declErr.style.display = 'none';
   questions = []; qId = 0;
   addQuestion(); addQuestion(); addQuestion();
-}
-
-/* ═══════════════════════════════════════
-   ARTICLE SUBMISSION
-═══════════════════════════════════════ */
-let selectedFile = null;
-const declChecked = [false, false, false, false];
-
-function updateDeclState(idx) {
-  declChecked[idx] = document.querySelector(`.decl-check[data-idx="${idx}"]`).checked;
-  document.getElementById(`decl${idx}`).classList.toggle('checked', declChecked[idx]);
-  updateArtProgress();
-}
-
-function allDeclChecked() {
-  return declChecked.every(Boolean);
-}
-
-function updateArtProgress() {
-  const fields = [
-    document.getElementById('artName').value.trim(),
-    document.getElementById('artEmail').value.trim(),
-    document.getElementById('artTitle').value.trim()
-  ];
-  const fieldsFilled = fields.every(Boolean);
-  const score = (fieldsFilled ? 40 : 0) + (allDeclChecked() ? 40 : declChecked.filter(Boolean).length * 10) + (selectedFile ? 20 : 0);
-  document.getElementById('artProgress').style.width = Math.min(score, 100) + '%';
-}
-
-['artName','artEmail','artTitle','artBio'].forEach(id => {
-  document.getElementById(id)?.addEventListener('input', updateArtProgress);
-});
-
-function onFileSelect(e) {
-  const f = e.target.files[0];
-  if (!f) return;
-  if (!f.name.endsWith('.docx')) {
-    showToast('Invalid File', 'Please upload a .docx (Word) file only.', true);
-    return;
-  }
-  selectedFile = f;
-  const zone = document.getElementById('fileZone');
-  zone.classList.add('has-file');
-  const disp = document.getElementById('fileNameDisplay');
-  disp.textContent = '✓ ' + f.name + ' (' + (f.size / 1024).toFixed(1) + ' KB)';
-  disp.style.display = 'block';
-  updateArtProgress();
-}
-
-// Drag & drop
-const fz = document.getElementById('fileZone');
-fz.addEventListener('dragover', e => { e.preventDefault(); fz.classList.add('drag-over'); });
-fz.addEventListener('dragleave', () => fz.classList.remove('drag-over'));
-fz.addEventListener('drop', e => {
-  e.preventDefault(); fz.classList.remove('drag-over');
-  const f = e.dataTransfer.files[0];
-  if (f && f.name.endsWith('.docx')) {
-    selectedFile = f;
-    fz.classList.add('has-file');
-    const disp = document.getElementById('fileNameDisplay');
-    disp.textContent = '✓ ' + f.name + ' (' + (f.size/1024).toFixed(1) + ' KB)';
-    disp.style.display = 'block';
-    updateArtProgress();
-  } else {
-    showToast('Invalid File', 'Please upload a .docx (Word) file only.', true);
-  }
-});
-
-document.getElementById('submitArtBtn').addEventListener('click', async () => {
-  const name = document.getElementById('artName').value.trim();
-  const email = document.getElementById('artEmail').value.trim();
-  const title = document.getElementById('artTitle').value.trim();
-  let ok = true;
-
-  toggleErr('artName', 'artNameErr', !name); if (!name) ok = false;
-  toggleErr('artEmail', 'artEmailErr', !email || !email.includes('@')); if (!email || !email.includes('@')) ok = false;
-  toggleErr('artTitle', 'artTitleErr', !title); if (!title) ok = false;
-
-  const declErr = document.getElementById('artDeclErr');
-  if (!allDeclChecked()) {
-    declErr.style.display = 'block';
-    ok = false;
-  } else {
-    declErr.style.display = 'none';
-  }
-
-  const fileErr = document.getElementById('artFileErr');
-  if (!selectedFile) {
-    fileErr.style.display = 'block';
-    ok = false;
-  } else {
-    fileErr.style.display = 'none';
-  }
-
-  if (!ok) { showToast('Incomplete Submission', 'Please complete all fields, sign all declarations, and upload your document.', true); return; }
-  if (!ctUser) {
-    showToast('Sign In Required', 'Please sign in to submit content.', true);
-    return;
-  }
-  if (isHoneypotFilled('artHp')) return; // silent bot rejection
-
-  const btn = document.getElementById('submitArtBtn');
-  btn.disabled = true;
-  btn.textContent = 'Submitting…';
-
-
-  // Upload docx to Firebase Storage first
-  let docStoragePath = null;
-  let docStorageUrl = null;
-  const submissionId = 'art-' + Date.now();
-  try {
-    btn.textContent = 'Uploading document…';
-    const result = await window._uploadSubmissionDoc(selectedFile, submissionId);
-    docStoragePath = result.path;
-    docStorageUrl = result.url;
-  } catch(uploadErr) {
-    console.error('Storage upload error:', uploadErr);
-    showToast('Upload Failed', 'Could not upload your document. Please try again.', true);
-    btn.disabled = false;
-    btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg> Submit Article for Review`;
-    return;
-  }
-
-  btn.textContent = 'Saving submission…';
-
-  const data = {
-    type: 'article',
-    submissionId,
-    name, title,
-    // See the note on the quiz payload — account, not field.
-    email: (ctUser && ctUser.email) || '',
-    authorUid: ctUser ? ctUser.uid : null,
-    category: document.getElementById('artCategory').value,
-    bio: document.getElementById('artBio').value,
-    fileName: selectedFile.name,
-    fileSize: selectedFile.size,
-    docStoragePath,
-    docStorageUrl,
-    declarations: {
-      originalContent: true,
-      notAI: true,
-      noPlagiarism: true,
-      publishConsent: true
-    },
-    status: 'pending',
-    submittedAt: window._fsTimestamp ? window._fsTimestamp() : new Date().toISOString()
-  };
-
-  try {
-    await window._fsAddDoc(window._fsCollection(window._db, 'submissions'), data);
-    showToast('Article Submitted!', `Thank you, ${name}. Your article "${title}" has been received and will be reviewed by our editorial team.`);
-    resetArticleForm();
-  } catch (err) {
-    console.error('Firestore error:', err);
-    // Clean up the uploaded file if Firestore save failed
-    if (docStoragePath) await window._deleteSubmissionDoc(docStoragePath);
-    showToast('Submission Failed', 'Could not save your submission. Please try again.', true);
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg> Submit Article for Review`;
-  }
-});
-
-function resetArticleForm() {
-  ['artName','artEmail','artTitle','artBio'].forEach(id => document.getElementById(id).value = '');
-  document.getElementById('artCategory').value = '';
-  declChecked.fill(false);
-  for (let i = 0; i < 4; i++) {
-    document.querySelector(`.decl-check[data-idx="${i}"]`).checked = false;
-    document.getElementById(`decl${i}`).classList.remove('checked');
-  }
-  selectedFile = null;
-  document.getElementById('fileZone').classList.remove('has-file');
-  document.getElementById('fileNameDisplay').style.display = 'none';
-  document.getElementById('fileInput').value = '';
-  updateArtProgress();
 }
 
 /* ═══════════════════════════════════════
