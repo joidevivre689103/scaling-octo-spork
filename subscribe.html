@@ -935,7 +935,7 @@ h1.title em {
              terms clear and conspicuous IMMEDIATELY beside the button, and the
              reader's affirmative consent to them. The figures are filled in by
              renderRenewalTerms() from LADDER, so they always match the price box.
-             CONSENT_VERSION in the script names this wording; the server records
+             CONSENT_VERSIONS in the script names this wording (one per plan); the server records
              it with the purchase, so change both together. -->
         <div class="renewal-terms" id="renewal-terms">
           <p class="renewal-terms-text" id="renewal-terms-text">
@@ -943,7 +943,7 @@ h1.title em {
           </p>
           <label class="renewal-consent" for="renewal-consent">
             <input type="checkbox" id="renewal-consent" required>
-            <span>I understand my subscription <strong>renews automatically each year</strong> at the next season&rsquo;s price until I cancel, and I agree to the <a href="/terms.html#s5" target="_blank" rel="noopener">Terms of Service</a>.</span>
+            <span id="renewal-consent-text">I understand my subscription <strong>renews automatically each year</strong> at the next season&rsquo;s price until I cancel, and I agree to the <a href="/terms.html#s5" target="_blank" rel="noopener">Terms of Service</a>.</span>
           </label>
         </div>
 
@@ -1067,13 +1067,25 @@ const correctNoteEl  = document.getElementById('zone-correct-note');
 const renewalTermsEl   = document.getElementById('renewal-terms');
 const renewalTextEl    = document.getElementById('renewal-terms-text');
 const renewalConsentEl = document.getElementById('renewal-consent');
+const renewalConsentTextEl = document.getElementById('renewal-consent-text');
 
-// Names the exact renewal wording the reader agreed to. The server refuses a
-// checkout that doesn't carry an accepted consent with a version it knows
+// Names the exact renewal wording the reader agreed to, per plan (annual and
+// monthly say different things). The server refuses a checkout that doesn't
+// carry an accepted consent with a version it knows for that plan
 // (ACCEPTED_CONSENT_VERSIONS in functions/checkout.js) and records it on the
-// purchase. Change the checkbox or terms wording → bump this AND add the new
-// value on the server, deploying the server first.
-const CONSENT_VERSION = 'renewal-2026-10-09';
+// purchase. Change the checkbox or terms wording → bump the version AND add
+// the new value on the server, deploying the server first.
+const CONSENT_VERSIONS = {
+  annual: 'renewal-2026-10-09',
+  monthly: 'renewal-monthly-2026-10-22',
+};
+const CONSENT_TEXT = {
+  annual: 'I understand my subscription <strong>renews automatically each year</strong> at the next season&rsquo;s price until I cancel, and I agree to the <a href="/terms.html#s5" target="_blank" rel="noopener">Terms of Service</a>.',
+  monthly: 'I understand my subscription <strong>renews automatically each month</strong> at the same price until I cancel, and I agree to the <a href="/terms.html#s5" target="_blank" rel="noopener">Terms of Service</a>.',
+};
+function planOf(priceKey) {
+  return /_monthly$/.test(priceKey || '') ? 'monthly' : 'annual';
+}
 const signinPrompt = document.getElementById('signin-prompt');
 const signinSubmit = document.getElementById('signin-submit');
 
@@ -1098,8 +1110,9 @@ let selectedPriceKey = null;
 // Display catalog. The Cloud Function is source of truth for Price IDs and
 // authorisation; amounts here are for rendering only.
 //
-// 2026-10-07 — annual only, with loyalty pricing. There is no monthly plan.
-// A new subscriber always starts at season 1. Each renewal moves them to the
+// 2026-10-07 — annual with loyalty pricing; 2026-10-22 — plus a flat monthly
+// plan (MONTHLY below), which has no seasons and no cap number. A new annual
+// subscriber always starts at season 1. Each renewal moves them to the
 // next season's Price, 5% of the season-1 price lower each time, and after the
 // seventh paid season the subscription ends and they are a Life Member
 // ("capped for life").
@@ -1122,11 +1135,34 @@ const LADDER = {
   zar: ['R500', 'R475', 'R450', 'R425', 'R400', 'R375', 'R350'],
 };
 
+// Monthly plan (2026-10-22). Flat, tax-inclusive. ⚠️ Must match the
+// `currency_options` on the Stripe Price with lookup key `monthly`
+// (scripts/stripe-setup-prices.js MONTHLY) and MONTHLY in manage.html.
+const MONTHLY = {
+  usd: '$7',
+  cad: 'C$8',
+  gbp: '£6',
+  aud: 'A$10',
+  nzd: 'NZ$12',
+  inr: '₹99',
+  zar: 'R60',
+};
+
+// How much less annual costs than twelve monthly payments, as a whole
+// percentage, from the display strings above.
+function annualSavingPct(c) {
+  const num = (str) => Number(String(str).replace(/[^0-9.]/g, ''));
+  const year = num(MONTHLY[c]) * 12;
+  return year > 0 ? Math.round((year - num(LADDER[c][0])) / year * 100) : 0;
+}
+
 const CATALOG = {};
 Object.keys(LADDER).forEach((c) => {
   CATALOG[c] = [
     { key: c + '_annual', cadence: 'Annual', amount: LADDER[c][0], per: '/year',
-      detail: 'Your first season. The price falls every year you stay.' },
+      detail: annualSavingPct(c) + '% less than monthly. Cheaper every season you stay.' },
+    { key: c + '_monthly', cadence: 'Monthly', amount: MONTHLY[c], per: '/month',
+      detail: 'Cancel any time. No seasons or cap number.' },
   ];
 });
 
@@ -1262,10 +1298,15 @@ function renderOptions() {
 
     wrapper.querySelector('input').addEventListener('change', (e) => {
       if (e.target.checked) {
+        const changedPlan = planOf(selectedPriceKey) !== planOf(item.key);
         selectedPriceKey = item.key;
         subscribeBtn.disabled = false;
         msgEl.textContent = '';
         msgEl.className = 'subscribe-msg';
+        // The renewal terms differ by plan, so a tick given for one plan's
+        // wording doesn't carry over to the other's.
+        if (changedPlan && renewalConsentEl) renewalConsentEl.checked = false;
+        renderRenewalTerms();
       }
     });
   });
@@ -1305,6 +1346,18 @@ function renewalDateText() {
 
 function renderRenewalTerms() {
   if (!renewalTextEl || !LADDER[currency]) return;
+  const plan = planOf(selectedPriceKey);
+  if (renewalConsentTextEl) renewalConsentTextEl.innerHTML = CONSENT_TEXT[plan];
+  if (plan === 'monthly') {
+    const m = MONTHLY[currency];
+    renewalTextEl.innerHTML =
+      'You pay <strong>' + m + '</strong> today for one month. ' +
+      'Your subscription <strong>renews automatically every month</strong> at <strong>' + m + '</strong> until you cancel. ' +
+      'Cancel online any time on your <a href="/manage.html">subscription page</a>; you keep access to the end of the month you&rsquo;ve paid for. ' +
+      'Monthly payments aren&rsquo;t refundable. ' +
+      'Switch to annual any time; it starts at your next monthly payment date.';
+    return;
+  }
   const today = LADDER[currency][0];
   const next  = LADDER[currency][1];
   renewalTextEl.innerHTML =
@@ -1427,7 +1480,7 @@ async function startCheckout() {
     const res = await createCheckoutSession({
       priceKey: selectedPriceKey,
       origin: window.location.origin,
-      consent: { renewal: true, version: CONSENT_VERSION },
+      consent: { renewal: true, version: CONSENT_VERSIONS[planOf(selectedPriceKey)] },
     });
     if (res.data && res.data.url) {
       window.location.href = res.data.url;
@@ -1667,6 +1720,7 @@ if (alreadySubSignout) {
       input.checked = true;
       selectedPriceKey = input.value;
       subscribeBtn.disabled = false;
+      renderRenewalTerms();
     }
   }
 
