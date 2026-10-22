@@ -314,6 +314,7 @@ async function loadQuizFromFirestore() {
       // Returning visitor — show intro with the welcome-back banner.
       // No retake is offered (single-attempt policy). They can only review.
       showReturnBanner();
+      showAlreadyPlayedButton();
       showScreen('intro');
       return;
     }
@@ -387,6 +388,17 @@ function showReturnBanner() {
   if (savedScore == null) return;
   document.getElementById('returnScore').textContent = savedScore + '/' + questions.length;
   document.getElementById('returnBanner').classList.add('visible');
+}
+
+// [2026-10-22] A reader who has played this edition sees the Start button
+// greyed out (the existing .btn-primary:disabled style) and relabelled, so the
+// only way forward is "See your score" in the banner above. Before this the
+// button stayed live and quietly opened the old score instead.
+function showAlreadyPlayedButton() {
+  const btn = document.querySelector('#screen-intro .btn-big');
+  if (!btn) return;
+  btn.disabled = true;
+  btn.textContent = 'Already played';
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
