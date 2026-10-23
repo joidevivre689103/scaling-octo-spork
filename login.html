@@ -183,6 +183,22 @@
       color: var(--ink-faint);
     }
 
+    /* Newsletter opt-in on Create account (2026-10-23) */
+    .nl-opt {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      margin: 4px 0 20px;
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: 14px;
+      line-height: 1.45;
+      color: var(--ink-soft);
+      cursor: pointer;
+    }
+    .nl-opt input { margin-top: 3px; flex: none; width: 16px; height: 16px; accent-color: var(--crimson); }
+    .nl-opt-fine { display: block; font-size: 12px; font-style: italic; color: var(--ink-faint); margin-top: 2px; }
+    .nl-opt-fine a { color: inherit; }
+
     .hint {
       font-size: 12px;
       color: var(--ink-faint);
@@ -403,6 +419,14 @@
           <label for="signup-password2">Confirm password</label>
           <input type="password" id="signup-password2" autocomplete="new-password" minlength="8" required>
         </div>
+        <!-- Newsletter opt-in (2026-10-23). Unticked by default: ticking it is the
+             consent. MailerLite's double opt-in then sends the confirmation email,
+             as for every other signup box. Never blocks account creation. -->
+        <label class="nl-opt" for="signup-newsletter">
+          <input type="checkbox" id="signup-newsletter">
+          <span>Also send me <strong>The Grass Bank Dispatch</strong>, our free newsletter.
+            <span class="nl-opt-fine">We&rsquo;ll email a link to confirm. Unsubscribe anytime. Handled by MailerLite &mdash; see our <a href="/privacy.html" target="_blank" rel="noopener">privacy policy</a>.</span></span>
+        </label>
         <button class="btn btn-primary" id="signup-btn" type="button">Create account</button>
       </div>
 
@@ -984,6 +1008,20 @@
     // CREATE ACCOUNT
     // -------------------------------------------------------------------
 
+    // Same MailerLite form and fields as ct-newsletter.js (no API key; double
+    // opt-in on the MailerLite side). signup_source tells us this came from
+    // account creation.
+    function signUpForNewsletter(email) {
+      const body = new FormData();
+      body.set('fields[email]', email);
+      body.set('fields[signup_source]', 'account-signup');
+      body.set('ml-submit', '1');
+      body.set('ajax', '1');
+      return fetch('https://assets.mailerlite.com/jsonp/2259944/forms/184395234410497566/subscribe',
+        { method: 'POST', body, keepalive: true })
+        .then((res) => { if (!res.ok) throw new Error('HTTP ' + res.status); });
+    }
+
     async function handleSignUp() {
       clearMsg('signup');
       const email = document.getElementById('signup-email').value.trim();
@@ -1032,7 +1070,24 @@
         // gated page does a fresh check with the new auth state.
         try { sessionStorage.removeItem('ct_access_verdict_v1'); } catch (e) {}
 
-        showMsg('signup', 'success', 'Account created. Redirecting\u2026');
+        // Newsletter opt-in (2026-10-23): only if ticked, and never allowed to
+        // block or fail the account. Waits at most 2s so the redirect can't
+        // cut the request off; keepalive lets it finish after the page leaves.
+        const wantsNewsletter = !!document.getElementById('signup-newsletter')?.checked;
+        if (wantsNewsletter) {
+          try {
+            await Promise.race([
+              signUpForNewsletter(email),
+              new Promise((r) => setTimeout(r, 2000)),
+            ]);
+          } catch (nlErr) {
+            console.warn('[login] newsletter signup failed (non-fatal):', nlErr);
+          }
+        }
+
+        showMsg('signup', 'success', wantsNewsletter
+          ? 'Account created. Check your inbox to confirm the newsletter. Redirecting\u2026'
+          : 'Account created. Redirecting\u2026');
         location.replace(RETURN_URL);
       } catch (err) {
         setBtnLoading(btn, false, 'Create account');
