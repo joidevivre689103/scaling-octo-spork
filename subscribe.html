@@ -763,6 +763,9 @@ h1.title em {
 }
 .ladder-step.first { border-color: var(--crimson); }
 .ladder-step.first .amt { color: var(--crimson); }
+/* Returning reader (2026-10-23): seasons they've already paid for. */
+.ladder-step.paid { opacity: 0.55; }
+.ladder-step.paid .amt { text-decoration: line-through; font-weight: 400; }
 .ladder-step.capped { border-style: dashed; border-color: var(--gold); background: #fffdf7; }
 .ladder-step.capped .amt { color: var(--gold); font-style: italic; }
 .ladder-cap {
@@ -1148,23 +1151,68 @@ const MONTHLY = {
   zar: 'R60',
 };
 
-// How much less annual costs than twelve monthly payments, as a whole
-// percentage, from the display strings above.
-function annualSavingPct(c) {
+// How much less this season's annual price costs than twelve monthly
+// payments, as a whole percentage, from the display strings above.
+function annualSavingPct(c, season) {
   const num = (str) => Number(String(str).replace(/[^0-9.]/g, ''));
   const year = num(MONTHLY[c]) * 12;
-  return year > 0 ? Math.round((year - num(LADDER[c][0])) / year * 100) : 0;
+  return year > 0 ? Math.round((year - num(LADDER[c][season - 1])) / year * 100) : 0;
 }
 
-const CATALOG = {};
-Object.keys(LADDER).forEach((c) => {
-  CATALOG[c] = [
-    { key: c + '_annual', cadence: 'Annual', amount: LADDER[c][0], per: '/year',
-      detail: annualSavingPct(c) + '% less than monthly. Cheaper every season you stay.' },
+// ─── The reader's own season (2026-10-23) ─────────────────────────────────
+//
+// A returning reader is charged their NEXT season, not season 1: the server
+// (createCheckoutSession) reads members/{emailKey}.seasonsPaid and picks
+// season seasonsPaid + 1. This page used to quote season 1 to everyone, so a
+// reader coming back for season 3 saw one price and paid another. Now the
+// page reads the same record (owner-read in firestore.rules) and quotes the
+// same season the server will charge.
+//
+// If the read fails, or the reader isn't signed in yet, `member` stays null
+// and the page shows season 1, which is right for every new reader. The
+// server still charges the right season either way.
+const SEASONS_TO_CAP = 7;
+let member = null;   // members/{emailKey}, or null
+
+function seasonsPaid() {
+  const n = Number(member && member.seasonsPaid);
+  return Number.isFinite(n) && n > 0 ? Math.floor(n) : 0;
+}
+// The season an annual checkout would buy now (1..7), or null once seven are paid.
+function nextSeason() {
+  const n = seasonsPaid() + 1;
+  return n <= SEASONS_TO_CAP ? n : null;
+}
+// The 30-day refund (Terms §5.4) is for an account's first annual payment,
+// once: mirrors refundFirstSeason in functions/manageSubscription.js.
+function refundOffered() {
+  const refunded = member && Array.isArray(member.refundedSeasons) ? member.refundedSeasons : [];
+  return seasonsPaid() === 0 && refunded.length === 0;
+}
+
+async function loadMember(user) {
+  if (!user || !user.email) return;
+  try {
+    const snap = await getDoc(doc(firestore, 'members', encodeEmailKey(user.email)));
+    member = snap.exists() ? (snap.data() || {}) : null;
+  } catch (err) {
+    console.warn('[subscribe] could not read membership record:', err);
+    member = null;
+  }
+}
+
+function catalogFor(c) {
+  const n = nextSeason() || 1;
+  let detail;
+  if (n === SEASONS_TO_CAP) detail = 'Your seventh and last paid season. Then free for life.';
+  else if (n > 1) detail = 'Season ' + n + ' for you. Cheaper every season you stay.';
+  else detail = annualSavingPct(c, 1) + '% less than monthly. Cheaper every season you stay.';
+  return [
+    { key: c + '_annual', cadence: 'Annual', amount: LADDER[c][n - 1], per: '/year', detail },
     { key: c + '_monthly', cadence: 'Monthly', amount: MONTHLY[c], per: '/month',
       detail: 'Cancel any time. No seasons or cap number.' },
   ];
-});
+}
 
 const CURRENCY_INTRO = {
   usd: 'Pricing in <strong>US dollars</strong>.',
@@ -1224,7 +1272,7 @@ const CURRENCY_BY_COUNTRY = {
   ZA: 'zar',
 };
 
-const KNOWN_CURRENCIES = Object.keys(CATALOG);
+const KNOWN_CURRENCIES = Object.keys(LADDER);
 
 // ─── Currency resolution ───────────────────────────────────────────────
 //
@@ -1278,7 +1326,7 @@ function readCurrencyOverride() {
 function renderOptions() {
   if (!currency) return;
 
-  const items = CATALOG[currency];
+  const items = catalogFor(currency);
 
   optionsEl.innerHTML = '';
 
@@ -1323,16 +1371,17 @@ function renderOptions() {
   introEl.innerHTML = CURRENCY_INTRO[currency] +
     ' <span class="tax-note">' + TAX_NOTE_ALL + '</span>';
 
+  // The per-month line is worded for a first season; leave it off otherwise.
   const pm = document.getElementById('value-permonth');
-  if (pm) pm.textContent = VALUE_PERMONTH[currency] || '';
+  if (pm) pm.textContent = nextSeason() === 1 ? (VALUE_PERMONTH[currency] || '') : '';
 
   renderLadder();
   renderRenewalTerms();
 }
 
 // The renewal terms beside the button, with this reader's real figures:
-// what they pay today, when it renews, and what the renewal costs. Written
-// for a new subscriber (season 1), which is who reaches this page.
+// what they pay today, when it renews, and what the renewal costs — for the
+// season they would actually buy (see nextSeason above).
 function renewalDateText() {
   const d = new Date();
   d.setFullYear(d.getFullYear() + 1);
@@ -1358,16 +1407,28 @@ function renderRenewalTerms() {
       'Switch to annual any time; it starts at your next monthly payment date.';
     return;
   }
-  const today = LADDER[currency][0];
-  const next  = LADDER[currency][1];
+  const n = nextSeason() || 1;
+  const today = LADDER[currency][n - 1];
+  const refund = refundOffered()
+    ? 'Not for you? Cancel within 30 days and choose a full refund, which ends your access.'
+    : '';
+  const cancel = 'Cancel online any time on your <a href="/manage.html">subscription page</a>; you keep access to the end of the year you&rsquo;ve paid for. ';
+  if (n === SEASONS_TO_CAP) {
+    // The webhook turns renewal off once the seventh season is paid.
+    renewalTextEl.innerHTML =
+      'You pay <strong>' + today + '</strong> today for your seventh and last paid season. ' +
+      'It <strong>won&rsquo;t renew</strong>: when the year ends you&rsquo;re capped for life and never pay again. ' +
+      cancel + refund;
+    return;
+  }
+  const next = LADDER[currency][n];
   renewalTextEl.innerHTML =
-    'You pay <strong>' + today + '</strong> today for one year. ' +
+    'You pay <strong>' + today + '</strong> today for one year' + (n > 1 ? ' (your season ' + n + ')' : '') + '. ' +
     'Your subscription <strong>renews automatically</strong> on <strong>' + renewalDateText() + '</strong> at <strong>' + next + '</strong>, ' +
     'and every year after at the next season&rsquo;s lower price, until you cancel. ' +
     'After seven paid seasons it stops and you never pay again. ' +
     'We email you about a month before each renewal. ' +
-    'Cancel online any time on your <a href="/manage.html">subscription page</a>; you keep access to the end of the year you&rsquo;ve paid for. ' +
-    'Not for you? Cancel within 30 days and choose a full refund, which ends your access.';
+    cancel + refund;
 }
 
 // Season-by-season price list, seasons 1–7 then "Free" from season 8.
@@ -1375,11 +1436,15 @@ function renderLadder() {
   const grid = document.getElementById('ladder-grid');
   if (!grid || !LADDER[currency]) return;
   grid.innerHTML = '';
+  // Highlight the season this reader would buy; strike through any already paid
+  // (all seven once they're capped for life).
+  const n = Math.min(seasonsPaid() + 1, SEASONS_TO_CAP + 1);
   LADDER[currency].forEach((amt, i) => {
     const li = document.createElement('li');
-    li.className = 'ladder-step' + (i === 0 ? ' first' : '');
+    li.className = 'ladder-step' + (i + 1 === n ? ' first' : '') + (i + 1 < n ? ' paid' : '');
     li.innerHTML = '<span class="season">Season ' + (i + 1) + '</span>' +
                    '<span class="amt">' + amt + '</span>';
+    if (i + 1 < n) li.setAttribute('aria-label', 'Season ' + (i + 1) + ', paid');
     grid.appendChild(li);
   });
   const capped = document.createElement('li');
@@ -1699,6 +1764,20 @@ if (alreadySubSignout) {
   if (initialUser) {
     const swapped = await maybeShowAlreadySubscribedPanel(initialUser);
     if (swapped) return;
+    // Not currently subscribed: read their seasons so a returning reader is
+    // quoted their next season, not season 1.
+    await loadMember(initialUser);
+  }
+
+  // Seven seasons paid: capped for life. The server refuses both plans, so
+  // say so here rather than at the button.
+  function applyCapped() {
+    if (nextSeason()) return;
+    subscribeBtn.disabled = true;
+    optionsEl.style.display = 'none';
+    if (renewalTermsEl) renewalTermsEl.style.display = 'none';
+    msgEl.textContent = 'You’ve paid for seven seasons, so you’re capped for life — there’s nothing more to pay.';
+    msgEl.className = 'subscribe-msg info';
   }
 
   // Dev override, plus any ?currency= carried back through /login.html.
@@ -1737,6 +1816,7 @@ if (alreadySubSignout) {
     // version; renderDetectedCountry falls back to a currency label if not.
     renderDetectedCountry(urlCurrencyOverride ? null : (zoneRes.data && zoneRes.data.country));
     applyPricekeyFromUrl();
+    applyCapped();
     // Outside the Service Area (2026-10-07): the server refuses checkout, so
     // say so up front instead of letting the reader find out at the button.
     // `available` is absent on the old function — treat absent as available.
@@ -1751,6 +1831,7 @@ if (alreadySubSignout) {
     renderOptions();
     renderDetectedCountry(null);
     applyPricekeyFromUrl();
+    applyCapped();
     if (!urlCurrencyOverride) {
       msgEl.textContent = 'Couldn\'t verify live pricing. Showing USD by default — write to ivan@thegrassbank.com if this doesn\'t look right.';
       msgEl.className = 'subscribe-msg info';
