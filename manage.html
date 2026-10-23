@@ -533,6 +533,7 @@
     <div class="card">
       <div class="card-body">
         <p>You have <strong>complimentary access</strong> to The Grass Bank &mdash; full access to the archive, the simulation tool, data export and everything else, with nothing to pay.</p>
+        <p id="comp-honorary" style="display:none">You are <strong>Honorary Member <span id="comp-honorary-number">—</span></strong>.</p>
         <p style="color: var(--ink-muted); font-style: italic;">There's no plan or billing to manage, so there's nothing for you to do on this page. If you think this is wrong, or you'd rather move to a paid subscription, get in touch.</p>
         <div class="btn-row">
           <a class="btn" href="/">Back to The Grass Bank</a>
@@ -592,6 +593,11 @@
           <dd id="cap-row" style="display:none">
             <span id="cap-number" class="plan-name">—</span>
             <div id="cap-debut" class="plan-price">—</div>
+          </dd>
+
+          <dt id="hon-label" style="display:none">Honorary member</dt>
+          <dd id="hon-row" style="display:none">
+            <span id="hon-number" class="plan-name">—</span>
           </dd>
 
           <dt id="season-label" style="display:none">Season</dt>
@@ -888,7 +894,20 @@
 
   // ── Subscription load ────────────────────────────────────────────────
   let currentSub = null; // last-loaded subscription doc data
-  let currentMember = null; // members/{emailKey}: capNumber, seasonsPaid, debutAt
+  let currentMember = null; // members/{emailKey}: capNumber, seasonsPaid, debutAt, honoraryNumber
+
+  // Honorary members (2026-10-22): a separate series, H1, H2, …, set by hand in
+  // members/{emailKey}.honoraryNumber (a whole number). Not a cap number: caps stay
+  // in join order for paying subscribers. A member can hold both.
+  function honoraryLabel(m) {
+    return m && Number.isInteger(m.honoraryNumber) && m.honoraryNumber >= 1 ? "H" + m.honoraryNumber : null;
+  }
+  function renderHonorary(m) {
+    const label = honoraryLabel(m);
+    ["hon-label", "hon-row"].forEach(id =>
+      document.getElementById(id).style.display = label ? "" : "none");
+    if (label) document.getElementById("hon-number").textContent = label;
+  }
   let currentUser = null;
   // Self-serve 30-day refund (2026-10-22): set by renderLoaded. Only decides
   // whether the option is SHOWN; refundFirstSeason checks eligibility itself.
@@ -1045,7 +1064,14 @@
   // that has lapsed. Complimentary access is checked first so a hand-granted
   // reader is never told they have nothing.
   async function showNoStripeSubState(user) {
-    showState((await hasComplimentaryAccess(user)) ? "state-complimentary" : "state-nosub");
+    const comp = await hasComplimentaryAccess(user);
+    if (comp) {
+      const emailKey = (user.email || "").toLowerCase().replace(/[.@]/g, "_");
+      const label = honoraryLabel(emailKey ? await loadMember(emailKey) : null);
+      document.getElementById("comp-honorary").style.display = label ? "" : "none";
+      if (label) document.getElementById("comp-honorary-number").textContent = label;
+    }
+    showState(comp ? "state-complimentary" : "state-nosub");
   }
 
   async function loadSubscription(user) {
@@ -1106,6 +1132,7 @@
       document.getElementById("cap-number").textContent = "#" + m.capNumber;
       document.getElementById("cap-debut").textContent = fmtDebut(m.debutAt);
     }
+    renderHonorary(m);
     if (showSeason) {
       document.getElementById("season-name").textContent = `Season ${season} of ${SEASONS_TO_CAP}`;
       const left = SEASONS_TO_CAP - season;
@@ -1237,6 +1264,7 @@
       document.getElementById("cap-number").textContent = "#" + m.capNumber;
       document.getElementById("cap-debut").textContent = fmtDebut(m.debutAt);
     }
+    renderHonorary(m);
     ["season-label", "season-row", "life-label", "life-row", "ladder-label", "ladder-row"].forEach(id =>
       document.getElementById(id).style.display = "none");
     renderRegion(sub, cur);
