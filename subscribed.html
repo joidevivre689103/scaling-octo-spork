@@ -1160,7 +1160,7 @@
         // still the actionable thing to tell them even if they also hold a
         // complimentary grant. Only once we know there's no payment in
         // flight and no Stripe record does the role decide the copy.
-        if (await hasComplimentaryAccess(userKey)) {
+        if (await hasComplimentaryAccess(user, userKey)) {
           showComplimentaryPanel(user);
           return;
         }
@@ -1224,14 +1224,27 @@
     // feature-flags.js reads on every gated page), so no rules change.
     // Fails CLOSED: any error returns false and the honest not-subscribed
     // copy still shows, rather than promising access we couldn't verify.
-    async function hasComplimentaryAccess(userKey) {
+    //
+    // 2026-10-22: settings/userTypes became admin-read-only on 2026-10-21, so
+    // the directory read below is now denied for readers and every honorary
+    // member was told "not subscribed yet". The role lives on the ID-token
+    // claim (set by setUserRole); read that first, with one forced refresh for
+    // a role granted after the token was minted. The directory read stays as a
+    // fallback that only an admin can pass.
+    async function hasComplimentaryAccess(user, userKey) {
+      try {
+        let res = await user.getIdTokenResult();
+        if (!res.claims.role) res = await user.getIdTokenResult(true);
+        if (res.claims.role) return res.claims.role === 'paidSubscriber';
+      } catch (e) {
+        console.warn('[subscribed] role claim read failed:', e && e.message);
+      }
       if (!userKey) return false;
       try {
         const snap = await db.collection('settings').doc('userTypes').get();
         if (!snap || !snap.exists) return false;
         return (snap.data() || {})[userKey] === 'paidSubscriber';
       } catch (e) {
-        console.warn('[subscribed] userTypes read failed:', e && e.message);
         return false;
       }
     }
@@ -1266,6 +1279,13 @@
       if (blurbEls && blurbEls[2]) blurbEls[2].classList.add('hidden');
 
       setFraming('complimentary');
+
+      // Honorary number (2026-10-22): members/{emailKey}.honoraryNumber, owner-
+      // readable. Best effort — the panel is already right without it.
+      db.collection('members').doc(emailToUserId(user.email)).get().then(function(snap){
+        const n = snap && snap.exists ? (snap.data() || {}).honoraryNumber : null;
+        if (Number.isInteger(n) && n >= 1 && tierEl) tierEl.textContent = 'Honorary Member H' + n;
+      }).catch(function(){ /* keep "Complimentary" */ });
     }
 
     // showAlignedPanel — shared rendering for two flavours:

@@ -502,7 +502,7 @@
 
 <main class="container">
   <h1 class="page-title">Manage your subscription</h1>
-  <p class="page-sub">Your cap number, your season, next season&rsquo;s price, and whether you renew.</p>
+  <p class="page-sub" id="page-sub">Your cap number, your season, next season&rsquo;s price, and whether you renew.</p>
 
   <!-- ─── Loading state ─── -->
   <div id="state-loading" class="state active">
@@ -1071,6 +1071,8 @@
       document.getElementById("comp-honorary").style.display = label ? "" : "none";
       if (label) document.getElementById("comp-honorary-number").textContent = label;
     }
+    // The cap/season subtitle means nothing to an honorary member.
+    if (comp) document.getElementById("page-sub").textContent = "Your membership at The Grass Bank.";
     showState(comp ? "state-complimentary" : "state-nosub");
   }
 
