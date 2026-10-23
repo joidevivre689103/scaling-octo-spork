@@ -1073,9 +1073,14 @@ import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/13
 // Firebase config — same project as the rest of the site (hitwicket-cba02).
 // API key is public by design; security via Firestore rules.
 const firebaseConfig = {
+  // Same as feature-flags.js FIREBASE_CONFIG (2026-10-23). Keep identical:
+  // whichever script creates the app first, the page runs on its config.
   apiKey: 'AIzaSyBnfn9hK0y-p6nvIZ_AwoJnWD7DfDuIQd4',
   authDomain: 'hitwicket-cba02.firebaseapp.com',
   projectId: 'hitwicket-cba02',
+  storageBucket: 'hitwicket-cba02.firebasestorage.app',
+  messagingSenderId: '196915483829',
+  appId: '1:196915483829:web:071c47af79914aec88dafc'
 };
 
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
