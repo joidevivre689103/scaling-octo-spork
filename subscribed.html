@@ -182,9 +182,20 @@
     /* Section label above each panel ("Subscriber", "Your name on the
        site"…). Made easier to see 2026-10-22: larger, upright, bolder, and
        crimson rather than pale gold on cream. */
+    /* Account trail under the site nav — same look as manage.html's breadcrumb */
+    .breadcrumb { font-family: Inter, system-ui, sans-serif; font-size: 12px; letter-spacing: 1.4px;
+      text-transform: uppercase; color: #7a7263; text-align: center; padding: 14px 0;
+      border-bottom: 1px solid #d8cdb3; }
+    .breadcrumb a { color: #7a7263; text-decoration: none; transition: color .12s; }
+    .breadcrumb a:hover { color: #8b1a1a; }
+    .breadcrumb .sep { margin: 0 10px; opacity: 0.45; }
+    /* Playfair's figures are old-style, and Google Fonts doesn't serve its
+       lining-figure feature, so "H1" read as "Hı". The number is set in
+       Source Serif 4, whose figures are lining. 2026-10-22. */
+    .signin-eyebrow .num { font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; }
     .signin-eyebrow {
       font-family: 'Playfair Display', Georgia, serif;
-      font-variant-numeric: lining-nums; /* "H1", not an old-style "Hı" */
+      font-variant-numeric: lining-nums;
       font-style: normal;
       font-weight: 700;
       font-size: 0.95rem;
@@ -417,6 +428,13 @@
   <!-- Site-wide masthead and top nav (2026-10-22, for uniformity), from ct-nav.js -->
   <div data-ct-nav="masthead"></div>
   <div data-ct-nav="primary"></div>
+  <nav class="breadcrumb">
+    <a href="/">Home</a>
+    <span class="sep">·</span>
+    <span>My subscription</span>
+    <span class="sep">·</span>
+    <a href="/manage.html">Manage</a>
+  </nav>
 
   <main>
 
@@ -1276,7 +1294,7 @@
       // readable. Best effort — the panel is already right without it.
       db.collection('members').doc(emailToUserId(user.email)).get().then(function(snap){
         const n = snap && snap.exists ? (snap.data() || {}).honoraryNumber : null;
-        if (Number.isInteger(n) && n >= 1 && tierEl) tierEl.textContent = 'Honorary Member H' + n;
+        if (Number.isInteger(n) && n >= 1 && tierEl) tierEl.innerHTML = 'Honorary Member H<span class="num">' + n + '</span>';
       }).catch(function(){ /* keep "Complimentary" */ });
     }
 
