@@ -169,12 +169,15 @@
   ].join('');
 
   // ── Ensure Playfair Display + Inter fonts are loaded ──
+  // Served from our own site since 2026-10-23 (no Google Fonts request).
+  // Skipped when the page already links one of our font stylesheets.
   function ensureFonts() {
     if (document.getElementById('ct-nav-fonts')) return;
+    if (document.querySelector('link[href^="/fonts/fonts"]')) return;
     var link = document.createElement('link');
     link.id = 'ct-nav-fonts';
     link.rel = 'stylesheet';
-    link.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,400&display=swap';
+    link.href = '/fonts/fonts.css';
     (document.head || document.documentElement).appendChild(link);
   }
 
