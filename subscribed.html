@@ -182,6 +182,13 @@
     /* Section label above each panel ("Subscriber", "Your name on the
        site"…). Made easier to see 2026-10-22: larger, upright, bolder, and
        crimson rather than pale gold on cream. */
+    /* Account trail under the site nav — same look as manage.html's breadcrumb */
+    .breadcrumb { font-family: Inter, system-ui, sans-serif; font-size: 12px; letter-spacing: 1.4px;
+      text-transform: uppercase; color: #7a7263; text-align: center; padding: 14px 0;
+      border-bottom: 1px solid #d8cdb3; }
+    .breadcrumb a { color: #7a7263; text-decoration: none; transition: color .12s; }
+    .breadcrumb a:hover { color: #8b1a1a; }
+    .breadcrumb .sep { margin: 0 10px; opacity: 0.45; }
     .signin-eyebrow {
       font-family: 'Playfair Display', Georgia, serif;
       font-variant-numeric: lining-nums; /* "H1", not an old-style "Hı" */
@@ -417,6 +424,13 @@
   <!-- Site-wide masthead and top nav (2026-10-22, for uniformity), from ct-nav.js -->
   <div data-ct-nav="masthead"></div>
   <div data-ct-nav="primary"></div>
+  <nav class="breadcrumb">
+    <a href="/">Home</a>
+    <span class="sep">·</span>
+    <span>My subscription</span>
+    <span class="sep">·</span>
+    <a href="/manage.html">Manage</a>
+  </nav>
 
   <main>
 
