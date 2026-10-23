@@ -272,14 +272,14 @@
 
 <main>
     <h1>Privacy Policy</h1>
-    <p class="effective-date">Effective — 9 October 2026</p>
+    <p class="effective-date">Effective — 23 October 2026</p>
 
     <div class="summary-box">
         <p class="label">The short version</p>
         <p>We are an independent publication, not an advertising business. We do not sell your data, we do not share it with advertisers, and there are no third-party tracking or advertising cookies on this site.</p>
         <p>We do measure how the site is read, and we do it ourselves rather than handing it to an outside analytics company. <strong>We measure pages, not people.</strong> We can tell how many times an article was opened and how long readers stayed on it. We cannot tell which articles any particular account opened, because we do not keep that record.</p>
         <p><strong>We use it to decide what to write next, not to change what you see.</strong> Nothing on this site is personalised: no recommendations, no re-ordered front page, no pricing that depends on your reading.</p>
-        <p>One thing is tied to your account: a record of each time you sign in.</p>
+        <p>Two things about how you use the site are tied to your account: a record of each time you sign in, and your Yorker scores.</p>
         <p>We work out which <strong>country</strong> you are in, from your IP address, for two narrow purposes: to show you the right price, and because paid subscriptions are only offered in some countries. We do not keep a history of where you have been.</p>
         <p>If you would rather we did not hold any of it, write to <a href="mailto:contact@thegrassbank.com">contact@thegrassbank.com</a> and we will delete your account and its records.</p>
     </div>
@@ -297,8 +297,9 @@
     <p>
         Much of the site can be read without an account. If you create one, we collect your
         <strong>email address</strong>, a <strong>password</strong> (which is hashed by Google Firebase
-        Authentication — we never see or store the password itself), the <strong>display name</strong>
-        you choose to appear beside your comments, and the <strong>access level</strong> your account
+        Authentication — we never see or store the password itself), a <strong>display name</strong>
+        to appear beside your comments (one is drawn for you at random when you sign up, so that your email
+        address is never shown; you can draw a different one), and the <strong>access level</strong> your account
         holds. We also record when your account was created and when it last signed in.
     </p>
 
@@ -326,12 +327,14 @@
         subscription, and the country in which the card used was issued (see section 1.8).
     </p>
     <p>
-        Alongside Link&rsquo;s emails we send <strong>two of our own</strong>, because Link&rsquo;s receipt does
-        not explain how your subscription works: a <strong>confirmation</strong> when you first subscribe (your
-        cap number, what you paid, when it renews and for how much, how to cancel, and the refund terms), and a
-        <strong>renewal reminder</strong> about a month before each renewal. These are sent through
+        Alongside Link&rsquo;s emails we send <strong>our own</strong>, because Link&rsquo;s receipt does
+        not explain how your subscription works: a <strong>confirmation</strong> when you subscribe (what you
+        paid, when it renews and for how much, how to cancel, and the refund terms), a confirmation when you
+        switch from monthly to annual or cancel, and, on the annual plan, a <strong>renewal reminder</strong>
+        between 15 and 30 days before each renewal. If you ask to reset your password, that email comes from
+        us too. These are sent through
         <strong>Resend</strong>, an email delivery service, which receives your email address and the contents
-        of those two messages in order to deliver them, and processes them under its own
+        of those messages in order to deliver them, and processes them under its own
         <a href="https://resend.com/legal/privacy-policy" target="_blank" rel="noopener">privacy policy</a>.
         Resend is based in the United States. <strong>These emails are not tracked</strong> &mdash; we do not
         record whether you open them or click their links. They are part of the subscription itself, so there
@@ -339,8 +342,13 @@
         we have sent you, so that none is sent twice, and it is deleted with your account.
     </p>
     <p>
-        We also keep your <strong>cap number</strong>, the date of your first paid season, and a count of
-        the seasons you have paid for. Your price each year, and whether you have become a Life Member,
+        When you subscribe or switch to annual we also keep a record that you agreed to the automatic-renewal
+        terms: which version of the wording you saw, and when. That record shows the renewal was something you
+        agreed to, and it is kept with your subscription records.
+    </p>
+    <p>
+        We also keep your <strong>cap number</strong> (or honorary number), the date of your first paid
+        season, and a count of the seasons you have paid for. Your price each year, and whether you have become a Life Member,
         depend on that count (see section 5.5 of our <a href="/terms.html#s5">Terms</a>). It is a record of
         payments, not of reading: it says nothing about what you read or how often. We keep it after you
         stop renewing, so that if you come back you carry on where you stopped, and we delete it when you
@@ -424,8 +432,8 @@
             <td><strong>A temporary visit identifier</strong></td>
             <td>So that several page views in one sitting are counted as one visit, the browser generates
                 a random identifier for the visit. It is not your account identifier and is not connected
-                to it. It resets after thirty minutes without activity, and at midnight. Once the day's
-                totals are written, it is discarded.</td>
+                to it. It resets after thirty minutes without activity, and at midnight. The record of
+                each visit is deleted automatically within about two days; only the totals remain.</td>
         </tr>
     </table>
     <p>
@@ -460,20 +468,39 @@
         your device, is described in section 5, and is not sent to us.
     </p>
     <p>
-        If you submit an article or other material as a contributor, we store the submission and anything
-        you upload with it. Submitting requires an account, and the submission is held against your
-        account identifier.
+        <strong>Yorker.</strong> Playing the Yorker quiz needs a free account. When you finish an edition we
+        store your score and your answers against your account identifier, one score per account per
+        edition, so that you can see your result and each account plays each edition once. They are deleted
+        when you close your account.
+    </p>
+    <p>
+        <strong>Submissions.</strong> If you submit a quiz question or other material, we store what you
+        submit, the name you give, and your account&rsquo;s email address, so that we can reply. Submitting
+        requires an account, and the submission is held against your account identifier. We do not accept
+        file uploads through the submissions page.
     </p>
 
     <h3>1.7 Technical records</h3>
     <p>
-        Our hosting and server infrastructure is provided by <strong>Google Firebase</strong> and Google
-        Cloud, which keeps operational logs — including IP addresses, request times, and browser and
+        The pages of the site are served by <strong>GitHub Pages</strong> (GitHub, Inc.), and our
+        servers, sign-in, and database run on <strong>Google Firebase</strong> and Google Cloud. Pages also
+        load fonts from <strong>Google Fonts</strong> and some code libraries from <strong>cdnjs</strong>
+        (Cloudflare), which means your browser&rsquo;s request, including your IP address, reaches those
+        services. Google keeps operational logs — including IP addresses, request times, and browser and
         device information — as an ordinary part of serving and securing a website. Google handles this
         under its
         <a href="https://firebase.google.com/support/privacy" target="_blank" rel="noopener">Firebase privacy documentation</a>.
-        We use these logs for security, abuse prevention, and debugging, and we do not use them to identify
-        readers. Section 1.8 describes the one place where we do derive your country from an IP address.
+        GitHub, Google Fonts, and cdnjs keep their own logs under their own policies. We use the logs we can
+        see for security, abuse prevention, and debugging, and we do not use them to identify readers.
+    </p>
+    <p>
+        <strong>The security check on the statistics pages.</strong> Before the statistics pages load their
+        data, <strong>Google reCAPTCHA Enterprise</strong> checks that the request comes from a real browser
+        rather than a script copying the data. To do that it collects information about your browser and
+        device and how the page is used, and it may set its own cookie. It runs only on those pages, it does
+        not show you a puzzle, and we receive only a pass or fail. Google processes this under its own
+        <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">privacy policy</a> and
+        <a href="https://policies.google.com/terms" target="_blank" rel="noopener">terms</a>. Section 1.8 describes the one place where we do derive your country from an IP address.
     </p>
 
     <h3>1.8 Where you are, and why we need to know</h3>
@@ -503,6 +530,15 @@
     <p>
         These records are kept for <strong>24 months</strong> and then deleted, together with a note of
         what we decided in any case we acted on.
+    </p>
+
+    <h3>1.9 If you write to us</h3>
+    <p>
+        Email sent to a thegrassbank.com address is received through <strong>Cloudflare</strong>, which
+        forwards it to a mailbox we keep with <strong>Google</strong> (Gmail). Our replies are sent through
+        <strong>Resend</strong>. Each handles your message and email address under its own policy. We keep
+        correspondence for as long as it is useful for answering you and running the site, and you can ask
+        us to delete it.
     </p>
 
     <h2>2. Why we collect it, and on what basis</h2>
@@ -545,11 +581,10 @@
 
     <h2>3. How long we keep it</h2>
     <ul>
-        <li><strong>The underlying event log</strong> — the individual page views and timings, before they
-            are added up — is kept for <strong>90 days</strong> and then deleted automatically. Deletion
-            runs as a background job rather than on the stroke of the ninetieth day, so an entry may
-            survive a short time past its expiry before it is removed. These entries carry the temporary
-            visit identifier described in section 1.4, not your account.</li>
+        <li><strong>Visit records</strong> — the timings of each visit, before they are added up — are
+            deleted automatically within <strong>about two days</strong>. Deletion runs as a background job,
+            so a record may survive a short time past its expiry before it is removed. These records carry
+            the temporary visit identifier described in section 1.4, not your account.</li>
         <li><strong>The totals derived from them</strong> — how many times each page was opened, and how
             long readers stayed — are kept indefinitely. They are figures about pages rather than about
             people, and contain nothing that identifies anyone.</li>
@@ -569,6 +604,8 @@
             not a mailing list, not a suppression list, and is not consulted if you open a new account. Six
             years is the period in which a claim arising from your subscription could still be brought
             under Washington law.</li>
+        <li><strong>Yorker scores and submissions</strong> (section 1.6) — kept while your account is open,
+            and deleted when you close it, except material we have published.</li>
         <li><strong>Comments</strong> — kept while posted. If you close your account you can ask us to
             remove your comments as well; say so when you write to us.</li>
         <li><strong>Newsletter subscriptions</strong> — held by MailerLite until you unsubscribe or ask
@@ -587,10 +624,12 @@
     <p>
         Externally: <strong>we do not sell personal information, and we do not share it for advertising.</strong>
         The only third parties that handle your data are the service providers we need in order to
-        operate — <strong>Google Firebase and Google Cloud</strong> (hosting, authentication, database, and
-        email delivery for account messages), <strong>Stripe</strong>, including its Managed Payments entity <strong>Sold through Link, LLC</strong> (subscription payments, as merchant of record — see section 1.2),
-        <strong>Resend</strong> (delivery of the subscription confirmation and renewal reminder emails &mdash;
-        see section 1.2), and <strong>MailerLite</strong> (the newsletter) — and each only to the extent needed to provide that service. We may also disclose information where we are legally
+        operate — <strong>GitHub</strong> (serving the site&rsquo;s pages), <strong>Google Firebase and Google
+        Cloud</strong> (our servers, sign-in, and database), <strong>Google</strong> also for Google Fonts,
+        reCAPTCHA Enterprise on the statistics pages (section 1.7), and the mailbox that receives your emails
+        (section 1.9), <strong>Cloudflare</strong> (forwarding email to us, and some code libraries), <strong>Stripe</strong>, including its Managed Payments entity <strong>Sold through Link, LLC</strong> (subscription payments, as merchant of record — see section 1.2),
+        <strong>Resend</strong> (delivery of our subscription and account emails, and our replies &mdash;
+        see sections 1.2 and 1.9), and <strong>MailerLite</strong> (the newsletter) — and each only to the extent needed to provide that service. We may also disclose information where we are legally
         required to, or where it is necessary to establish or defend a legal claim.
     </p>
     <p>
@@ -603,10 +642,13 @@
     <p>
         <strong>There are no advertising cookies on this site, no third-party tracking cookies, and no
         cookie banner — because there is nothing we would need to ask your consent for.</strong> No page
-        on this site loads a third-party tracking script of any kind. What we use ourselves is strictly
-        functional: a session cookie and a token that keep you signed in, and a small amount of browser
-        storage that remembers things like whether you have already reacted to a comment and whether this
-        visit has already been counted as a sign-in. Clearing your browser
+        on this site loads a third-party tracking or advertising script. The one outside script that runs is
+        Google reCAPTCHA Enterprise on the statistics pages, which is a security check, not tracking, and may
+        set its own cookie for that purpose (section 1.7). What we use ourselves is strictly
+        functional: a token that keeps you signed in, and a small amount of browser storage that remembers
+        things like whether you have already reacted to a comment, whether you have played this month&rsquo;s
+        Yorker, the temporary visit identifier in section 1.4, and whether this visit has already been
+        counted as a sign-in. Clearing your browser
         storage signs you out; it does not delete anything we hold.
     </p>
     <h2>6. Your rights</h2>
