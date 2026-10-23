@@ -827,6 +827,19 @@
   const MONTHLY = {
     usd: "$7", cad: "C$8", gbp: "£6", aud: "A$10", nzd: "NZ$12", inr: "₹99", zar: "R60",
   };
+  // UK/EU 14-day refund on the first monthly payment (2026-10-23; Terms 5.4).
+  // Only decides whether the option is SHOWN; refundFirstSeason re-checks the
+  // country, the 14 days and the first payment against Stripe itself.
+  const COOLING_OFF_COUNTRIES = new Set(["GB","AT","BE","BG","HR","CY","CZ","DK","EE","FI","FR","DE","GR","HU",
+    "IE","IT","LV","LT","LU","MT","NL","PL","PT","RO","SK","SI","ES","SE","IS","LI","NO"]);
+  function inCoolingOff(sub) {
+    const country = String(sub.billingCountry || sub.ipCountry || "").toUpperCase();
+    if (!COOLING_OFF_COUNTRIES.has(country)) return false;
+    const c = sub.createdAt;
+    const created = c && typeof c.toMillis === "function" ? c.toMillis() : (c ? new Date(c).getTime() : NaN);
+    return Number.isFinite(created) && Date.now() - created < 14 * 86400 * 1000;
+  }
+
   function isMonthly(sub) {
     return sub.plan === "monthly" || /_monthly$/.test(sub.priceKey || "");
   }
@@ -1291,8 +1304,10 @@
       nextEl.textContent = `${endDate} · ${monthly}`;
     }
 
-    refundEligible = false;
-    document.getElementById("refund-note").style.display = "none";
+    refundEligible = inCoolingOff(sub);
+    const refundNote = document.getElementById("refund-note");
+    refundNote.textContent = "Within 14 days of subscribing? When you cancel, you can choose a full refund of your first payment. Your access then ends straight away.";
+    refundNote.style.display = refundEligible ? "" : "none";
     document.getElementById("past-due-notice").style.display =
       sub.status === "past_due" ? "block" : "none";
 
@@ -1304,8 +1319,10 @@
       // Cap and seasons only mean something to a reader who has them.
       document.getElementById("cancel-cap-note").style.display = showCap ? "" : "none";
       document.getElementById("cancel-pending-resume-cta").innerHTML =
-        '<br><br><button type="button" class="btn gold" id="resume-btn">Keep my subscription</button>';
+        '<br><br><button type="button" class="btn gold" id="resume-btn">Keep my subscription</button>'
+        + (refundEligible ? ' <button type="button" class="btn ghost" id="refund-btn">Refund my payment instead</button>' : '');
       document.getElementById("resume-btn").onclick = handleResumeClick;
+      if (refundEligible) document.getElementById("refund-btn").onclick = handleRefundClick;
     } else {
       cancelNotice.style.display = "none";
     }
@@ -1343,7 +1360,7 @@
       ? `Your plan switches to annual on ${fmtDateUnix(sub.pendingPlanStartsAt || sub.currentPeriodEnd)}. From then it renews automatically once a year, at your next season\u2019s price.`
       : "Your subscription renews automatically every month at the same price. The date and amount of your next payment are always shown above.";
     document.getElementById("cancel-explainer").textContent =
-      "You can cancel at any time. You keep full access until the end of the month you\u2019ve paid for and won\u2019t be charged again. Monthly payments aren\u2019t refundable. You can undo it any time before then.";
+      "You can cancel at any time. You keep full access until the end of the month you\u2019ve paid for and won\u2019t be charged again. Monthly payments aren\u2019t refundable, except within 14 days of subscribing for readers in the UK and EU. You can undo it any time before then.";
     document.getElementById("cancel-card").style.display = sub.cancelAtPeriodEnd ? "none" : "block";
   }
 
@@ -1383,9 +1400,10 @@
   }
 
   // ── Action handlers ──────────────────────────────────────────────────
-  // The amount a refund would return: the first season's price.
+  // The amount a refund would return: the first monthly payment on the
+  // monthly plan (UK/EU 14-day right), else the first season's price.
   function firstSeasonPrice() {
-    return LADDER[currencyOf(currentSub)][0];
+    return isMonthly(currentSub) ? MONTHLY[currencyOf(currentSub)] : LADDER[currencyOf(currentSub)][0];
   }
 
   async function doRefund() {
@@ -1413,7 +1431,7 @@
         <ul>
           <li>You get <strong>${firstSeasonPrice()}</strong> back to the card you paid with.</li>
           <li>Your access ends straight away.</li>
-          <li>Your cap number stays yours. The refund can be used once per account.</li>
+          ${isMonthly(currentSub) ? "" : "<li>Your cap number stays yours. The refund can be used once per account.</li>"}
         </ul>`,
       confirmLabel: "Refund my payment",
       confirmKind: "danger",
@@ -1424,8 +1442,9 @@
   async function handleCancelClick() {
     const periodEnd = fmtDateUnix(currentSub.currentPeriodEnd);
     const monthly = isMonthly(currentSub);
-    if (!monthly && refundEligible) {
-      // Within the 30-day guarantee: let the reader choose (2026-10-22).
+    if (refundEligible) {
+      // Within the 30-day guarantee (annual), or the UK/EU 14 days on a first
+      // monthly payment: let the reader choose (2026-10-22, monthly 2026-10-23).
       showModal({
         title: "Cancel your subscription?",
         bodyHtml: `
@@ -1433,7 +1452,7 @@
             <span><strong>Turn off renewal.</strong> Keep full access until ${periodEnd}. No refund, and you won't be charged again.</span></label>
           <label class="choice"><input type="radio" name="cancel-choice" value="refund">
             <span><strong>Cancel and refund.</strong> Get ${firstSeasonPrice()} back now. Your access ends straight away.</span></label>
-          <p class="choice-note">Either way your cap number stays yours.</p>`,
+          ${monthly ? "" : '<p class="choice-note">Either way your cap number stays yours.</p>'}`,
         confirmLabel: "Confirm",
         confirmKind: "danger",
         onConfirm: async () => {
