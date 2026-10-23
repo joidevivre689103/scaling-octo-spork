@@ -555,7 +555,7 @@
     <!-- Renewal-off notice (only shown when cancelAtPeriodEnd is true) -->
     <div id="cancel-pending-notice" class="notice warn" style="display:none">
       <strong>Your subscription is cancelled.</strong>
-      It ends on <span id="cancel-end-date">—</span>. You'll keep full access until then, and your cap number and seasons stay yours if you come back later. Change your mind?
+      It ends on <span id="cancel-end-date">—</span>. You'll keep full access until then<span id="cancel-cap-note">, and your cap number and seasons stay yours if you come back later</span>. Change your mind?
       <span id="cancel-pending-resume-cta"></span>
     </div>
 
@@ -1174,6 +1174,7 @@
     if (sub.cancelAtPeriodEnd) {
       cancelNotice.style.display = "block";
       document.getElementById("cancel-end-date").textContent = endDate;
+      document.getElementById("cancel-cap-note").style.display = "";
       const ctaSpan = document.getElementById("cancel-pending-resume-cta");
       ctaSpan.innerHTML = '<br><br><button type="button" class="btn gold" id="resume-btn">Keep my subscription</button>';
       document.getElementById("resume-btn").onclick = handleResumeClick;
@@ -1258,6 +1259,8 @@
     if (sub.cancelAtPeriodEnd) {
       cancelNotice.style.display = "block";
       document.getElementById("cancel-end-date").textContent = endDate;
+      // Cap and seasons only mean something to a reader who has them.
+      document.getElementById("cancel-cap-note").style.display = showCap ? "" : "none";
       document.getElementById("cancel-pending-resume-cta").innerHTML =
         '<br><br><button type="button" class="btn gold" id="resume-btn">Keep my subscription</button>';
       document.getElementById("resume-btn").onclick = handleResumeClick;
@@ -1274,8 +1277,10 @@
         + `instead of your monthly payment. Nothing changes before then.`;
     }
 
-    // Switch offer: active monthly, renewal on, nothing pending.
-    const canSwitch = !pending && sub.status === "active" && seasonsPaid < SEASONS_TO_CAP;
+    // Switch offer: active monthly, renewal on, nothing pending. Hidden while
+    // cancelled (2026-10-22): two offers at once read as confusing; the reader
+    // can keep their subscription first, then switch.
+    const canSwitch = !pending && !sub.cancelAtPeriodEnd && sub.status === "active" && seasonsPaid < SEASONS_TO_CAP;
     document.getElementById("switch-card").style.display = canSwitch ? "block" : "none";
     if (canSwitch) {
       const num = (x) => Number(String(x).replace(/[^0-9.]/g, ""));
@@ -1289,11 +1294,7 @@
       document.getElementById("switch-terms").textContent =
         `Annual starts on ${endDate}, when your next monthly payment is due. Nothing is charged today. `
         + `You'll then pay ${annualPrice} for season ${nextSeason}, and it renews each year at the next season's price until you cancel.`;
-      const consent = document.getElementById("switch-consent");
-      if (sub.cancelAtPeriodEnd) {
-        document.getElementById("switch-terms").textContent += " Switching also turns renewal back on.";
-      }
-      consent.checked = false;
+      document.getElementById("switch-consent").checked = false;
     }
 
     document.getElementById("renewal-explainer").textContent = pending
