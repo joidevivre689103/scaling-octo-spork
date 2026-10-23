@@ -763,6 +763,39 @@ h1.title em {
 }
 .ladder-step.first { border-color: var(--crimson); }
 .ladder-step.first .amt { color: var(--crimson); }
+/* Capped for life (2026-10-23): replaces the price options once seven seasons are paid. */
+.capped-panel {
+  text-align: center;
+  padding: 22px 16px 20px;
+  margin-top: 4px;
+  border: 1px dashed var(--gold);
+  border-radius: 2px;
+  background: #fffdf7;
+}
+.capped-cap {
+  font-family: 'Special Elite', monospace;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin: 0 0 6px;
+}
+.capped-cap:empty { display: none; }
+.capped-title {
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  font-size: 26px;
+  line-height: 1.15;
+  color: var(--ink);
+  margin: 0 0 6px;
+}
+.capped-title em { color: var(--crimson); }
+.capped-body {
+  font-family: 'Source Serif 4', serif;
+  font-size: 15px;
+  color: var(--ink-soft);
+  margin: 0;
+}
 /* Returning reader (2026-10-23): seasons they've already paid for. */
 .ladder-step.paid { opacity: 0.55; }
 .ladder-step.paid .amt { text-decoration: line-through; font-weight: 400; }
@@ -889,6 +922,14 @@ h1.title em {
 
           <div class="price-options" id="price-options">
             <!-- Populated by subscribe script in the detected currency -->
+          </div>
+
+          <!-- Seven seasons paid (2026-10-23). Shown by applyCapped() in place of
+               the price options, terms and button. -->
+          <div class="capped-panel" id="capped-panel" hidden>
+            <p class="capped-cap" id="capped-cap"></p>
+            <p class="capped-title">You&rsquo;re capped <em>for life.</em></p>
+            <p class="capped-body">Seven seasons paid. You never pay again.</p>
           </div>
         </div>
 
@@ -1774,10 +1815,17 @@ if (alreadySubSignout) {
   function applyCapped() {
     if (nextSeason()) return;
     subscribeBtn.disabled = true;
-    optionsEl.style.display = 'none';
-    if (renewalTermsEl) renewalTermsEl.style.display = 'none';
-    msgEl.textContent = 'You’ve paid for seven seasons, so you’re capped for life — there’s nothing more to pay.';
-    msgEl.className = 'subscribe-msg info';
+    // Nothing to buy: swap the price options, terms and button for the panel.
+    [optionsEl, renewalTermsEl, subscribeBtn, detectedEl, introEl].forEach((el) => {
+      if (el) el.style.display = 'none';
+    });
+    msgEl.textContent = '';
+    msgEl.className = 'subscribe-msg';
+    const panel = document.getElementById('capped-panel');
+    const capEl = document.getElementById('capped-cap');
+    const cap = member && member.capNumber;
+    if (capEl) capEl.textContent = Number.isInteger(cap) && cap >= 0 ? 'Cap #' + cap : '';
+    if (panel) panel.hidden = false;
   }
 
   // Dev override, plus any ?currency= carried back through /login.html.
@@ -1820,7 +1868,7 @@ if (alreadySubSignout) {
     // Outside the Service Area (2026-10-07): the server refuses checkout, so
     // say so up front instead of letting the reader find out at the button.
     // `available` is absent on the old function — treat absent as available.
-    if (!urlCurrencyOverride && zoneRes.data && zoneRes.data.available === false) {
+    if (nextSeason() && !urlCurrencyOverride && zoneRes.data && zoneRes.data.available === false) {
       subscribeBtn.disabled = true;
       msgEl.innerHTML = 'Paid subscriptions aren&rsquo;t available in your country yet &mdash; see the <a href="/servicearea.html">Service Area</a>. Reading The Grass Bank stays free everywhere.';
       msgEl.className = 'subscribe-msg info';
@@ -1832,7 +1880,7 @@ if (alreadySubSignout) {
     renderDetectedCountry(null);
     applyPricekeyFromUrl();
     applyCapped();
-    if (!urlCurrencyOverride) {
+    if (nextSeason() && !urlCurrencyOverride) {
       msgEl.textContent = 'Couldn\'t verify live pricing. Showing USD by default — write to ivan@thegrassbank.com if this doesn\'t look right.';
       msgEl.className = 'subscribe-msg info';
     }
