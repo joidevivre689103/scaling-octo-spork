@@ -403,6 +403,11 @@
   .modal-body p:last-child { margin-bottom: 0; }
   .modal-body ul { margin: 8px 0 12px; padding-left: 20px; }
   .modal-body li { margin-bottom: 4px; }
+  /* Cancel-or-refund choice (2026-10-22) */
+  .modal-body .choice { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; margin-bottom: 8px; border: 1px solid var(--rule); cursor: pointer; line-height: 1.45; }
+  .modal-body .choice:has(input:checked) { border-color: var(--ink); }
+  .modal-body .choice input { margin-top: 4px; accent-color: var(--ink); }
+  .modal-body .choice-note { font-size: 14px; font-style: italic; color: var(--ink-muted); margin-top: 6px; }
   .modal-foot {
     padding: 14px 26px 22px;
     display: flex;
@@ -653,7 +658,7 @@
       <div class="card-body">
         <p id="renewal-explainer">Your subscription renews automatically once a year, at your next season&rsquo;s lower price. You&rsquo;ll get a reminder email before each renewal, and the date and amount are always shown above.</p>
         <p id="cancel-explainer">You can cancel at any time. You keep full access until the end of the season you&rsquo;ve paid for and won&rsquo;t be charged again. Your cap number and seasons stay yours, so if you come back later you carry on where you stopped. You can undo it any time before then.</p>
-        <p id="refund-note" style="display:none">Within 30 days of your first annual payment? Write to <a href="mailto:contact@thegrassbank.com?subject=Refund%20request">contact@thegrassbank.com</a> and we&rsquo;ll refund it in full. Your subscription then ends straight away.</p>
+        <p id="refund-note" style="display:none">Within 30 days of your first annual payment? When you cancel, you can choose a full refund. Your access then ends straight away.</p>
         <div class="btn-row">
           <button id="cancel-btn" class="btn danger" type="button">Cancel subscription</button>
         </div>
@@ -790,6 +795,7 @@
   const cancelSubFn      = httpsCallable(functions, "cancelSubscription");
   const resumeSubFn      = httpsCallable(functions, "resumeSubscription");
   const switchToAnnualFn = httpsCallable(functions, "switchToAnnual");
+  const refundFirstSeasonFn = httpsCallable(functions, "refundFirstSeason");
   const keepMonthlyFn    = httpsCallable(functions, "keepMonthly");
 
   // Names the wording of the switch-to-annual checkbox. The server
@@ -881,6 +887,9 @@
   let currentSub = null; // last-loaded subscription doc data
   let currentMember = null; // members/{emailKey}: capNumber, seasonsPaid, debutAt
   let currentUser = null;
+  // Self-serve 30-day refund (2026-10-22): set by renderLoaded. Only decides
+  // whether the option is SHOWN; refundFirstSeason checks eligibility itself.
+  let refundEligible = false;
 
   // members/{emailKey} — cap number and season count, written only by the
   // Stripe webhook (owner-read in firestore.rules). Missing or unreadable is
@@ -1163,6 +1172,7 @@
     const debut = m && m.debutAt ? (typeof m.debutAt.toDate === "function" ? m.debutAt.toDate() : new Date(m.debutAt)) : null;
     const inRefundWindow = !!(m && m.seasonsPaid === 1 && !(m.refundedSeasons || []).length &&
       debut && !isNaN(debut) && (Date.now() - debut.getTime()) < 30 * 86400 * 1000);
+    refundEligible = inRefundWindow;
     document.getElementById("refund-note").style.display = inRefundWindow ? "" : "none";
 
     // Past-due notice
@@ -1176,8 +1186,10 @@
       document.getElementById("cancel-end-date").textContent = endDate;
       document.getElementById("cancel-cap-note").style.display = "";
       const ctaSpan = document.getElementById("cancel-pending-resume-cta");
-      ctaSpan.innerHTML = '<br><br><button type="button" class="btn gold" id="resume-btn">Keep my subscription</button>';
+      ctaSpan.innerHTML = '<br><br><button type="button" class="btn gold" id="resume-btn">Keep my subscription</button>'
+        + (inRefundWindow ? ' <button type="button" class="btn ghost" id="refund-btn">Refund my payment instead</button>' : '');
       document.getElementById("resume-btn").onclick = handleResumeClick;
+      if (inRefundWindow) document.getElementById("refund-btn").onclick = handleRefundClick;
     } else {
       cancelNotice.style.display = "none";
     }
@@ -1250,6 +1262,7 @@
       nextEl.textContent = `${endDate} · ${monthly}`;
     }
 
+    refundEligible = false;
     document.getElementById("refund-note").style.display = "none";
     document.getElementById("past-due-notice").style.display =
       sub.status === "past_due" ? "block" : "none";
@@ -1341,9 +1354,67 @@
   }
 
   // ── Action handlers ──────────────────────────────────────────────────
+  // The amount a refund would return: the first season's price.
+  function firstSeasonPrice() {
+    return LADDER[currencyOf(currentSub)][0];
+  }
+
+  async function doRefund() {
+    try {
+      showState("state-loading");
+      await refundFirstSeasonFn({});
+      toast("Refunded. Your subscription has ended, and Link will email you the refund.");
+      showState("state-loaded");
+      await refreshUntilChanged(currentUser, d => d.status === "cancelled" || d.status === "canceled");
+      // A cancelled subscription isn't "loaded"; reload so the page shows the
+      // no-subscription state (the cap number is kept for a later return).
+      await loadSubscription(currentUser);
+    } catch (err) {
+      console.error("refundFirstSeason failed:", err);
+      showState("state-loaded");
+      toast(humanizeError(err), "error");
+    }
+  }
+
+  // From the cancelled notice: refund instead of riding out the year.
+  async function handleRefundClick() {
+    showModal({
+      title: "Refund your payment?",
+      bodyHtml: `
+        <ul>
+          <li>You get <strong>${firstSeasonPrice()}</strong> back to the card you paid with.</li>
+          <li>Your access ends straight away.</li>
+          <li>Your cap number stays yours. The refund can be used once per account.</li>
+        </ul>`,
+      confirmLabel: "Refund my payment",
+      confirmKind: "danger",
+      onConfirm: doRefund,
+    });
+  }
+
   async function handleCancelClick() {
     const periodEnd = fmtDateUnix(currentSub.currentPeriodEnd);
     const monthly = isMonthly(currentSub);
+    if (!monthly && refundEligible) {
+      // Within the 30-day guarantee: let the reader choose (2026-10-22).
+      showModal({
+        title: "Cancel your subscription?",
+        bodyHtml: `
+          <label class="choice"><input type="radio" name="cancel-choice" value="keep" checked>
+            <span><strong>Turn off renewal.</strong> Keep full access until ${periodEnd}. No refund, and you won't be charged again.</span></label>
+          <label class="choice"><input type="radio" name="cancel-choice" value="refund">
+            <span><strong>Cancel and refund.</strong> Get ${firstSeasonPrice()} back now. Your access ends straight away.</span></label>
+          <p class="choice-note">Either way your cap number stays yours.</p>`,
+        confirmLabel: "Confirm",
+        confirmKind: "danger",
+        onConfirm: async () => {
+          const picked = document.querySelector('input[name="cancel-choice"]:checked');
+          if (picked && picked.value === "refund") return doRefund();
+          return turnOffRenewal(periodEnd);
+        },
+      });
+      return;
+    }
     const hasCap = !!currentMember && Number.isInteger(currentMember.capNumber);
     const bodyHtml = `
       <ul>
@@ -1359,20 +1430,22 @@
       bodyHtml,
       confirmLabel: "Cancel subscription",
       confirmKind: "danger",
-      onConfirm: async () => {
-        try {
-          showState("state-loading");
-          await cancelSubFn({});
-          toast("Subscription cancelled. You keep access until " + periodEnd + ".");
-          showState("state-loaded");
-          await refreshUntilChanged(currentUser, d => d.cancelAtPeriodEnd === true);
-        } catch (err) {
-          console.error("cancelSubscription failed:", err);
-          showState("state-loaded");
-          toast(humanizeError(err), "error");
-        }
-      }
+      onConfirm: () => turnOffRenewal(periodEnd),
     });
+  }
+
+  async function turnOffRenewal(periodEnd) {
+    try {
+      showState("state-loading");
+      await cancelSubFn({});
+      toast("Subscription cancelled. You keep access until " + periodEnd + ".");
+      showState("state-loaded");
+      await refreshUntilChanged(currentUser, d => d.cancelAtPeriodEnd === true);
+    } catch (err) {
+      console.error("cancelSubscription failed:", err);
+      showState("state-loaded");
+      toast(humanizeError(err), "error");
+    }
   }
 
   async function handleResumeClick() {
