@@ -189,9 +189,13 @@
     .breadcrumb a { color: #7a7263; text-decoration: none; transition: color .12s; }
     .breadcrumb a:hover { color: #8b1a1a; }
     .breadcrumb .sep { margin: 0 10px; opacity: 0.45; }
+    /* Playfair's figures are old-style, and Google Fonts doesn't serve its
+       lining-figure feature, so "H1" read as "Hı". The number is set in
+       Source Serif 4, whose figures are lining. 2026-10-22. */
+    .signin-eyebrow .num { font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; }
     .signin-eyebrow {
       font-family: 'Playfair Display', Georgia, serif;
-      font-variant-numeric: lining-nums; /* "H1", not an old-style "Hı" */
+      font-variant-numeric: lining-nums;
       font-style: normal;
       font-weight: 700;
       font-size: 0.95rem;
@@ -1290,7 +1294,7 @@
       // readable. Best effort — the panel is already right without it.
       db.collection('members').doc(emailToUserId(user.email)).get().then(function(snap){
         const n = snap && snap.exists ? (snap.data() || {}).honoraryNumber : null;
-        if (Number.isInteger(n) && n >= 1 && tierEl) tierEl.textContent = 'Honorary Member H' + n;
+        if (Number.isInteger(n) && n >= 1 && tierEl) tierEl.innerHTML = 'Honorary Member H<span class="num">' + n + '</span>';
       }).catch(function(){ /* keep "Complimentary" */ });
     }
 
