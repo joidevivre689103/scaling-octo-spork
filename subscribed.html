@@ -184,6 +184,7 @@
        crimson rather than pale gold on cream. */
     .signin-eyebrow {
       font-family: 'Playfair Display', Georgia, serif;
+      font-variant-numeric: lining-nums; /* "H1", not an old-style "Hı" */
       font-style: normal;
       font-weight: 700;
       font-size: 0.95rem;
@@ -413,18 +414,9 @@
 </head>
 <body>
 
-  <!-- Inline masthead (subscribe.html convention — no ct-nav) -->
-  <header class="masthead">
-    <div class="masthead-eyebrow">Est. The Digital Age</div>
-    <div class="masthead-title">The Grass <span class="gb-accent">Bank</span></div>
-    <div class="gb-tagline">where every number has a heartbeat</div>
-    <div class="gb-descriptor">A Journal of Cricket</div>
-    <div class="masthead-rule">Welcome</div>
-  </header>
-
-  <div class="back-nav">
-    <a href="stories.html">← Return to Front Page</a>
-  </div>
+  <!-- Site-wide masthead and top nav (2026-10-22, for uniformity), from ct-nav.js -->
+  <div data-ct-nav="masthead"></div>
+  <div data-ct-nav="primary"></div>
 
   <main>
 

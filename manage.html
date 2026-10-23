@@ -484,13 +484,10 @@
 </head>
 <body>
 
-<header class="masthead">
-  <div class="masthead-inner">
-    <a class="brand" href="/">The Grass <span class="gb-accent">Bank</span></a>
-    <div class="gb-tagline">where every number has a heartbeat</div>
-    <div class="gb-descriptor">A Journal of Cricket</div>
-  </div>
-</header>
+<!-- Site-wide masthead and top nav (2026-10-22, for uniformity), from ct-nav.js.
+     The breadcrumb below stays as this page's local trail. -->
+<div data-ct-nav="masthead"></div>
+<div data-ct-nav="primary"></div>
 
 <nav class="breadcrumb">
   <a href="/">Home</a>
@@ -1610,6 +1607,8 @@
      three-item top nav (Home / My Subscription / Manage) is bespoke markup, so
      the page had none of the shared footer, and none of the footer's links.
 
+     [2026-10-22: superseded — IJ asked for the site-wide masthead and top nav
+     here too, so all three blocks are now mounted; the breadcrumb stays.]
      Only the FOOTER is mounted here, deliberately. ct-nav.js renders whichever
      of its three blocks it finds (data-ct-nav="masthead" / "primary" / "footer"),
      and mounting "primary" would drop the full 12-item newsroom nav onto what is
