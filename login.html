@@ -493,11 +493,14 @@
     // Firebase config — public API key is intentionally exposed per project
     // convention; security is enforced via Firestore rules, not key secrecy.
     const firebaseConfig = {
+      // Same as feature-flags.js FIREBASE_CONFIG (2026-10-23). Keep identical:
+      // whichever script creates the app first, the page runs on its config.
       apiKey: "AIzaSyBnfn9hK0y-p6nvIZ_AwoJnWD7DfDuIQd4",
       authDomain: "hitwicket-cba02.firebaseapp.com",
       projectId: "hitwicket-cba02",
-      storageBucket: "hitwicket-cba02.appspot.com",
-      // messagingSenderId / appId: filled in to match repo if needed.
+      storageBucket: "hitwicket-cba02.firebasestorage.app",
+      messagingSenderId: "196915483829",
+      appId: "1:196915483829:web:071c47af79914aec88dafc"
     };
 
     // Reuse prelaunch-guard.js's default app if it already initialized one.

@@ -1235,7 +1235,7 @@ body{
 <footer data-ct-nav="footer"></footer>
 
 <script type="module">
-import { initializeApp }    from 'https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js';
+import { initializeApp, getApps, getApp } from 'https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js';
 import { getFirestore, doc, getDoc, collection, query, where, orderBy, limit, getDocs }
   from 'https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js';
 
@@ -1250,7 +1250,7 @@ const firebaseConfig = {
   messagingSenderId: "196915483829",
   appId:             "1:196915483829:web:071c47af79914aec88dafc"
 };
-const app = initializeApp(firebaseConfig);
+const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const db  = getFirestore(app);
 
 // ═══════════════════════════════════════════════════════════════════════════
