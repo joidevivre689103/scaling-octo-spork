@@ -790,6 +790,7 @@ h1.title em {
   margin: 0 0 6px;
 }
 .capped-title em { color: var(--crimson); }
+.capped-cta { margin-top: 16px; }
 .capped-body {
   font-family: 'Source Serif 4', serif;
   font-size: 15px;
@@ -930,6 +931,7 @@ h1.title em {
             <p class="capped-cap" id="capped-cap"></p>
             <p class="capped-title">You&rsquo;re capped <em>for life.</em></p>
             <p class="capped-body">Seven seasons paid. You never pay again.</p>
+            <a href="/" class="tier-cta capped-cta">Start reading</a>
           </div>
         </div>
 
@@ -1816,7 +1818,9 @@ if (alreadySubSignout) {
     if (nextSeason()) return;
     subscribeBtn.disabled = true;
     // Nothing to buy: swap the price options, terms and button for the panel.
-    [optionsEl, renewalTermsEl, subscribeBtn, detectedEl, introEl].forEach((el) => {
+    // The pitch and feature list sell what a capped reader already has.
+    [optionsEl, renewalTermsEl, subscribeBtn, detectedEl, introEl,
+     document.getElementById('value-note'), document.querySelector('#subscribe-flow .tier-list')].forEach((el) => {
       if (el) el.style.display = 'none';
     });
     msgEl.textContent = '';
