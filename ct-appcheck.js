@@ -114,7 +114,7 @@
    * widget only works on the hostnames registered with it in Cloudflare
    * (thegrassbank.com, cricket-times-admin.web.app). The matching secret is
    * TURNSTILE_SECRET in Secret Manager, used only by mintAppCheckToken. */
-  var TURNSTILE_SITE_KEY = '__TURNSTILE_SITE_KEY__';
+  var TURNSTILE_SITE_KEY = '0x4AAAAAAFkSb7gcZw7nxTjO';
   var TURNSTILE_SCRIPT   = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
   var TURNSTILE_ACTION   = 'appcheck';   // must match ACTION in turnstileAppCheck.js
   var MINT_URL           = 'https://us-west1-hitwicket-cba02.cloudfunctions.net/mintAppCheckToken';
