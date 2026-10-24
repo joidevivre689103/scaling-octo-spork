@@ -1,5 +1,5 @@
 /* ============================================================================
- * ct-appcheck.js — Firebase App Check (reCAPTCHA Enterprise) token provider
+ * ct-appcheck.js — Firebase App Check token provider (Cloudflare Turnstile)
  * ----------------------------------------------------------------------------
  * Item (1a). Loaded on the gated stats pages AFTER feature-flags.js and BEFORE
  * ct-data-loader.js.
@@ -9,6 +9,25 @@
  *   created, and exposes `window.CTAppCheck.token()` -> Promise<string|null>.
  *   ct-data-loader.js attaches that string as the `X-Firebase-AppCheck` header
  *   on its serveDerivedData fetch.
+ *
+ * PROVIDER — CHANGED 2026-10-24 FROM reCAPTCHA ENTERPRISE TO CLOUDFLARE TURNSTILE
+ *   reCAPTCHA is Google's, and EU regulators have treated it as needing consent.
+ *   IJ switched before any reader joined, so "strictly necessary, no banner"
+ *   rests on a provider that doesn't use the data for advertising and sets no
+ *   cookie in normal use. App Check has no built-in Turnstile provider, so this
+ *   is a CustomProvider:
+ *     1. Render a Turnstile widget (appearance 'interaction-only': invisible
+ *        unless Cloudflare wants the visitor to tick a box) and get its
+ *        one-time token.
+ *     2. POST it to the mintAppCheckToken function (super-fortnight,
+ *        turnstileAppCheck.js), which checks it with Cloudflare and returns an
+ *        App Check token minted by the Admin SDK.
+ *     3. Hand that to the App Check SDK, which attaches and refreshes it as it
+ *        did with reCAPTCHA. serveDerivedData verifies it unchanged.
+ *   Every rule below still holds; "the reCAPTCHA script" now reads "the
+ *   Turnstile script". One addition to rule 3: if Cloudflare shows the visitor a
+ *   box to tick, the time cap waits for them (up to 60 seconds) instead of
+ *   giving up while they are clicking.
  *
  * FOUR DESIGN RULES, EACH LEARNED THE HARD WAY
  *
@@ -91,21 +110,28 @@
 (function () {
   'use strict';
 
-  /* reCAPTCHA Enterprise site key for App Check. NOT a secret — it ships in the
-   * page like the Firebase apiKey and is restricted to the registered domains
-   * (cricketimes.com, hitwicket-cba02.firebaseapp.com, hitwicket-cba02.web.app,
-   * cricket-times-admin.web.app). reCAPTCHA matches subdomains implicitly, so
-   * there is no wildcard entry here — unlike the API-key referrer list, which
-   * needs an explicit https://*.cricketimes.com/* entry. Two lists, two shapes. */
-  var RECAPTCHA_SITE_KEY = '6LfPGYEtAAAAAOy4SJRnsSxdImyfVczWtNV3_k44';
+  /* Cloudflare Turnstile site key. NOT a secret — it ships in the page, and the
+   * widget only works on the hostnames registered with it in Cloudflare
+   * (thegrassbank.com, cricket-times-admin.web.app). The matching secret is
+   * TURNSTILE_SECRET in Secret Manager, used only by mintAppCheckToken. */
+  var TURNSTILE_SITE_KEY = '0x4AAAAAAFkSb7gcZw7nxTjO';
+  var TURNSTILE_SCRIPT   = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+  var TURNSTILE_ACTION   = 'appcheck';   // must match ACTION in turnstileAppCheck.js
+  var MINT_URL           = 'https://us-west1-hitwicket-cba02.cloudfunctions.net/mintAppCheckToken';
 
   var FB_APPCHECK_URL   = 'https://www.gstatic.com/firebasejs/13.0.0/firebase-app-check.js';
-  var APPCHECK_TIMEOUT_MS = 5000;
+  // 10 s, up from 5 s with reCAPTCHA (2026-10-24): a Turnstile token now also
+  // has to go through our own function, which can take a few seconds to start
+  // when nobody has used it for a while. A blocked script still fails at once
+  // (onerror), so this cap only matters for a genuine hang.
+  var APPCHECK_TIMEOUT_MS = 10000;
+  var CHALLENGE_TIMEOUT_MS = 60000;   // a visitor ticking Turnstile's box
   var DEBUG_FLAG_KEY      = 'ct-appcheck-debug';
 
   /* Debug flag must be set on self BEFORE initializeAppCheck is called. Set at
    * parse time even though init is deferred — cheap, and it removes any ordering
-   * question about whether the flag beat the initialise call. */
+   * question about whether the flag beat the initialise call. With it set, the
+   * SDK uses its debug provider and Turnstile never runs. */
   try {
     if (window.localStorage && localStorage.getItem(DEBUG_FLAG_KEY) === '1') {
       self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
@@ -113,6 +139,99 @@
                    'Register it in Firebase Console -> App Check -> Manage debug tokens.');
     }
   } catch (_) { /* private mode / storage disabled -> no debug mode, fine */ }
+
+  /* ── Turnstile ─────────────────────────────────────────────────────────── */
+
+  var _turnstilePromise = null;
+  var _challengeShowing = false;
+
+  function loadTurnstile() {
+    if (_turnstilePromise) return _turnstilePromise;
+    _turnstilePromise = new Promise(function (resolve, reject) {
+      if (window.turnstile) { resolve(window.turnstile); return; }
+      var s = document.createElement('script');
+      s.src = TURNSTILE_SCRIPT;
+      s.async = true;
+      s.onload = function () {
+        if (window.turnstile) resolve(window.turnstile);
+        else reject(new Error('turnstile script loaded without turnstile'));
+      };
+      s.onerror = function () { reject(new Error('turnstile script blocked or offline')); };
+      document.head.appendChild(s);
+    });
+    // A failed load may be transient (offline); let the next attempt retry.
+    _turnstilePromise.catch(function () { _turnstilePromise = null; });
+    return _turnstilePromise;
+  }
+
+  /* The box Cloudflare shows only when it wants the visitor to tick it. Fixed
+   * bottom-right, empty and invisible otherwise. */
+  function widgetHost() {
+    var host = document.getElementById('ct-turnstile');
+    if (!host) {
+      host = document.createElement('div');
+      host.id = 'ct-turnstile';
+      host.style.cssText = 'position:fixed;right:16px;bottom:16px;z-index:2147483000;';
+      document.body.appendChild(host);
+    }
+    var slot = document.createElement('div');
+    host.appendChild(slot);
+    return slot;
+  }
+
+  /* One fresh Turnstile token. Each token is single-use, so each call renders
+   * its own widget and removes it once it has answered. */
+  function turnstileToken() {
+    return loadTurnstile().then(function (ts) {
+      return new Promise(function (resolve, reject) {
+        var slot = widgetHost();
+        var id = null;
+        var done = function (fn, v) {
+          _challengeShowing = false;
+          setTimeout(function () {
+            try { if (id !== null) ts.remove(id); } catch (_) {}
+            if (slot.parentNode) slot.parentNode.removeChild(slot);
+          }, 0);
+          fn(v);
+        };
+        try {
+          id = ts.render(slot, {
+            sitekey: TURNSTILE_SITE_KEY,
+            action: TURNSTILE_ACTION,
+            appearance: 'interaction-only',
+            'refresh-expired': 'never',
+            callback: function (t) { done(resolve, t); },
+            'error-callback': function (code) {
+              done(reject, new Error('turnstile error ' + code));
+              return true;   // handled: no automatic retry loop
+            },
+            'timeout-callback': function () { done(reject, new Error('turnstile challenge timed out')); },
+            'before-interactive-callback': function () { _challengeShowing = true; },
+            'after-interactive-callback': function () { _challengeShowing = false; }
+          });
+        } catch (e) { done(reject, e); }
+      });
+    });
+  }
+
+  /* CustomProvider.getToken: Turnstile token in, App Check token out. Rejects
+   * on any failure; the SDK turns that into a getToken() error, which token()
+   * below turns into null (rule 2). */
+  function mintAppCheckToken(appId) {
+    return turnstileToken().then(function (t) {
+      return fetch(MINT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ turnstileToken: t, appId: appId })
+      });
+    }).then(function (res) {
+      if (!res.ok) throw new Error('mintAppCheckToken HTTP ' + res.status);
+      return res.json();
+    }).then(function (j) {
+      if (!j || !j.token) throw new Error('mintAppCheckToken returned no token');
+      return { token: j.token, expireTimeMillis: Date.now() + (Number(j.ttlMillis) || 30 * 60 * 1000) };
+    });
+  }
 
   var _initPromise = null;
 
@@ -132,8 +251,11 @@
         var app = r[0], mod = r[1];
         // isTokenAutoRefreshEnabled keeps a valid token in hand across the 1h TTL
         // without the reader ever waiting on a mint mid-session.
+        var appId = app && app.options && app.options.appId;
         return mod.initializeAppCheck(app, {
-          provider: new mod.ReCaptchaEnterpriseProvider(RECAPTCHA_SITE_KEY),
+          provider: new mod.CustomProvider({
+            getToken: function () { return mintAppCheckToken(appId); }
+          }),
           isTokenAutoRefreshEnabled: true
         });
       }).catch(function (e) {
@@ -153,8 +275,16 @@
     return ensureAppCheck().then(function (ac) {
       if (!ac) return null;   // init failed hard — return immediately, no waiting
       return import(FB_APPCHECK_URL).then(function (mod) {
+        // Give up after APPCHECK_TIMEOUT_MS, unless Cloudflare is showing the
+        // visitor a box to tick: then wait for them, up to CHALLENGE_TIMEOUT_MS.
         var timeout = new Promise(function (resolve) {
-          setTimeout(function () { resolve(null); }, APPCHECK_TIMEOUT_MS);
+          var started = Date.now();
+          (function check() {
+            var waited = Date.now() - started;
+            if (waited >= CHALLENGE_TIMEOUT_MS ||
+                (waited >= APPCHECK_TIMEOUT_MS && !_challengeShowing)) { resolve(null); return; }
+            setTimeout(check, 250);
+          })();
         });
         var minted = mod.getToken(ac, /* forceRefresh */ false).then(function (res) {
           return (res && res.token) || null;
@@ -182,5 +312,5 @@
   }
   scheduleWarmUp();
 
-  window.CTAppCheck = { token: token, _siteKey: RECAPTCHA_SITE_KEY };
+  window.CTAppCheck = { token: token, _siteKey: TURNSTILE_SITE_KEY };
 })();

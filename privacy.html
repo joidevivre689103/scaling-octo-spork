@@ -269,7 +269,7 @@
 
 <main>
     <h1>Privacy Policy</h1>
-    <p class="effective-date">Effective — 23 October 2026</p>
+    <p class="effective-date">Effective — 24 October 2026</p>
 
     <div class="summary-box">
         <p class="label">The short version</p>
@@ -493,14 +493,15 @@
     </p>
     <p>
         <strong>The security check on the statistics pages.</strong> Before the statistics pages load their
-        data, <strong>Google reCAPTCHA Enterprise</strong> checks that the request comes from a real browser
-        rather than a script copying the data. To do that it collects information about your browser and
-        device and how the page is used, and it may set its own cookie. It runs only on those pages, it does
-        not show you a puzzle, and we receive only a pass or fail. We treat it as <strong>strictly
-        necessary</strong>: it protects the paid service you have asked to use, it is not used for advertising
-        or to follow you, and without it a script could copy the data those pages serve. Google processes this under its own
-        <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">privacy policy</a> and
-        <a href="https://policies.google.com/terms" target="_blank" rel="noopener">terms</a>. Section 1.8 describes the one place where we do derive your country from an IP address.
+        data, <strong>Cloudflare Turnstile</strong> checks that the request comes from a real browser
+        rather than a script copying the data. To do that it looks at technical information about your
+        browser and connection, such as your IP address and browser type. It runs only on those pages, it
+        usually shows you nothing (now and then a box to tick), and we receive only a pass or fail. We treat
+        it as <strong>strictly necessary</strong>: it protects the paid service you have asked to use, it is
+        not used to identify, profile or target you, and without it a script could copy the data those pages
+        serve. Cloudflare handles this under its
+        <a href="https://www.cloudflare.com/turnstile-privacy-policy/" target="_blank" rel="noopener">Turnstile privacy addendum</a>
+        and <a href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noopener">privacy policy</a>. Section 1.8 describes the one place where we do derive your country from an IP address.
     </p>
 
     <h3>1.8 Where you are, and why we need to know</h3>
@@ -626,8 +627,8 @@
         The only third parties that handle your data are the service providers we need in order to
         operate — <strong>GitHub</strong> (serving the site&rsquo;s pages), <strong>Google Firebase and Google
         Cloud</strong> (our servers, sign-in, and database), <strong>Google</strong> also for
-        reCAPTCHA Enterprise on the statistics pages (section 1.7), and the mailbox that receives your emails
-        (section 1.9), <strong>Cloudflare</strong> (forwarding email to us, and some code libraries), <strong>Stripe</strong>, including its Managed Payments entity <strong>Sold through Link, LLC</strong> (subscription payments, as merchant of record — see section 1.2),
+        the mailbox that receives your emails (section 1.9), <strong>Cloudflare</strong> (forwarding email to
+        us, some code libraries, and the security check on the statistics pages in section 1.7), <strong>Stripe</strong>, including its Managed Payments entity <strong>Sold through Link, LLC</strong> (subscription payments, as merchant of record — see section 1.2),
         <strong>Resend</strong> (delivery of our subscription and account emails, and our replies &mdash;
         see sections 1.2 and 1.9), and <strong>MailerLite</strong> (the newsletter) — and each only to the extent needed to provide that service. We may also disclose information where we are legally
         required to, or where it is necessary to establish or defend a legal claim.
@@ -643,8 +644,7 @@
         <strong>There are no advertising cookies on this site, no third-party tracking cookies, and no
         cookie banner — because there is nothing we would need to ask your consent for.</strong> No page
         on this site loads a third-party tracking or advertising script. The one outside script that runs is
-        Google reCAPTCHA Enterprise on the statistics pages, which is a security check, not tracking, and may
-        set its own cookie for that purpose (section 1.7). What we use ourselves is strictly
+        Cloudflare Turnstile on the statistics pages, which is a security check, not tracking (section 1.7). What we use ourselves is strictly
         functional: a token that keeps you signed in, and a small amount of browser storage that remembers
         things like whether you have already reacted to a comment, whether you have played this month&rsquo;s
         Yorker, the temporary visit identifier in section 1.4, and whether this visit has already been
