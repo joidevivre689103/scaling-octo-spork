@@ -1,18 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://thegrassbank.com/stories.html</loc><priority>1.0</priority></url>
+  <url><loc>https://thegrassbank.com/</loc><priority>1.0</priority></url>
   <url><loc>https://thegrassbank.com/countries.html</loc><priority>0.9</priority></url>
   <url><loc>https://thegrassbank.com/batting.html</loc><priority>0.9</priority></url>
   <url><loc>https://thegrassbank.com/bowling.html</loc><priority>0.9</priority></url>
   <url><loc>https://thegrassbank.com/keeping.html</loc><priority>0.9</priority></url>
   <url><loc>https://thegrassbank.com/captaincy.html</loc><priority>0.9</priority></url>
   <url><loc>https://thegrassbank.com/compare.html</loc><priority>0.9</priority></url>
-  <url><loc>https://thegrassbank.com/simulation.html</loc><priority>0.9</priority></url>
+  <url><loc>https://thegrassbank.com/simulations.html</loc><priority>0.9</priority></url>
+  <url><loc>https://thegrassbank.com/yorker.html</loc><priority>0.8</priority></url>
   <url><loc>https://thegrassbank.com/archive.html</loc><priority>0.8</priority></url>
   <url><loc>https://thegrassbank.com/audio.html</loc><priority>0.8</priority></url>
-  <url><loc>https://thegrassbank.com/article.html</loc><priority>0.7</priority></url>
   <url><loc>https://thegrassbank.com/voices.html</loc><priority>0.7</priority></url>
   <url><loc>https://thegrassbank.com/subscribe.html</loc><priority>0.6</priority></url>
-  <url><loc>https://thegrassbank.com/privacy.html</loc><priority>0.4</priority></url>
   <url><loc>https://thegrassbank.com/about.html</loc><priority>0.5</priority></url>
+  <url><loc>https://thegrassbank.com/privacy.html</loc><priority>0.4</priority></url>
+  <url><loc>https://thegrassbank.com/servicearea.html</loc><priority>0.3</priority></url>
 </urlset>
