@@ -233,9 +233,12 @@ body{
 /* WTC race strip (2026-10-27): the top chances of reaching the final, from the
    public liveScores/wtc document; the full table is on /wtc.html (free). */
 .wtc-strip{ padding:30px 0 28px; }
-.wtc-pointer{ font-family:'Inter',sans-serif; font-size:13px; color:var(--text2); padding:14px 0; border-bottom:1px solid var(--border); margin:0; }
+.wtc-pointer{ padding:24px 0 22px; border-bottom:1px solid var(--border); }
 .wtc-pointer[hidden]{ display:none; }
-.wtc-pointer span{ color:var(--accent); font-weight:600; white-space:nowrap; }
+.wtc-pointer-kicker{ font-family:'Inter',sans-serif; font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:var(--accent); margin:0 0 8px; }
+.wtc-pointer-body{ font-size:17px; line-height:1.6; color:var(--text2); margin:0 0 10px; max-width:820px; }
+.wtc-pointer-q{ font-family:'Playfair Display',serif; font-size:21px; font-weight:700; color:var(--text); margin:0; }
+.wtc-pointer-q span{ font-family:'Inter',sans-serif; font-size:13px; font-weight:600; color:var(--accent); white-space:nowrap; margin-left:10px; }
 .wtc-strip[hidden]{ display:none; }
 .wtc-strip-row{ display:flex; align-items:baseline; gap:22px; flex-wrap:wrap; }
 .wtc-strip-title{ font-family:'Playfair Display',serif; font-size:20px; font-weight:700; margin:0; }
@@ -818,7 +821,11 @@ body.articles-loading .analysis-section{ visibility:hidden; }
        the page, so a reader passes the articles on the way to it (IJ: the
        Costco rotisserie chicken lives at the back of the store). This line
        only tells them it is there; deliberately not a link. -->
-  <p class="wtc-pointer" id="wtcPointer" hidden>What are your team's chances of reaching the WTC final? <span>Scroll to the bottom ↓</span></p>
+  <section class="wtc-pointer" id="wtcPointer" hidden aria-label="World Test Championship">
+    <p class="wtc-pointer-kicker" id="wtcPointerKicker">World Test Championship</p>
+    <p class="wtc-pointer-body" id="wtcPointerBody"></p>
+    <p class="wtc-pointer-q">What are your team's chances of reaching the WTC final? <span>Scroll to the bottom ↓</span></p>
+  </section>
 
   <!-- HERO -->
   <section class="hero-section" id="latest" data-nav="Latest" data-nav-target="latest">
@@ -1371,6 +1378,33 @@ function resetSnippetTimer() { startSnippetTimer(); }
       box.appendChild(a);
     });
     document.getElementById('wtcStrip').hidden = false;
+    // The pointer's copy, from the same document so its numbers stay true as
+    // the cycle goes on: nations, Tests in the cycle, Tests left, and the
+    // biggest series still to come.
+    const d = snap.data();
+    const all = d.table || [], rem = d.remaining || [];
+    const WORDS = ['no','one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve',
+      'thirteen','fourteen','fifteen','sixteen','seventeen','eighteen','nineteen'];
+    const TENS = ['','','twenty','thirty','forty','fifty','sixty','seventy','eighty','ninety'];
+    const words = n => n < 20 ? WORDS[n] : TENS[Math.floor(n / 10)] + (n % 10 ? '-' + WORDS[n % 10] : '');
+    const cap = t => t.charAt(0).toUpperCase() + t.slice(1);
+    const left = rem.reduce((a, r) => a + (r.left || 0), 0);
+    const total = all.reduce((a, r) => a + (r.played || 0), 0) / 2 + left;
+    const [when, venue] = String(d.final || "June 2027, Lord's").split(/,\s*/);
+    const big = rem.slice().sort((a, b) => (b.left || 0) - (a.left || 0))[0];
+    let tail = 'Every Test has now been played.';
+    if (left && big) {
+      tail = cap(words(left)) + ' Test' + (left === 1 ? ' is' : 's are') + ' still to play' +
+        (big.left > 1 ? ', including ' + words(big.left) + ' between ' + big.host + ' and ' + big.visitor + ' in ' + big.host + '.'
+                      : ', the last of them ' + big.host + ' v ' + big.visitor + ' in ' + big.host + '.');
+    }
+    document.getElementById('wtcPointerKicker').textContent =
+      'World Test Championship ' + String(d.cycle || '2025-27').replace('-', '–');
+    document.getElementById('wtcPointerBody').textContent =
+      cap(words(all.length)) + ' nations. ' + cap(words(Math.round(total))) + ' Tests over two years, on turning pitches ' +
+      'in India and Sri Lanka, green seamers in England and New Zealand, and the pace and bounce of Australia and ' +
+      'South Africa. Every result counts, and only the top two reach the final' +
+      (venue ? ' at ' + venue : '') + (when ? ' in ' + when : '') + '. ' + tail;
     document.getElementById('wtcPointer').hidden = false;
   } catch (err) {
     console.warn('[wtc-strip] not shown:', err && err.message);
