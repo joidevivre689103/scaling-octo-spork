@@ -12,7 +12,8 @@
 <script src="/feature-flags.js"></script>
 <script src="/prelaunch-guard.js"></script>
 <script src="/ct-appcheck.js"></script>
-<script src="/ct-data-loader.js"></script><!-- Phase 3 §3: gated derived-data loader -->
+<script src="/ct-data-loader.js"></script>
+<script src="/ct-urlstate.js"></script><!-- filters kept in the address + Share (2026-10-27) --><!-- Phase 3 §3: gated derived-data loader -->
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Batting Records – The Grass Bank</title>
 <!-- Link previews and search snippet (rename item 4 / (9), 2026-10-21) -->
@@ -2052,6 +2053,20 @@ CTExport.init({ build: buildExportModel, minFilters: 2 });
   populateCountries();
   populateCityGround();
   applyFilters();
+  // Filters, tab and sort live in the address; a Share button sends it (2026-10-27).
+  CTUrlState.attach({
+    root: document.getElementById('filterPanel'),
+    apply: applyFilters,
+    extra: {
+      get: () => ({ tb: currentTab, s: sortKey, d: sortDir }),
+      defaults: { tb: 'runs', s: 'runs', d: 'desc' },
+      set: (q) => {
+        if (q.tb) switchTab(q.tb)
+        if (q.s) { sortKey = q.s; sortDir = q.d === 'asc' ? 'asc' : 'desc'; }
+      }
+    }
+  });
+  CTUrlState.mountShareButton(document.querySelector('.page-head'), 'Batting');
 })();
 </script>
 

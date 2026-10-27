@@ -12,7 +12,8 @@
 <script src="/feature-flags.js"></script>
 <script src="/prelaunch-guard.js"></script>
 <script src="/ct-appcheck.js"></script>
-<script src="/ct-data-loader.js"></script><!-- Phase 3 §3: gated derived-data loader -->
+<script src="/ct-data-loader.js"></script>
+<script src="/ct-urlstate.js"></script><!-- filters kept in the address + Share (2026-10-27) --><!-- Phase 3 §3: gated derived-data loader -->
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Captaincy Records – The Grass Bank</title>
 <!-- Link previews and search snippet (rename item 4 / (9), 2026-10-21) -->
@@ -581,8 +582,10 @@ function switchTab(tab) {
 function updateCards() {
   document.getElementById('scTotal').textContent = filtered.length.toLocaleString();
   if (!filtered.length) {
-    ['scMost','scWins','scWinPct','scUnbeat','scMoMNum'].forEach(id => document.getElementById(id).textContent = '—');
-    ['scMostSub','scWinsSub','scWinPctSub','scUnbeatSub','scMoMName'].forEach(id => document.getElementById(id).textContent = '');
+    // scMoMNum / scMoMName no longer exist on the page; skip any missing card
+    // rather than throw (a filter with no captains used to stop the page, 2026-10-27).
+    ['scMost','scWins','scWinPct','scUnbeat','scMoMNum'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = '—'; });
+    ['scMostSub','scWinsSub','scWinPctSub','scUnbeatSub','scMoMName'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = ''; });
     return;
   }
 
@@ -807,6 +810,20 @@ CTExport.init({ build: buildExportModel, minFilters: 2 });
   buildCaptains();
   populateCountries();
   applyFilters();
+  // Filters, tab and sort live in the address; a Share button sends it (2026-10-27).
+  CTUrlState.attach({
+    root: document.getElementById('filterPanel'),
+    apply: applyFilters,
+    extra: {
+      get: () => ({ tb: currentTab, s: sortKey, d: sortDir }),
+      defaults: { tb: 'tests', s: 'captTests', d: 'desc' },
+      set: (q) => {
+        if (q.tb) switchTab(q.tb);
+        if (q.s) { sortKey = q.s; sortDir = q.d === 'asc' ? 'asc' : 'desc'; }
+      }
+    }
+  });
+  CTUrlState.mountShareButton(document.querySelector('.page-head'), 'Captaincy');
 })();
 </script>
 <script src="ct-nav.js"></script>
