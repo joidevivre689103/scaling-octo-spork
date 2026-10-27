@@ -4013,8 +4013,7 @@ async function renderH2H(focus, opponents, stats, isBatter){
     `<div class="tbl-wrap"><table class="cmp-table"><thead><tr><th>${isBatter ? 'Bowler' : 'Batter'} (opponent)</th>` +
     cols.map(c => `<th>${c}</th>`).join('') + `</tr></thead><tbody>${rows}</tbody></table></div>` +
     `<div class="foot-note" style="margin-top:4px;">* Every ball ${isBatter ? focusName + ' faced from each bowler' : 'each batter faced from ' + focusName}, ` +
-    `in the shared Tests with ball-by-ball records (from about 2001). Balls exclude wides; runs are off the bat; ` +
-    `dismissals are the ones credited to the bowler. Earlier shared Tests count only in the table above.</div>`;
+    `in shared Tests with ball-by-ball records (from about 2001). Runs are off the bat; wides don't count as balls.</div>`;
 }
 
 // ---- Partnership Mode ----
