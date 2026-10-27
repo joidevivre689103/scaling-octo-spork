@@ -974,8 +974,7 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
   <div class="tab-panel" id="tab-onthisday" role="tabpanel">
     <p class="otd-intro">The full scorecards of the Tests on the homepage's <em>On this day</em>.</p>
     <div id="otdScorecards"><p class="otd-note">Loading scorecards…</p></div>
-    <p class="otd-note">† wicketkeeper. “b/lbw” where the record shows the bowler but not whether it was bowled or
-      lbw. Balls faced are shown where they were recorded.</p>
+    <p class="otd-note">† wicketkeeper.<span id="otdBlbwNote" hidden> b/lbw: bowled or lbw — the record doesn’t say which.</span></p>
   </div><!-- /tab-panel onthisday -->
 </div>
 
@@ -3238,6 +3237,8 @@ async function renderOtdTab() {
   try {
     const D = await loadImpactData();
     box.innerHTML = OTD_TESTS.map(k => otdScorecardHTML(D, k)).join('');
+    // Explain b/lbw only on a page that actually shows one.
+    document.getElementById('otdBlbwNote').hidden = !/>b\/lbw /.test(box.innerHTML);
   } catch (e) {
     __otdRendered = false;
     box.innerHTML = '<p class="otd-note">The scorecards could not be loaded. Please try again in a moment.</p>';
