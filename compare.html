@@ -937,7 +937,6 @@ header.header{display:none !important}
   <!-- Against Results -->
   <div class="comp" id="againstComp" style="display:none;">
     <div id="againstResults"></div>
-    <div class="foot-note" style="margin-top:4px;">* Stats are for matches where both players appeared on opposing sides. "Times Dismissed" = innings where the specific bowler is credited with the dismissal (b, lbw, c, cw, st, etc.).</div>
   </div>
 
   <div class="filters-panel" id="filtersPanel">
@@ -1088,9 +1087,6 @@ header.header{display:none !important}
   </div>
 </div>
 
-<div style="text-align:center;padding:40px 20px 30px;font-size:11px;color:var(--text3);">
-  Data Source - Ananth Narayanan
-</div>
 
 <!-- data.js removed (Phase 3 §3): dataset now loaded via CTData from the gated serveDerivedData endpoint -->
 <script>
@@ -3946,7 +3942,9 @@ function renderAgainst(){
     `<div class="tbl-wrap"><table class="cmp-table">` +
     `<thead><tr>${hdr}</tr></thead><tbody>${rows}</tbody></table></div>`;
 
-  document.getElementById('againstResults').innerHTML = html + '<div id="h2hBlock"></div>';
+  // Each table's note sits directly under its own table (2026-10-27).
+  document.getElementById('againstResults').innerHTML = html +
+    '<div class="foot-note" style="margin-top:4px;">* Stats are for matches where both players appeared on opposing sides. "Times Dismissed" = innings where the specific bowler is credited with the dismissal (b, lbw, c, cw, st, etc.).</div>' + '<div id="h2hBlock"></div>';
   document.getElementById('againstComp').style.display = 'block';
   renderH2H(focus, opponents, stats, isBatter);
 }
