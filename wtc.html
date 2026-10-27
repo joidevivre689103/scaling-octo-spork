@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!-- CT_7G_INJECT:START (auto-injected by deploy tool — do not edit by hand) -->
+<style id="ct-7g-hide">body{visibility:hidden}</style>
+<script>window.CT_PAGE_ID="wtc";</script>
+<script src="/feature-flags.js"></script>
+<script>setTimeout(function(){if(!window.__ctFlagsLoaded){location.replace("/comingsoon.html");}},2500);</script>
+<script src="/auth-status.js"></script>
+<script src="/ct-tracker.js" async></script>
+<!-- CT_7G_INJECT:END -->
+<script src="/prelaunch-guard.js"></script>
+<script src="/ct-appcheck.js"></script>
+<script src="/ct-data-loader.js"></script>
+<script src="/ct-urlstate.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+<title>WTC Race — The Grass Bank</title>
+<!-- World Test Championship (2026-10-27). FREE page: the table, every team's
+     chance of reaching the final and the series left come from the public
+     liveScores/wtc document (written daily by super-fortnight's wtc.yml).
+     The PAID sections (what each team needs, results that help, what-if) come
+     from derived/wtc.json.gz through serveDerivedData ?file=wtc, so the server
+     decides who sees them; a reader without access sees the locked panel. -->
+<meta name="description" content="Every team's chance of reaching the World Test Championship final, from 20,000 simulations of every Test still to play.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="The Grass Bank">
+<meta property="og:title" content="WTC Race — The Grass Bank">
+<meta property="og:description" content="Every team's chance of reaching the World Test Championship final, updated daily.">
+<meta property="og:url" content="https://thegrassbank.com/wtc.html">
+<meta property="og:image" content="https://thegrassbank.com/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="WTC Race — The Grass Bank">
+<meta name="twitter:description" content="Every team's chance of reaching the World Test Championship final, updated daily.">
+<meta name="twitter:image" content="https://thegrassbank.com/og-image.png">
+<link rel="canonical" href="https://thegrassbank.com/wtc.html">
+<link rel="stylesheet" href="/fonts/fonts-opsz.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#faf9f7;--surface:#ffffff;--surface2:#f5f4f2;--surface3:#eceae6;
+  --border:#d8d4cc;--border2:#c8c4bc;
+  --text:#1a1a18;--text2:#4a4a46;--text3:#7a7a74;
+  --accent:#a03020;--accent-hover:#801810;--accent-dim:rgba(160,48,32,0.08);
+  --green:#1a6848;--green-dim:rgba(26,104,72,0.10);
+}
+body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-height:100vh;overflow-x:hidden}
+.main{max-width:1100px;margin:0 auto;padding:24px 32px 60px}
+.page-head{margin-bottom:8px}
+.page-title{font-family:'DM Serif Display',serif;font-size:30px;letter-spacing:-0.4px;margin-bottom:6px}
+.page-desc{font-size:15px;line-height:1.55;color:var(--text2);max-width:640px}
+.asof{font-family:'Inter',sans-serif;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text3);margin:14px 0 18px}
+.sec-title{font-family:'DM Serif Display',serif;font-size:22px;margin:34px 0 6px}
+.sec-desc{font-size:14px;color:var(--text2);margin-bottom:14px;max-width:640px;line-height:1.5}
+.tbl-wrap{overflow-x:auto;border-radius:11px;border:1px solid var(--border);margin-bottom:12px;background:var(--surface)}
+.rec-table{width:100%;border-collapse:separate;border-spacing:0;background:var(--surface)}
+.rec-table thead th{padding:10px 12px;font-size:10px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:var(--text3);
+  text-align:center;border-bottom:2px solid var(--border2);background:var(--surface2);white-space:nowrap}
+.rec-table thead th.left{text-align:left}
+.rec-table tbody td{padding:10px 12px;font-size:14px;font-weight:500;text-align:center;font-variant-numeric:tabular-nums;border-bottom:1px solid var(--border)}
+.rec-table tbody tr:last-child td{border-bottom:none}
+.rec-table tbody td.left{text-align:left}
+.rec-table tbody tr.top2 td{background:rgba(26,104,72,0.04)}
+.rec-table tbody tr.picked td{background:var(--accent-dim)}
+.rec-table tbody tr[data-team]{cursor:pointer}
+.team{font-weight:600;white-space:nowrap}
+.pct{font-weight:700}
+.chance{display:flex;align-items:center;gap:10px;min-width:150px}
+.bar{flex:1;height:8px;border-radius:4px;background:var(--surface3);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);border-radius:4px}
+.chance b{min-width:44px;text-align:right;font-size:15px}
+.lbl-short{display:none}
+.note{font-size:12px;color:var(--text3);line-height:1.5}
+.remaining{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.fx{background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:12px 14px}
+.fx-teams{font-weight:600;font-size:14px}
+.fx-meta{font-size:12px;color:var(--text3);margin-top:3px;font-family:'Inter',sans-serif}
+.fx-score{color:var(--accent);font-weight:700}
+/* Paid sections */
+.paid{position:relative;margin-top:8px}
+.locked{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:24px 26px}
+.locked h3{font-family:'DM Serif Display',serif;font-size:21px;margin-bottom:8px}
+.locked p{font-size:15px;color:var(--text2);line-height:1.55;max-width:600px}
+.locked .btns{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+.btn{display:inline-block;padding:10px 18px;border-radius:6px;font-family:'Inter',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;
+  text-transform:uppercase;text-decoration:none;border:1.5px solid var(--accent);color:var(--accent);background:var(--surface);cursor:pointer}
+.btn.solid{background:var(--accent);color:#fff}
+.btn:hover{background:var(--accent-hover);border-color:var(--accent-hover);color:#fff}
+.picker{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+.picker button{font-family:'Inter',sans-serif;font-size:12px;font-weight:600;padding:7px 12px;border-radius:16px;border:1px solid var(--border);
+  background:var(--surface);color:var(--text2);cursor:pointer}
+.picker button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:18px 20px;margin-bottom:12px}
+.card h4{font-size:15px;font-weight:700;margin-bottom:10px}
+.need-row{display:grid;grid-template-columns:1fr repeat(3,90px);gap:8px;align-items:center;padding:8px 0;border-top:1px solid var(--surface3);font-size:14px}
+.need-row:first-of-type{border-top:none}
+.need-row.head{font-family:'Inter',sans-serif;font-size:10px;letter-spacing:0.8px;text-transform:uppercase;color:var(--text3);font-weight:700}
+.need-row span.v{text-align:center;font-weight:700;font-variant-numeric:tabular-nums}
+.help{padding:8px 0;border-top:1px solid var(--surface3);font-size:14px;line-height:1.5}
+.help:first-of-type{border-top:none}
+.whatif{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px;margin-bottom:14px}
+.whatif label{display:block;font-size:13px;font-weight:600;margin-bottom:4px}
+.whatif select{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-family:'Outfit',sans-serif;font-size:14px;background:var(--surface)}
+.delta-up{color:var(--green);font-weight:700}
+.delta-down{color:var(--accent);font-weight:700}
+@media(max-width:700px){
+  .main{padding:18px 16px 50px}
+  .page-title{font-size:25px}
+  .hide-sm{display:none}
+  .chance{min-width:0;gap:6px}
+  .bar{min-width:36px}
+  .chance b{min-width:36px;font-size:14px}
+  .rec-table thead th,.rec-table tbody td{padding:9px 7px}
+  .rec-table thead th.hide-xs,.rec-table tbody td.hide-xs{display:none}
+  .lbl-long{display:none}
+  .lbl-short{display:inline}
+  .need-row{grid-template-columns:1fr repeat(3,58px)}
+}
+</style>
+</head>
+<body>
+<header data-ct-nav="masthead"></header>
+<main class="main">
+  <div class="page-head" id="pageHead">
+    <h1 class="page-title">The race to Lord's</h1>
+    <p class="page-desc">Every team's chance of reaching the World Test Championship final in June 2027. We play every Test still to come 20,000 times with our match model and count how often each team finishes in the top two.</p>
+  </div>
+  <p class="asof" id="asof">Loading…</p>
+
+  <div class="tbl-wrap">
+    <table class="rec-table" id="wtcTable">
+      <thead><tr>
+        <th class="hide-xs">#</th><th class="left">Team</th><th>P</th><th class="hide-sm">W</th><th class="hide-sm">L</th><th class="hide-sm">D</th>
+        <th class="hide-sm">Ded</th><th class="hide-sm">Pts</th><th>%</th><th class="left"><span class="lbl-long">Chance of the final</span><span class="lbl-short">Final</span></th>
+      </tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <p class="note">% is points won as a share of points available (12 a win, 4 a draw, 6 a tie, less any points docked for slow over rates). The top two at the end of the cycle play the final. These are chances, not odds.</p>
+
+  <h2 class="sec-title">Still to play</h2>
+  <div class="remaining" id="remaining"></div>
+
+  <!-- PAID: what each team needs · results that help · what if -->
+  <h2 class="sec-title" id="needs">What does each team need?</h2>
+  <div class="paid" id="paidBox">
+    <div class="locked" id="locked">
+      <h3 id="lockedTitle">How does each team get there?</h3>
+      <p>Subscribers see what every team needs from its own series, which other results help it, and can pick their own results to watch every team's chance change.</p>
+      <div class="btns">
+        <a class="btn solid" href="/subscribe.html">Subscribe</a>
+        <a class="btn" id="signinBtn" href="/login.html">Sign in</a>
+      </div>
+    </div>
+    <div id="paid" hidden>
+      <div class="picker" id="teamPicker"></div>
+      <div class="card" id="needCard"></div>
+      <div class="card" id="helpCard"></div>
+      <h2 class="sec-title">What if?</h2>
+      <p class="sec-desc">Pick a result for any series still to play. Everything you leave on "Let it play out" is simulated as before.</p>
+      <div class="whatif" id="whatif"></div>
+      <div class="tbl-wrap">
+        <table class="rec-table" id="whatifTable">
+          <thead><tr><th class="left">Team</th><th>Now</th><th>With your results</th><th>Change</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <button class="btn" type="button" id="whatifReset">Clear my results</button>
+    </div>
+  </div>
+</main>
+<footer data-ct-nav="footer"></footer>
+
+<script>
+(function () {
+  'use strict';
+  var PUB = null, GATED = null, picked = null;
+  var params = new URLSearchParams(location.search);
+  picked = params.get('team');
+
+  function el(tag, cls, text) { var n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; }
+  function pctText(p) {
+    if (p == null) return '—';
+    if (p <= 0) return '0%';
+    if (p < 0.01) return '<1%';
+    if (p > 0.99 && p < 1) return '>99%';
+    return Math.round(p * 100) + '%';
+  }
+  function fmtDate(iso) {
+    if (!iso) return '';
+    var d = new Date(iso + 'T12:00:00Z');
+    return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+  }
+  function setTeam(t) {
+    picked = t;
+    var q = new URLSearchParams(location.search);
+    if (t) q.set('team', t); else q.delete('team');
+    history.replaceState(null, '', location.pathname + (q.toString() ? '?' + q : '') + location.hash);
+    renderTable();
+    if (GATED) renderPaid();
+    var lt = document.getElementById('lockedTitle');
+    if (lt) lt.textContent = t ? 'What do ' + t + ' need?' : 'How does each team get there?';
+  }
+
+  // ── Free part ───────────────────────────────────────────────────────────
+  function renderTable() {
+    var tb = document.querySelector('#wtcTable tbody');
+    tb.textContent = '';
+    PUB.table.forEach(function (r, i) {
+      var tr = el('tr');
+      tr.dataset.team = r.team;
+      if (i < 2) tr.classList.add('top2');
+      if (r.team === picked) tr.classList.add('picked');
+      tr.appendChild(el('td', 'hide-xs', String(i + 1)));
+      tr.appendChild(el('td', 'left team', r.team));
+      tr.appendChild(el('td', '', String(r.played)));
+      ['won', 'lost', 'drawn'].forEach(function (k) { tr.appendChild(el('td', 'hide-sm', String(r[k] + (k === 'drawn' ? (r.tied || 0) : 0)))); });
+      tr.appendChild(el('td', 'hide-sm', r.deducted ? '−' + r.deducted : '0'));
+      tr.appendChild(el('td', 'hide-sm', String(r.points)));
+      tr.appendChild(el('td', 'pct', r.pct.toFixed(2)));
+      var td = el('td', 'left');
+      var c = el('div', 'chance');
+      var bar = el('span', 'bar'); var fill = el('i'); fill.style.width = Math.max(0, Math.min(100, r.chance * 100)) + '%';
+      bar.appendChild(fill); c.appendChild(bar); c.appendChild(el('b', '', r.chanceText || pctText(r.chance)));
+      td.appendChild(c); tr.appendChild(td);
+      tr.addEventListener('click', function () { setTeam(r.team === picked ? null : r.team); });
+      tb.appendChild(tr);
+    });
+  }
+  function renderRemaining() {
+    var box = document.getElementById('remaining');
+    box.textContent = '';
+    if (!PUB.remaining.length) { box.appendChild(el('p', 'note', 'Every series has been played.')); return; }
+    PUB.remaining.forEach(function (s) {
+      var c = el('div', 'fx');
+      c.appendChild(el('div', 'fx-teams', s.host + ' v ' + s.visitor));
+      var m = el('div', 'fx-meta');
+      m.appendChild(document.createTextNode(s.when + ' · in ' + s.host + ' · '));
+      if (s.score) {
+        m.appendChild(document.createTextNode(s.tests + ' Tests, ' + s.left + ' left, '));
+        m.appendChild(el('span', 'fx-score', s.score));
+      } else {
+        m.appendChild(document.createTextNode(s.tests + ' Test' + (s.tests === 1 ? '' : 's')));
+      }
+      c.appendChild(m);
+      box.appendChild(c);
+    });
+  }
+  function shareText() {
+    var t = PUB.table.slice().sort(function (a, b) { return b.chance - a.chance; });
+    if (picked) {
+      var r = PUB.table.find(function (x) { return x.team === picked; });
+      if (r) return r.team + "'s chance of reaching the WTC final: " + (r.chanceText || pctText(r.chance)) + '. What do they need? · The Grass Bank';
+    }
+    return 'The race to the WTC final: ' + t.slice(0, 3).map(function (r) { return r.team + ' ' + (r.chanceText || pctText(r.chance)); }).join(', ') +
+      '. Who takes the last place? · The Grass Bank';
+  }
+
+  // ── Paid part ───────────────────────────────────────────────────────────
+  function teamPicker() {
+    var box = document.getElementById('teamPicker');
+    box.textContent = '';
+    PUB.table.forEach(function (r) {
+      var b = el('button', r.team === picked ? 'on' : '', r.team);
+      b.type = 'button';
+      b.addEventListener('click', function () { setTeam(r.team); });
+      box.appendChild(b);
+    });
+  }
+  function outcomeWord(s, key) {
+    var an = function (t) { return (/^[AEIOU]/.test(t) ? 'an ' : 'a ') + t; };
+    return key === 'host' ? an(s.host) + ' series win' : key === 'visitor' ? an(s.visitor) + ' series win' : 'a drawn series';
+  }
+  function renderPaid() {
+    var team = picked || PUB.table[0].team;
+    if (!picked) picked = team;
+    teamPicker();
+    var nc = document.getElementById('needCard'); nc.textContent = '';
+    nc.appendChild(el('h4', '', team + ' — chance of the final, by how their own series end'));
+    var needs = (GATED.needs || {})[team] || [];
+    if (!needs.length) {
+      nc.appendChild(el('p', 'note', team + ' have no series left to play.'));
+    } else {
+      var h = el('div', 'need-row head');
+      ['Series', 'Win it', 'Level', 'Lose it'].forEach(function (x, i) { h.appendChild(el('span', i ? 'v' : '', x)); });
+      nc.appendChild(h);
+      needs.forEach(function (n) {
+        var row = el('div', 'need-row');
+        row.appendChild(el('span', '', (n.home ? 'v ' : 'in ') + n.opponent + ' · ' + n.when + ' · ' + n.left + ' left'));
+        ['win', 'level', 'lose'].forEach(function (k) { row.appendChild(el('span', 'v', pctText(n[k]))); });
+        nc.appendChild(row);
+      });
+      nc.appendChild(el('p', 'note', '"Level" means the series ends with the same number of wins each. A dash means it almost never happens in the simulations.'));
+    }
+    var hc = document.getElementById('helpCard'); hc.textContent = '';
+    hc.appendChild(el('h4', '', 'Other results that help ' + team));
+    var helps = (GATED.helps || {})[team] || [];
+    if (!helps.length) {
+      hc.appendChild(el('p', 'note', 'No other series moves ' + team + "'s chance by more than a couple of points."));
+    } else {
+      helps.forEach(function (x) {
+        var p = el('p', 'help');
+        p.appendChild(el('b', '', x.host + ' v ' + x.visitor));
+        p.appendChild(document.createTextNode(' (' + x.when + '): ' + team + ' reach the final ' + pctText(x.bestChance) +
+          ' of the time after ' + outcomeWord(x, x.best) + ', ' + pctText(x.worstChance) + ' after ' + outcomeWord(x, x.worst) + '.'));
+        hc.appendChild(p);
+      });
+    }
+    renderWhatIf();
+  }
+
+  // What if: the same simulation as the build script, in the browser, with the
+  // reader's picked series results held fixed.
+  var FIXED = {};
+  function rng(seed) {
+    var s = seed >>> 0;
+    return function () { s = (s + 0x6D2B79F5) >>> 0; var t = s; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  }
+  function simulate(fixed, iters) {
+    var P = GATED.points, series = GATED.seriesAll, probs = GATED.testProbs || {};
+    var teams = PUB.table.map(function (r) { return r.team; });
+    var basePts = {}, basePlayed = {}, baseSW = {};
+    PUB.table.forEach(function (r) { basePts[r.team] = r.points; basePlayed[r.team] = r.played; baseSW[r.team] = 0; });
+    series.forEach(function (s) {
+      if (s.left === 0 && s.hostWins !== s.visitorWins) baseSW[s.hostWins > s.visitorWins ? s.host : s.visitor]++;
+    });
+    var qual = {}; teams.forEach(function (t) { qual[t] = 0; });
+    var rnd = rng(2027);
+    for (var it = 0; it < iters; it++) {
+      var pts = Object.assign({}, basePts), played = Object.assign({}, basePlayed), sw = Object.assign({}, baseSW);
+      for (var i = 0; i < series.length; i++) {
+        var s = series[i]; if (!s.left) continue;
+        var hw = s.hostWins, vw = s.visitorWins;
+        var f = fixed[i];
+        if (f) {
+          hw += f[0]; vw += f[2];
+          pts[s.host] += P.win * f[0] + P.draw * f[1];
+          pts[s.visitor] += P.win * f[2] + P.draw * f[1];
+        } else {
+          var p = probs[String(i)];
+          for (var k = 0; k < s.left; k++) {
+            var u = rnd();
+            if (u < p[0]) { hw++; pts[s.host] += P.win; }
+            else if (u < p[0] + p[1]) { pts[s.host] += P.draw; pts[s.visitor] += P.draw; }
+            else { vw++; pts[s.visitor] += P.win; }
+          }
+        }
+        played[s.host] += s.left; played[s.visitor] += s.left;
+        if (hw !== vw) sw[hw > vw ? s.host : s.visitor]++;
+      }
+      var keyed = teams.map(function (t) {
+        return { t: t, pct: played[t] ? pts[t] / (P.win * played[t]) : 0, sw: sw[t], r: rnd() };
+      });
+      keyed.sort(function (a, b) { return (b.pct - a.pct) || (b.sw - a.sw) || (a.r - b.r); });
+      qual[keyed[0].t]++; qual[keyed[1].t]++;
+    }
+    teams.forEach(function (t) { qual[t] /= iters; });
+    return qual;
+  }
+  function renderWhatIf() {
+    var box = document.getElementById('whatif');
+    if (!box.childElementCount) {
+      GATED.seriesAll.forEach(function (s, i) {
+        if (!s.left) return;
+        var wrap = el('div');
+        var lab = el('label', '', s.host + ' v ' + s.visitor + ' · ' + s.when);
+        var sel = el('select');
+        sel.id = 'wf' + i;
+        sel.appendChild(new Option('Let it play out', ''));
+        var opts = [];
+        for (var h = 0; h <= s.left; h++) for (var v = 0; v <= s.left - h; v++) {
+          var d = s.left - h - v, H = s.hostWins + h, V = s.visitorWins + v;
+          var txt = H > V ? s.host + ' win ' + H + '–' + V : V > H ? s.visitor + ' win ' + V + '–' + H : 'Level ' + H + '–' + V;
+          var drawn = s.others + d;
+          if (drawn) txt += ', ' + drawn + ' drawn';
+          opts.push({ v: h + ',' + d + ',' + v, t: txt, sort: (V - H) * 10 + d });
+        }
+        opts.sort(function (a, b) { return a.sort - b.sort; });
+        opts.forEach(function (o) { sel.appendChild(new Option(o.t, o.v)); });
+        sel.addEventListener('change', function () {
+          if (sel.value) FIXED[i] = sel.value.split(',').map(Number); else delete FIXED[i];
+          runWhatIf();
+        });
+        lab.htmlFor = sel.id;
+        wrap.appendChild(lab); wrap.appendChild(sel);
+        box.appendChild(wrap);
+      });
+      document.getElementById('whatifReset').addEventListener('click', function () {
+        FIXED = {};
+        box.querySelectorAll('select').forEach(function (s) { s.value = ''; });
+        runWhatIf();
+      });
+    }
+    runWhatIf();
+  }
+  function runWhatIf() {
+    var now = {}; PUB.table.forEach(function (r) { now[r.team] = r.chance; });
+    var any = Object.keys(FIXED).length > 0;
+    var res = any ? simulate(FIXED, 8000) : now;
+    var tb = document.querySelector('#whatifTable tbody'); tb.textContent = '';
+    PUB.table.slice().sort(function (a, b) { return res[b.team] - res[a.team]; }).forEach(function (r) {
+      var tr = el('tr');
+      if (r.team === picked) tr.classList.add('picked');
+      tr.appendChild(el('td', 'left team', r.team));
+      tr.appendChild(el('td', '', pctText(now[r.team])));
+      tr.appendChild(el('td', 'pct', pctText(res[r.team])));
+      var dlt = Math.round((res[r.team] - now[r.team]) * 100);
+      tr.appendChild(el('td', dlt > 0 ? 'delta-up' : dlt < 0 ? 'delta-down' : '', !any ? '' : dlt > 0 ? '+' + dlt : dlt < 0 ? '−' + (-dlt) : '0'));
+      tb.appendChild(tr);
+    });
+  }
+
+  // ── Load ────────────────────────────────────────────────────────────────
+  async function loadPublic() {
+    var ff = window.CTFeatureFlags;
+    var app = await ff.firebaseReady;
+    var fs = await import('https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js');
+    var snap = await fs.getDoc(fs.doc(fs.getFirestore(app), 'liveScores', 'wtc'));
+    if (!snap.exists()) throw new Error('no table yet');
+    return snap.data();
+  }
+  (async function init() {
+    try {
+      PUB = await loadPublic();
+    } catch (e) {
+      document.getElementById('asof').textContent = 'The table is not available right now. Please try again later.';
+      console.warn('[wtc] public table not loaded:', e && e.message);
+      return;
+    }
+    if (picked && !PUB.table.some(function (r) { return r.team === picked; })) picked = null;
+    document.getElementById('asof').textContent = (PUB.resultsTo ? 'Includes Tests finished by ' + fmtDate(PUB.resultsTo) : '') +
+      ' · Updated daily · ' + Number(PUB.sims || 20000).toLocaleString('en-GB') + ' simulations';
+    renderTable();
+    renderRemaining();
+    setTeam(picked);
+    if (window.CTUrlState) {
+      CTUrlState.mountShareRow(document.getElementById('pageHead'), {
+        label: 'Share the race', text: shareText,
+        url: function () { return location.origin + location.pathname + (picked ? '?team=' + encodeURIComponent(picked) : ''); }
+      });
+    }
+    var si = document.getElementById('signinBtn');
+    si.href = '/login.html?returnUrl=' + encodeURIComponent(location.pathname + location.search);
+    if (window.CTData) {
+      try {
+        GATED = await CTData.load('wtc', { renderError: false });
+        if (!GATED || !GATED.seriesAll) throw new Error('empty');
+        document.getElementById('locked').hidden = true;
+        document.getElementById('paid').hidden = false;
+        renderPaid();
+      } catch (e) {
+        GATED = null;
+        if (e && e.status === 403) si.hidden = true;   // signed in, not subscribed: Subscribe is the only way in
+      }
+    }
+  })();
+})();
+</script>
+<script src="/ct-nav.js"></script>
+</body>
+</html>

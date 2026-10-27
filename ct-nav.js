@@ -20,6 +20,7 @@
   // resolve into the subdirectory and 404.
   var NAV_ITEMS = [
     { href: '/',                label: 'Stories' },
+    { href: '/wtc.html',        label: 'WTC Race' },
     { href: '/countries.html',  label: 'Countries' },
     { href: '/batting.html',    label: 'Batting' },
     { href: '/bowling.html',    label: 'Bowling' },
