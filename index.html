@@ -230,6 +230,18 @@ body{
 .otd-standout{ font-size:14px; line-height:1.5; color:var(--accent); }
 .otd-more{ display:inline-block; margin-top:18px; font-family:'Inter',sans-serif; font-size:12px; letter-spacing:0.04em; color:var(--accent); text-decoration:none; }
 .otd-more:hover{ color:var(--accent-hover); text-decoration:underline; }
+/* WTC race strip (2026-10-27): the top chances of reaching the final, from the
+   public liveScores/wtc document; the full table is on /wtc.html (free). */
+.wtc-strip{ padding:22px 0 20px; border-bottom:1px solid var(--border); }
+.wtc-strip[hidden]{ display:none; }
+.wtc-strip-row{ display:flex; align-items:baseline; gap:22px; flex-wrap:wrap; }
+.wtc-strip-title{ font-family:'Playfair Display',serif; font-size:20px; font-weight:700; margin:0; }
+.wtc-strip-teams{ display:flex; gap:22px; flex-wrap:wrap; flex:1; }
+.wtc-strip-team{ font-size:15px; color:var(--text2); white-space:nowrap; }
+.wtc-strip-team b{ font-family:'Playfair Display',serif; font-size:19px; color:var(--text); margin-left:6px; font-variant-numeric:lining-nums tabular-nums; }
+.wtc-strip-more{ font-family:'Inter',sans-serif; font-size:12px; letter-spacing:0.04em; color:var(--accent); text-decoration:none; white-space:nowrap; }
+.wtc-strip-more:hover{ color:var(--accent-hover); text-decoration:underline; }
+.wtc-strip-note{ font-family:'Inter',sans-serif; font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--text3); margin:8px 0 0; }
 @media(max-width:900px){
   .otd-grid{ grid-template-columns:1fr; }
   .otd-entry{ padding:16px 0; border-left:none; border-top:1px solid var(--surface3); }
@@ -799,6 +811,18 @@ body.articles-loading .analysis-section{ visibility:hidden; }
     <a class="otd-more" id="otdMore" href="/countries.html">More from the archive →</a>
   </section>
 
+  <!-- WTC RACE (2026-10-27). Filled by loadWtcStrip() from the public
+       liveScores/wtc document (written daily by super-fortnight's wtc.yml).
+       Hidden until it has something to show. -->
+  <section class="wtc-strip" id="wtcStrip" hidden aria-labelledby="wtc-strip-title">
+    <div class="wtc-strip-row">
+      <h2 class="wtc-strip-title" id="wtc-strip-title">The race to Lord's</h2>
+      <div class="wtc-strip-teams" id="wtcStripTeams"></div>
+      <a class="wtc-strip-more" href="/wtc.html">Every team's chance →</a>
+    </div>
+    <p class="wtc-strip-note">Chance of reaching the World Test Championship final · updated daily</p>
+  </section>
+
   <!-- HERO -->
   <section class="hero-section" id="latest" data-nav="Latest" data-nav-target="latest">
     <!--
@@ -1307,6 +1331,39 @@ function resetSnippetTimer() { startSnippetTimer(); }
 // Every field is rendered text from the Test corpus; `prose` is IJ's optional
 // line. Rendered with textContent only.
 // ═══════════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════════
+// WTC RACE STRIP (2026-10-27) — the four best chances of reaching the final,
+// from liveScores/wtc. Rendered with textContent only.
+// ═══════════════════════════════════════════════════════════════════════════
+(async function loadWtcStrip() {
+  try {
+    let attempts = 0;
+    while (!window._fsDb && attempts++ < 20) await new Promise(r => setTimeout(r, 100));
+    if (!window._fsDb) return;
+    const { getDoc, doc } = await import('https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js');
+    const snap = await getDoc(doc(window._fsDb, 'liveScores', 'wtc'));
+    if (!snap.exists()) return;
+    const rows = (snap.data().table || []).filter(r => r && r.team && r.chance > 0)
+      .sort((a, b) => b.chance - a.chance).slice(0, 4);
+    if (!rows.length) return;
+    const box = document.getElementById('wtcStripTeams');
+    rows.forEach(r => {
+      const a = document.createElement('a');
+      a.className = 'wtc-strip-team';
+      a.href = '/wtc.html?team=' + encodeURIComponent(r.team);
+      a.style.textDecoration = 'none';
+      a.textContent = r.team;
+      const b = document.createElement('b');
+      b.textContent = r.chanceText || (Math.round(r.chance * 100) + '%');
+      a.appendChild(b);
+      box.appendChild(a);
+    });
+    document.getElementById('wtcStrip').hidden = false;
+  } catch (err) {
+    console.warn('[wtc-strip] not shown:', err && err.message);
+  }
+})();
+
 (async function loadOnThisDay() {
   try {
     let attempts = 0;
