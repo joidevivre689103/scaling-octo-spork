@@ -802,6 +802,15 @@ header.header{display:none !important}
         <option value="bowling">Bowling</option>
       </select>
     </div>
+    <!-- Share (2026-10-27). The old Share button sits in the legacy .header, which
+         is hidden since the shared masthead/nav took over, so it was never seen. -->
+    <button type="button" class="share-btn" id="cmpShareBtn" style="margin-left:auto" onclick="shareComparison()" title="Share this comparison">
+      <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle>
+        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+      </svg>
+      <span>Share</span>
+    </button>
   </div>
 
   <div class="sel-area" id="selArea">
@@ -3514,7 +3523,7 @@ function fallbackShare(url, playerNames){
   tryClipboard().then(success => { if(!success) showShareDialog(url, playerNames); });
 }
 function showCopiedFeedback(){
-  const btn = document.querySelector('.share-btn'); const originalHTML = btn.innerHTML;
+  const btn = document.getElementById('cmpShareBtn') || document.querySelector('.share-btn'); const originalHTML = btn.innerHTML;
   btn.innerHTML = '<svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;stroke:currentColor;fill:none"><polyline points="20 6 9 17 4 12"></polyline></svg><span>Copied!</span>';
   btn.style.color = 'var(--green)'; btn.style.borderColor = 'var(--green)';
   setTimeout(()=>{ btn.innerHTML = originalHTML; btn.style.color = ''; btn.style.borderColor = ''; }, 2000);
