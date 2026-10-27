@@ -19,7 +19,7 @@
   // subdirectory pages (/yorker/<edition>/), where relative hrefs would
   // resolve into the subdirectory and 404.
   var NAV_ITEMS = [
-    { href: '/',                label: 'Stories' },
+    { href: '/',                label: 'Home' },        // was 'Stories' until 2026-10-27
     // WTC Race (2026-10-27): footer only, on purpose. The page is the site's
     // free draw, and readers should reach it by scrolling the homepage to its
     // strip at the bottom, past the articles, not straight from the top nav.
