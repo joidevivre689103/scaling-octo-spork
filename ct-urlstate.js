@@ -20,6 +20,8 @@
  *   });
  *   CTUrlState.share('Batting');                       // from a Share button
  *
+ * `keep: ['otd', 'test']` leaves keys that other code on the page owns alone.
+ *
  * What is saved, generically, inside `root`:
  *   - every <select id=…>                → id=value
  *   - every text/number <input id=…>     → id=value
@@ -69,6 +71,9 @@
 
   function params() {
     var q = new URLSearchParams(), cs = controls(opts.root);
+    // Keys other code on the page owns (e.g. countries' ?otd= / ?test=) pass through.
+    var cur = new URLSearchParams(location.search);
+    (opts.keep || []).forEach(function (k) { if (cur.has(k)) q.set(k, cur.get(k)); });
     Object.keys(cs).forEach(function (k) {
       var v = read(cs[k]);
       if (v !== (defaults[k] == null ? '' : defaults[k])) q.set(k, v);
@@ -100,15 +105,15 @@
     var q = new URLSearchParams(location.search), touched = false;
     restoring = true;
     try {
-      Object.keys(cs).forEach(function (k) { if (q.has(k)) { write(cs[k], q.get(k)); touched = true; } });
+      // Page state outside the form first (a page may reset its filters when,
+      // say, the countries change), then the form controls, then one apply.
       var ex = {};
       if (o.extra && o.extra.defaults) {
         Object.keys(o.extra.defaults).forEach(function (k) { if (q.has(k)) { ex[k] = q.get(k); touched = true; } });
       }
-      if (touched) {
-        if (o.extra && o.extra.set) o.extra.set(ex);
-        if (o.apply) o.apply();
-      }
+      if (touched && o.extra && o.extra.set) o.extra.set(ex);
+      Object.keys(cs).forEach(function (k) { if (q.has(k)) { write(cs[k], q.get(k)); touched = true; } });
+      if (touched && o.apply) o.apply();
     } catch (e) {
       console.warn('[url-state] could not restore the view from the address:', e && e.message);
     }
