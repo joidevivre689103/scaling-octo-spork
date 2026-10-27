@@ -235,10 +235,14 @@ body{
 .wtc-strip{ padding:30px 0 28px; }
 .feed-row{ display:grid; grid-template-columns:1fr 1fr; gap:0; padding:26px 0 22px; border-bottom:1px solid var(--border); }
 .feed-row[hidden], .feed-col[hidden]{ display:none; }
-.feed-col{ padding:0 28px; border-left:1px solid var(--surface3); min-width:0; }
-.feed-col:first-child{ padding-left:0; border-left:none; }
-.feed-row.single{ grid-template-columns:1fr; }
-.feed-row.single .feed-col{ padding:0; border-left:none; }
+.feed-row{ grid-template-columns:repeat(var(--feed-cols,3),minmax(0,1fr)); }
+.feed-col{ padding:0 24px; border-left:1px solid var(--surface3); min-width:0; }
+.feed-col.first{ padding-left:0; border-left:none; }
+.feed-col.last{ padding-right:0; }
+.feed-col.quiz-widget{ background:none; border-top:none; border-right:none; border-bottom:none; border-radius:0; margin:0; padding:0 24px; }
+.feed-col.quiz-widget.first{ border-left:none; padding-left:0; }
+.feed-col.quiz-widget.last{ padding-right:0; }
+.feed-col .quiz-question-text{ font-size:16px; }
 .feed-title{ font-family:'Playfair Display',serif; font-size:22px; font-weight:700; margin:0 0 10px; }
 .feed-score{ font-size:16px; line-height:1.5; color:var(--text); margin:6px 0; }
 .feed-list{ list-style:none; margin:0; padding:0; }
@@ -248,8 +252,9 @@ body{
 .feed-list a:hover{ color:var(--accent); }
 @media (max-width:760px){
   .feed-row{ grid-template-columns:1fr; }
-  .feed-col{ padding:16px 0 0; border-left:none; border-top:1px solid var(--surface3); margin-top:16px; }
-  .feed-col:first-child{ padding-top:0; border-top:none; margin-top:0; }
+  .feed-row{ grid-template-columns:1fr !important; }
+  .feed-col, .feed-col.quiz-widget{ padding:16px 0 0 !important; border-left:none !important; border-top:1px solid var(--surface3) !important; margin-top:16px; }
+  .feed-col.first, .feed-col.quiz-widget.first{ padding-top:0 !important; border-top:none !important; margin-top:0; }
 }
 .wtc-pointer{ padding:24px 0 22px; border-bottom:1px solid var(--border); }
 .wtc-pointer[hidden]{ display:none; }
@@ -271,6 +276,8 @@ body{
   .otd-entry{ padding:16px 0; border-left:none; border-top:1px solid var(--surface3); }
   .otd-entry:first-child{ padding-top:0; border-top:none; }
 }
+
+
 
 /* ─── TICKER ─── */
 .ticker{
@@ -303,7 +310,6 @@ body{
   0%{transform:translateX(100%)}
   100%{transform:translateX(-100%)}
 }
-
 /* ─── HERO ─── */
 .hero-section{
   display:grid;
@@ -810,14 +816,13 @@ body.articles-loading .analysis-section{ visibility:hidden; }
   </div>
 </nav>
 
-<!-- TICKER -->
-<!-- 2026-10-27: the hard-coded lines that used to sit here ("England announce
-     squad…", "Australia clinch Border-Gavaskar Trophy 3-1"…) were placeholder
-     news shown to every reader as BREAKING. The bar now carries real lines from
-     the data (liveScores/home, daily) plus any fresh lines from the CMS, and
-     stays hidden when there is nothing to show. -->
+<!-- TICKER — MANUAL ONLY (2026-10-27, IJ). Shows only the lines saved in the
+     CMS Ticker tab (config/ticker), and only for 24 hours after they were
+     saved; the CMS on/off switch hides it at once. The automatic lines from
+     the stats data were dropped: a Test reaches the data days after it ends,
+     so they read as stale news. Hidden whenever there is nothing current. -->
 <div class="ticker" id="tickerBar" style="display:none">
-  <span class="ticker-label">Latest</span>
+  <span class="ticker-label">Breaking</span>
   <span class="ticker-content" id="tickerContent"></span>
 </div>
 
@@ -842,12 +847,16 @@ body.articles-loading .analysis-section{ visibility:hidden; }
        the page, so a reader passes the articles on the way to it (IJ: the
        Costco rotisserie chicken lives at the back of the store). This line
        only tells them it is there; deliberately not a link. -->
-  <!-- LATEST TEST + MILESTONE WATCH (2026-10-27). From liveScores/home,
-       written daily by super-fortnight's home-feed.yml; each half stays hidden
-       until it has something to show. -->
+  <!-- LATEST COMPLETED TEST · MILESTONE WATCH · GOOGLIES (2026-10-27). The
+       first two from liveScores/home (home-feed.yml, daily), the Googlies from
+       config/quiz or the generated question. Three columns on the same grid as
+       On this day; each column hides if empty. Placement (IJ): On this day
+       always leads; this row sits directly under it when there is no article
+       from the last 7 days, and moves BELOW the articles when there is one —
+       see placeFeedRow(). Hidden until that is decided, so it never jumps. -->
   <section class="feed-row" id="feedRow" hidden>
     <div class="feed-col" id="latestTest" hidden>
-      <h2 class="feed-title">Latest Test</h2>
+      <h2 class="feed-title">Latest completed Test</h2>
       <p class="otd-label" id="latestLabel"></p>
       <p class="feed-score" id="latestScore"></p>
       <p class="otd-standout" id="latestStandout"></p>
@@ -856,6 +865,13 @@ body.articles-loading .analysis-section{ visibility:hidden; }
     <div class="feed-col" id="milestoneWatch" hidden>
       <h2 class="feed-title">Milestone watch</h2>
       <ul class="feed-list" id="milestoneList"></ul>
+    </div>
+    <div class="feed-col quiz-widget" id="quizWidget" style="display:none">
+      <h2 class="feed-title">Googlies</h2>
+      <div class="quiz-question-text" id="quizQuestionText"></div>
+      <div class="quiz-options" id="quizOptionsContainer"></div>
+      <div class="quiz-result" id="quizResult"></div>
+      <div class="quiz-contributed" id="quizContributedBy"></div>
     </div>
   </section>
 
@@ -879,16 +895,6 @@ body.articles-loading .analysis-section{ visibility:hidden; }
     <aside class="hero-sidebar">
       <div class="sidebar-section"></div>
 
-      <div class="quiz-widget" id="quizWidget" style="display:none">
-        <div class="quiz-widget-label">
-          <svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2.5"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-          Googlies
-        </div>
-        <div class="quiz-question-text" id="quizQuestionText"></div>
-        <div class="quiz-options" id="quizOptionsContainer"></div>
-        <div class="quiz-result" id="quizResult"></div>
-        <div class="quiz-contributed" id="quizContributedBy"></div>
-      </div>
     </aside>
   </section>
 
@@ -1156,36 +1162,6 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
   });
 });
 
-// ═══════════════════════════════════════════════════════════════════════════
-// TICKER — from Firestore
-// ═══════════════════════════════════════════════════════════════════════════
-(async function loadTicker() {
-  try {
-    let attempts = 0;
-    while (!window._fsDb && attempts++ < 20) await new Promise(r => setTimeout(r, 100));
-    if (!window._fsDb) return;
-    const { getDoc, doc } = await import('https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js');
-    // CMS lines (config/ticker) come first, but only while fresh: lines saved
-    // more than 7 days ago drop off by themselves, so the bar never shows stale
-    // news. The CMS switch (enabled: false) still hides the whole bar. Then the
-    // data lines from liveScores/home (results, milestones, WTC race).
-    const [cfg, feed] = await Promise.all([
-      getDoc(doc(window._fsDb, 'config', 'ticker')).catch(() => null),
-      getDoc(doc(window._fsDb, 'liveScores', 'home')).catch(() => null)
-    ]);
-    const c = cfg && cfg.exists() ? cfg.data() : {};
-    if (c.enabled === false) return;
-    const fresh = c.updatedAt && (Date.now() - Date.parse(c.updatedAt)) < 7 * 864e5;
-    const items = (fresh ? (c.items || []) : []).concat(feed && feed.exists() ? (feed.data().ticker || []) : [])
-      .filter(t => typeof t === 'string' && t.trim());
-    if (!items.length) return;
-    const el = document.getElementById('tickerContent');
-    el.textContent = items.join('  •  ');
-    // Keep the reading speed steady however many lines there are.
-    el.style.animationDuration = Math.max(30, Math.round(el.textContent.length / 7)) + 's';
-    document.getElementById('tickerBar').style.display = '';
-  } catch(e) { /* bar stays hidden */ }
-})();
 
 // ═══════════════════════════════════════════════════════════════════════════
 // ARTICLES — from Firestore
@@ -1196,6 +1172,7 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
 // .articles-loading body class (hides hero/grid/analysis containers) and
 // the #articlesStatus indicator (shown until success).
 function showArticlesEmptyState() {
+  if (window._articlesFresh) _resolveArticlesFresh(false);
   document.body.classList.remove('articles-loading');
   const status = document.getElementById('articlesStatus');
   if (status) {
@@ -1205,6 +1182,7 @@ function showArticlesEmptyState() {
   }
 }
 function showArticlesErrorState(retryFn) {
+  if (window._articlesFresh) _resolveArticlesFresh(false);
   document.body.classList.remove('articles-loading');
   const status = document.getElementById('articlesStatus');
   if (status) {
@@ -1263,6 +1241,7 @@ function hideArticlesStatus() {
       }
     }
 
+    _resolveArticlesFresh(articles.some(a => Date.now() - articleTime(a) < FRESH_ARTICLE_DAYS * 864e5));
     const heroArticle      = articles.find(a => a.placement === 'hero');
     const newsCat          = articles.filter(a => a.category === 'news');
     const featuresCat      = articles.filter(a => a.category === 'features');
@@ -1401,6 +1380,66 @@ function resetSnippetTimer() { startSnippetTimer(); }
 // WTC RACE STRIP (2026-10-27) — the four best chances of reaching the final,
 // from liveScores/wtc. Rendered with textContent only.
 // ═══════════════════════════════════════════════════════════════════════════
+// ── Feed row placement (2026-10-27, IJ) ───────────────────────────────────
+// On this day always leads. The feed row (Latest completed Test · Milestone
+// watch · Googlies) sits under it when the homepage has no article from the
+// last 7 days, and below the articles when it has one: a fresh story comes
+// first. loadArticles() settles window._articlesFresh; the row waits for it
+// (at most 4 s) before it is shown, so it never jumps after appearing.
+const FRESH_ARTICLE_DAYS = 7;
+let _resolveArticlesFresh;
+window._articlesFresh = new Promise(r => { _resolveArticlesFresh = r; });
+function articleTime(a) {
+  const d = a && a.date;
+  if (!d) return 0;
+  if (typeof d.toDate === 'function') return d.toDate().getTime();
+  if (typeof d.seconds === 'number') return d.seconds * 1000;
+  const t = Date.parse(d);
+  return isNaN(t) ? 0 : t;
+}
+let _feedPlaced = null;
+async function refreshFeedRow() {
+  const row = document.getElementById('feedRow');
+  if (!row) return;
+  const cols = [...row.querySelectorAll(':scope > .feed-col')].filter(c => !c.hidden && c.style.display !== 'none');
+  row.querySelectorAll(':scope > .feed-col').forEach(c => c.classList.remove('first', 'last'));
+  if (!cols.length) { row.hidden = true; return; }
+  cols[0].classList.add('first');
+  cols[cols.length - 1].classList.add('last');
+  row.style.setProperty('--feed-cols', cols.length);
+  if (!_feedPlaced) {
+    _feedPlaced = Promise.race([window._articlesFresh, new Promise(r => setTimeout(() => r(false), 4000))]).then(fresh => {
+      if (fresh) {
+        const after = document.getElementById('analysis');
+        if (after && after.parentNode) after.parentNode.insertBefore(row, after.nextSibling);
+      }
+    });
+  }
+  await _feedPlaced;
+  row.hidden = false;
+}
+
+(async function loadTicker() {
+  try {
+    let attempts = 0;
+    while (!window._fsDb && attempts++ < 20) await new Promise(r => setTimeout(r, 100));
+    if (!window._fsDb) return;
+    const { getDoc, doc } = await import('https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js');
+    const snap = await getDoc(doc(window._fsDb, 'config', 'ticker'));
+    if (!snap.exists()) return;
+    const c = snap.data();
+    if (c.enabled === false) return;
+    const saved = Date.parse(c.updatedAt || '');
+    if (!saved || Date.now() - saved > 24 * 3600 * 1000) return;   // older than 24 hours: off by itself
+    const items = (c.items || []).filter(t => typeof t === 'string' && t.trim());
+    if (!items.length) return;
+    const el = document.getElementById('tickerContent');
+    el.textContent = items.join('  •  ');
+    el.style.animationDuration = Math.max(30, Math.round(el.textContent.length / 7)) + 's';
+    document.getElementById('tickerBar').style.display = '';
+  } catch (e) { /* bar stays hidden */ }
+})();
+
 (async function loadHomeFeed() {
   try {
     let attempts = 0;
@@ -1422,7 +1461,7 @@ function resetSnippetTimer() { startSnippetTimer(); }
       document.getElementById('latestTest').hidden = false;
       shown++;
     }
-    const ms = (d.milestones || []).filter(m => m && m.text).slice(0, 5);
+    const ms = (d.milestones || []).filter(m => m && m.text).slice(0, 4);
     if (ms.length) {
       const ul = document.getElementById('milestoneList');
       ms.forEach(m => {
@@ -1436,11 +1475,7 @@ function resetSnippetTimer() { startSnippetTimer(); }
       document.getElementById('milestoneWatch').hidden = false;
       shown++;
     }
-    if (shown) {
-      const row = document.getElementById('feedRow');
-      if (shown === 1) row.classList.add('single');
-      row.hidden = false;
-    }
+    refreshFeedRow();
   } catch (err) {
     console.warn('[home-feed] not shown:', err && err.message);
   }
@@ -1855,6 +1890,7 @@ function toggleArticleAudio(btn) {
     });
     if (quiz.contributedBy) document.getElementById('quizContributedBy').textContent = `Contributed by: ${quiz.contributedBy}`;
     document.getElementById('quizWidget').style.display = 'block';
+    refreshFeedRow();
   } catch(e) { /* quiz widget stays hidden */ }
 })();
 // ═══════════════════════════════════════════════════════════════════════════
