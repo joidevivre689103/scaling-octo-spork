@@ -127,6 +127,7 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
 .otd-cards .rec-table th:not(.left),.otd-cards .rec-table td:not(.left){width:56px}
 .otd-cards .rec-table tbody tr.otd-sum td{font-weight:700;background:var(--surface2)}
 .otd-cards .rec-table tbody tr.otd-extras td{color:var(--text3)}
+.otd-cards .rec-table td.otd-total{white-space:nowrap;text-align:right}
 .otd-note{font-family:'Inter',sans-serif;font-size:11px;color:var(--text3);margin-top:10px}
 @media(max-width:800px){ .otd-cards{grid-template-columns:1fr} }
 
@@ -973,8 +974,8 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
   <div class="tab-panel" id="tab-onthisday" role="tabpanel">
     <p class="otd-intro">The full scorecards of the Tests on the homepage's <em>On this day</em>.</p>
     <div id="otdScorecards"><p class="otd-note">Loading scorecards…</p></div>
-    <p class="otd-note">“Out” is the bowler credited with the wicket; a dash where none is, as for a run out.
-      Balls faced are shown where they were recorded.</p>
+    <p class="otd-note">† wicketkeeper. “b/lbw” where the record shows the bowler but not whether it was bowled or
+      lbw. Balls faced are shown where they were recorded.</p>
   </div><!-- /tab-panel onthisday -->
 </div>
 
@@ -3130,6 +3131,32 @@ let __otdRendered = false;
 function otdEsc(v) {
   return String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
+// How out, from D.S s[15] (fielder) and s[16] (dismissal code), added to the
+// pipeline 2026-10-27: Excel's Scd Status first, the match file where Excel is
+// silent. Codes: 1 b · 2 lbw · 3 c · 4 c (keeper) · 5 c&b · 6 st · 7 run out ·
+// 8 hit wicket · 9 other · 10 retired · 11 bowled-or-lbw (match file only).
+// Rows from a dataset built before that carry no s[16]: fall back to the bowler.
+function otdHowOut(s, name) {
+  if (s[4] === 1 || s[4] === true) return 'not out';
+  const bw = s[10] > 0 ? (name.get(s[10]) || '') : '';
+  const fd = s[15] > 0 ? (name.get(s[15]) || 'sub') : '';
+  const b = bw ? ' b ' + bw : '';
+  switch (s.length > 16 ? s[16] : -1) {
+    case 1:  return bw ? 'b ' + bw : 'bowled';
+    case 2:  return 'lbw' + b;
+    case 3:  return (fd ? 'c ' + fd : 'caught') + b;
+    case 4:  return (fd ? 'c †' + fd : 'caught') + b;
+    case 5:  return bw ? 'c & b ' + bw : 'caught and bowled';
+    case 6:  return (fd ? 'st †' + fd : 'stumped') + b;
+    case 7:  return fd ? 'run out (' + fd + ')' : 'run out';
+    case 8:  return 'hit wicket' + b;
+    case 9:  return 'out';
+    case 10: return 'retired';
+    case 11: return bw ? 'b/lbw ' + bw : 'out';
+    default: return bw || (s[4] === 0 || s[4] === false ? 'out' : '');
+  }
+}
+const OTD_PAIR = { 1: 2, 2: 1, 3: 4, 4: 3 };
 function otdOrdinal(n) { return ['', '1st', '2nd', '3rd', '4th'][n] || (n + 'th'); }
 
 // Same rules as scripts/build_on_this_day.py, so the numbers agree with the homepage.
@@ -3174,18 +3201,21 @@ function otdScorecardHTML(D, k) {
     const extras = bat.length ? total - runsSum : null;
 
     let bt = `<div class="tbl-wrap"><table class="rec-table"><thead><tr>
-      <th class="left">Batter</th><th class="left">Out</th><th>R</th>${showBalls ? '<th>B</th>' : ''}</tr></thead><tbody>`;
+      <th class="left">Batter</th><th class="left">Dismissal</th><th>R</th>${showBalls ? '<th>B</th>' : ''}</tr></thead><tbody>`;
     bat.forEach(s => {
-      const how = (s[4] === 1 || s[4] === true) ? 'not out' : (s[10] > 0 && name.get(s[10])) ? name.get(s[10]) : '—';
+      const how = otdHowOut(s, name);
       bt += `<tr><td class="left">${otdEsc(name.get(s[1]) || '#' + s[1])}</td><td class="left">${otdEsc(how)}</td>
         <td>${otdEsc(s[3] == null ? '' : s[3])}${(s[4] === 1 || s[4] === true) ? '*' : ''}</td>${showBalls ? `<td>${s[5] > 0 ? s[5] : ''}</td>` : ''}</tr>`;
     });
     if (extras !== null && extras > 0) bt += `<tr class="otd-extras"><td class="left" colspan="2">Extras</td><td>${extras}</td>${showBalls ? '<td></td>' : ''}</tr>`;
-    bt += `<tr class="otd-sum"><td class="left" colspan="2">Total</td><td>${otdEsc(totalTxt)}</td>${showBalls ? '<td></td>' : ''}</tr>`;
+    bt += `<tr class="otd-sum"><td class="left" colspan="2">Total</td><td class="otd-total" colspan="${showBalls ? 2 : 1}">${otdEsc(totalTxt)}</td></tr>`;
     if (!bat.length) bt = `<div class="tbl-wrap"><table class="rec-table"><tbody><tr><td class="left">No batting card recorded for this innings.</td></tr>`;
     bt += '</tbody></table></div>';
 
-    const bowl = rows.filter(s => s[2] === inn && (s[6] || 0) > 0);
+    // Bowling for this innings sits on the FIELDING side's rows, under their own
+    // innings number: a slot carries a player's batting and their bowling in the
+    // PAIRED innings, PAIR = {1:2, 2:1, 3:4, 4:3} (technicaldocs, card #36).
+    const bowl = rows.filter(s => s[2] === OTD_PAIR[inn] && (s[6] || 0) > 0);
     let bw = `<div class="tbl-wrap"><table class="rec-table"><thead><tr>
       <th class="left">Bowler</th><th>O</th><th>M</th><th>R</th><th>W</th></tr></thead><tbody>`;
     bowl.forEach(s => {
