@@ -187,7 +187,9 @@
       var v = t.textContent.replace(/[×✕✖]\s*$/, '').trim();
       if (v) parts.push(v);
     });
-    return 'Test ' + (title || '').toLowerCase() + (parts.length ? ' — ' + parts.join(', ') : '') + ' · The Grass Bank';
+    // Ends on a question so the recipient has a reason to tap (2026-10-27).
+    return 'Test ' + (title || '').toLowerCase() + (parts.length ? ' — ' + parts.join(', ') : '') +
+      ". Who's top of the list?" + ' · The Grass Bank';
   }
 
   function mountShareRow(host, o) {

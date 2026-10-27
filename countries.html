@@ -2387,7 +2387,20 @@ function buildH2HFromData(D) {
       inline: true,
       text: () => {
         const side = ms => ms.isAll() ? 'All countries' : (ms.get().map(c => TEAM_NAMES[c] || c).join(', ') || 'All countries');
-        return `${side(ms1)} v ${side(ms2)} — Test head-to-head · The Grass Bank`;
+        // Headline record + a question (2026-10-27). The record is the whole
+        // head-to-head, so it is only quoted when no venue/era filter narrows
+        // the table to something else.
+        const a = ms1.isAll() ? [] : ms1.get(), b = ms2.isAll() ? [] : ms2.get();
+        const brand = ' · The Grass Bank';
+        const head = `${side(ms1)} v ${side(ms2)}`;
+        const q = new URLSearchParams(location.search);
+        const narrowed = ['ven', 'era', 'city', 'gnd'].some(k => q.get(k));
+        const rec = (a.length === 1 && b.length === 1 && H2H && H2H[a[0]]) ? H2H[a[0]][b[0]] : null;
+        if (rec && rec.total && !narrowed) {
+          const n = (x, w) => `${x} ${w}${x === 1 ? '' : 's'}`;
+          return `${head}: ${TEAM_NAMES[a[0]] || a[0]} won ${rec.wins}, ${TEAM_NAMES[b[0]] || b[0]} ${rec.losses}, ${n(rec.draws, 'draw')} in ${n(rec.total, 'Test')}. Who wins away from home?` + brand;
+        }
+        return `${head}: every Test they've played, by venue and era. Who comes out on top?` + brand;
       },
     });
   } catch (e) {

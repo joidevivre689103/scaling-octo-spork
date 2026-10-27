@@ -3483,20 +3483,56 @@ function shareCurrentView(){
 // WhatsApp · X · Copy, as on the Yorker (2026-10-27). The message names the
 // players in whichever mode is on; the link is the page's own address.
 function compareShareText(){
+  // Headline result + one question the page answers (2026-10-27): enough to
+  // intrigue, not the whole answer.
   const nm = p => p.fullName || p.name;
+  const surname = p => { const n = (p.name || nm(p)).trim().split(/\s+/); return n[n.length - 1]; };
+  const list = a => a.length < 2 ? (a[0] || '') : a.slice(0, -1).join(', ') + ' and ' + a[a.length - 1];
+  const brand = ' · The Grass Bank';
   const t = document.getElementById('fRecordType').value;
-  let label = '';
-  if (t === 'against') {
-    const f = againstSel[0], vs = againstSel.slice(1, againstSlotCount + 1).filter(Boolean);
-    if (f && vs.length) label = nm(f) + ' against ' + vs.map(nm).join(', ');
-  } else if (partnershipMode) {
-    label = getCompletePartnerships().map(x => nm(x.playerA) + ' & ' + nm(x.playerB)).join(' vs ');
-  } else if (cohortMode) {
-    label = cohortGroups.map(g => g.filter(Boolean).map(nm).join(', ')).filter(Boolean).join(' vs ');
-  } else {
-    label = activeSel().map(nm).join(' vs ');
+  try {
+    if (t === 'against') {
+      const f = againstSel[0], vs = againstSel.slice(1, againstSlotCount + 1).filter(Boolean);
+      if (!f || !vs.length) return 'Test cricket head to head' + brand;
+      const bat = againstMode === 'batter';
+      if (vs.length === 1) {
+        const st = calcAgainstStats(f, vs[0]);
+        return bat
+          ? `${nm(f)} against ${nm(vs[0])}: out to him ${st.dismissed} time${st.dismissed === 1 ? '' : 's'} in ${st.tests} Test${st.tests === 1 ? '' : 's'}. How many runs did he score off his bowling?` + brand
+          : `${nm(f)} against ${nm(vs[0])}: got him out ${st.dismissed} time${st.dismissed === 1 ? '' : 's'} in ${st.tests} Test${st.tests === 1 ? '' : 's'}. How many runs did he concede to him?` + brand;
+      }
+      return `${nm(f)} against ${list(vs.map(nm))}. ` + (bat ? 'Which bowler had his measure?' : 'Which batter handled him best?') + brand;
+    }
+    if (partnershipMode) {
+      const ps = getCompletePartnerships().map(x => surname(x.playerA) + ' & ' + surname(x.playerB));
+      return `${ps.join(' vs ')}. Which pair comes out on top?` + brand;
+    }
+    if (cohortMode) {
+      const gs = cohortGroups.map(g => g.filter(Boolean).map(surname).join(', ')).filter(Boolean);
+      return `${gs.join(' vs ')}. Which side comes out on top?` + brand;
+    }
+    const players = activeSel();
+    if (players.length < 2) return (players[0] ? nm(players[0]) + ' — ' : '') + 'Test cricket compared' + brand;
+    // Who leads on the big numbers (the metrics the old share text used).
+    const f = getF();
+    const filtered = f.opp.length || f.city.length || f.gnd.length || f.ha.length || f.inn.length || f.res.length || f.toss || f.teamCapts.length || f.oppCapts.length || f.together;
+    const stats = players.map(p => agg(p, getRows(p), filtered));
+    const wins = stats.map(() => []);
+    [['batAvg', true, 'batting average'], ['runs', true, 'runs'], ['hundreds', true, 'centuries'],
+     ['wkts', true, 'wickets'], ['bowlAvg', false, 'bowling average']].forEach(([k, hi, label]) => {
+      const v = stats.map(s => typeof s[k] === 'number' ? s[k] : 0);
+      if (hi) { const mx = Math.max(...v); if (mx > 0 && v.filter(x => x === mx).length === 1) wins[v.indexOf(mx)].push(label); }
+      else { const nz = v.map((x, i) => ({ x, i })).filter(o => o.x > 0); if (nz.length > 1) { const mn = Math.min(...nz.map(o => o.x)); const w = nz.filter(o => o.x === mn); if (w.length === 1) wins[w[0].i].push(label); } }
+    });
+    const lead = wins.map((w, i) => ({ i, w })).sort((a, b) => b.w.length - a.w.length)[0];
+    const headline = lead && lead.w.length
+      ? `${surname(players[lead.i])} ahead on ${list(lead.w.slice(0, 3))}`
+      : 'level on the big numbers';
+    const question = f.ha.length ? 'Who would you pick?' : 'But who was better away from home?';
+    return `${players.map(nm).join(' vs ')}: ${headline}. ${question}` + brand;
+  } catch (e) {
+    return 'Test cricket compared' + brand;
   }
-  return (label ? label + ' — ' : '') + 'Test cricket compared · The Grass Bank';
 }
 function compareShareRow(){
   if (!window.CTUrlState) return;
