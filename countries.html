@@ -3266,20 +3266,34 @@ function loadFow() {
 }
 
 function otdScorecardHTML(D, k, h2h) {
-  // The gated h2h file carries fall of wickets and (added 2026-10-27) the toss,
-  // both from Cricsheet, so both exist only for Tests from about 2001.
+  // The gated h2h file carries fall of wickets and the toss, both from
+  // Cricsheet, so both exist only for Tests from about 2001.
   const fow = (h2h && h2h.fow) || {};
-  const toss = h2h && h2h.toss && h2h.toss[String(k)];
+  let toss = h2h && h2h.toss && h2h.toss[String(k)];
   const m = D.M[String(k)];
   if (!m) return `<div class="otd-match"><p class="otd-note">Test #${k} is not in the dataset.</p></div>`;
   const T = D.T, name = new Map(D.P.map(p => [p[0], p[1]]));
   const country = new Map(D.P.map(p => [p[0], p[3]]));
   const pick = (arr, i) => (Array.isArray(arr) && Number.isInteger(i) && i >= 0 && i < arr.length) ? arr[i] : '';
   const t1 = T[m[2]], t2 = T[m[3]];
-  const first = (T[m[5]] === t1 || T[m[5]] === t2) ? T[m[5]] : t1;
-  const other = first === t1 ? t2 : t1;
+  // m[5] is the TOSS WINNER, not the side batting first: checked 2026-10-27
+  // against Cricsheet's toss on 896 Tests, it matched the toss winner in 886
+  // and the side batting first in 612. It is only a last-resort guess at who
+  // batted first; the batters' own country (D.P p[3]) decides that.
+  const tossWinner = (T[m[5]] === t1 || T[m[5]] === t2) ? T[m[5]] : null;
   const rows = D.S.filter(s => s[0] === k);
   const batted = s => s[4] !== null && s[4] !== undefined;
+  const byCountry = inn => {
+    const bat = rows.filter(s => s[2] === inn && batted(s));
+    const n1 = bat.filter(s => country.get(s[1]) === t1).length;
+    const n2 = bat.filter(s => country.get(s[1]) === t2).length;
+    return n1 * 2 > bat.length ? t1 : n2 * 2 > bat.length ? t2 : null;
+  };
+  const first = byCountry(1) || tossWinner || t1;
+  const other = first === t1 ? t2 : t1;
+  // The toss for Tests Cricsheet doesn't cover (and the few it covers without
+  // one): Ananth's winner, and "bat" if that side batted first, else "field".
+  if (!toss && tossWinner && byCountry(1)) toss = [tossWinner, tossWinner === byCountry(1) ? 'bat' : 'field'];
   const isOut = s => batted(s) && (s[4] === 0 || s[4] === false);
   const inn1 = new Set(rows.filter(s => s[2] === 1 && batted(s)).map(s => s[1]));
   const totals = [17, 18, 19, 20].map(i => m[i] || 0);
@@ -3297,18 +3311,12 @@ function otdScorecardHTML(D, k, h2h) {
   played.forEach(inn => {
     const bat = rows.filter(s => s[2] === inn && batted(s));
     const ids = new Set(bat.map(s => s[1]));
-    // Which side batted: the batters' own country (D.P p[3]) decides it.
-    // m[5] (team batting first) is wrong for some Tests — e.g. NZ v India at Auckland,
-    // 1968, labelled India's first innings as New Zealand's — so it is only a
-    // fallback, for an innings with no batting card or no clear majority.
-    const n1 = bat.filter(s => country.get(s[1]) === t1).length;
-    const n2 = bat.filter(s => country.get(s[1]) === t2).length;
-    let side;
-    if (n1 * 2 > bat.length) side = t1;
-    else if (n2 * 2 > bat.length) side = t2;
-    else if (inn === 1) side = first;
-    else if (bat.length && inn1.size) side = ([...ids].filter(x => inn1.has(x)).length * 2 > ids.size) ? first : other;
-    else side = inn % 2 ? first : other;
+    // Which side batted: the batters' own country (D.P p[3]) decides it; the
+    // older rules are only for an innings with no card or no clear majority.
+    const side = byCountry(inn)
+      || (inn === 1 ? first
+        : bat.length && inn1.size ? (([...ids].filter(x => inn1.has(x)).length * 2 > ids.size) ? first : other)
+        : (inn % 2 ? first : other));
     let wk = bat.filter(isOut).length;
     const notOuts = bat.length - wk;
     if (wk >= 10 || (notOuts <= 1 && bat.length < 11 && wk >= 9)) wk = 10;
