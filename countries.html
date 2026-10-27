@@ -128,8 +128,16 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
 .otd-cards .rec-table tbody tr.otd-sum td{font-weight:700;background:var(--surface2)}
 .otd-cards .rec-table tbody tr.otd-extras td{color:var(--text3)}
 .otd-cards .rec-table td.otd-total{white-space:nowrap;text-align:right}
-.otd-fow{font-size:12.5px;line-height:1.6;color:var(--text2);margin:10px 2px 0}
-.otd-fow-lbl{font-family:'Inter',sans-serif;font-size:10.5px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:var(--text3);margin-right:6px}
+.otd-side{display:flex;flex-direction:column;gap:0;min-width:0}
+.otd-fow-grid{display:grid;grid-auto-flow:column;grid-template-rows:repeat(var(--fow-rows),auto);grid-template-columns:1fr 1fr;
+  background:var(--surface);border:1px solid var(--border);border-radius:11px;overflow:hidden}
+.otd-fow-item{display:flex;align-items:baseline;gap:8px;padding:8px 12px;font-size:12.5px;border-bottom:1px solid var(--border);min-width:0}
+.otd-fow-item b{font-variant-numeric:tabular-nums;white-space:nowrap;min-width:46px}
+.otd-fow-name{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.otd-fow-ov{color:var(--text3);white-space:nowrap;font-variant-numeric:tabular-nums}
+.otd-fow-item:nth-child(n){border-right:1px solid var(--border)}
+@media(max-width:800px){ .otd-fow-grid{grid-auto-flow:row;grid-template-columns:1fr;grid-template-rows:none} .otd-fow-item{border-right:none} }
+.otd-fow-lbl{font-family:'Inter',sans-serif;font-size:10.5px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:var(--text3);margin:16px 2px 8px}
 .otd-note{font-family:'Inter',sans-serif;font-size:11px;color:var(--text3);margin-top:10px}
 @media(max-width:800px){ .otd-cards{grid-template-columns:1fr} }
 
@@ -3267,14 +3275,22 @@ function otdScorecardHTML(D, k, fow) {
     if (!bowl.length) bw += '<tr><td class="left" colspan="5">No bowling figures recorded.</td></tr>';
     bw += '</tbody></table></div>';
 
-    html += `<div class="otd-inn-title"><span>${otdEsc(side)} · ${otdOrdinal(inn)} innings</span>
-      <span class="otd-inn-total">${otdEsc(totalTxt)}</span></div><div class="otd-cards">${bt}${bw}</div>`;
+    // Fall of wickets sits under the bowling card, in the space beside the
+    // batting card (stacked below it on phones).
     const fw = fow && fow[String(k)] && fow[String(k)][String(inn)];
+    let fwt = '';
     if (fw && fw.length) {
-      html += `<p class="otd-fow"><span class="otd-fow-lbl">Fall of wickets</span> ` + fw.map(w =>
-        `${otdEsc(w[0])}-${otdEsc(w[1])}` + (name.get(w[2]) ? ` (${otdEsc(name.get(w[2]))}, ${otdEsc(w[3])} ov)` : ` (${otdEsc(w[3])} ov)`)
-      ).join(', ') + `</p>`;
+      // Two columns (1–5 beside 6–10) so the list fits beside the batting card;
+      // one column on phones.
+      const half = Math.ceil(fw.length / 2);
+      fwt = `<div class="otd-fow-grid" style="--fow-rows:${half}">` + fw.map(w =>
+        `<div class="otd-fow-item"><b>${otdEsc(w[0])}-${otdEsc(w[1])}</b>` +
+        `<span class="otd-fow-name">${otdEsc(name.get(w[2]) || '')}</span>` +
+        `<span class="otd-fow-ov">${otdEsc(w[3])} ov</span></div>`).join('') + `</div>`;
     }
+    html += `<div class="otd-inn-title"><span>${otdEsc(side)} · ${otdOrdinal(inn)} innings</span>
+      <span class="otd-inn-total">${otdEsc(totalTxt)}</span></div>
+      <div class="otd-cards">${bt}<div class="otd-side">${bw}${fwt ? '<div class="otd-fow-lbl">Fall of wickets</div>' + fwt : ''}</div></div>`;
   });
   return html + '</div>';
 }
