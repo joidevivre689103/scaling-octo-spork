@@ -3238,6 +3238,10 @@ function otdScorecardHTML(D, k) {
     // innings number: a slot carries a player's batting and their bowling in the
     // PAIRED innings, PAIR = {1:2, 2:1, 3:4, 4:3} (technicaldocs, card #36).
     const bowl = rows.filter(s => s[2] === OTD_PAIR[inn] && (s[6] || 0) > 0);
+    // Bowling order: s[17], from Cricsheet (Tests from about 2001), on the same
+    // paired-innings row. Used only when every bowler in the innings has one;
+    // otherwise the fielding side's batting order stands, as before.
+    if (bowl.length && bowl.every(s => s.length > 17 && s[17] > 0)) bowl.sort((a, b) => a[17] - b[17]);
     let bw = `<div class="tbl-wrap"><table class="rec-table"><thead><tr>
       <th class="left">Bowler</th><th>O</th><th>M</th><th>R</th><th>W</th></tr></thead><tbody>`;
     bowl.forEach(s => {
