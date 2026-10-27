@@ -207,6 +207,35 @@ body{
 /* ═══ MAIN LAYOUT ═══ */
 .main{ max-width:1400px; margin:0 auto; padding:0 24px; }
 
+/* ─── ON THIS DAY (Scores Module §8, 2026-10-27) ───
+   Full width until State of play exists; three entries side by side divided
+   by hairlines, stacked on phones. Year in ink, standout figure in crimson
+   (spec open question 9: the two crimsons competed in the mockup). */
+.otd-section{ padding:28px 0 24px; border-bottom:1px solid var(--border); }
+.otd-section[hidden]{ display:none; }
+.otd-head{ display:flex; align-items:baseline; gap:14px; margin-bottom:20px; }
+.otd-title{ font-family:'Playfair Display',serif; font-size:26px; font-weight:700; letter-spacing:-0.01em; margin:0; }
+.otd-rule{ flex:1; height:1px; background:var(--border); }
+.otd-date{ font-family:'Inter',sans-serif; font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:var(--text3); }
+.otd-grid{ display:grid; grid-template-columns:repeat(var(--otd-cols,3),minmax(0,1fr)); }
+.otd-entry{ display:flex; gap:16px; align-items:flex-start; padding:0 24px; border-left:1px solid var(--surface3); }
+.otd-entry:first-child{ padding-left:0; border-left:none; }
+.otd-entry:last-child{ padding-right:0; }
+.otd-year{ font-family:'Playfair Display',serif; font-size:24px; font-weight:700; line-height:1.15; color:var(--text); flex:none; min-width:3.6ch; font-variant-numeric:lining-nums tabular-nums; }
+.otd-body{ display:flex; flex-direction:column; gap:6px; min-width:0; }
+.otd-body p{ margin:0; }
+.otd-label{ font-family:'Inter',sans-serif; font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--text3); }
+.otd-prose{ font-size:17px; line-height:1.55; color:var(--text); }
+.otd-score{ font-size:15px; line-height:1.5; color:var(--text2); }
+.otd-standout{ font-size:14px; line-height:1.5; color:var(--accent); }
+.otd-more{ display:inline-block; margin-top:18px; font-family:'Inter',sans-serif; font-size:12px; letter-spacing:0.04em; color:var(--accent); text-decoration:none; }
+.otd-more:hover{ color:var(--accent-hover); text-decoration:underline; }
+@media(max-width:900px){
+  .otd-grid{ grid-template-columns:1fr; }
+  .otd-entry{ padding:16px 0; border-left:none; border-top:1px solid var(--surface3); }
+  .otd-entry:first-child{ padding-top:0; border-top:none; }
+}
+
 /* ─── TICKER ─── */
 .ticker{
   background:var(--accent);
@@ -756,6 +785,20 @@ body.articles-loading .analysis-section{ visibility:hidden; }
 <!-- MAIN -->
 <main class="main">
 
+  <!-- ON THIS DAY — Scores Module §8 (2026-10-27). Filled by loadOnThisDay()
+       from the public liveScores/onThisDay document (written daily by the
+       publishOnThisDay function). Stays hidden if there is nothing for the
+       reader's date, so there is never an empty state. -->
+  <section class="otd-section" id="onThisDay" hidden aria-labelledby="otd-title">
+    <div class="otd-head">
+      <h2 class="otd-title" id="otd-title">On this day</h2>
+      <span class="otd-rule" aria-hidden="true"></span>
+      <span class="otd-date" id="otdDate"></span>
+    </div>
+    <div class="otd-grid" id="otdGrid"></div>
+    <a class="otd-more" href="/countries.html">More from the archive →</a>
+  </section>
+
   <!-- HERO -->
   <section class="hero-section" id="latest" data-nav="Latest" data-nav-target="latest">
     <!--
@@ -1256,6 +1299,48 @@ function startSnippetTimer() {
   snippetTimer = setInterval(() => { if (!snippetPaused) snippetsPage(1, false); }, SNIPPETS_ROTATE_MS);
 }
 function resetSnippetTimer() { startSnippetTimer(); }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ON THIS DAY — Scores Module §8 (2026-10-27)
+// liveScores/onThisDay holds { days: { "MM-DD": [entry, …] } } for yesterday,
+// today and tomorrow in UTC, so the reader's own local date is always there.
+// Every field is rendered text from the Test corpus; `prose` is IJ's optional
+// line. Rendered with textContent only.
+// ═══════════════════════════════════════════════════════════════════════════
+(async function loadOnThisDay() {
+  try {
+    let attempts = 0;
+    while (!window._fsDb && attempts++ < 20) await new Promise(r => setTimeout(r, 100));
+    if (!window._fsDb) return;
+    const { getDoc, doc } = await import('https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js');
+    const snap = await getDoc(doc(window._fsDb, 'liveScores', 'onThisDay'));
+    if (!snap.exists()) return;
+    const now = new Date();
+    const key = String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+    const entries = ((snap.data().days || {})[key] || []).slice(0, 3)
+      .filter(e => e && e.year && e.scoreline);
+    if (!entries.length) return;
+    const grid = document.getElementById('otdGrid');
+    const el = (tag, cls, text) => { const n = document.createElement(tag); n.className = cls; n.textContent = text; return n; };
+    entries.forEach(e => {
+      const item = el('article', 'otd-entry', '');
+      item.appendChild(el('span', 'otd-year', String(e.year)));
+      const body = el('div', 'otd-body', '');
+      if (e.label) body.appendChild(el('p', 'otd-label', e.label));
+      if (e.prose) body.appendChild(el('p', 'otd-prose', e.prose));
+      body.appendChild(el('p', 'otd-score', e.scoreline));
+      if (e.standout) body.appendChild(el('p', 'otd-standout', e.standout));
+      item.appendChild(body);
+      grid.appendChild(item);
+    });
+    grid.style.setProperty('--otd-cols', entries.length);
+    document.getElementById('otdDate').textContent =
+      now.toLocaleDateString('en-GB', { day: 'numeric', month: 'long' });
+    document.getElementById('onThisDay').hidden = false;
+  } catch (err) {
+    console.warn('[on-this-day] not shown:', err && err.message);
+  }
+})();
 
 (async function loadSnippets() {
   try {
