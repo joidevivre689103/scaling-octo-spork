@@ -1259,41 +1259,164 @@ function initSearch(n){
 [1,2].forEach(initSearch);
 
 // ---- Load comparison from URL parameters ----
+// ── The selection lives in the address (2026-10-27) ──────────────────────────
+// Every change rewrites the URL in place (replaceState), so a refresh, the Back
+// button, a bookmark or a shared link all bring back the same comparison:
+// record type, stats type, the players in whichever mode is on, the filters and
+// any career phases. The p1..pN / opp / city / gnd / ha / inn / res / toss /
+// together keys are the ones shareComparison always used, so old links still
+// open. New keys: t, st, am/af/av (1 Against X), g1.. (Together groups),
+// pt1a.. (Partnerships), tc/oc (captains), ph (phases).
+let urlRestoring = false;
+
+function buildStateParams(){
+  const q = new URLSearchParams();
+  const t = document.getElementById('fRecordType').value;
+  if(t && t !== 'player') q.set('t', t);
+  const st = getStatsType();
+  if(st && st !== 'both' && t !== 'against') q.set('st', st);
+  if(t === 'against'){
+    if(againstMode !== 'batter') q.set('am', againstMode);
+    if(againstSel[0]) q.set('af', againstSel[0].id);
+    const vs = againstSel.slice(1, againstSlotCount + 1).filter(Boolean).map(p => p.id);
+    if(vs.length) q.set('av', vs.join(','));
+    return q;
+  }
+  if(partnershipMode){
+    Object.keys(partnershipSel).forEach(k => { if(partnershipSel[k]) q.set('pt' + k, partnershipSel[k].id); });
+  } else if(cohortMode){
+    cohortGroups.forEach((g, gi) => {
+      const ids = g.map(p => p ? p.id : '').join(',');
+      if(ids.replace(/,/g, '')) q.set('g' + (gi + 1), ids);
+    });
+  } else {
+    sel.slice(0, slotCount).forEach((p, i) => { if(p) q.set('p' + (i + 1), p.id); });
+  }
+  const f = getF();
+  if(f.opp.length) q.set('opp', f.opp.join(','));
+  if(f.city.length) q.set('city', f.city.join(','));
+  if(f.gnd.length) q.set('gnd', f.gnd.join(','));
+  if(f.ha.length) q.set('ha', f.ha.join(','));
+  if(f.inn.length) q.set('inn', f.inn.join(','));
+  if(f.res.length) q.set('res', f.res.join(','));
+  if(f.toss) q.set('toss', f.toss);
+  if(f.together) q.set('together', f.together);
+  if(f.teamCapts.length) q.set('tc', f.teamCapts.join(','));
+  if(f.oppCapts.length) q.set('oc', f.oppCapts.join(','));
+  if(selectedPhases.length) q.set('ph', selectedPhases.map(x => x.val).join(','));
+  return q;
+}
+
+function syncURL(){
+  if(urlRestoring || !PLAYERS.length) return;
+  const qs = buildStateParams().toString().replace(/%2C/g, ',');   // readable commas
+  const next = location.pathname + (qs ? '?' + qs : '') + location.hash;
+  if(next !== location.pathname + location.search + location.hash){
+    try { history.replaceState(null, '', next); } catch(e) { /* non-fatal */ }
+  }
+}
+// State changes on clicks, picks, typing into filters and dropdown changes;
+// sync just after any of them rather than threading a call through every handler.
+let _syncTimer = null;
+['click', 'change', 'keyup'].forEach(ev => document.addEventListener(ev, () => {
+  clearTimeout(_syncTimer); _syncTimer = setTimeout(syncURL, 60);
+}));
+
+function restorePhases(list){
+  list.forEach(v => {
+    if(selectedPhases.find(x => x.val === v)) return;
+    const preset = document.querySelector(`.phase-ms-item[data-val="${v}"]`);
+    if(preset && PHASE_PRESETS[v]){ if(!preset.classList.contains('checked')) togglePhaseItem(preset); return; }
+    let m = v.match(/^custom_(\d+)_(\d+|end)$/);
+    if(m){
+      const from = parseInt(m[1], 10), to = m[2] === 'end' ? null : parseInt(m[2], 10);
+      const label = `Tests #${from}–${to || 'end'}`;
+      selectedPhases.push({ val: v, label, from, to }); addPhaseChip(v, label); return;
+    }
+    m = v.match(/^years_(\d+|start)_(\d+|end)$/);
+    if(m){
+      const from = m[1] === 'start' ? null : parseInt(m[1], 10), to = m[2] === 'end' ? null : parseInt(m[2], 10);
+      const label = (from !== null && to !== null) ? (from === to ? String(from) : from + '–' + to)
+                  : (from !== null ? from + ' onwards' : 'up to ' + to);
+      selectedPhases.push({ val: v, label, kind: 'year', yearFrom: from, yearTo: to, from: null, to: null });
+      addPhaseChip(v, label);
+    }
+  });
+  updatePhaseMsToggleLabel(); updateYearHint();
+}
+
 function loadFromURL(){
   const params = new URLSearchParams(window.location.search);
-  const playerIds = [];
-  for(let i = 1; i <= MAX_PLAYERS; i++){
-    const pid = params.get(`p${i}`);
-    if(pid) playerIds.push({slot: i, id: parseInt(pid)});
-  }
-  if(playerIds.length > 0){
-    while(slotCount < playerIds.length) addPlayerSlot();
-    playerIds.forEach(({slot, id}) => {
-      const player = PLAYERS.find(p => p.id === id);
-      if(player) pickP(slot, id);
+  if(![...params.keys()].length) return;
+  const ids = v => (params.get(v) || '').split(',').map(x => parseInt(x, 10));
+  const known = id => PLAYERS.some(p => p.id === id);
+  urlRestoring = true;
+
+  const t = params.get('t');
+  const rt = document.getElementById('fRecordType');
+  if(t && [...rt.options].some(o => o.value === t)){ rt.value = t; handleRecordTypeChange(); }
+  const st = params.get('st');
+  const stEl = document.getElementById('fStatsType');
+  if(st && [...stEl.options].some(o => o.value === st)) stEl.value = st;
+
+  if(rt.value === 'against'){
+    if(params.get('am') === 'bowler') setAgainstMode('bowler');
+    const af = parseInt(params.get('af'), 10);
+    if(known(af)) pickAgainstPlayer(0, af);
+    ids('av').filter(known).slice(0, 10).forEach((id, i) => {
+      while(againstSlotCount < i + 1) addAgainstSlot();
+      pickAgainstPlayer(i + 1, id);
     });
-    setTimeout(() => {
-      const opp = params.get('opp');
-      if(opp){
-        opp.split(',').forEach(o => {
-          const oppId = parseInt(o);
-          if(!selectedOpps.includes(oppId)) selectedOpps.push(oppId);
-        });
-        updateOppToggleLabel();
-        populateFilters();
-      }
-      // Comma-separated lists; older single-value links still parse fine.
-      [['city','City'],['gnd','Gnd'],['ha','HA'],['inn','Inn'],['res','Res']].forEach(([qp,key])=>{
-        const raw = params.get(qp);
-        if(!raw) return;
-        MS_FILTERS[key].sel = raw.split(',').filter(Boolean).map(v=>msCast(key,v));
-      });
-      populateFilters();
-      if(params.get('toss')) document.getElementById('fToss').value = params.get('toss');
-      if(params.get('together')) document.getElementById('fTogether').value = params.get('together');
-      if(hasEnough()) render();
-    }, 100);
+    urlRestoring = false; syncURL();
+    return;
   }
+  if(partnershipMode){
+    ['1a','1b','2a','2b','3a','3b','4a','4b'].forEach(k => {
+      const id = parseInt(params.get('pt' + k), 10);
+      if(!known(id)) return;
+      while(partnershipSlotCount < parseInt(k, 10)) addPartnershipSlot();
+      pickPartnershipPlayer(k, id);
+    });
+  } else if(cohortMode){
+    for(let gi = 0; params.get('g' + (gi + 1)) !== null; gi++){
+      while(cohortGroups.length < gi + 1 && cohortGroups.length < cohortMaxGroups) addCohort();
+      if(gi >= cohortGroups.length) break;
+      ids('g' + (gi + 1)).slice(0, cohortSize).forEach((id, si) => { if(known(id)) pickCohort(gi, si, id); });
+    }
+  } else {
+    const playerIds = [];
+    for(let i = 1; i <= MAX_PLAYERS; i++){
+      const pid = parseInt(params.get(`p${i}`), 10);
+      if(known(pid)) playerIds.push({ slot: i, id: pid });
+    }
+    if(playerIds.length){
+      while(slotCount < Math.max(...playerIds.map(x => x.slot))) addPlayerSlot();
+      playerIds.forEach(({ slot, id }) => pickP(slot, id));
+    }
+  }
+
+  // Filters and phases, once the slots above have built the filter lists.
+  setTimeout(() => {
+    ids('opp').filter(n => !isNaN(n)).forEach(o => { if(!selectedOpps.includes(o)) selectedOpps.push(o); });
+    ids('tc').filter(n => !isNaN(n)).forEach(o => { if(!selectedTeamCapts.includes(o)) selectedTeamCapts.push(o); });
+    ids('oc').filter(n => !isNaN(n)).forEach(o => { if(!selectedOppCapts.includes(o)) selectedOppCapts.push(o); });
+    // Comma-separated lists; older single-value links still parse fine.
+    [['city','City'],['gnd','Gnd'],['ha','HA'],['inn','Inn'],['res','Res']].forEach(([qp, key]) => {
+      const raw = params.get(qp);
+      if(raw) MS_FILTERS[key].sel = raw.split(',').filter(Boolean).map(v => msCast(key, v));
+    });
+    if(params.get('toss')) document.getElementById('fToss').value = params.get('toss');
+    if(params.get('together')) document.getElementById('fTogether').value = params.get('together');
+    populateFilters();
+    updateOppToggleLabel(); updateTeamCaptToggleLabel(); updateOppCaptToggleLabel();
+    if(params.get('ph')) restorePhases(params.get('ph').split(',').filter(Boolean));
+    applyStatsTypeToTabs();
+    if(partnershipMode){ if(hasEnoughPartnerships()) renderPartnerships(); }
+    else if(cohortMode){ if(hasEnoughCohorts()) renderCohorts(); }
+    else if(hasEnough()) render();
+    urlRestoring = false;
+    syncURL();
+  }, 100);
 }
 /* Phase 3 §3: load gated dataset, build structures, then run page init. */
 (async function boot(){
@@ -2223,7 +2346,9 @@ function midYearPos(mid){
   if(!_midYearPos){
     _midYearPos = {};
     const byYear = {};
-    TESTS.forEach((m, id) => {
+    // D.M is an object keyed by Test number, not an array (2026-10-27).
+    Object.keys(TESTS).forEach(k => {
+      const m = TESTS[k], id = +k;
       if(!m || typeof m[7] !== 'number') return;
       (byYear[m[7]] = byYear[m[7]] || []).push(id);
     });
@@ -3326,22 +3451,43 @@ function render(){
 }
 
 // ---- Share Function ----
+// Share whatever is on screen, in any mode (2026-10-27). The link is the same
+// address the page keeps in sync, so it opens on exactly this comparison.
+function shareCurrentView(){
+  const t = document.getElementById('fRecordType').value;
+  const nm = p => p.fullName || p.name;
+  let names = [];
+  if(t === 'against'){
+    const f = againstSel[0], vs = againstSel.slice(1, againstSlotCount + 1).filter(Boolean);
+    if(!f || !vs.length){ alert('Please pick a player and at least one opponent to share.'); return; }
+    names = [nm(f) + ' against ' + vs.map(nm).join(', ')];
+  } else if(partnershipMode){
+    const ps = getCompletePartnerships();
+    if(ps.length < 2){ alert('Please complete at least 2 partnerships to share.'); return; }
+    names = ps.map(x => nm(x.playerA) + ' & ' + nm(x.playerB));
+  } else {
+    const gs = cohortGroups.map(g => g.filter(Boolean)).filter(g => g.length);
+    if(gs.length < 2){ alert('Please fill at least 2 groups to share.'); return; }
+    names = gs.map(g => g.map(nm).join(', '));
+  }
+  const label = names.join(' vs ');
+  const url = location.origin + location.pathname + '?' + buildStateParams().toString().replace(/%2C/g, ',');
+  if(navigator.share && navigator.canShare && navigator.canShare({ url })){
+    navigator.share({ title: 'Test Cricket: ' + label, text: 'Compare ' + label, url })
+      .catch(err => { if(err.name !== 'AbortError') fallbackShare(url, label); });
+  } else { fallbackShare(url, label); }
+}
+
 function shareComparison(){
+  if(document.getElementById('fRecordType').value === 'against' || partnershipMode || cohortMode){ shareCurrentView(); return; }
   const players = activeSel();
-  if(players.length < 2){ alert('Please select at least 2 players to share a comparison.'); return; }
+  if(players.length < (singleMode ? 1 : 2)){ alert('Please select at least 2 players to share a comparison.'); return; }
   const playerNames = players.map(p => p.fullName || p.name).join(' vs ');
-  const params = new URLSearchParams();
-  players.forEach((p, i) => { params.append(`p${i+1}`, p.id); });
+  // Same address the page keeps in sync (adds record type, stats type,
+  // captains and phases to the keys this function always shared).
+  const params = buildStateParams();
   const f = getF();
-  if(f.opp.length) params.set('opp', f.opp.join(','));
-  if(f.city.length) params.set('city', f.city.join(','));
-  if(f.gnd.length) params.set('gnd', f.gnd.join(','));
-  if(f.ha.length) params.set('ha', f.ha.join(','));
-  if(f.inn.length) params.set('inn', f.inn.join(','));
-  if(f.res.length) params.set('res', f.res.join(','));
-  if(f.toss) params.set('toss', f.toss);
-  if(f.together) params.set('together', f.together);
-  const shareUrl = window.location.origin + window.location.pathname + '?' + params.toString();
+  const shareUrl = window.location.origin + window.location.pathname + '?' + params.toString().replace(/%2C/g, ',');
   const rowSets = players.map(p => getRows(p));
   const stats = players.map((p, i) => agg(p, rowSets[i], f.opp.length || f.city.length || f.gnd.length || f.ha.length || f.inn.length || f.res.length || f.toss || f.teamCapts.length || f.oppCapts.length || f.together));
   const metricWins = stats.map(() => []);
