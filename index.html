@@ -274,6 +274,37 @@ body{
 
 
 
+/* ─── TICKER ─── */
+.ticker{
+  background:var(--accent);
+  color:#fff;
+  padding:10px 24px;
+  display:flex;
+  align-items:center;
+  gap:16px;
+  overflow:hidden;
+}
+.ticker-label{
+  font-family:'Inter',sans-serif;
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  background:rgba(255,255,255,0.2);
+  padding:4px 10px;
+  border-radius:3px;
+  flex-shrink:0;
+}
+.ticker-content{
+  font-size:13px;
+  font-weight:500;
+  white-space:nowrap;
+  animation:scroll-left 30s linear infinite;
+}
+@keyframes scroll-left{
+  0%{transform:translateX(100%)}
+  100%{transform:translateX(-100%)}
+}
 /* ─── HERO ─── */
 .hero-section{
   display:grid;
@@ -780,11 +811,15 @@ body.articles-loading .analysis-section{ visibility:hidden; }
   </div>
 </nav>
 
-<!-- TICKER REMOVED 2026-10-27 (IJ): a "latest" bar fed by the stats data
-     showed results days or weeks old, because a Test reaches the data only
-     after the sync — on a news-style bar that reads as stale and does more
-     harm than good. Its loader and styles are gone too; config/ticker (CMS)
-     and the feed's ticker lines are no longer read by any page. -->
+<!-- TICKER — MANUAL ONLY (2026-10-27, IJ). Shows only the lines saved in the
+     CMS Ticker tab (config/ticker), and only for 24 hours after they were
+     saved; the CMS on/off switch hides it at once. The automatic lines from
+     the stats data were dropped: a Test reaches the data days after it ends,
+     so they read as stale news. Hidden whenever there is nothing current. -->
+<div class="ticker" id="tickerBar" style="display:none">
+  <span class="ticker-label">Breaking</span>
+  <span class="ticker-content" id="tickerContent"></span>
+</div>
 
 <!-- MAIN -->
 <main class="main">
@@ -1336,6 +1371,27 @@ function resetSnippetTimer() { startSnippetTimer(); }
 // WTC RACE STRIP (2026-10-27) — the four best chances of reaching the final,
 // from liveScores/wtc. Rendered with textContent only.
 // ═══════════════════════════════════════════════════════════════════════════
+(async function loadTicker() {
+  try {
+    let attempts = 0;
+    while (!window._fsDb && attempts++ < 20) await new Promise(r => setTimeout(r, 100));
+    if (!window._fsDb) return;
+    const { getDoc, doc } = await import('https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js');
+    const snap = await getDoc(doc(window._fsDb, 'config', 'ticker'));
+    if (!snap.exists()) return;
+    const c = snap.data();
+    if (c.enabled === false) return;
+    const saved = Date.parse(c.updatedAt || '');
+    if (!saved || Date.now() - saved > 24 * 3600 * 1000) return;   // older than 24 hours: off by itself
+    const items = (c.items || []).filter(t => typeof t === 'string' && t.trim());
+    if (!items.length) return;
+    const el = document.getElementById('tickerContent');
+    el.textContent = items.join('  •  ');
+    el.style.animationDuration = Math.max(30, Math.round(el.textContent.length / 7)) + 's';
+    document.getElementById('tickerBar').style.display = '';
+  } catch (e) { /* bar stays hidden */ }
+})();
+
 (async function loadHomeFeed() {
   try {
     let attempts = 0;
