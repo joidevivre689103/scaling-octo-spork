@@ -12,7 +12,8 @@
 <script src="/feature-flags.js"></script>
 <script src="/prelaunch-guard.js"></script>
 <script src="/ct-appcheck.js"></script>
-<script src="/ct-data-loader.js"></script><!-- Phase 3 §3: gated derived-data loader -->
+<script src="/ct-data-loader.js"></script>
+<script src="/ct-urlstate.js"></script><!-- filters kept in the address (2026-10-27) --><!-- Phase 3 §3: gated derived-data loader -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Country Results — The Grass Bank</title>
@@ -2386,6 +2387,7 @@ function buildH2HFromData(D) {
     const tt = document.getElementById('totalTests');
     if (tt) tt.textContent = Object.keys(D.M).length.toLocaleString('en-US');
     updateResults();
+    attachH2HUrlState();
   } catch (e) {
     console.error('Failed to load match data:', e);
     const noData = document.getElementById('noData');
@@ -2395,6 +2397,47 @@ function buildH2HFromData(D) {
     }
   }
 })();
+
+// ── Head-to-Head filters kept in the address (2026-10-27) ──
+// The two country pickers (g1, g2; "all" when a side is Select All), venue,
+// era, city and ground are custom pickers, so they go through `extra`; the
+// result select and the period year boxes are plain controls the helper reads
+// itself. City and ground names can contain commas, so those lists use "|".
+// ?otd= and ?test= belong to the scorecard code and pass through untouched;
+// the tab stays in the #hash as before. The Share button already shares
+// location.href, which now carries all of this.
+function attachH2HUrlState() {
+  if (!window.CTUrlState) return;
+  const side = ms => ms.isAll() ? 'all' : ms.get().join(',');
+  const cur = () => ({
+    g1: side(ms1), g2: side(ms2),
+    ven: msVenue.get().join(','), era: msEra.get().join(','),
+    city: msCity ? msCity.get().join('|') : '', gnd: msGround ? msGround.get().join('|') : '',
+  });
+  const setSide = (ms, v) => {
+    if (v === 'all') ms.setAllExcept([]);
+    else ms.set(String(v).split(',').filter(c => TEAMS.includes(c)));
+  };
+  CTUrlState.attach({
+    root: document.getElementById('h2hFilters'),
+    keep: ['otd', 'test'],
+    apply: () => renderTable(),
+    extra: {
+      get: cur,
+      defaults: cur(),
+      set: q => {
+        // Countries first: updateResults() resets the filters for a new pairing.
+        if ('g1' in q) setSide(ms1, q.g1);
+        if ('g2' in q) setSide(ms2, q.g2);
+        if ('g1' in q || 'g2' in q) { syncGroups(); updateResults(); }
+        if ('ven' in q) msVenue.set(q.ven.split(',').filter(Boolean));
+        if ('era' in q) msEra.set(q.era.split(',').filter(Boolean));
+        if ('city' in q && msCity) msCity.set(q.city.split('|').filter(Boolean));
+        if ('gnd' in q && msGround) msGround.set(q.gnd.split('|').filter(Boolean));
+      },
+    },
+  });
+}
 
 // Cities and grounds actually present in the match table \u2014 D.C / D.G carry
 // entries the dataset never uses, and a dead option that returns nothing is
