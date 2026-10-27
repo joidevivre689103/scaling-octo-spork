@@ -128,6 +128,8 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
 .otd-cards .rec-table tbody tr.otd-sum td{font-weight:700;background:var(--surface2)}
 .otd-cards .rec-table tbody tr.otd-extras td{color:var(--text3)}
 .otd-cards .rec-table td.otd-total{white-space:nowrap;text-align:right}
+.otd-fow{font-size:12.5px;line-height:1.6;color:var(--text2);margin:10px 2px 0}
+.otd-fow-lbl{font-family:'Inter',sans-serif;font-size:10.5px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:var(--text3);margin-right:6px}
 .otd-note{font-family:'Inter',sans-serif;font-size:11px;color:var(--text3);margin-top:10px}
 @media(max-width:800px){ .otd-cards{grid-template-columns:1fr} }
 
@@ -3182,7 +3184,21 @@ const OTD_PAIR = { 1: 2, 2: 1, 3: 4, 4: 3 };
 function otdOrdinal(n) { return ['', '1st', '2nd', '3rd', '4th'][n] || (n + 'th'); }
 
 // Same rules as scripts/build_on_this_day.py, so the numbers agree with the homepage.
-function otdScorecardHTML(D, k) {
+// Fall of wickets (2026-10-27): from Cricsheet ball-by-ball, Tests from about
+// 2001, carried in the gated `h2h` file as fow[test][innings] = [[wicket,
+// score, batter pid, "over.ball"], ...]. Loaded once, beside the scorecard
+// data; if it can't be loaded the scorecards simply show no fall of wickets.
+let __fowPromise = null;
+function loadFow() {
+  if (!__fowPromise) {
+    __fowPromise = (window.CTData ? CTData.load('h2h', { renderError: false }) : Promise.reject())
+      .then(h => (h && h.fow) || {})
+      .catch(() => { __fowPromise = null; return {}; });
+  }
+  return __fowPromise;
+}
+
+function otdScorecardHTML(D, k, fow) {
   const m = D.M[String(k)];
   if (!m) return `<div class="otd-match"><p class="otd-note">Test #${k} is not in the dataset.</p></div>`;
   const T = D.T, name = new Map(D.P.map(p => [p[0], p[1]]));
@@ -3253,6 +3269,12 @@ function otdScorecardHTML(D, k) {
 
     html += `<div class="otd-inn-title"><span>${otdEsc(side)} · ${otdOrdinal(inn)} innings</span>
       <span class="otd-inn-total">${otdEsc(totalTxt)}</span></div><div class="otd-cards">${bt}${bw}</div>`;
+    const fw = fow && fow[String(k)] && fow[String(k)][String(inn)];
+    if (fw && fw.length) {
+      html += `<p class="otd-fow"><span class="otd-fow-lbl">Fall of wickets</span> ` + fw.map(w =>
+        `${otdEsc(w[0])}-${otdEsc(w[1])}` + (name.get(w[2]) ? ` (${otdEsc(name.get(w[2]))}, ${otdEsc(w[3])} ov)` : ` (${otdEsc(w[3])} ov)`)
+      ).join(', ') + `</p>`;
+    }
   });
   return html + '</div>';
 }
@@ -3262,8 +3284,8 @@ async function renderOtdTab() {
   __otdRendered = true;
   const box = document.getElementById('otdScorecards');
   try {
-    const D = await loadImpactData();
-    box.innerHTML = OTD_TESTS.map(k => otdScorecardHTML(D, k)).join('');
+    const [D, fow] = await Promise.all([loadImpactData(), loadFow()]);
+    box.innerHTML = OTD_TESTS.map(k => otdScorecardHTML(D, k, fow)).join('');
     // Explain b/lbw only on a page that actually shows one.
     document.getElementById('otdBlbwNote').hidden = !/>b\/lbw /.test(box.innerHTML);
   } catch (e) {
@@ -3283,8 +3305,8 @@ async function openScorecard(k) {
   document.body.classList.add('sc-open');
   document.getElementById('scClose').focus();
   try {
-    const D = await loadImpactData();
-    body.innerHTML = otdScorecardHTML(D, k);
+    const [D, fow] = await Promise.all([loadImpactData(), loadFow()]);
+    body.innerHTML = otdScorecardHTML(D, k, fow);
     document.getElementById('scBlbwNote').hidden = !/>b\/lbw /.test(body.innerHTML);
   } catch (e) {
     body.innerHTML = '<p class="otd-note">The scorecard could not be loaded. Please try again in a moment.</p>';
