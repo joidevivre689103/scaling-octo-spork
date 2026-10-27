@@ -796,7 +796,7 @@ body.articles-loading .analysis-section{ visibility:hidden; }
       <span class="otd-date" id="otdDate"></span>
     </div>
     <div class="otd-grid" id="otdGrid"></div>
-    <a class="otd-more" href="/countries.html">More from the archive →</a>
+    <a class="otd-more" id="otdMore" href="/countries.html">More from the archive →</a>
   </section>
 
   <!-- HERO -->
@@ -1334,6 +1334,12 @@ function resetSnippetTimer() { startSnippetTimer(); }
       grid.appendChild(item);
     });
     grid.style.setProperty('--otd-cols', entries.length);
+    // "More from the archive" opens these Tests' full scorecards on the
+    // countries page (paid; signed-out readers meet its gate).
+    const tests = entries.map(e => parseInt(e.test, 10)).filter(n => n > 0);
+    if (tests.length) {
+      document.getElementById('otdMore').href = '/countries.html?otd=' + tests.join(',') + '#onthisday';
+    }
     document.getElementById('otdDate').textContent =
       now.toLocaleDateString('en-GB', { day: 'numeric', month: 'long' });
     document.getElementById('onThisDay').hidden = false;

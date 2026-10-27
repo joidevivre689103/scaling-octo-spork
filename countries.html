@@ -109,6 +109,27 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
 .tab-panel{display:none}
 .tab-panel.active{display:block}
 
+/* ═══ On this day tab — full scorecards (2026-10-27) ═══
+   Opened from the homepage's "More from the archive" link with
+   ?otd=<test>,<test>,<test>#onthisday. The tab button stays hidden otherwise. */
+.otd-intro{font-size:14px;color:var(--text2);margin:0 0 20px;line-height:1.5}
+.otd-match{margin-bottom:44px}
+.otd-match-head{border-top:3px solid var(--text);padding-top:12px;margin-bottom:6px;display:flex;gap:18px;align-items:baseline;flex-wrap:wrap}
+.otd-match-year{font-family:'DM Serif Display',serif;font-size:32px;line-height:1;color:var(--text)}
+.otd-match-title{font-family:'DM Serif Display',serif;font-size:22px;line-height:1.2;letter-spacing:-0.2px}
+.otd-match-sub{font-family:'Inter',sans-serif;font-size:12px;color:var(--text3);margin:2px 0 4px;letter-spacing:0.2px}
+.otd-match-result{font-size:15px;font-weight:600;color:var(--accent);margin:0 0 6px}
+.otd-inn-title{font-family:'Inter',sans-serif;font-size:12px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:var(--text2);margin:22px 0 8px;display:flex;justify-content:space-between;gap:12px}
+.otd-inn-title .otd-inn-total{color:var(--text);font-variant-numeric:tabular-nums}
+.otd-cards{display:grid;grid-template-columns:3fr 2fr;gap:16px;align-items:start}
+.otd-cards .tbl-wrap{margin-bottom:0}
+.otd-cards .rec-table{min-width:0}
+.otd-cards .rec-table th:not(.left),.otd-cards .rec-table td:not(.left){width:56px}
+.otd-cards .rec-table tbody tr.otd-sum td{font-weight:700;background:var(--surface2)}
+.otd-cards .rec-table tbody tr.otd-extras td{color:var(--text3)}
+.otd-note{font-family:'Inter',sans-serif;font-size:11px;color:var(--text3);margin-top:10px}
+@media(max-width:800px){ .otd-cards{grid-template-columns:1fr} }
+
 /* ═══ Collapsible Filters Card (captaincy-style) ═══ */
 .filters-card{
   background:var(--surface);border:1px solid var(--border);border-radius:12px;
@@ -663,6 +684,7 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
   <div class="tabbar" role="tablist">
     <button type="button" class="tabbar-btn active" id="tab-btn-h2h" data-tab="h2h" role="tab">Head-to-Head</button>
     <button type="button" class="tabbar-btn" id="tab-btn-impact" data-tab="impact" role="tab">Impact Analysis</button>
+    <button type="button" class="tabbar-btn" id="tab-btn-onthisday" data-tab="onthisday" role="tab" hidden>On this day</button>
   </div>
 
   <!-- ═══ H2H Tab Panel ═══ -->
@@ -946,6 +968,14 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
   <div id="impactResults" class="impact-results"></div>
 
   </div><!-- /tab-panel impact -->
+
+  <!-- ═══════════════════════ On this day Tab ═══════════════════════ -->
+  <div class="tab-panel" id="tab-onthisday" role="tabpanel">
+    <p class="otd-intro">The full scorecards of the Tests on the homepage's <em>On this day</em>.</p>
+    <div id="otdScorecards"><p class="otd-note">Loading scorecards…</p></div>
+    <p class="otd-note">“Out” is the bowler credited with the wicket; a dash where none is, as for a run out.
+      Balls faced are shown where they were recorded.</p>
+  </div><!-- /tab-panel onthisday -->
 </div>
 
 <!-- SheetJS + shared export engine. Must load BEFORE the main script below:
@@ -3088,7 +3118,104 @@ var impactExport = CTExport.init({
 });
 
 
-// ── Top-level tabs (Head-to-Head / Impact Analysis) ──
+// ── On this day: full scorecards (2026-10-27) ──
+// The homepage block links here with ?otd=<test>,<test>,<test>#onthisday.
+// Everything comes from the same gated dataset as the rest of the page
+// (CTData / serveDerivedData), so the scorecards stay behind the paywall.
+const OTD_TESTS = (new URLSearchParams(location.search).get('otd') || '')
+  .split(',').map(n => parseInt(n, 10)).filter(n => n > 0).slice(0, 3);
+if (OTD_TESTS.length) document.getElementById('tab-btn-onthisday').hidden = false;
+let __otdRendered = false;
+
+function otdEsc(v) {
+  return String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+function otdOrdinal(n) { return ['', '1st', '2nd', '3rd', '4th'][n] || (n + 'th'); }
+
+// Same rules as scripts/build_on_this_day.py, so the numbers agree with the homepage.
+function otdScorecardHTML(D, k) {
+  const m = D.M[String(k)];
+  if (!m) return `<div class="otd-match"><p class="otd-note">Test #${k} is not in the dataset.</p></div>`;
+  const T = D.T, name = new Map(D.P.map(p => [p[0], p[1]]));
+  const pick = (arr, i) => (Array.isArray(arr) && Number.isInteger(i) && i >= 0 && i < arr.length) ? arr[i] : '';
+  const t1 = T[m[2]], t2 = T[m[3]];
+  const first = (T[m[5]] === t1 || T[m[5]] === t2) ? T[m[5]] : t1;
+  const other = first === t1 ? t2 : t1;
+  const rows = D.S.filter(s => s[0] === k);
+  const batted = s => s[4] !== null && s[4] !== undefined;
+  const isOut = s => batted(s) && (s[4] === 0 || s[4] === false);
+  const inn1 = new Set(rows.filter(s => s[2] === 1 && batted(s)).map(s => s[1]));
+  const totals = [17, 18, 19, 20].map(i => m[i] || 0);
+  const played = [1, 2, 3, 4].filter(i => totals[i - 1] > 0 || rows.some(s => s[2] === i && batted(s)));
+  const last = played[played.length - 1];
+
+  let html = `<div class="otd-match">
+    <div class="otd-match-head"><span class="otd-match-year">${otdEsc(m[7])}</span>
+      <span class="otd-match-title">${otdEsc(t1)} v ${otdEsc(t2)}</span></div>
+    <p class="otd-match-sub">${[pick(D.MN, m[11]), [pick(D.G, m[1]), pick(D.C, m[0])].filter(Boolean).join(', '),
+      formatMatchDate(pick(D.DT, m[10])), pick(D.SR, m[9])].filter(Boolean).map(otdEsc).join(' · ')}</p>
+    <p class="otd-match-result">${otdEsc(pick(D.R, m[8]))}</p>`;
+
+  played.forEach(inn => {
+    const bat = rows.filter(s => s[2] === inn && batted(s));
+    const ids = new Set(bat.map(s => s[1]));
+    let side;
+    if (inn === 1) side = first;
+    else if (bat.length && inn1.size) side = ([...ids].filter(x => inn1.has(x)).length * 2 > ids.size) ? first : other;
+    else side = inn % 2 ? first : other;
+    let wk = bat.filter(isOut).length;
+    const notOuts = bat.length - wk;
+    if (wk >= 10 || (notOuts <= 1 && bat.length < 11 && wk >= 9)) wk = 10;
+    const total = totals[inn - 1];
+    const totalTxt = !bat.length ? String(total) : wk >= 10 ? `${total} all out`
+      : `${total}/${wk}${inn !== last ? ' declared' : ''}`;
+    const showBalls = bat.some(s => s[5] > 0);
+    const runsSum = bat.reduce((a, s) => a + (s[3] || 0), 0);
+    const extras = bat.length ? total - runsSum : null;
+
+    let bt = `<div class="tbl-wrap"><table class="rec-table"><thead><tr>
+      <th class="left">Batter</th><th class="left">Out</th><th>R</th>${showBalls ? '<th>B</th>' : ''}</tr></thead><tbody>`;
+    bat.forEach(s => {
+      const how = (s[4] === 1 || s[4] === true) ? 'not out' : (s[10] > 0 && name.get(s[10])) ? name.get(s[10]) : '—';
+      bt += `<tr><td class="left">${otdEsc(name.get(s[1]) || '#' + s[1])}</td><td class="left">${otdEsc(how)}</td>
+        <td>${otdEsc(s[3] == null ? '' : s[3])}${(s[4] === 1 || s[4] === true) ? '*' : ''}</td>${showBalls ? `<td>${s[5] > 0 ? s[5] : ''}</td>` : ''}</tr>`;
+    });
+    if (extras !== null && extras > 0) bt += `<tr class="otd-extras"><td class="left" colspan="2">Extras</td><td>${extras}</td>${showBalls ? '<td></td>' : ''}</tr>`;
+    bt += `<tr class="otd-sum"><td class="left" colspan="2">Total</td><td>${otdEsc(totalTxt)}</td>${showBalls ? '<td></td>' : ''}</tr>`;
+    if (!bat.length) bt = `<div class="tbl-wrap"><table class="rec-table"><tbody><tr><td class="left">No batting card recorded for this innings.</td></tr>`;
+    bt += '</tbody></table></div>';
+
+    const bowl = rows.filter(s => s[2] === inn && (s[6] || 0) > 0);
+    let bw = `<div class="tbl-wrap"><table class="rec-table"><thead><tr>
+      <th class="left">Bowler</th><th>O</th><th>M</th><th>R</th><th>W</th></tr></thead><tbody>`;
+    bowl.forEach(s => {
+      bw += `<tr><td class="left">${otdEsc(name.get(s[1]) || '#' + s[1])}</td><td>${otdEsc(s[6])}</td>
+        <td>${otdEsc(s[7] ?? '')}</td><td>${otdEsc(s[8] ?? '')}</td><td>${otdEsc(s[9] ?? '')}</td></tr>`;
+    });
+    if (!bowl.length) bw += '<tr><td class="left" colspan="5">No bowling figures recorded.</td></tr>';
+    bw += '</tbody></table></div>';
+
+    html += `<div class="otd-inn-title"><span>${otdEsc(side)} · ${otdOrdinal(inn)} innings</span>
+      <span class="otd-inn-total">${otdEsc(totalTxt)}</span></div><div class="otd-cards">${bt}${bw}</div>`;
+  });
+  return html + '</div>';
+}
+
+async function renderOtdTab() {
+  if (__otdRendered || !OTD_TESTS.length) return;
+  __otdRendered = true;
+  const box = document.getElementById('otdScorecards');
+  try {
+    const D = await loadImpactData();
+    box.innerHTML = OTD_TESTS.map(k => otdScorecardHTML(D, k)).join('');
+  } catch (e) {
+    __otdRendered = false;
+    box.innerHTML = '<p class="otd-note">The scorecards could not be loaded. Please try again in a moment.</p>';
+    console.warn('[countries] On this day:', e && e.message);
+  }
+}
+
+// ── Top-level tabs (Head-to-Head / Impact Analysis / On this day) ──
 // The URL hash follows the tab (#impact), so a shared link or a reload
 // opens on the same tab. replaceState keeps the Back button for real pages.
 function showTab(name, updateHash) {
@@ -3110,12 +3237,18 @@ function showTab(name, updateHash) {
     try { history.replaceState(null, '', name === 'h2h' ? location.pathname + location.search : '#' + name); }
     catch (e) { /* non-fatal */ }
   }
+  if (name === 'onthisday') renderOtdTab();
 }
 document.querySelectorAll('.tabbar-btn').forEach(b => {
   b.addEventListener('click', () => showTab(b.dataset.tab, true));
 });
-if (location.hash === '#impact') showTab('impact', false);
-window.addEventListener('hashchange', () => showTab(location.hash === '#impact' ? 'impact' : 'h2h', false));
+function tabFromHash() {
+  if (location.hash === '#impact') return 'impact';
+  if (location.hash === '#onthisday' && OTD_TESTS.length) return 'onthisday';
+  return 'h2h';
+}
+if (tabFromHash() !== 'h2h') showTab(tabFromHash(), false);
+window.addEventListener('hashchange', () => showTab(tabFromHash(), false));
 
 function toggleFilters(cardId) {
   const card = document.getElementById(cardId);
