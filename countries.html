@@ -3268,6 +3268,7 @@ function otdScorecardHTML(D, k, fow) {
   const m = D.M[String(k)];
   if (!m) return `<div class="otd-match"><p class="otd-note">Test #${k} is not in the dataset.</p></div>`;
   const T = D.T, name = new Map(D.P.map(p => [p[0], p[1]]));
+  const country = new Map(D.P.map(p => [p[0], p[3]]));
   const pick = (arr, i) => (Array.isArray(arr) && Number.isInteger(i) && i >= 0 && i < arr.length) ? arr[i] : '';
   const t1 = T[m[2]], t2 = T[m[3]];
   const first = (T[m[5]] === t1 || T[m[5]] === t2) ? T[m[5]] : t1;
@@ -3290,8 +3291,16 @@ function otdScorecardHTML(D, k, fow) {
   played.forEach(inn => {
     const bat = rows.filter(s => s[2] === inn && batted(s));
     const ids = new Set(bat.map(s => s[1]));
+    // Which side batted: the batters' own country (D.P p[3]) decides it.
+    // m[5] (team batting first) is wrong for some Tests — e.g. NZ v India at Auckland,
+    // 1968, labelled India's first innings as New Zealand's — so it is only a
+    // fallback, for an innings with no batting card or no clear majority.
+    const n1 = bat.filter(s => country.get(s[1]) === t1).length;
+    const n2 = bat.filter(s => country.get(s[1]) === t2).length;
     let side;
-    if (inn === 1) side = first;
+    if (n1 * 2 > bat.length) side = t1;
+    else if (n2 * 2 > bat.length) side = t2;
+    else if (inn === 1) side = first;
     else if (bat.length && inn1.size) side = ([...ids].filter(x => inn1.has(x)).length * 2 > ids.size) ? first : other;
     else side = inn % 2 ? first : other;
     let wk = bat.filter(isOut).length;
