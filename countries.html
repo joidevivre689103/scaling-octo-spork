@@ -3156,6 +3156,7 @@ function otdHowOut(s, name) {
     default: return bw || (s[4] === 0 || s[4] === false ? 'out' : '');
   }
 }
+const OTD_PAIR = { 1: 2, 2: 1, 3: 4, 4: 3 };
 function otdOrdinal(n) { return ['', '1st', '2nd', '3rd', '4th'][n] || (n + 'th'); }
 
 // Same rules as scripts/build_on_this_day.py, so the numbers agree with the homepage.
@@ -3211,7 +3212,10 @@ function otdScorecardHTML(D, k) {
     if (!bat.length) bt = `<div class="tbl-wrap"><table class="rec-table"><tbody><tr><td class="left">No batting card recorded for this innings.</td></tr>`;
     bt += '</tbody></table></div>';
 
-    const bowl = rows.filter(s => s[2] === inn && (s[6] || 0) > 0);
+    // Bowling for this innings sits on the FIELDING side's rows, under their own
+    // innings number: a slot carries a player's batting and their bowling in the
+    // PAIRED innings, PAIR = {1:2, 2:1, 3:4, 4:3} (technicaldocs, card #36).
+    const bowl = rows.filter(s => s[2] === OTD_PAIR[inn] && (s[6] || 0) > 0);
     let bw = `<div class="tbl-wrap"><table class="rec-table"><thead><tr>
       <th class="left">Bowler</th><th>O</th><th>M</th><th>R</th><th>W</th></tr></thead><tbody>`;
     bowl.forEach(s => {
