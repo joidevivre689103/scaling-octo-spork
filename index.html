@@ -843,10 +843,18 @@ body.articles-loading .analysis-section{ visibility:hidden; }
     <a class="otd-more" id="otdMore" href="/countries.html">More from the archive →</a>
   </section>
 
-  <!-- WTC RACE pointer (2026-10-27). The strip itself sits at the BOTTOM of
+  <!-- WTC RACE pointer (2026-10-27). ALWAYS the second module, straight after
+       On this day (IJ): it needs the visibility, or readers take the first row
+       and move on. The strip itself sits at the BOTTOM of
        the page, so a reader passes the articles on the way to it (IJ: the
        Costco rotisserie chicken lives at the back of the store). This line
        only tells them it is there; deliberately not a link. -->
+  <section class="wtc-pointer" id="wtcPointer" hidden aria-label="World Test Championship">
+    <p class="wtc-pointer-kicker" id="wtcPointerKicker">World Test Championship</p>
+    <p class="wtc-pointer-body" id="wtcPointerBody"></p>
+    <p class="wtc-pointer-q">Think your team will make it? What are your team's chances of reaching the WTC final? <span>Scroll to the bottom ↓</span></p>
+  </section>
+
   <!-- LATEST COMPLETED TEST · MILESTONE WATCH · GOOGLIES (2026-10-27). The
        first two from liveScores/home (home-feed.yml, daily), the Googlies from
        config/quiz or the generated question. Three columns on the same grid as
@@ -875,11 +883,6 @@ body.articles-loading .analysis-section{ visibility:hidden; }
     </div>
   </section>
 
-  <section class="wtc-pointer" id="wtcPointer" hidden aria-label="World Test Championship">
-    <p class="wtc-pointer-kicker" id="wtcPointerKicker">World Test Championship</p>
-    <p class="wtc-pointer-body" id="wtcPointerBody"></p>
-    <p class="wtc-pointer-q">Think your team will make it? What are your team's chances of reaching the WTC final? <span>Scroll to the bottom ↓</span></p>
-  </section>
 
   <!-- HERO -->
   <section class="hero-section" id="latest" data-nav="Latest" data-nav-target="latest">
