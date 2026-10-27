@@ -30,7 +30,7 @@
 
   // Client-side mirror of the server's ?file= allowlist -- fail fast before a
   // round-trip, and a reminder to keep the two lists in lockstep (PARITY).
-  var ALLOWED = { data: 1, ratings: 1, model: 1 };
+  var ALLOWED = { data: 1, ratings: 1, model: 1, h2h: 1 };   // h2h: compare.html 1 Against X (2026-10-27)
 
   // Pages run the MODULAR Firebase SDK (13.0.0) -- there is no compat `firebase`
   // global. feature-flags.js owns init and exposes window.CTFeatureFlags.firebaseReady
@@ -349,7 +349,7 @@
     opts = opts || {};
     if (!ALLOWED[file]) {
       return Promise.reject(CTDataError('bad-file',
-        'Unknown derived-data file "' + file + '" (allowed: data, ratings, model).'));
+        'Unknown derived-data file "' + file + '" (allowed: data, ratings, model, h2h).'));
     }
     if (mem[file]) return Promise.resolve(mem[file]);          // one page load: serve in-memory, no revalidation
 

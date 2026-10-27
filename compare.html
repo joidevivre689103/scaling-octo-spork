@@ -506,6 +506,8 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
 
 /* ---- TRANSPOSED TABLE: players = rows, stats = columns ---- */
 .tbl-wrap{overflow-x:auto;margin-bottom:24px;border-radius:11px;border:1px solid var(--border)}
+/* 1 Against X — ball-by-ball head-to-head title (2026-10-27) */
+.h2h-title{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3);margin:26px 0 8px}
 .cmp-table{
   width:100%;border-collapse:separate;border-spacing:0;
   background:var(--surface);min-width:600px;
@@ -3801,7 +3803,7 @@ function calcAgainstStats(focusPlayer, opponent){
     const sr  = balls>0 ? (runs/balls)*100 : null;
     // Career average is always the focus batter's career avg (same across all rows in batter mode)
     const focusCareerAvg = focusPlayer && typeof focusPlayer.batAvg === 'number' && focusPlayer.batAvg > 0 ? focusPlayer.batAvg : null;
-    return { tests:sharedTests.size, inns, no, dismissed, runs, balls, avg, sr, hs, fifties, hundreds,
+    return { tests:sharedTests.size, sharedIds:[...sharedTests], inns, no, dismissed, runs, balls, avg, sr, hs, fifties, hundreds,
              careerAvg: focusCareerAvg,
              name:opponent.fullName||opponent.name, country:opponent.country };
 
@@ -3835,7 +3837,7 @@ function calcAgainstStats(focusPlayer, opponent){
     const sr  = balls>0 ? (runs/balls)*100 : null;
     // Career average is the opponent batter's career avg
     const oppCareerAvg = opponent && typeof opponent.batAvg === 'number' && opponent.batAvg > 0 ? opponent.batAvg : null;
-    return { tests:sharedTests.size, inns, no, dismissed, runs, balls, avg, sr, hs, fifties, hundreds,
+    return { tests:sharedTests.size, sharedIds:[...sharedTests], inns, no, dismissed, runs, balls, avg, sr, hs, fifties, hundreds,
              careerAvg: oppCareerAvg,
              name:opponent.fullName||opponent.name, country:opponent.country };
   }
@@ -3944,8 +3946,77 @@ function renderAgainst(){
     `<div class="tbl-wrap"><table class="cmp-table">` +
     `<thead><tr>${hdr}</tr></thead><tbody>${rows}</tbody></table></div>`;
 
-  document.getElementById('againstResults').innerHTML = html;
+  document.getElementById('againstResults').innerHTML = html + '<div id="h2hBlock"></div>';
   document.getElementById('againstComp').style.display = 'block';
+  renderH2H(focus, opponents, stats, isBatter);
+}
+
+// ---- Off his bowling: ball-by-ball head-to-head (2026-10-27) ----
+// The table above is match-level: a batter's runs in the Tests a bowler played.
+// This one is the real head-to-head — runs, balls and dismissals OFF that
+// bowler — from Cricsheet ball-by-ball (Tests from about 2001), built by
+// scripts/build_h2h.py and served gated as CTData 'h2h'. Kept as its own
+// table so the two measures are never added together.
+let H2H = null;          // { covered:Set, pair:Map("bat:bowl" -> [balls,runs,outs,dots,4s,6s]) }
+let h2hPromise = null;
+function loadH2H(){
+  if (H2H) return Promise.resolve(H2H);
+  if (!h2hPromise) {
+    h2hPromise = CTData.load('h2h', { renderError: false }).then(d => {
+      const pair = new Map();
+      (d.pairs || []).forEach(p => pair.set(p[0] + ':' + p[1], p.slice(2)));
+      H2H = { covered: new Set(d.covered || []), pair };
+      return H2H;
+    }).catch(e => { h2hPromise = null; throw e; });
+  }
+  return h2hPromise;
+}
+async function renderH2H(focus, opponents, stats, isBatter){
+  const box = document.getElementById('h2hBlock');
+  if (!box) return;
+  const focusName = focus.fullName || focus.name;
+  const title = isBatter ? `Off each bowler's bowling — ball by ball`
+                         : `Against ${focusName}'s bowling — ball by ball`;
+  box.innerHTML = `<div class="h2h-title">${title}</div>` +
+                  `<div class="foot-note">Loading ball-by-ball figures…</div>`;
+  let h;
+  try { h = await loadH2H(); }
+  catch (e) {
+    box.innerHTML = `<div class="h2h-title">${title}</div>` +
+                    `<div class="foot-note">Ball-by-ball figures could not be loaded just now.</div>`;
+    return;
+  }
+  if (!document.getElementById('h2hBlock')) return;     // view changed while loading
+  const cols = ['Ball-by-ball Tests','Balls','Runs','Dismissed','Average','S/R','Dot %','4s','6s'];
+  let rows = '';
+  stats.forEach((s, idx) => {
+    const opp = opponents[idx];
+    const bat = isBatter ? focus.id : opp.id, bowl = isBatter ? opp.id : focus.id;
+    const shared = s.sharedIds || [];
+    const n = shared.filter(t => h.covered.has(t)).length;
+    const v = h.pair.get(bat + ':' + bowl);
+    const clrIdx = Math.min(idx + 2, 10);
+    const cell = `<td class="player-cell" style="border-left:3px solid var(--p${clrIdx})">` +
+      `<span class="pc-name">${s.name}</span><span class="pc-meta">${s.country}</span></td>`;
+    if (!n) {
+      rows += `<tr style="opacity:0.45">${cell}<td>0 of ${shared.length}</td>` +
+              cols.slice(1).map(() => '<td style="color:var(--text3)">—</td>').join('') + '</tr>';
+      return;
+    }
+    const [balls, runs, outs, dots, fours, sixes] = v || [0, 0, 0, 0, 0, 0];
+    const avg = outs > 0 ? (runs / outs).toFixed(2) : '—';
+    const sr  = balls > 0 ? (runs / balls * 100).toFixed(2) : '—';
+    const dot = balls > 0 ? (dots / balls * 100).toFixed(1) : '—';
+    rows += `<tr>${cell}<td>${n} of ${shared.length}</td><td>${balls}</td><td>${runs}</td><td>${outs}</td>` +
+            `<td>${avg}</td><td>${sr}</td><td>${dot}</td><td>${fours}</td><td>${sixes}</td></tr>`;
+  });
+  box.innerHTML =
+    `<div class="h2h-title">${title}</div>` +
+    `<div class="tbl-wrap"><table class="cmp-table"><thead><tr><th>${isBatter ? 'Bowler' : 'Batter'} (opponent)</th>` +
+    cols.map(c => `<th>${c}</th>`).join('') + `</tr></thead><tbody>${rows}</tbody></table></div>` +
+    `<div class="foot-note" style="margin-top:4px;">* Every ball ${isBatter ? focusName + ' faced from each bowler' : 'each batter faced from ' + focusName}, ` +
+    `in the shared Tests with ball-by-ball records (from about 2001). Balls exclude wides; runs are off the bat; ` +
+    `dismissals are the ones credited to the bowler. Earlier shared Tests count only in the table above.</div>`;
 }
 
 // ---- Partnership Mode ----
