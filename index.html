@@ -233,6 +233,24 @@ body{
 /* WTC race strip (2026-10-27): the top chances of reaching the final, from the
    public liveScores/wtc document; the full table is on /wtc.html (free). */
 .wtc-strip{ padding:30px 0 28px; }
+.feed-row{ display:grid; grid-template-columns:1fr 1fr; gap:0; padding:26px 0 22px; border-bottom:1px solid var(--border); }
+.feed-row[hidden], .feed-col[hidden]{ display:none; }
+.feed-col{ padding:0 28px; border-left:1px solid var(--surface3); min-width:0; }
+.feed-col:first-child{ padding-left:0; border-left:none; }
+.feed-row.single{ grid-template-columns:1fr; }
+.feed-row.single .feed-col{ padding:0; border-left:none; }
+.feed-title{ font-family:'Playfair Display',serif; font-size:22px; font-weight:700; margin:0 0 10px; }
+.feed-score{ font-size:16px; line-height:1.5; color:var(--text); margin:6px 0; }
+.feed-list{ list-style:none; margin:0; padding:0; }
+.feed-list li{ font-size:15px; line-height:1.45; color:var(--text2); padding:7px 0; border-top:1px solid var(--surface3); }
+.feed-list li:first-child{ border-top:none; padding-top:0; }
+.feed-list a{ color:inherit; text-decoration:none; }
+.feed-list a:hover{ color:var(--accent); }
+@media (max-width:760px){
+  .feed-row{ grid-template-columns:1fr; }
+  .feed-col{ padding:16px 0 0; border-left:none; border-top:1px solid var(--surface3); margin-top:16px; }
+  .feed-col:first-child{ padding-top:0; border-top:none; margin-top:0; }
+}
 .wtc-pointer{ padding:24px 0 22px; border-bottom:1px solid var(--border); }
 .wtc-pointer[hidden]{ display:none; }
 .wtc-pointer-kicker{ font-family:'Inter',sans-serif; font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:var(--accent); margin:0 0 8px; }
@@ -793,11 +811,14 @@ body.articles-loading .analysis-section{ visibility:hidden; }
 </nav>
 
 <!-- TICKER -->
-<div class="ticker" id="tickerBar">
-  <span class="ticker-label">Breaking</span>
-  <span class="ticker-content" id="tickerContent">
-    England announce squad for upcoming Ashes series • Virat Kohli surpasses 9,000 Test runs • Australia clinch Border-Gavaskar Trophy 3-1 • ICC announces new Test Championship cycle format • Ben Stokes hints at potential return to red-ball cricket
-  </span>
+<!-- 2026-10-27: the hard-coded lines that used to sit here ("England announce
+     squad…", "Australia clinch Border-Gavaskar Trophy 3-1"…) were placeholder
+     news shown to every reader as BREAKING. The bar now carries real lines from
+     the data (liveScores/home, daily) plus any fresh lines from the CMS, and
+     stays hidden when there is nothing to show. -->
+<div class="ticker" id="tickerBar" style="display:none">
+  <span class="ticker-label">Latest</span>
+  <span class="ticker-content" id="tickerContent"></span>
 </div>
 
 <!-- MAIN -->
@@ -821,6 +842,23 @@ body.articles-loading .analysis-section{ visibility:hidden; }
        the page, so a reader passes the articles on the way to it (IJ: the
        Costco rotisserie chicken lives at the back of the store). This line
        only tells them it is there; deliberately not a link. -->
+  <!-- LATEST TEST + MILESTONE WATCH (2026-10-27). From liveScores/home,
+       written daily by super-fortnight's home-feed.yml; each half stays hidden
+       until it has something to show. -->
+  <section class="feed-row" id="feedRow" hidden>
+    <div class="feed-col" id="latestTest" hidden>
+      <h2 class="feed-title">Latest Test</h2>
+      <p class="otd-label" id="latestLabel"></p>
+      <p class="feed-score" id="latestScore"></p>
+      <p class="otd-standout" id="latestStandout"></p>
+      <a class="otd-more" id="latestMore" href="/countries.html">Full scorecard →</a>
+    </div>
+    <div class="feed-col" id="milestoneWatch" hidden>
+      <h2 class="feed-title">Milestone watch</h2>
+      <ul class="feed-list" id="milestoneList"></ul>
+    </div>
+  </section>
+
   <section class="wtc-pointer" id="wtcPointer" hidden aria-label="World Test Championship">
     <p class="wtc-pointer-kicker" id="wtcPointerKicker">World Test Championship</p>
     <p class="wtc-pointer-body" id="wtcPointerBody"></p>
@@ -1127,17 +1165,26 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
     while (!window._fsDb && attempts++ < 20) await new Promise(r => setTimeout(r, 100));
     if (!window._fsDb) return;
     const { getDoc, doc } = await import('https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js');
-    const snap = await getDoc(doc(window._fsDb, 'config', 'ticker'));
-    if (!snap.exists()) return;
-    const data = snap.data();
-    if (data.enabled === false) {
-      document.getElementById('tickerBar').style.display = 'none';
-      return;
-    }
-    if (data.items && data.items.length > 0) {
-      document.getElementById('tickerContent').textContent = data.items.join(' • ');
-    }
-  } catch(e) { /* keep default */ }
+    // CMS lines (config/ticker) come first, but only while fresh: lines saved
+    // more than 7 days ago drop off by themselves, so the bar never shows stale
+    // news. The CMS switch (enabled: false) still hides the whole bar. Then the
+    // data lines from liveScores/home (results, milestones, WTC race).
+    const [cfg, feed] = await Promise.all([
+      getDoc(doc(window._fsDb, 'config', 'ticker')).catch(() => null),
+      getDoc(doc(window._fsDb, 'liveScores', 'home')).catch(() => null)
+    ]);
+    const c = cfg && cfg.exists() ? cfg.data() : {};
+    if (c.enabled === false) return;
+    const fresh = c.updatedAt && (Date.now() - Date.parse(c.updatedAt)) < 7 * 864e5;
+    const items = (fresh ? (c.items || []) : []).concat(feed && feed.exists() ? (feed.data().ticker || []) : [])
+      .filter(t => typeof t === 'string' && t.trim());
+    if (!items.length) return;
+    const el = document.getElementById('tickerContent');
+    el.textContent = items.join('  •  ');
+    // Keep the reading speed steady however many lines there are.
+    el.style.animationDuration = Math.max(30, Math.round(el.textContent.length / 7)) + 's';
+    document.getElementById('tickerBar').style.display = '';
+  } catch(e) { /* bar stays hidden */ }
 })();
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1354,6 +1401,51 @@ function resetSnippetTimer() { startSnippetTimer(); }
 // WTC RACE STRIP (2026-10-27) — the four best chances of reaching the final,
 // from liveScores/wtc. Rendered with textContent only.
 // ═══════════════════════════════════════════════════════════════════════════
+(async function loadHomeFeed() {
+  try {
+    let attempts = 0;
+    while (!window._fsDb && attempts++ < 20) await new Promise(r => setTimeout(r, 100));
+    if (!window._fsDb) return;
+    const { getDoc, doc } = await import('https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js');
+    const snap = await getDoc(doc(window._fsDb, 'liveScores', 'home'));
+    if (!snap.exists()) return;
+    const d = snap.data();
+    window._homeFeed = d;
+    let shown = 0;
+    const lt = d.latest;
+    if (lt && lt.scoreline) {
+      const fin = lt.finished ? new Date(lt.finished + 'T12:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+      document.getElementById('latestLabel').textContent = [fin && 'Finished ' + fin, lt.label].filter(Boolean).join(' · ');
+      document.getElementById('latestScore').textContent = lt.scoreline;
+      document.getElementById('latestStandout').textContent = lt.standout || '';
+      if (lt.test) document.getElementById('latestMore').href = '/countries.html?otd=' + parseInt(lt.test, 10) + '#onthisday';
+      document.getElementById('latestTest').hidden = false;
+      shown++;
+    }
+    const ms = (d.milestones || []).filter(m => m && m.text).slice(0, 5);
+    if (ms.length) {
+      const ul = document.getElementById('milestoneList');
+      ms.forEach(m => {
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.href = m.kind === 'wkts' ? '/bowling.html' : '/batting.html';
+        a.textContent = m.text;
+        li.appendChild(a);
+        ul.appendChild(li);
+      });
+      document.getElementById('milestoneWatch').hidden = false;
+      shown++;
+    }
+    if (shown) {
+      const row = document.getElementById('feedRow');
+      if (shown === 1) row.classList.add('single');
+      row.hidden = false;
+    }
+  } catch (err) {
+    console.warn('[home-feed] not shown:', err && err.message);
+  }
+})();
+
 (async function loadWtcStrip() {
   try {
     let attempts = 0;
@@ -1691,11 +1783,21 @@ function toggleArticleAudio(btn) {
     while (!window._fsDb && attempts++ < 20) await new Promise(r => setTimeout(r, 100));
     if (!window._fsDb) return;
     const { getDoc, doc } = await import('https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js');
-    const snap = await getDoc(doc(window._fsDb, 'config', 'quiz'));
-    if (!snap.exists()) return;
-    const data = snap.data();
-    const quiz = data.today;
-    if (!quiz || !quiz.question || !quiz.optionA || !quiz.optionB || !quiz.optionC || !quiz.correctAnswer) return;
+    // 2026-10-27: IJ's own question from the CMS (config/quiz) when it is dated
+    // today; otherwise the day's generated question from liveScores/home, so
+    // the Googlies is fresh every day without anyone setting it.
+    const now = new Date();
+    const local = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+    const utc = now.toISOString().slice(0, 10);
+    const valid = q => q && q.question && q.optionA && q.optionB && q.optionC && q.correctAnswer;
+    const [cfg, feed] = await Promise.all([
+      getDoc(doc(window._fsDb, 'config', 'quiz')).catch(() => null),
+      getDoc(doc(window._fsDb, 'liveScores', 'home')).catch(() => null)
+    ]);
+    const manual = cfg && cfg.exists() ? cfg.data().today : null;
+    const gen = feed && feed.exists() ? ((feed.data().googlies || {})[local] || (feed.data().googlies || {})[utc]) : null;
+    const quiz = valid(manual) && (manual.date === local || manual.date === utc) ? manual : valid(gen) ? gen : null;
+    if (!quiz) return;
     document.getElementById('quizQuestionText').textContent = quiz.question;
     const options = [{ label:'A', text:quiz.optionA },{ label:'B', text:quiz.optionB },{ label:'C', text:quiz.optionC }];
     const container = document.getElementById('quizOptionsContainer');
@@ -1724,7 +1826,11 @@ function toggleArticleAudio(btn) {
     options.forEach(opt => {
       const label = document.createElement('label');
       label.className = 'quiz-option';
-      label.innerHTML = `<input type="radio" name="quizAnswer" value="${opt.label}"><span>${opt.text}</span>`;
+      const inp = document.createElement('input');
+      inp.type = 'radio'; inp.name = 'quizAnswer'; inp.value = opt.label;
+      const sp = document.createElement('span');
+      sp.textContent = opt.text;
+      label.appendChild(inp); label.appendChild(sp);
       label.addEventListener('click', () => {
         if (answered) return; answered = true;
         const resultEl = document.getElementById('quizResult');
@@ -1743,6 +1849,7 @@ function toggleArticleAudio(btn) {
           resultEl.textContent = `Not quite — the correct answer is: ${options.find(o=>o.label===quiz.correctAnswer).text}`;
           resultEl.className = 'quiz-result show wrong';
         }
+        if (quiz.note) resultEl.textContent += ' (' + quiz.note + ')';
       });
       container.appendChild(label);
     });
