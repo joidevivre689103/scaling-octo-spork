@@ -272,37 +272,7 @@ body{
   .otd-entry:first-child{ padding-top:0; border-top:none; }
 }
 
-/* ─── TICKER ─── */
-.ticker{
-  background:var(--accent);
-  color:#fff;
-  padding:10px 24px;
-  display:flex;
-  align-items:center;
-  gap:16px;
-  overflow:hidden;
-}
-.ticker-label{
-  font-family:'Inter',sans-serif;
-  font-size:10px;
-  font-weight:700;
-  letter-spacing:1.5px;
-  text-transform:uppercase;
-  background:rgba(255,255,255,0.2);
-  padding:4px 10px;
-  border-radius:3px;
-  flex-shrink:0;
-}
-.ticker-content{
-  font-size:13px;
-  font-weight:500;
-  white-space:nowrap;
-  animation:scroll-left 30s linear infinite;
-}
-@keyframes scroll-left{
-  0%{transform:translateX(100%)}
-  100%{transform:translateX(-100%)}
-}
+
 
 /* ─── HERO ─── */
 .hero-section{
@@ -810,16 +780,11 @@ body.articles-loading .analysis-section{ visibility:hidden; }
   </div>
 </nav>
 
-<!-- TICKER -->
-<!-- 2026-10-27: the hard-coded lines that used to sit here ("England announce
-     squad…", "Australia clinch Border-Gavaskar Trophy 3-1"…) were placeholder
-     news shown to every reader as BREAKING. The bar now carries real lines from
-     the data (liveScores/home, daily) plus any fresh lines from the CMS, and
-     stays hidden when there is nothing to show. -->
-<div class="ticker" id="tickerBar" style="display:none">
-  <span class="ticker-label">Latest</span>
-  <span class="ticker-content" id="tickerContent"></span>
-</div>
+<!-- TICKER REMOVED 2026-10-27 (IJ): a "latest" bar fed by the stats data
+     showed results days or weeks old, because a Test reaches the data only
+     after the sync — on a news-style bar that reads as stale and does more
+     harm than good. Its loader and styles are gone too; config/ticker (CMS)
+     and the feed's ticker lines are no longer read by any page. -->
 
 <!-- MAIN -->
 <main class="main">
@@ -1156,36 +1121,6 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
   });
 });
 
-// ═══════════════════════════════════════════════════════════════════════════
-// TICKER — from Firestore
-// ═══════════════════════════════════════════════════════════════════════════
-(async function loadTicker() {
-  try {
-    let attempts = 0;
-    while (!window._fsDb && attempts++ < 20) await new Promise(r => setTimeout(r, 100));
-    if (!window._fsDb) return;
-    const { getDoc, doc } = await import('https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js');
-    // CMS lines (config/ticker) come first, but only while fresh: lines saved
-    // more than 7 days ago drop off by themselves, so the bar never shows stale
-    // news. The CMS switch (enabled: false) still hides the whole bar. Then the
-    // data lines from liveScores/home (results, milestones, WTC race).
-    const [cfg, feed] = await Promise.all([
-      getDoc(doc(window._fsDb, 'config', 'ticker')).catch(() => null),
-      getDoc(doc(window._fsDb, 'liveScores', 'home')).catch(() => null)
-    ]);
-    const c = cfg && cfg.exists() ? cfg.data() : {};
-    if (c.enabled === false) return;
-    const fresh = c.updatedAt && (Date.now() - Date.parse(c.updatedAt)) < 7 * 864e5;
-    const items = (fresh ? (c.items || []) : []).concat(feed && feed.exists() ? (feed.data().ticker || []) : [])
-      .filter(t => typeof t === 'string' && t.trim());
-    if (!items.length) return;
-    const el = document.getElementById('tickerContent');
-    el.textContent = items.join('  •  ');
-    // Keep the reading speed steady however many lines there are.
-    el.style.animationDuration = Math.max(30, Math.round(el.textContent.length / 7)) + 's';
-    document.getElementById('tickerBar').style.display = '';
-  } catch(e) { /* bar stays hidden */ }
-})();
 
 // ═══════════════════════════════════════════════════════════════════════════
 // ARTICLES — from Firestore
