@@ -131,6 +131,20 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
 .otd-note{font-family:'Inter',sans-serif;font-size:11px;color:var(--text3);margin-top:10px}
 @media(max-width:800px){ .otd-cards{grid-template-columns:1fr} }
 
+/* ═══ Scorecard pop-up from Match History (2026-10-27) ═══
+   Each Test # in Match History opens that Test's full card over the page,
+   so the reader keeps their filters and page. Same renderer as On this day. */
+.sc-link{color:var(--accent);font-weight:700;text-decoration:none;border-bottom:1px dotted var(--accent)}
+.sc-link:hover{border-bottom-style:solid}
+.sc-overlay{position:fixed;inset:0;z-index:1000;background:rgba(20,16,12,0.55);display:flex;align-items:flex-start;justify-content:center;padding:32px 16px;overflow-y:auto}
+.sc-overlay[hidden]{display:none}
+.sc-dialog{background:var(--bg);border-radius:12px;max-width:1100px;width:100%;padding:48px 28px 20px;position:relative;box-shadow:0 12px 48px rgba(0,0,0,0.25)}
+.sc-close{position:absolute;top:10px;right:12px;background:none;border:none;font-size:28px;line-height:1;cursor:pointer;color:var(--text3);padding:4px 8px}
+.sc-close:hover{color:var(--text)}
+.sc-dialog .otd-match{margin-bottom:12px}
+body.sc-open{overflow:hidden}
+@media(max-width:600px){ .sc-overlay{padding:0} .sc-dialog{border-radius:0;padding:44px 14px 16px;min-height:100%} }
+
 /* ═══ Collapsible Filters Card (captaincy-style) ═══ */
 .filters-card{
   background:var(--surface);border:1px solid var(--border);border-radius:12px;
@@ -976,6 +990,15 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
     <div id="otdScorecards"><p class="otd-note">Loading scorecards…</p></div>
     <p class="otd-note">† wicketkeeper.<span id="otdBlbwNote" hidden> b/lbw: bowled or lbw — the record doesn’t say which.</span></p>
   </div><!-- /tab-panel onthisday -->
+
+  <!-- Scorecard pop-up for a Test # in Match History (2026-10-27) -->
+  <div class="sc-overlay" id="scOverlay" hidden>
+    <div class="sc-dialog" role="dialog" aria-modal="true" aria-label="Scorecard">
+      <button type="button" class="sc-close" id="scClose" aria-label="Close">×</button>
+      <div id="scBody"></div>
+      <p class="otd-note">† wicketkeeper.<span id="scBlbwNote" hidden> b/lbw: bowled or lbw — the record doesn’t say which.</span></p>
+    </div>
+  </div>
 </div>
 
 <!-- SheetJS + shared export engine. Must load BEFORE the main script below:
@@ -2008,7 +2031,7 @@ function renderTable() {
                      : (multiSide && winnerName) ? winnerName + ' won'
                      : (m.result === 'Won' ? t1Name + ' won' : t2Name + ' won');
     return `<tr>
-      <td>${m.test}</td>
+      <td><a class="sc-link" href="?test=${m.test}" data-test="${m.test}" title="Open the scorecard">${m.test}</a></td>
       <td>${m.year}</td>
       <td style="white-space:nowrap;color:var(--text2)">${m.date || '\u2014'}</td>
       <td${twoPeriods ? ' style="font-weight:700;color:var(--text3)"' : ' style="display:none"'}>${periodTag}</td>
@@ -3245,6 +3268,44 @@ async function renderOtdTab() {
     console.warn('[countries] On this day:', e && e.message);
   }
 }
+
+// ── Scorecard pop-up from Match History (2026-10-27) ──
+// A Test # is a real link (?test=N), so it opens in a new tab too; a plain
+// click opens the card over the page instead. ?test=N on load opens it.
+async function openScorecard(k) {
+  const ov = document.getElementById('scOverlay'), body = document.getElementById('scBody');
+  body.innerHTML = '<p class="otd-note">Loading scorecard…</p>';
+  ov.hidden = false;
+  document.body.classList.add('sc-open');
+  document.getElementById('scClose').focus();
+  try {
+    const D = await loadImpactData();
+    body.innerHTML = otdScorecardHTML(D, k);
+    document.getElementById('scBlbwNote').hidden = !/>b\/lbw /.test(body.innerHTML);
+  } catch (e) {
+    body.innerHTML = '<p class="otd-note">The scorecard could not be loaded. Please try again in a moment.</p>';
+  }
+}
+function closeScorecard() {
+  document.getElementById('scOverlay').hidden = true;
+  document.body.classList.remove('sc-open');
+  if (new URLSearchParams(location.search).has('test')) {
+    try { history.replaceState(null, '', location.pathname + location.hash); } catch (e) { /* non-fatal */ }
+  }
+}
+document.getElementById('matchTbody').addEventListener('click', e => {
+  const a = e.target.closest('a.sc-link');
+  if (!a || e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+  e.preventDefault();
+  openScorecard(parseInt(a.dataset.test, 10));
+});
+document.getElementById('scClose').addEventListener('click', closeScorecard);
+document.getElementById('scOverlay').addEventListener('click', e => { if (e.target.id === 'scOverlay') closeScorecard(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !document.getElementById('scOverlay').hidden) closeScorecard(); });
+(function () {
+  const t = parseInt(new URLSearchParams(location.search).get('test'), 10);
+  if (t > 0) openScorecard(t);
+})();
 
 // ── Top-level tabs (Head-to-Head / Impact Analysis / On this day) ──
 // The URL hash follows the tab (#impact), so a shared link or a reload
