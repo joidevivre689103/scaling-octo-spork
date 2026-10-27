@@ -257,6 +257,20 @@ body{
   .feed-col.first, .feed-col.quiz-widget.first{ padding-top:0 !important; border-top:none !important; margin-top:0; }
 }
 .wtc-pointer{ padding:24px 0 22px; border-bottom:1px solid var(--border); }
+.listen-strip{ padding:24px 0 22px; border-bottom:1px solid var(--border); }
+.listen-strip[hidden]{ display:none; }
+.listen-kicker{ font-family:'Inter',sans-serif; font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:var(--accent); margin:0 0 12px; }
+.listen-row{ display:flex; gap:18px; align-items:flex-start; }
+.listen-play{ flex:none; width:52px; height:52px; border-radius:50%; border:none; background:var(--accent); color:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+.listen-play:hover{ background:var(--accent-hover); }
+.listen-play svg{ width:20px; height:20px; fill:currentColor; }
+.listen-text{ min-width:0; }
+.listen-title{ font-family:'Playfair Display',serif; font-size:24px; font-weight:700; line-height:1.25; margin:0 0 6px; }
+.listen-title a{ color:var(--text); text-decoration:none; }
+.listen-title a:hover{ color:var(--accent); }
+.listen-point{ font-size:17px; line-height:1.55; color:var(--text2); margin:0 0 8px; }
+.listen-meta{ font-family:'Inter',sans-serif; font-size:12px; color:var(--text3); margin:0; display:flex; gap:12px; flex-wrap:wrap; font-variant-numeric:tabular-nums; }
+.listen-meta a{ color:var(--accent); text-decoration:none; }
 .wtc-pointer[hidden]{ display:none; }
 .wtc-pointer-kicker{ font-family:'Inter',sans-serif; font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:var(--accent); margin:0 0 8px; }
 .wtc-pointer-body{ font-size:17px; line-height:1.6; color:var(--text2); margin:0 0 10px; max-width:820px; }
@@ -885,6 +899,25 @@ body.articles-loading .analysis-section{ visibility:hidden; }
 
 
   <!-- HERO -->
+  <!-- LISTEN (2026-10-27): the newest voice note — an audio-only post from
+       the CMS — while it is inside the homepage window. Your recording, with
+       your one-line point; the transcript, if there is one, is on its page.
+       Hidden when there is no voice note. Filled by renderListenStrip(). -->
+  <section class="listen-strip" id="listenStrip" hidden aria-labelledby="listenTitle">
+    <p class="listen-kicker">Listen · <span id="listenWhen"></span></p>
+    <div class="listen-row">
+      <button type="button" class="listen-play" id="listenPlay" aria-label="Play">
+        <svg viewBox="0 0 24 24" id="listenIcon"><polygon points="6 4 20 12 6 20 6 4"/></svg>
+      </button>
+      <div class="listen-text">
+        <h2 class="listen-title"><a id="listenTitle" href="#"></a></h2>
+        <p class="listen-point" id="listenPoint"></p>
+        <p class="listen-meta"><span id="listenTime">0:00</span><span id="listenDur"></span><a id="listenTranscript" href="#" hidden>Read the transcript →</a></p>
+      </div>
+    </div>
+    <audio id="listenAudio" preload="metadata"></audio>
+  </section>
+
   <section class="hero-section" id="latest" data-nav="Latest" data-nav-target="latest">
     <!--
       Hero and sidebar are populated by the loadArticles() IIFE further
@@ -1204,6 +1237,39 @@ function hideArticlesStatus() {
   if (status) status.classList.add('is-hidden');
 }
 
+function renderListenStrip(v) {
+  const href = 'article.html?id=' + encodeURIComponent(v.id);
+  const title = document.getElementById('listenTitle');
+  title.textContent = v.headline || 'Voice note';
+  title.href = href;
+  document.getElementById('listenPoint').textContent = v.summary || '';
+  const t = articleTime(v);
+  document.getElementById('listenWhen').textContent = t ? new Date(t).toLocaleDateString('en-GB', { day: 'numeric', month: 'long' }) : '';
+  if (v.transcript && String(v.transcript).trim()) {
+    const tr = document.getElementById('listenTranscript');
+    tr.href = href + '#transcript';
+    tr.hidden = false;
+  }
+  const audio = document.getElementById('listenAudio');
+  const btn = document.getElementById('listenPlay');
+  const icon = document.getElementById('listenIcon');
+  const fmt = sec => { sec = Math.max(0, Math.round(sec || 0)); return Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0'); };
+  audio.src = v.audioUrl;
+  audio.addEventListener('loadedmetadata', () => {
+    if (isFinite(audio.duration)) document.getElementById('listenDur').textContent = '/ ' + fmt(audio.duration);
+  });
+  audio.addEventListener('timeupdate', () => { document.getElementById('listenTime').textContent = fmt(audio.currentTime); });
+  const setIcon = playing => {
+    icon.innerHTML = playing ? '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>' : '<polygon points="6 4 20 12 6 20 6 4"/>';
+    btn.setAttribute('aria-label', playing ? 'Pause' : 'Play');
+  };
+  audio.addEventListener('play', () => setIcon(true));
+  audio.addEventListener('pause', () => setIcon(false));
+  audio.addEventListener('ended', () => setIcon(false));
+  btn.addEventListener('click', () => { if (audio.paused) audio.play(); else audio.pause(); });
+  document.getElementById('listenStrip').hidden = false;
+}
+
 (async function loadArticles() {
   try {
     // Wait briefly for Firestore to be ready (initialised in module script above)
@@ -1223,6 +1289,19 @@ function hideArticlesStatus() {
     );
     if (snap.empty) { showArticlesEmptyState(); return; }
     let articles = snap.docs.map(d => ({ firestoreId: d.id, ...d.data() }));
+    // Voice notes (2026-10-27): the newest audio-only post leads the Listen
+    // strip while it is inside the homepage window, and a fresh voice note or
+    // article (last 7 days) settles the feed row's placement. Done before the
+    // audio-only posts are filtered out, and before any empty-state return.
+    try {
+      let voices = articles.filter(a => a.audioOnly && a.audioEnabled !== false && a.audioUrl);
+      if (window.CTArticleWindow && voices.length) {
+        try { voices = window.CTArticleWindow.filterToLiveWindow(voices, await window.CTArticleWindow.getWindowDays(window._fsDb)); } catch (e) {}
+      }
+      voices.sort((x, y) => articleTime(y) - articleTime(x));
+      if (voices[0]) renderListenStrip(voices[0]);
+    } catch (e) { console.warn('[listen] not shown:', e && e.message); }
+    _resolveArticlesFresh(articles.some(a => (!a.audioOnly || a.audioUrl) && Date.now() - articleTime(a) < FRESH_ARTICLE_DAYS * 864e5));
     // Audio-only standalones live on audio.html and the podcast feed,
     // not on the homepage. They have no article body and would render
     // as empty cards here. The flag is content-type metadata only;

@@ -381,6 +381,10 @@ body{
 }
 
 /* ─── ARTICLE BODY ─── */
+.article-transcript{ margin:28px 0 8px; border-top:1px solid var(--border); padding-top:16px; }
+.article-transcript summary{ cursor:pointer; font-family:'Inter',sans-serif; font-size:13px; font-weight:600; letter-spacing:0.04em; color:var(--accent); }
+.article-transcript .transcript-note{ font-family:'Inter',sans-serif; font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text3); margin:14px 0 10px; }
+.article-transcript p{ font-size:17px; line-height:1.7; margin:0 0 14px; }
 .article-body{
   font-size:19px;
   line-height:1.8;
@@ -1446,7 +1450,7 @@ function renderArticle(container, article, related) {
               <svg viewBox="0 0 24 24" id="audioPlayIcon"><polygon points="5 3 19 12 5 21 5 3"/></svg>
             </button>
             <div class="audio-bar-info">
-              <div class="audio-bar-label">Listen to this article${
+              <div class="audio-bar-label">${article.audioOnly ? 'Listen' : 'Listen to this article'}${
                 article.audioSource === 'ai'
                   ? ' <span class="audio-bar-badge audio-bar-badge-ai" title="AI-generated narration">AI</span>'
                   : article.audioSource === 'recorded'
@@ -1470,6 +1474,12 @@ function renderArticle(container, article, related) {
         : ''}
 
       <div class="article-body">${bodyHTML}</div>
+      ${article.transcript && String(article.transcript).trim() ? `
+      <details class="article-transcript" id="transcript">
+        <summary>Read the transcript</summary>
+        <p class="transcript-note">Transcript of the recording.</p>
+        ${String(article.transcript).trim().split(/\n\s*\n+/).map(p => `<p>${esc(p.trim())}</p>`).join('')}
+      </details>` : ''}
 
       <div class="article-footer">
         <div class="article-tags">
@@ -1588,6 +1598,17 @@ function formatAudioTime(s) {
 }
 // Expose to global scope (script type="module" scopes functions)
 window.toggleAudioPlayback = toggleAudioPlayback;
+// "Read the transcript →" from the homepage's Listen strip links to #transcript:
+// open the folded transcript once the post has rendered (2026-10-27).
+(function openTranscriptFromHash() {
+  if (location.hash !== '#transcript') return;
+  let n = 0;
+  const t = setInterval(() => {
+    const d = document.getElementById('transcript');
+    if (d) { d.open = true; d.scrollIntoView({ behavior: 'smooth', block: 'start' }); clearInterval(t); }
+    else if (++n > 50) clearInterval(t);
+  }, 200);
+})();
 window.seekAudio = seekAudio;
 
 // ═══════════════════════════════════════════════════════════════════════════
