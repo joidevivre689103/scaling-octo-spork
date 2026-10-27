@@ -232,7 +232,10 @@ body{
 .otd-more:hover{ color:var(--accent-hover); text-decoration:underline; }
 /* WTC race strip (2026-10-27): the top chances of reaching the final, from the
    public liveScores/wtc document; the full table is on /wtc.html (free). */
-.wtc-strip{ padding:22px 0 20px; border-bottom:1px solid var(--border); }
+.wtc-strip{ padding:30px 0 28px; }
+.wtc-pointer{ font-family:'Inter',sans-serif; font-size:13px; color:var(--text2); padding:14px 0; border-bottom:1px solid var(--border); margin:0; }
+.wtc-pointer[hidden]{ display:none; }
+.wtc-pointer span{ color:var(--accent); font-weight:600; white-space:nowrap; }
 .wtc-strip[hidden]{ display:none; }
 .wtc-strip-row{ display:flex; align-items:baseline; gap:22px; flex-wrap:wrap; }
 .wtc-strip-title{ font-family:'Playfair Display',serif; font-size:20px; font-weight:700; margin:0; }
@@ -811,17 +814,11 @@ body.articles-loading .analysis-section{ visibility:hidden; }
     <a class="otd-more" id="otdMore" href="/countries.html">More from the archive →</a>
   </section>
 
-  <!-- WTC RACE (2026-10-27). Filled by loadWtcStrip() from the public
-       liveScores/wtc document (written daily by super-fortnight's wtc.yml).
-       Hidden until it has something to show. -->
-  <section class="wtc-strip" id="wtcStrip" hidden aria-labelledby="wtc-strip-title">
-    <div class="wtc-strip-row">
-      <h2 class="wtc-strip-title" id="wtc-strip-title">The race to Lord's</h2>
-      <div class="wtc-strip-teams" id="wtcStripTeams"></div>
-      <a class="wtc-strip-more" href="/wtc.html">Every team's chance →</a>
-    </div>
-    <p class="wtc-strip-note">Chance of reaching the World Test Championship final · updated daily</p>
-  </section>
+  <!-- WTC RACE pointer (2026-10-27). The strip itself sits at the BOTTOM of
+       the page, so a reader passes the articles on the way to it (IJ: the
+       Costco rotisserie chicken lives at the back of the store). This line
+       only tells them it is there; deliberately not a link. -->
+  <p class="wtc-pointer" id="wtcPointer" hidden>What are your team's chances of reaching the WTC final? <span>Scroll to the bottom ↓</span></p>
 
   <!-- HERO -->
   <section class="hero-section" id="latest" data-nav="Latest" data-nav-target="latest">
@@ -981,6 +978,21 @@ body.articles-loading .analysis-section{ visibility:hidden; }
     </div>
   </div>
 </section>
+
+<!-- WTC RACE (2026-10-27) — at the bottom of the page on purpose (see the
+     pointer near the top). Filled by loadWtcStrip() from the public
+     liveScores/wtc document (written daily by super-fortnight's wtc.yml).
+     Hidden, with its pointer, until it has something to show. -->
+<div class="main">
+  <section class="wtc-strip" id="wtcStrip" hidden aria-labelledby="wtc-strip-title">
+    <div class="wtc-strip-row">
+      <h2 class="wtc-strip-title" id="wtc-strip-title">The race to Lord's</h2>
+      <div class="wtc-strip-teams" id="wtcStripTeams"></div>
+      <a class="wtc-strip-more" href="/wtc.html">Every team's chance →</a>
+    </div>
+    <p class="wtc-strip-note">Chance of reaching the World Test Championship final · updated daily</p>
+  </section>
+</div>
 
 <!-- FOOTER -->
 <footer data-ct-nav="footer"></footer>
@@ -1359,6 +1371,7 @@ function resetSnippetTimer() { startSnippetTimer(); }
       box.appendChild(a);
     });
     document.getElementById('wtcStrip').hidden = false;
+    document.getElementById('wtcPointer').hidden = false;
   } catch (err) {
     console.warn('[wtc-strip] not shown:', err && err.message);
   }
