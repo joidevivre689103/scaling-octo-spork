@@ -12,7 +12,8 @@
 <script src="/feature-flags.js"></script>
 <script src="/prelaunch-guard.js"></script>
 <script src="/ct-appcheck.js"></script>
-<script src="/ct-data-loader.js"></script><!-- Phase 3 §3: gated derived-data loader -->
+<script src="/ct-data-loader.js"></script>
+<script src="/ct-urlstate.js"></script><!-- share row (2026-10-27) --><!-- Phase 3 §3: gated derived-data loader -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -802,15 +803,7 @@ header.header{display:none !important}
         <option value="bowling">Bowling</option>
       </select>
     </div>
-    <!-- Share (2026-10-27). The old Share button sits in the legacy .header, which
-         is hidden since the shared masthead/nav took over, so it was never seen. -->
-    <button type="button" class="share-btn" id="cmpShareBtn" style="margin-left:auto" onclick="shareComparison()" title="Share this comparison">
-      <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle>
-        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-      </svg>
-      <span>Share</span>
-    </button>
+    <!-- WhatsApp · X · Copy share row, mounted by compareShareRow() (2026-10-27). -->
   </div>
 
   <div class="sel-area" id="selArea">
@@ -3487,6 +3480,34 @@ function shareCurrentView(){
   } else { fallbackShare(url, label); }
 }
 
+// WhatsApp · X · Copy, as on the Yorker (2026-10-27). The message names the
+// players in whichever mode is on; the link is the page's own address.
+function compareShareText(){
+  const nm = p => p.fullName || p.name;
+  const t = document.getElementById('fRecordType').value;
+  let label = '';
+  if (t === 'against') {
+    const f = againstSel[0], vs = againstSel.slice(1, againstSlotCount + 1).filter(Boolean);
+    if (f && vs.length) label = nm(f) + ' against ' + vs.map(nm).join(', ');
+  } else if (partnershipMode) {
+    label = getCompletePartnerships().map(x => nm(x.playerA) + ' & ' + nm(x.playerB)).join(' vs ');
+  } else if (cohortMode) {
+    label = cohortGroups.map(g => g.filter(Boolean).map(nm).join(', ')).filter(Boolean).join(' vs ');
+  } else {
+    label = activeSel().map(nm).join(' vs ');
+  }
+  return (label ? label + ' — ' : '') + 'Test cricket compared · The Grass Bank';
+}
+function compareShareRow(){
+  if (!window.CTUrlState) return;
+  CTUrlState.mountShareRow(document.querySelector('.record-type-filter'), {
+    inline: true,
+    text: compareShareText,
+    url: () => location.origin + location.pathname + '?' + buildStateParams().toString().replace(/%2C/g, ','),
+  });
+}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', compareShareRow); else compareShareRow();
+
 function shareComparison(){
   if(document.getElementById('fRecordType').value === 'against' || partnershipMode || cohortMode){ shareCurrentView(); return; }
   const players = activeSel();
@@ -3523,7 +3544,7 @@ function fallbackShare(url, playerNames){
   tryClipboard().then(success => { if(!success) showShareDialog(url, playerNames); });
 }
 function showCopiedFeedback(){
-  const btn = document.getElementById('cmpShareBtn') || document.querySelector('.share-btn'); const originalHTML = btn.innerHTML;
+  const btn = document.querySelector('.share-btn'); const originalHTML = btn.innerHTML;
   btn.innerHTML = '<svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;stroke:currentColor;fill:none"><polyline points="20 6 9 17 4 12"></polyline></svg><span>Copied!</span>';
   btn.style.color = 'var(--green)'; btn.style.borderColor = 'var(--green)';
   setTimeout(()=>{ btn.innerHTML = originalHTML; btn.style.color = ''; btn.style.borderColor = ''; }, 2000);

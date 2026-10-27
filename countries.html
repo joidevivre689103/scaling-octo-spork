@@ -669,12 +669,6 @@ body.sc-open{overflow:hidden}
       <div class="page-title">Country Records</div>
       <div class="page-desc">Head-to-head Test match records &amp; milestone impact analysis</div>
     </div>
-    <button class="share-btn" id="shareBtn" title="Copy link to this page" onclick="shareCountries(event)">
-      <svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/>
-        <circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
-        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-      Share
-    </button>
   </div>
 
   <!-- ═══ Stats Banner ═══ -->
@@ -2388,6 +2382,14 @@ function buildH2HFromData(D) {
     if (tt) tt.textContent = Object.keys(D.M).length.toLocaleString('en-US');
     updateResults();
     attachH2HUrlState();
+    // WhatsApp · X · Copy, as on the Yorker (2026-10-27).
+    if (window.CTUrlState) CTUrlState.mountShareRow(document.querySelector('.page-head'), {
+      inline: true,
+      text: () => {
+        const side = ms => ms.isAll() ? 'All countries' : (ms.get().map(c => TEAM_NAMES[c] || c).join(', ') || 'All countries');
+        return `${side(ms1)} v ${side(ms2)} — Test head-to-head · The Grass Bank`;
+      },
+    });
   } catch (e) {
     console.error('Failed to load match data:', e);
     const noData = document.getElementById('noData');
