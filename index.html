@@ -232,7 +232,7 @@ body{
 .otd-more:hover{ color:var(--accent-hover); text-decoration:underline; }
 /* WTC race strip (2026-10-27): the top chances of reaching the final, from the
    public liveScores/wtc document; the full table is on /wtc.html (free). */
-.wtc-strip{ padding:30px 0 28px; }
+.wtc-strip{ padding:24px 0 22px; border-bottom:1px solid var(--border); }
 .feed-row{ display:grid; grid-template-columns:1fr 1fr; gap:0; padding:26px 0 22px; border-bottom:1px solid var(--border); }
 .feed-row[hidden], .feed-col[hidden]{ display:none; }
 .feed-row{ grid-template-columns:repeat(var(--feed-cols,3),minmax(0,1fr)); }
@@ -878,15 +878,16 @@ body.articles-loading .analysis-section{ visibility:hidden; }
 
   <!-- WTC RACE pointer (2026-10-27). ALWAYS the second module, straight after
        On this day (IJ): it needs the visibility, or readers take the first row
-       and move on. The strip itself sits at the BOTTOM of
-       the page, so a reader passes the articles on the way to it (IJ: the
-       Costco rotisserie chicken lives at the back of the store). This line
-       only tells them it is there; deliberately not a link. -->
+       and move on. The race itself sits under the Latest completed Test row
+       (since 2026-10-28; at the bottom of the page before that), which moves
+       below the articles when there is a fresh one, so a reader passes them on
+       the way (IJ: the Costco rotisserie chicken lives at the back of the
+       store). This line only tells them it is there; deliberately not a link. -->
   <section class="wtc-pointer" id="wtcPointer" hidden aria-label="World Test Championship">
     <div class="wtc-pointer-main">
       <p class="wtc-pointer-kicker" id="wtcPointerKicker">World Test Championship</p>
       <p class="wtc-pointer-body" id="wtcPointerBody"></p>
-      <p class="wtc-pointer-q">Think your team will make it? What are your team's chances of reaching the WTC final? <span>Scroll to the bottom ↓</span></p>
+      <p class="wtc-pointer-q">Think your team will make it? What are your team's chances of reaching the WTC final? <span>Scroll down ↓</span></p>
     </div>
     <!-- The figures that set up the race (2026-10-27, IJ: option 1) — never
          the chances themselves, which stay at the bottom of the page. -->
@@ -928,6 +929,22 @@ body.articles-loading .analysis-section{ visibility:hidden; }
       <ul class="feed-list" id="milestoneList"></ul>
     </div>
   </section>
+
+  <!-- THE RACE TO LORD'S (2026-10-27; moved 2026-10-28, IJ: it belongs with the
+       row above). Directly under Latest completed Test · Coming up · Milestone
+       watch, and it moves with that row: below the articles when there is a
+       fresh one (refreshFeedRow), so the pointer near the top still leads the
+       reader past the articles to it. Filled by loadWtcStrip() from the public
+       liveScores/wtc document. Hidden, with its pointer, until it has data. -->
+  <section class="wtc-strip" id="wtcStrip" hidden aria-labelledby="wtc-strip-title">
+    <div class="wtc-strip-row">
+      <h2 class="wtc-strip-title" id="wtc-strip-title">The race to Lord's</h2>
+      <div class="wtc-strip-teams" id="wtcStripTeams"></div>
+      <a class="wtc-strip-more" href="/wtc.html">Every team's chance →</a>
+    </div>
+    <p class="wtc-strip-note">Chance of reaching the World Test Championship final · updated as soon as we get the data</p>
+  </section>
+
 
 
   <!-- HERO -->
@@ -1111,21 +1128,6 @@ body.articles-loading .analysis-section{ visibility:hidden; }
     </div>
   </div>
 </section>
-
-<!-- WTC RACE (2026-10-27) — at the bottom of the page on purpose (see the
-     pointer near the top). Filled by loadWtcStrip() from the public
-     liveScores/wtc document (written daily by super-fortnight's wtc.yml).
-     Hidden, with its pointer, until it has something to show. -->
-<div class="main">
-  <section class="wtc-strip" id="wtcStrip" hidden aria-labelledby="wtc-strip-title">
-    <div class="wtc-strip-row">
-      <h2 class="wtc-strip-title" id="wtc-strip-title">The race to Lord's</h2>
-      <div class="wtc-strip-teams" id="wtcStripTeams"></div>
-      <a class="wtc-strip-more" href="/wtc.html">Every team's chance →</a>
-    </div>
-    <p class="wtc-strip-note">Chance of reaching the World Test Championship final · updated as soon as we get the data</p>
-  </section>
-</div>
 
 <!-- FOOTER -->
 <footer data-ct-nav="footer"></footer>
@@ -1622,16 +1624,26 @@ async function refreshFeedRow() {
   cols[0].classList.add('first');
   cols[cols.length - 1].classList.add('last');
   row.style.setProperty('--feed-cols', cols.length);
+  await placeFeedRow();
+  row.hidden = false;
+}
+
+// Decide once where the row and the race strip under it go: below the
+// articles when there is a fresh one (IJ), else where they are. Both wait for
+// this before they show, so neither jumps.
+function placeFeedRow() {
   if (!_feedPlaced) {
     _feedPlaced = Promise.race([window._articlesFresh, new Promise(r => setTimeout(() => r(false), 4000))]).then(fresh => {
-      if (fresh) {
-        const after = document.getElementById('analysis');
-        if (after && after.parentNode) after.parentNode.insertBefore(row, after.nextSibling);
+      const row = document.getElementById('feedRow');
+      const after = document.getElementById('analysis');
+      if (fresh && row && after && after.parentNode) {
+        after.parentNode.insertBefore(row, after.nextSibling);
+        const strip = document.getElementById('wtcStrip');      // the race moves with the row
+        if (strip) row.parentNode.insertBefore(strip, row.nextSibling);
       }
     });
   }
-  await _feedPlaced;
-  row.hidden = false;
+  return _feedPlaced;
 }
 
 (async function loadTicker() {
@@ -1708,6 +1720,7 @@ async function refreshFeedRow() {
       a.appendChild(b);
       box.appendChild(a);
     });
+    await placeFeedRow();
     document.getElementById('wtcStrip').hidden = false;
     // The pointer's copy, from the same document so its numbers stay true as
     // the cycle goes on: nations, Tests in the cycle, Tests left, and the
