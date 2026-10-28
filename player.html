@@ -221,10 +221,11 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
       fix.appendChild(document.createTextNode(' and we will put it right.'));
       src.appendChild(fix);
     }
-    // Figures: counted by us, from other people's scorecards. Cricsheet's
+    // Figures: calculated by us, from other people's scorecards ("compiled" is
+    // the footer's word for Ananth's work, so not used for ours). Cricsheet's
     // ODC-BY licence and Ananth's permission both need crediting, so this
     // names them rather than calling the figures "our own" (IJ, 2026-10-28).
-    src.appendChild(el('p', 'own', 'Figures counted by The Grass Bank from Test scorecards by Cricsheet and Ananth Narayanan (credits at the foot of the page).'));
+    src.appendChild(el('p', 'own', 'Figures calculated by The Grass Bank from Test scorecards by Cricsheet and Ananth Narayanan (credits at the foot of the page).'));
     main.appendChild(src);
 
     if (window.CTUrlState) {
