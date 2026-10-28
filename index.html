@@ -294,6 +294,18 @@ body{
 .wtc-pointer-q span{ font-family:'Inter',sans-serif; font-size:13px; font-weight:600; color:var(--accent); white-space:nowrap; margin-left:10px; }
 
 .wtc-strip[hidden]{ display:none; }
+/* A TO Z (2026-10-28, IJ): the first letter of every title and nav link on the
+   homepage in one colour, so the alphabet can be spotted. See the A TO Z
+   comment at the top of the body for the list. Homepage only: these rules
+   live in index.html, so the nav on other pages is unchanged. */
+.ct-nav-bar .ct-nav-link::first-letter,
+#pageNav .nav-link::first-letter,
+.otd-title::first-letter, .feed-title::first-letter, .sidebar-title::first-letter,
+.snippets-title::first-letter, .section-title::first-letter, #statsPromo-title::first-letter,
+.stat-card-title::first-letter, .sim-feature-title::first-letter, .home-card-title::first-letter,
+.ct-nl__heading::first-letter, .wtc-pointer-kicker::first-letter, .wtc-strip-title::first-letter{
+  color:var(--gold,#b07a1c);
+}
 .wtc-cloche{ margin:40px 0 44px; padding:34px 28px 30px; background:var(--surface,#fffdf8); border:1px solid var(--border); border-radius:10px; text-align:center; }
 .wtc-cloche-kicker{ font-family:'Inter',sans-serif; font-size:11px; font-weight:700; letter-spacing:.28em; text-transform:uppercase; color:var(--accent,#8b0000); }
 .wtc-cloche .wtc-strip-title{ font-family:'Playfair Display',serif; font-size:34px; font-weight:700; color:var(--text); margin:8px 0 6px; }
@@ -309,8 +321,8 @@ body{
 .wtc-cloche-dome::after{ content:""; position:absolute; right:9%; top:24%; width:6px; height:28%; border-radius:50%; background:linear-gradient(180deg, rgba(255,255,255,.7), rgba(255,255,255,0)); transform:rotate(-12deg); pointer-events:none; }
 .wtc-cloche-knob{ position:absolute; left:50%; top:-15px; width:30px; height:15px; transform:translateX(-50%); border-radius:16px 16px 4px 4px; background:linear-gradient(180deg,#e4c98d,#a8823f); box-shadow:0 2px 4px rgba(60,40,20,.25); }
 .wtc-cloche-stand{ position:relative; max-width:1120px; height:9px; margin:0 auto; border-radius:0 0 6px 6px; background:linear-gradient(180deg,#e1c58a,#a07a38); box-shadow:0 6px 14px rgba(60,40,20,.18); }
-/* A nod to the $4.99 rotisserie chicken, engraved on the stand (IJ,
-   2026-10-28). Keep it as is. */
+/* No. 4·999, engraved on the stand: the $4.99 rotisserie chicken, and the
+   Don's 99.94 (IJ, 2026-10-28). Keep it as is. */
 .wtc-cloche-plaque{ position:absolute; left:50%; top:3px; transform:translateX(-50%); padding:3px 12px 4px; background:linear-gradient(180deg,#d9bb7c,#a8823f); border-radius:0 0 5px 5px; font-family:'Playfair Display',serif; font-size:11px; font-weight:700; letter-spacing:.14em; color:#5a4220; text-shadow:0 1px 0 rgba(255,240,200,.6); box-shadow:inset 0 1px 2px rgba(60,40,20,.35); white-space:nowrap; }
 .wtc-cloche-items{ position:relative; display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:10px; }
 .wtc-cloche-item{ position:relative; display:flex; flex-direction:column; align-items:center; padding:10px 6px 12px; text-decoration:none; color:var(--text); border-right:1px solid rgba(150,120,80,.18); }
@@ -1219,7 +1231,7 @@ body.articles-loading .analysis-section{ visibility:hidden; }
       <span class="wtc-cloche-knob" aria-hidden="true"></span>
       <div class="wtc-cloche-items" id="wtcStripTeams"></div>
     </div>
-    <div class="wtc-cloche-stand" aria-hidden="true"><span class="wtc-cloche-plaque">No. 4&middot;99</span></div>
+    <div class="wtc-cloche-stand" aria-hidden="true"><span class="wtc-cloche-plaque">No. 4&middot;999</span></div>
     <div class="wtc-cloche-foot">
       <a class="wtc-cloche-cta" href="/wtc.html">Every team&rsquo;s chances &rarr;</a>
       <p class="wtc-strip-note" id="wtcFresh">The table and every team&rsquo;s chance are free to see, no account needed.</p>
