@@ -3287,6 +3287,9 @@ function otdScorecardHTML(D, k, h2h) {
   // batted first; the batters' own country (D.P p[3]) decides that.
   const tossWinner = (T[m[5]] === t1 || T[m[5]] === t2) ? T[m[5]] : null;
   const rows = D.S.filter(s => s[0] === k);
+  // A Test the site has only as Wikipedia's summary so far (2026-10-28; D.WK):
+  // innings totals, wickets and each innings' top batter and bowler, no card.
+  const wkSum = !rows.length ? (D.WK || {})[String(k)] : null;
   const batted = s => s[4] !== null && s[4] !== undefined;
   const byCountry = inn => {
     const bat = rows.filter(s => s[2] === inn && batted(s));
@@ -3294,7 +3297,7 @@ function otdScorecardHTML(D, k, h2h) {
     const n2 = bat.filter(s => country.get(s[1]) === t2).length;
     return n1 * 2 > bat.length ? t1 : n2 * 2 > bat.length ? t2 : null;
   };
-  const first = byCountry(1) || tossWinner || t1;
+  const first = (wkSum && T[wkSum.order[0]]) || byCountry(1) || tossWinner || t1;
   const other = first === t1 ? t2 : t1;
   // The toss for Tests Cricsheet doesn't cover (and the few it covers without
   // one): Ananth's winner, and "bat" if that side batted first, else "field".
@@ -3311,14 +3314,15 @@ function otdScorecardHTML(D, k, h2h) {
     <p class="otd-match-sub">${[pick(D.MN, m[11]), [pick(D.G, m[1]), pick(D.C, m[0])].filter(Boolean).join(', '),
       formatMatchDate(pick(D.DT, m[10])), pick(D.SR, m[9])].filter(Boolean).map(otdEsc).join(' · ')}</p>
     <p class="otd-match-result">${otdEsc(pick(D.R, m[8]))}</p>${toss
-      ? `<p class="otd-match-toss">${otdEsc(toss[0])} won the toss and chose to ${toss[1] === 'bat' ? 'bat' : 'field'}</p>` : ''}`;
+      ? `<p class="otd-match-toss">${otdEsc(toss[0])} won the toss and chose to ${toss[1] === 'bat' ? 'bat' : 'field'}</p>` : ''}${wkSum
+      ? `<p class="otd-note">Match summary only — the full scorecard will follow.</p>` : ''}`;
 
   played.forEach(inn => {
     const bat = rows.filter(s => s[2] === inn && batted(s));
     const ids = new Set(bat.map(s => s[1]));
     // Which side batted: the batters' own country (D.P p[3]) decides it; the
     // older rules are only for an innings with no card or no clear majority.
-    const side = byCountry(inn)
+    const side = (wkSum && T[wkSum.order[inn - 1]]) || byCountry(inn)
       || (inn === 1 ? first
         : bat.length && inn1.size ? (([...ids].filter(x => inn1.has(x)).length * 2 > ids.size) ? first : other)
         : (inn % 2 ? first : other));
@@ -3326,8 +3330,9 @@ function otdScorecardHTML(D, k, h2h) {
     const notOuts = bat.length - wk;
     if (wk >= 10 || (notOuts <= 1 && bat.length < 11 && wk >= 9)) wk = 10;
     const total = totals[inn - 1];
-    const totalTxt = !bat.length ? String(total) : wk >= 10 ? `${total} all out`
-      : `${total}/${wk}${inn !== last ? ' declared' : ''}`;
+    if (wkSum && !bat.length) wk = wkSum.wkts[inn - 1];
+    const totalTxt = (!bat.length && !wkSum) ? String(total) : wk >= 10 ? `${total} all out`
+      : `${total}/${wk}${(wkSum && !bat.length ? wkSum.decl[inn - 1] : inn !== last) ? ' declared' : ''}`;
     const showBalls = bat.some(s => s[5] > 0);
     const runsSum = bat.reduce((a, s) => a + (s[3] || 0), 0);
     const extras = bat.length ? total - runsSum : null;
@@ -3341,7 +3346,13 @@ function otdScorecardHTML(D, k, h2h) {
     });
     if (extras !== null && extras > 0) bt += `<tr class="otd-extras"><td class="left" colspan="2">Extras</td><td>${extras}</td>${showBalls ? '<td></td>' : ''}</tr>`;
     bt += `<tr class="otd-sum"><td class="left" colspan="2">Total</td><td class="otd-total" colspan="${showBalls ? 2 : 1}">${otdEsc(totalTxt)}</td></tr>`;
-    if (!bat.length) bt = `<div class="tbl-wrap"><table class="rec-table"><tbody><tr><td class="left">No batting card recorded for this innings.</td></tr>`;
+    if (!bat.length && wkSum) {
+      const top = wkSum.top[inn - 1] || {};
+      bt = `<div class="tbl-wrap"><table class="rec-table"><tbody>`
+        + (top.bat ? `<tr><td class="left">Top score</td><td class="left">${otdEsc(top.bat)}</td></tr>` : '')
+        + (top.bowl ? `<tr><td class="left">Best bowling</td><td class="left">${otdEsc(top.bowl)}</td></tr>` : '')
+        + `<tr class="otd-sum"><td class="left">Total</td><td class="otd-total">${otdEsc(totalTxt)}</td></tr>`;
+    } else if (!bat.length) bt = `<div class="tbl-wrap"><table class="rec-table"><tbody><tr><td class="left">No batting card recorded for this innings.</td></tr>`;
     bt += '</tbody></table></div>';
 
     // Bowling for this innings sits on the FIELDING side's rows, under their own
@@ -3360,6 +3371,7 @@ function otdScorecardHTML(D, k, h2h) {
     });
     if (!bowl.length) bw += '<tr><td class="left" colspan="5">No bowling figures recorded.</td></tr>';
     bw += '</tbody></table></div>';
+    if (wkSum && !bowl.length) bw = '';        // a summary: its best bowling is shown with the innings
 
     // Fall of wickets sits under the bowling card, in the space beside the
     // batting card (stacked below it on phones).
