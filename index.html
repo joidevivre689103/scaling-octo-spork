@@ -441,12 +441,14 @@ body{
 .hero-sidebar{ padding-left:24px; }
 .sidebar-section{ margin-bottom:28px; }
 .sidebar-title{
-  font-family:'Inter',sans-serif;
-  font-size:10px;
+  /* 2026-10-28 (IJ): Googlies and Most Read as full titles, like the feed's
+     (was 10px grey uppercase Inter). */
+  font-family:'Playfair Display',serif;
+  font-size:22px;
   font-weight:700;
-  letter-spacing:1.8px;
-  text-transform:uppercase;
-  color:var(--text3);
+  letter-spacing:0;
+  text-transform:none;
+  color:var(--text);
   padding-bottom:10px;
   border-bottom:1px solid var(--border);
   margin-bottom:16px;
@@ -893,7 +895,8 @@ body.articles-loading .analysis-section{ visibility:hidden; }
              Quiz of the month · Run machines · The race to Lord's · Up next ·
              Viewpoints · World Test Championship · XI v XI · Zooters to bouncers
      Latest News, Features, Points of View and Most Read are written by
-     loadArticles(); Up next hides only when there is nothing to list. -->
+     loadArticles(). Milestone watch always shows; Up next hides only when
+     there is nothing to list. Repeated letters are fine. -->
 <!-- MASTHEAD -->
 <header data-ct-nav="masthead"></header>
 
@@ -1749,8 +1752,18 @@ function renderMilestones(d, next) {
     li.appendChild(a);
     ul.appendChild(li);
   });
-  document.getElementById('milestoneWatch').hidden = !ms.length;
-  return ms.length > 0;
+  // 2026-10-28 (IJ): Milestone watch always shows, with a line when nobody is
+  // close to one, rather than disappearing.
+  if (!ms.length) {
+    const li = document.createElement('li');
+    const t = document.createElement('span');
+    t.className = 'cu-teams';
+    t.textContent = 'No milestones in sight just now. Check back after the next Test.';
+    li.appendChild(t);
+    ul.appendChild(li);
+  }
+  document.getElementById('milestoneWatch').hidden = false;
+  return true;
 }
 
 let _feedPlaced = null;
