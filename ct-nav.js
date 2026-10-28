@@ -276,9 +276,9 @@
             '<span class="ct-footer-notice">Site code, content, and design may not be copied or republished without permission.</span>' +
           '</div>' +
           '<span class="ct-footer-attrib">' +
-            'Test match and player records compiled by Ananth Narayanan and used with permission.<br>' +
-            'Data derived from <a href="https://cricsheet.org/" target="_blank" rel="noopener">Cricsheet (cricsheet.org)</a>, ' +
-            'licensed under <a href="https://opendatacommons.org/licenses/by/1-0/" target="_blank" rel="noopener">ODC-BY 1.0</a>.' +
+            'Scorecards from 2008 from <a href="https://cricsheet.org/" target="_blank" rel="noopener">Cricsheet (cricsheet.org)</a>, ' +
+            'licensed under <a href="https://opendatacommons.org/licenses/by/1-0/" target="_blank" rel="noopener">ODC-BY 1.0</a>.<br>' +
+            'Earlier scorecards, Afghanistan\'s Tests and player details compiled by Ananth Narayanan and used with permission.' +
           '</span>' +
         '</div>' +
       '</div>';
