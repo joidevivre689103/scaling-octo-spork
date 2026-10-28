@@ -72,6 +72,7 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
 .sources h3{font-family:'Inter',sans-serif;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px}
 .sources a{color:var(--text2)}
 .sources .fix{margin-top:8px}
+.sources .own{margin-top:8px;font-weight:600;color:var(--text2)}
 .more{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
 .btn{display:inline-block;padding:10px 16px;border-radius:6px;font-family:'Inter',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;
   text-transform:uppercase;text-decoration:none;border:1.5px solid var(--accent);color:var(--accent);background:var(--surface)}
@@ -194,8 +195,11 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
     });
     main.appendChild(more);
 
+    // The bottom block is on every player page: sources and the corrections
+    // note when there is a written profile, and always "Figures are our own"
+    // as its last line (IJ, 2026-10-28).
+    var src = el('div', 'sources');
     if (d.profile && d.profile.sources && d.profile.sources.length) {
-      var src = el('div', 'sources');
       src.appendChild(el('h3', '', 'Sources'));
       var p2 = el('p');
       p2.appendChild(document.createTextNode('Written by The Grass Bank from public sources: '));
@@ -205,7 +209,7 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
         p2.appendChild(a);
         if (x.licence) p2.appendChild(document.createTextNode(' (' + x.licence + ')'));
       });
-      p2.appendChild(document.createTextNode('. Figures are our own.'));
+      p2.appendChild(document.createTextNode('.'));
       src.appendChild(p2);
       // Corrections (IJ, 2026-10-28): an easy way for a player, his family or
       // any reader to tell us something is wrong.
@@ -216,8 +220,9 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
       fix.appendChild(mail);
       fix.appendChild(document.createTextNode(' and we will put it right.'));
       src.appendChild(fix);
-      main.appendChild(src);
     }
+    src.appendChild(el('p', 'own', 'Figures are our own.'));
+    main.appendChild(src);
 
     if (window.CTUrlState) {
       CTUrlState.mountShareRow(document.getElementById('pageHead'), {
