@@ -304,8 +304,13 @@ body{
 .snippets-title::first-letter, .section-title::first-letter, #statsPromo-title::first-letter,
 .stat-card-title::first-letter, .sim-feature-title::first-letter, .home-card-title::first-letter,
 .ct-nl__heading::first-letter, .wtc-pointer-kicker::first-letter, .wtc-strip-title::first-letter{
-  color:var(--gold,#b07a1c);
+  /* antique gold, deeper than --gold so it reads on white and cream (~5:1) */
+  color:#8A6508;
 }
+/* In the two nav bars the letters are small capitals, so the first one is a
+   touch larger and heavier, like a drop cap. */
+.ct-nav-bar .ct-nav-link::first-letter,
+#pageNav .nav-link::first-letter{ font-size:1.3em; font-weight:800; }
 .wtc-cloche{ margin:40px 0 44px; padding:34px 28px 30px; background:var(--surface,#fffdf8); border:1px solid var(--border); border-radius:10px; text-align:center; }
 .wtc-cloche-kicker{ font-family:'Inter',sans-serif; font-size:11px; font-weight:700; letter-spacing:.28em; text-transform:uppercase; color:var(--accent,#8b0000); }
 .wtc-cloche .wtc-strip-title{ font-family:'Playfair Display',serif; font-size:34px; font-weight:700; color:var(--text); margin:8px 0 6px; }
