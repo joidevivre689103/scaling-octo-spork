@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!-- CT_7G_INJECT:START (auto-injected by deploy tool — do not edit by hand) -->
+<style id="ct-7g-hide">body{visibility:hidden}</style>
+<script>window.CT_PAGE_ID="player";</script>
+<script src="/feature-flags.js"></script>
+<script>setTimeout(function(){if(!window.__ctFlagsLoaded){location.replace("/comingsoon.html");}},2500);</script>
+<script src="/auth-status.js"></script>
+<script src="/ct-tracker.js" async></script>
+<!-- CT_7G_INJECT:END -->
+<script src="/prelaunch-guard.js"></script>
+<script src="/ct-appcheck.js"></script>
+<script src="/ct-urlstate.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+<title>Player — The Grass Bank</title>
+<!-- Player profiles (2026-10-28). FREE page: /player.html?id=<pid>.
+     Everything comes from the public playerProfiles/<pid> document, written
+     by super-fortnight's profiles-publish.yml: the player's career figures
+     (refreshed daily) and, once IJ has approved it, his written profile —
+     drawn from public sources only (Wikipedia, Wikidata) and the site's own
+     figures, in our own words. Until a profile is approved the page shows the
+     figures and "profile coming soon". Names on the stats pages link here
+     through ct-player-link.js. -->
+<meta name="description" content="Test cricketers in figures and in a few words: who they are, how good they were, and what made them.">
+<meta property="og:type" content="profile">
+<meta property="og:site_name" content="The Grass Bank">
+<meta property="og:title" content="Player profiles — The Grass Bank">
+<meta property="og:description" content="Test cricketers in figures and in a few words.">
+<meta property="og:url" content="https://thegrassbank.com/player.html">
+<meta property="og:image" content="https://thegrassbank.com/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Player profiles — The Grass Bank">
+<meta name="twitter:description" content="Test cricketers in figures and in a few words.">
+<meta name="twitter:image" content="https://thegrassbank.com/og-image.png">
+<link rel="canonical" href="https://thegrassbank.com/player.html">
+<link rel="stylesheet" href="/fonts/fonts-opsz.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#faf9f7;--surface:#ffffff;--surface2:#f5f4f2;--surface3:#eceae6;
+  --border:#d8d4cc;--border2:#c8c4bc;
+  --text:#1a1a18;--text2:#4a4a46;--text3:#6f6f69;
+  --accent:#a03020;--accent-hover:#801810;--accent-dim:rgba(160,48,32,0.08);
+  --gold:#8A6508;
+}
+body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-height:100vh;overflow-x:hidden}
+.main{max-width:860px;margin:0 auto;padding:28px 32px 64px}
+.kicker{font-family:'Inter',sans-serif;font-size:11px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
+.name{font-family:'DM Serif Display',serif;font-size:40px;line-height:1.08;letter-spacing:-0.5px}
+.meta{font-family:'Inter',sans-serif;font-size:13px;color:var(--text3);margin-top:10px;line-height:1.6}
+.meta b{color:var(--text2);font-weight:600}
+.headline{font-family:'DM Serif Display',serif;font-style:italic;font-size:21px;line-height:1.4;color:var(--text2);margin:22px 0 4px;max-width:680px}
+.figs{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:8px;margin:26px 0 10px}
+.fig{background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:14px 14px 12px}
+.fig .v{font-family:'DM Serif Display',serif;font-size:26px;line-height:1;font-variant-numeric:tabular-nums}
+.fig .l{font-family:'Inter',sans-serif;font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text3);margin-top:7px}
+.ranks{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 6px}
+.rank{font-family:'Inter',sans-serif;font-size:12px;font-weight:600;padding:5px 11px;border-radius:14px;border:1px solid rgba(138,101,8,0.35);color:var(--gold);background:rgba(138,101,8,0.06)}
+.figs-note{font-size:12px;color:var(--text3);line-height:1.5}
+.story{margin-top:34px}
+.story h2{font-family:'DM Serif Display',serif;font-size:23px;font-weight:400;margin:30px 0 10px}
+.story p{font-size:17px;line-height:1.7;color:var(--text);margin-bottom:14px;max-width:680px}
+.soon{margin-top:34px;background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:22px 24px}
+.soon h2{font-family:'DM Serif Display',serif;font-size:21px;font-weight:400;margin-bottom:8px}
+.soon p{font-size:15px;line-height:1.6;color:var(--text2);max-width:600px}
+.soon a{color:var(--accent)}
+.sources{margin-top:40px;padding-top:18px;border-top:1px solid var(--border);font-size:13px;color:var(--text3);line-height:1.6}
+.sources h3{font-family:'Inter',sans-serif;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px}
+.sources a{color:var(--text2)}
+.sources .fix{margin-top:8px}
+.more{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
+.btn{display:inline-block;padding:10px 16px;border-radius:6px;font-family:'Inter',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;
+  text-transform:uppercase;text-decoration:none;border:1.5px solid var(--accent);color:var(--accent);background:var(--surface)}
+.btn:hover{background:var(--accent-hover);border-color:var(--accent-hover);color:#fff}
+.msg{font-size:16px;color:var(--text2);line-height:1.6;margin-top:30px}
+.msg a{color:var(--accent)}
+@media(max-width:700px){
+  .main{padding:20px 16px 50px}
+  .name{font-size:31px}
+  .headline{font-size:18px}
+  .figs{grid-template-columns:repeat(3,1fr);gap:6px}
+  .fig{padding:12px 10px 10px}
+  .fig .v{font-size:21px}
+  .story p{font-size:16px}
+}
+</style>
+</head>
+<body>
+<header data-ct-nav="masthead"></header>
+<nav data-ct-nav="primary"></nav>
+<main class="main" id="main">
+  <p class="msg" id="loading">Loading…</p>
+</main>
+<footer data-ct-nav="footer"></footer>
+
+<script>
+(function () {
+  'use strict';
+  var pid = new URLSearchParams(location.search).get('id');
+  var main = document.getElementById('main');
+
+  function el(tag, cls, text) { var n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; }
+  function num(x) { return Number(x).toLocaleString('en-GB'); }
+  function ordinal(k) { var s = (k % 100 >= 11 && k % 100 <= 13) ? 'th' : ({ 1: 'st', 2: 'nd', 3: 'rd' })[k % 10] || 'th'; return k + s; }
+  function born(iso) {
+    if (!iso || !/^\d{4}-\d\d-\d\d$/.test(iso)) return '';
+    return new Date(iso + 'T12:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+  }
+  function message(html) { main.textContent = ''; var p = el('p', 'msg'); p.innerHTML = html; main.appendChild(p); }
+
+  function figures(s) {
+    var out = [['Tests', num(s.tests)]];
+    if (s.inns) {
+      out.push(['Runs', num(s.runs)]);
+      out.push(['Average', s.avg != null ? s.avg.toFixed(2) : '—']);
+      out.push(['Highest', s.hs + (s.hsNo ? '*' : '')]);
+      if (s.hundreds || s.runs >= 1000) out.push(['100s / 50s', s.hundreds + ' / ' + s.fifties]);
+    }
+    if (s.wickets) {
+      out.push(['Wickets', num(s.wickets)]);
+      out.push(['Bowling avg', s.bowlAvg != null ? s.bowlAvg.toFixed(2) : '—']);
+      out.push(['Best', s.bestW + '/' + s.bestR]);
+      if (s.fives) out.push(['5 in an inns', num(s.fives)]);
+    }
+    if (s.keeperCatches || s.stumpings) out.push(['Keeping ct / st', num(s.keeperCatches) + ' / ' + num(s.stumpings)]);
+    if (s.catches) out.push(['Catches', num(s.catches)]);
+    if (s.captTests) out.push(['Captain W-L-D', s.captW + '-' + s.captL + '-' + s.captD]);
+    return out;
+  }
+  var RANK_LABEL = { runs: 'Test runs', wickets: 'Test wickets', tests: 'Tests played', hundreds: 'Test hundreds', catches: 'catches in the field' };
+
+  function render(d) {
+    var s = d.stats || {};
+    var title = d.full || d.name;
+    document.title = title + ' — The Grass Bank';
+    var md = document.querySelector('meta[name="description"]');
+    var desc = d.profile ? d.profile.headline : title + ' (' + d.country + '): ' + num(s.tests) + ' Tests.';
+    if (md) md.content = desc;
+    main.textContent = '';
+    var head = el('div'); head.id = 'pageHead';
+    head.appendChild(el('p', 'kicker', d.country + ' · Test cricketer'));
+    head.appendChild(el('h1', 'name', title));
+    var meta = el('p', 'meta');
+    var span = s.first === s.last ? String(s.first) : s.first + '–' + s.last;
+    var bits = ['<b>Tests</b> ' + span];
+    if (d.born) bits.push('<b>Born</b> ' + born(d.born));
+    if (d.bat) bits.push('<b>Bats</b> ' + (d.bat === 'Left' ? 'left-handed' : 'right-handed'));
+    if (d.style) bits.push('<b>Bowls</b> ' + (d.style.charAt(0).toLowerCase() + d.style.slice(1)).replace(/</g, '&lt;'));
+    meta.innerHTML = bits.join(' &nbsp;·&nbsp; ');
+    head.appendChild(meta);
+    if (d.profile && d.profile.headline) head.appendChild(el('p', 'headline', d.profile.headline));
+    main.appendChild(head);
+
+    var figs = el('div', 'figs');
+    figures(s).forEach(function (f) { var c = el('div', 'fig'); c.appendChild(el('div', 'v', f[1])); c.appendChild(el('div', 'l', f[0])); figs.appendChild(c); });
+    main.appendChild(figs);
+    var r = s.ranks || {};
+    var keys = Object.keys(RANK_LABEL).filter(function (k) { return r[k]; });
+    if (keys.length) {
+      var rk = el('div', 'ranks');
+      keys.forEach(function (k) { rk.appendChild(el('span', 'rank', ordinal(r[k]) + ' all-time for ' + RANK_LABEL[k])); });
+      main.appendChild(rk);
+    }
+    main.appendChild(el('p', 'figs-note', 'Career figures in men\'s Tests from The Grass Bank\'s database, updated after every Test.'));
+
+    if (d.profile) {
+      var story = el('article', 'story');
+      d.profile.sections.forEach(function (sec) {
+        story.appendChild(el('h2', '', sec.heading));
+        String(sec.text).split(/\n\s*\n/).forEach(function (para) { if (para.trim()) story.appendChild(el('p', '', para.trim())); });
+      });
+      main.appendChild(story);
+    } else {
+      var soon = el('div', 'soon');
+      soon.appendChild(el('h2', '', 'Profile coming soon'));
+      var p = el('p');
+      p.appendChild(document.createTextNode('We are writing a profile of every Test cricketer, the best known first. ' + title + '\'s is on its way.'));
+      if (d.wiki && d.wiki.url) {
+        p.appendChild(document.createTextNode(' Meanwhile, '));
+        var a = el('a', '', 'Wikipedia has more about him'); a.href = d.wiki.url; a.rel = 'noopener'; a.target = '_blank';
+        p.appendChild(a); p.appendChild(document.createTextNode('.'));
+      }
+      soon.appendChild(p);
+      main.appendChild(soon);
+    }
+
+    var more = el('div', 'more');
+    [['Batting records', '/batting.html'], ['Bowling records', '/bowling.html'], ['Compare players', '/compare.html']].forEach(function (x) {
+      var a = el('a', 'btn', x[0]); a.href = x[1]; more.appendChild(a);
+    });
+    main.appendChild(more);
+
+    if (d.profile && d.profile.sources && d.profile.sources.length) {
+      var src = el('div', 'sources');
+      src.appendChild(el('h3', '', 'Sources'));
+      var p2 = el('p');
+      p2.appendChild(document.createTextNode('Written by The Grass Bank from public sources: '));
+      d.profile.sources.forEach(function (x, i) {
+        if (i) p2.appendChild(document.createTextNode(i === d.profile.sources.length - 1 ? ' and ' : ', '));
+        var a = el('a', '', x.title); a.href = x.url; a.rel = 'noopener'; if (/^https?:\/\/(?!thegrassbank)/.test(x.url)) a.target = '_blank';
+        p2.appendChild(a);
+        if (x.licence) p2.appendChild(document.createTextNode(' (' + x.licence + ')'));
+      });
+      p2.appendChild(document.createTextNode('. Figures are our own.'));
+      src.appendChild(p2);
+      // Corrections (IJ, 2026-10-28): an easy way for a player, his family or
+      // any reader to tell us something is wrong.
+      var fix = el('p', 'fix');
+      fix.appendChild(document.createTextNode('We check every profile carefully, but if anything is not right, please write to '));
+      var mail = el('a', '', 'contact@thegrassbank.com');
+      mail.href = 'mailto:contact@thegrassbank.com?subject=' + encodeURIComponent('Profile: ' + title);
+      fix.appendChild(mail);
+      fix.appendChild(document.createTextNode(' and we will put it right.'));
+      src.appendChild(fix);
+      main.appendChild(src);
+    }
+
+    if (window.CTUrlState) {
+      CTUrlState.mountShareRow(document.getElementById('pageHead'), {
+        label: 'Share this profile',
+        text: function () { return (d.profile ? d.profile.headline : title) + ' · The Grass Bank'; },
+        url: function () { return location.origin + '/player.html?id=' + encodeURIComponent(pid); }
+      });
+    }
+  }
+
+  (async function init() {
+    if (!pid || !/^\d+$/.test(pid)) {
+      message('Pick a player from the <a href="/batting.html">batting</a> or <a href="/bowling.html">bowling</a> records: every name opens his profile.');
+      return;
+    }
+    try {
+      var app = await window.CTFeatureFlags.firebaseReady;
+      var fs = await import('https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js');
+      var snap = await fs.getDoc(fs.doc(fs.getFirestore(app), 'playerProfiles', pid));
+      if (!snap.exists()) { message('We could not find that player. Try the <a href="/batting.html">batting records</a>.'); return; }
+      render(snap.data());
+    } catch (e) {
+      console.warn('[player] not loaded:', e && e.message);
+      message('This profile is not available right now. Please try again later.');
+    }
+  })();
+})();
+</script>
+<script src="/ct-nav.js"></script>
+</body>
+</html>

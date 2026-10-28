@@ -1462,7 +1462,7 @@ function pickP(n,id){
   document.getElementById('s'+n).value='';
   document.getElementById('d'+n).classList.remove('open');
   document.getElementById('n'+n).textContent=p.fullName||p.name;
-  document.getElementById('m'+n).innerHTML=badge(p.country)+` ${p.fromYear}–${p.toYear} · ${p.tests} Tests`;
+  document.getElementById('m'+n).innerHTML=badge(p.country)+` ${p.fromYear}–${p.toYear} · ${p.tests} Tests`+(window.CTPlayer?` · <a class="ct-plink" href="${CTPlayer.href(p.id)}">Profile</a>`:'');
   document.getElementById('i'+n).classList.add('show');
   document.getElementById('x'+n).classList.add('show');
   document.getElementById('c'+n).classList.add('active-'+n);
@@ -4752,6 +4752,7 @@ function renderPartnerships(){
      previous compat-SDK initializeApp/firestore block here was dead code
      (nothing in this page used the resulting `db` variable) and is
      removed as part of sub-task 7.4 SDK standardization. -->
+<script src="/ct-player-link.js"></script>
 <script src="ct-nav.js"></script>
 </body>
 </html>

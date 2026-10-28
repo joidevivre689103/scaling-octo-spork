@@ -632,7 +632,7 @@ function render() {
   document.getElementById('tBody').innerHTML = slice.map((p, i) => {
     return '<tr>' + cols.map(c => {
       if (c.key === '_rank')    return `<td class="rank">${start + i + 1}</td>`;
-      if (c.key === 'name')     return `<td class="player-name" title="${p.fullName}">${p.name}</td>`;
+      if (c.key === 'name')     return `<td class="player-name" title="${p.fullName}">${(window.CTPlayer?CTPlayer.link(p.id,p.name,p.fullName):p.name)}</td>`;
       if (c.key === 'country')  return `<td class="country">${p.country}</td>`;
       if (c.key === '_wld') {
         return `<td class="result-cell">
@@ -826,6 +826,7 @@ CTExport.init({ build: buildExportModel, minFilters: 2 });
   CTUrlState.mountShareRow(document.querySelector('.page-head'), { title: 'Captaincy' });
 })();
 </script>
+<script src="/ct-player-link.js"></script>
 <script src="ct-nav.js"></script>
 </body>
 </html>
