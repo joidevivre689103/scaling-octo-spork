@@ -278,7 +278,7 @@
           '<span class="ct-footer-attrib">' +
             'Scorecards from 2008 from <a href="https://cricsheet.org/" target="_blank" rel="noopener">Cricsheet (cricsheet.org)</a>, ' +
             'licensed under <a href="https://opendatacommons.org/licenses/by/1-0/" target="_blank" rel="noopener">ODC-BY 1.0</a>.<br>' +
-            'Earlier scorecards and Afghanistan\'s Tests compiled by Ananth Narayanan and used with permission.<br>' +
+            'Earlier scorecards, Afghanistan\'s Tests and some captains and wicketkeepers compiled by Ananth Narayanan and used with permission.<br>' +
             'Player details from Wikipedia and Wikidata.' +
           '</span>' +
         '</div>' +
