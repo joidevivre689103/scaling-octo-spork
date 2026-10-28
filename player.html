@@ -72,7 +72,7 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
 .sources h3{font-family:'Inter',sans-serif;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px}
 .sources a{color:var(--text2)}
 .sources .fix{margin-top:8px}
-.sources .own{margin-top:8px;font-weight:600;color:var(--text2)}
+.sources .own{margin-top:8px}
 .more{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
 .btn{display:inline-block;padding:10px 16px;border-radius:6px;font-family:'Inter',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;
   text-transform:uppercase;text-decoration:none;border:1.5px solid var(--accent);color:var(--accent);background:var(--surface)}
@@ -196,13 +196,13 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
     main.appendChild(more);
 
     // The bottom block is on every player page: sources and the corrections
-    // note when there is a written profile, and always "Figures are our own"
-    // as its last line (IJ, 2026-10-28).
+    // note when there is a written profile, and always a line on where the
+    // figures come from as its last line (IJ, 2026-10-28).
     var src = el('div', 'sources');
     if (d.profile && d.profile.sources && d.profile.sources.length) {
       src.appendChild(el('h3', '', 'Sources'));
       var p2 = el('p');
-      p2.appendChild(document.createTextNode('Written by The Grass Bank from public sources: '));
+      p2.appendChild(document.createTextNode('Profile written by The Grass Bank from public sources: '));
       d.profile.sources.forEach(function (x, i) {
         if (i) p2.appendChild(document.createTextNode(i === d.profile.sources.length - 1 ? ' and ' : ', '));
         var a = el('a', '', x.title); a.href = x.url; a.rel = 'noopener'; if (/^https?:\/\/(?!thegrassbank)/.test(x.url)) a.target = '_blank';
@@ -221,7 +221,10 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
       fix.appendChild(document.createTextNode(' and we will put it right.'));
       src.appendChild(fix);
     }
-    src.appendChild(el('p', 'own', 'Figures are our own.'));
+    // Figures: counted by us, from other people's scorecards. Cricsheet's
+    // ODC-BY licence and Ananth's permission both need crediting, so this
+    // names them rather than calling the figures "our own" (IJ, 2026-10-28).
+    src.appendChild(el('p', 'own', 'Figures counted by The Grass Bank from Test scorecards by Cricsheet and Ananth Narayanan (credits at the foot of the page).'));
     main.appendChild(src);
 
     if (window.CTUrlState) {
