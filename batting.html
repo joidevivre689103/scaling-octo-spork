@@ -173,6 +173,7 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-he
 /* ── Table ── */
 .rec-table thead th:nth-child(2),.rec-table tbody td:nth-child(2){padding-left:12px}
 .rec-table thead th:last-child,.rec-table tbody td:last-child{padding-right:14px}
+.data-footnote{font-size:12px;line-height:1.5;color:var(--text3);margin:14px 2px 0}
 .tbl-wrap{overflow-x:auto;background:var(--surface);border:1px solid var(--border);border-top:none;border-radius:0 0 var(--radius) var(--radius)}
 .rec-table{width:100%;border-collapse:collapse;font-size:13px}
 .rec-table thead th{padding:9px 8px;text-align:left;font-size:9.5px;text-transform:uppercase;letter-spacing:0.8px;color:var(--text3);border-bottom:1px solid var(--border);cursor:pointer;white-space:nowrap;user-select:none;background:var(--surface2);position:sticky;top:0}
@@ -443,6 +444,7 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-he
 
   <!-- Pagination -->
   <div class="pag" id="pag"></div>
+  <p class="data-footnote" id="withheldNote" hidden></p>
 
 </div>
 
@@ -469,6 +471,17 @@ const IDX = {
    Build players array from D.P
    ────────────────────────────────────────────────────────────────────────── */
 let D = null;        // dataset from the gated loader (replaces the old data.js global)
+
+/* Players with no public record (D.PX, added 2026-10-28): their batting hand
+   and bowling type aren't shown, and the footnote says so. */
+function showWithheldNote(){
+  const el = document.getElementById('withheldNote');
+  const ids = new Set((D && D.PX) || []);
+  if (!el || !ids.size) return;
+  const names = D.P.filter(p => ids.has(p[0])).map(p => `${p[1]} (${p[3]})`);
+  el.textContent = `Batting hand and bowling type aren't shown for ${names.length} early player${names.length > 1 ? 's' : ''} with no public record: ${names.join(', ')}.`;
+  el.hidden = false;
+}
 let PLAYERS = [];
 let PID_NAME = {};   // playerId → short name, for the aggregate HS credit
 let PID_COUNTRY = {}; // playerId → country, for the Bazball window
@@ -2041,6 +2054,7 @@ CTExport.init({ build: buildExportModel, minFilters: 2 });
     console.error('Failed to load match data:', e);
     return;                                 // page is paid-gated; non-entitled users are redirected before this runs
   }
+  showWithheldNote();
   buildPlayers();
   buildTwoX100();
   resolveBazball();

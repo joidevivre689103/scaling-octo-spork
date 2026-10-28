@@ -135,6 +135,7 @@ body{font-family:'Source Serif 4',Georgia,serif;background:var(--bg);color:var(-
 .tab.on{color:var(--accent);border-bottom-color:var(--accent)}
 
 /* ── Table ── */
+.data-footnote{font-size:12px;line-height:1.5;color:var(--text3);margin:14px 2px 0}
 .tbl-wrap{overflow-x:auto;margin-bottom:12px}
 .rec-table{width:100%;border-collapse:collapse;font-size:13px}
 .rec-table thead th{font-family:'Source Serif 4',serif;font-size:10px;text-transform:uppercase;letter-spacing:0.7px;color:var(--text4);font-weight:600;padding:10px 12px;text-align:left;border-bottom:2px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none;position:relative}
@@ -435,6 +436,7 @@ td.num.highlight{color:var(--accent);font-weight:700}
     <div class="pag-info" id="pagInfo"></div>
     <div class="pag-btns" id="pagBtns"></div>
   </div>
+  <p class="data-footnote" id="withheldNote" hidden></p>
 
 </div>
 
@@ -455,6 +457,17 @@ function decodePlayer(arr){
 }
 
 let D = null;        // dataset from the gated loader (replaces the old data.js global)
+
+/* Players with no public record (D.PX, added 2026-10-28): their batting hand
+   and bowling type aren't shown, and the footnote says so. */
+function showWithheldNote(){
+  const el = document.getElementById('withheldNote');
+  const ids = new Set((D && D.PX) || []);
+  if (!el || !ids.size) return;
+  const names = D.P.filter(p => ids.has(p[0])).map(p => `${p[1]} (${p[3]})`);
+  el.textContent = `Batting hand and bowling type aren't shown for ${names.length} early player${names.length > 1 ? 's' : ''} with no public record: ${names.join(', ')}.`;
+  el.hidden = false;
+}
 let ALL_PLAYERS = [];   // built in boot() after the gated fetch
 let PID_NAME = {};      // playerId → short name, for the aggregate "Best" credit
 let PID_COUNTRY = {};   // playerId → country, for the Bazball window
@@ -1760,6 +1773,7 @@ CTExport.init({ build: buildExportModel, minFilters: 2 });
     console.error('Failed to load match data:', e);
     return;                                 // page is paid-gated; non-entitled users are redirected before this runs
   }
+  showWithheldNote();
   ALL_PLAYERS = D.P.map(decodePlayer);
   buildPidLookups();
   compute4WI();
