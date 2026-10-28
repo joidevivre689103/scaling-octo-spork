@@ -17,6 +17,8 @@
                         kicker and the dek — for inline placement mid-page.
        data-ct-note     Optional extra sentence appended to the dek. Used on
                         the quiz score screen to mention the next edition.
+       data-ct-heading  Optional heading in place of the standard one, for one
+                        surface (the homepage uses it).
        data-ct-name     Optional prefill for the name field. Pass the signed-in
                         reader's account display name here so they aren't asked
                         twice. Falls back to whatever they last typed on this
@@ -199,7 +201,9 @@
 
     var head = '';
     if (!compact) head += '<p class="ct-nl__kicker">' + COPY.kicker + '</p>';
-    head += '<h2 class="ct-nl__heading">' + COPY.heading + '</h2>';
+    // data-ct-heading (2026-10-28): an optional heading for one surface; the
+    // homepage uses it. Escaped, like the name prefill.
+    head += '<h2 class="ct-nl__heading">' + (host.getAttribute('data-ct-heading') ? esc(host.getAttribute('data-ct-heading')) : COPY.heading) + '</h2>';
     if (!compact || note) {
       head += '<p class="ct-nl__dek">' + COPY.dek + (note ? ' ' + note : '') + '</p>';
     }
