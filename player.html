@@ -71,6 +71,7 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
 .sources{margin-top:40px;padding-top:18px;border-top:1px solid var(--border);font-size:13px;color:var(--text3);line-height:1.6}
 .sources h3{font-family:'Inter',sans-serif;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px}
 .sources a{color:var(--text2)}
+.sources .fix{margin-top:8px}
 .more{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
 .btn{display:inline-block;padding:10px 16px;border-radius:6px;font-family:'Inter',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;
   text-transform:uppercase;text-decoration:none;border:1.5px solid var(--accent);color:var(--accent);background:var(--surface)}
@@ -206,6 +207,15 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
       });
       p2.appendChild(document.createTextNode('. Figures are our own.'));
       src.appendChild(p2);
+      // Corrections (IJ, 2026-10-28): an easy way for a player, his family or
+      // any reader to tell us something is wrong.
+      var fix = el('p', 'fix');
+      fix.appendChild(document.createTextNode('We check every profile carefully, but if anything is not right, please write to '));
+      var mail = el('a', '', 'contact@thegrassbank.com');
+      mail.href = 'mailto:contact@thegrassbank.com?subject=' + encodeURIComponent('Profile: ' + title);
+      fix.appendChild(mail);
+      fix.appendChild(document.createTextNode(' and we will put it right.'));
+      src.appendChild(fix);
       main.appendChild(src);
     }
 
