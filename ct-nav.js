@@ -278,7 +278,7 @@
           '<span class="ct-footer-attrib">' +
             'Scorecards from 2008 from <a href="https://cricsheet.org/" target="_blank" rel="noopener">Cricsheet (cricsheet.org)</a>, ' +
             'licensed under <a href="https://opendatacommons.org/licenses/by/1-0/" target="_blank" rel="noopener">ODC-BY 1.0</a>.<br>' +
-            'Earlier scorecards and player details compiled by Ananth Narayanan and used with permission.' +
+            'Earlier scorecards, Afghanistan\'s Tests and player details compiled by Ananth Narayanan and used with permission.' +
           '</span>' +
         '</div>' +
       '</div>';
