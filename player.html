@@ -166,7 +166,9 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
       keys.forEach(function (k) { rk.appendChild(el('span', 'rank', ordinal(r[k]) + ' all-time for ' + RANK_LABEL[k])); });
       main.appendChild(rk);
     }
-    main.appendChild(el('p', 'figs-note', 'Career figures in men\'s Tests from The Grass Bank\'s database, updated after every Test.'));
+    // One note for every player that ages well (IJ, 2026-10-28): true of a
+    // retired player and of one still playing, with no promise of timing.
+    main.appendChild(el('p', 'figs-note', 'Career figures in men\'s Tests, up to his most recent Test.'));
 
     if (d.profile) {
       var story = el('article', 'story');
