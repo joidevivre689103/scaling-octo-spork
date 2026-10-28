@@ -250,6 +250,13 @@ body{
 .feed-list li:first-child{ border-top:none; padding-top:0; }
 .feed-list a{ color:inherit; text-decoration:none; }
 .feed-list a:hover{ color:var(--accent); }
+.coming-up{ margin-top:22px; }
+#latestBlock[hidden] + .coming-up{ margin-top:0; }
+.coming-up[hidden], #latestBlock[hidden]{ display:none; }
+.coming-up-title{ font-family:'Playfair Display',serif; font-size:17px; font-weight:700; margin:0 0 8px; }
+.coming-up .cu-teams{ display:block; color:var(--text); }
+.coming-up .cu-meta{ display:block; font-family:'Inter',sans-serif; font-size:11px; letter-spacing:0.06em; text-transform:uppercase; color:var(--text3); margin-top:2px; }
+.coming-up .cu-live{ color:var(--accent); }
 @media (max-width:760px){
   .feed-row{ grid-template-columns:1fr; }
   .feed-row{ grid-template-columns:1fr !important; }
@@ -897,11 +904,22 @@ body.articles-loading .analysis-section{ visibility:hidden; }
        see placeFeedRow(). Hidden until that is decided, so it never jumps. -->
   <section class="feed-row" id="feedRow" hidden>
     <div class="feed-col" id="latestTest" hidden>
-      <h2 class="feed-title">Latest completed Test</h2>
-      <p class="otd-label" id="latestLabel"></p>
-      <p class="feed-score" id="latestScore"></p>
-      <p class="otd-standout" id="latestStandout"></p>
-      <a class="otd-more" id="latestMore" href="/countries.html">Full scorecard →</a>
+      <h2 class="feed-title" id="latestTitle">Latest completed Test</h2>
+      <div id="latestBlock" hidden>
+        <p class="otd-label" id="latestLabel"></p>
+        <p class="feed-score" id="latestScore"></p>
+        <p class="otd-standout" id="latestStandout"></p>
+        <a class="otd-more" id="latestMore" href="/countries.html">Full scorecard →</a>
+      </div>
+      <!-- COMING UP (2026-10-28): the next Tests, from liveScores/home `upcoming`
+           (scripts/fixtures/upcoming-tests.json). Each is checked against the
+           reader's own date before it is shown: a Test whose five days have
+           passed drops off even if the feed hasn't rebuilt. Filled by
+           renderComingUp(). -->
+      <div class="coming-up" id="comingUp" hidden>
+        <h3 class="coming-up-title">Coming up</h3>
+        <ul class="feed-list" id="comingUpList"></ul>
+      </div>
     </div>
     <div class="feed-col" id="milestoneWatch" hidden>
       <h2 class="feed-title">Milestone watch</h2>
@@ -1498,6 +1516,56 @@ function articleTime(a) {
   const t = Date.parse(d);
   return isNaN(t) ? 0 : t;
 }
+// Coming up: the next three Tests, judged by the READER's own date, not the
+// feed's: a Test shows until its fifth day has passed, as "Under way" from its
+// first day. Dated Tests first, then month-only ones if fewer than three.
+// Returns true if anything was shown.
+function renderComingUp(list) {
+  const ul = document.getElementById('comingUpList');
+  if (!ul) return false;
+  ul.textContent = '';
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const DAY = 86400000;
+  const fmt = (d, o) => d.toLocaleDateString('en-GB', o);
+  const rows = [];
+  for (const u of list) {
+    if (!u || !u.host || !u.visitor) continue;
+    if (u.start) {
+      const [y, m, dd] = u.start.split('-').map(Number);
+      const start = new Date(y, m - 1, dd);
+      const lastDay = new Date(start.getTime() + 4 * DAY);
+      if (today > lastDay) continue;                     // its five days have passed
+      const live = today >= start;
+      rows.push({ u, when: live ? 'Under way · started ' + fmt(start, { day: 'numeric', month: 'short' })
+                                : 'Starts ' + fmt(start, { weekday: 'short', day: 'numeric', month: 'short' }), live });
+    } else if (u.month) {
+      const [y, m] = u.month.split('-').map(Number);
+      if (new Date(y, m, 0) < today) continue;            // that month is over
+      rows.push({ u, when: fmt(new Date(y, m - 1, 1), { month: 'short', year: 'numeric' }) + ' · date to come', live: false });
+    }
+  }
+  const pick = rows.filter(r => r.u.start).slice(0, 3);
+  if (pick.length < 3) pick.push(...rows.filter(r => !r.u.start).slice(0, 3 - pick.length));
+  pick.forEach(({ u, when, live }) => {
+    const li = document.createElement('li');
+    const t = document.createElement('span');
+    t.className = 'cu-teams';
+    t.textContent = u.host + ' v ' + u.visitor;
+    const meta = document.createElement('span');
+    meta.className = 'cu-meta';
+    const city = (u.city || '').split(' (')[0];
+    const w = document.createElement('span');
+    w.textContent = when;
+    if (live) w.className = 'cu-live';
+    meta.append(w, document.createTextNode(' · ' + [u.match, city, u.wtc ? 'WTC' : ''].filter(Boolean).join(' · ')));
+    li.append(t, meta);
+    ul.appendChild(li);
+  });
+  document.getElementById('comingUp').hidden = !pick.length;
+  return pick.length > 0;
+}
+
 let _feedPlaced = null;
 async function refreshFeedRow() {
   const row = document.getElementById('feedRow');
@@ -1559,6 +1627,12 @@ async function refreshFeedRow() {
       document.getElementById('latestScore').textContent = lt.scoreline;
       document.getElementById('latestStandout').textContent = lt.standout || '';
       if (lt.test) document.getElementById('latestMore').href = '/countries.html?otd=' + parseInt(lt.test, 10) + '#onthisday';
+      document.getElementById('latestBlock').hidden = false;
+      document.getElementById('latestTest').hidden = false;
+      shown++;
+    }
+    if (renderComingUp(d.upcoming || [])) {
+      if (!(lt && lt.scoreline)) document.getElementById('latestTitle').hidden = true;
       document.getElementById('latestTest').hidden = false;
       shown++;
     }
