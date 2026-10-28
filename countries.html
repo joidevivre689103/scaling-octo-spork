@@ -3226,11 +3226,16 @@ function otdEsc(v) {
 // pipeline 2026-10-27: Excel's Scd Status first, the match file where Excel is
 // silent. Codes: 1 b · 2 lbw · 3 c · 4 c (keeper) · 5 c&b · 6 st · 7 run out ·
 // 8 hit wicket · 9 other · 10 retired · 11 bowled-or-lbw (match file only).
+// s[18] = 1 marks a substitute fielder.
 // Rows from a dataset built before that carry no s[16]: fall back to the bowler.
 function otdHowOut(s, name) {
   if (s[4] === 1 || s[4] === true) return 'not out';
   const bw = s[10] > 0 ? (name.get(s[10]) || '') : '';
-  const fd = s[15] > 0 ? (name.get(s[15]) || 'sub') : '';
+  // s[18] = 1: the fielder was a substitute (from Cricsheet, 2026-10-28) —
+  // named, but shown as a sub; it never counts towards his own catches.
+  const isSub = s.length > 18 && s[18] === 1;
+  const fn = s[15] > 0 ? name.get(s[15]) : '';
+  const fd = isSub ? (fn ? 'sub (' + fn + ')' : 'sub') : (s[15] > 0 ? (fn || 'sub') : '');
   const b = bw ? ' b ' + bw : '';
   switch (s.length > 16 ? s[16] : -1) {
     case 1:  return bw ? 'b ' + bw : 'bowled';
