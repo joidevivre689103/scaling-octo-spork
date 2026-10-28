@@ -226,6 +226,13 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
     // ODC-BY licence and Ananth's permission both need crediting, so this
     // names them rather than calling the figures "our own" (IJ, 2026-10-28).
     src.appendChild(el('p', 'own', 'Figures calculated by The Grass Bank from Test scorecards by Cricsheet and Ananth Narayanan (credits at the foot of the page).'));
+    // Last updated (IJ, 2026-10-28): asOf is set whenever anything on this
+    // page changes (his figures after a Test, or his profile), so it moves on
+    // by itself and stays put for a retired player.
+    if (d.asOf) {
+      var upd = new Date(d.asOf);
+      if (!isNaN(upd)) src.appendChild(el('p', 'own', 'Last updated ' + upd.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) + '.'));
+    }
     main.appendChild(src);
 
     if (window.CTUrlState) {
