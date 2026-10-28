@@ -1686,7 +1686,7 @@ function render() {
     return '<tr>' + cols.map(c => {
       if (c.key === '_rank') return `<td class="${c.cls}">${start + i + 1}</td>`;
       let val = p[c.key];
-      if (c.key === 'name') return `<td class="${c.cls}" title="${p.fullName}">${val}</td>`;
+      if (c.key === 'name') return `<td class="${c.cls}" title="${p.fullName}">${(window.CTPlayer?CTPlayer.link(p.id,val,p.fullName):val)}</td>`;
       // No recorded balls (a wholly pre-1980 career) → leave BF, SR and Avg+SR empty
       if (c.key === 'balls' || c.key === 'sr' || c.key === 'avgSR') {
         // p.srShown is false with no recorded ball data in the rows, or under
@@ -2085,6 +2085,7 @@ CTExport.init({ build: buildExportModel, minFilters: 2 });
 </script>
 
 <footer data-ct-nav="footer"></footer>
+<script src="/ct-player-link.js"></script>
 <script src="ct-nav.js"></script>
 
 </body>

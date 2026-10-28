@@ -1623,7 +1623,7 @@ function renderTable(){
   tbody.innerHTML=page.map((p,i)=>{
     return '<tr>'+cols.map(c=>{
       if(c.key==='_rank') return `<td class="num">${start+i+1}</td>`;
-      if(c.key==='fullName') return `<td class="name-cell">${p.fullName||p.name||'—'}</td>`;
+      if(c.key==='fullName') return `<td class="name-cell">${(window.CTPlayer?CTPlayer.link(p.id,(p.fullName||p.name||'—'),null):(p.fullName||p.name||'—'))}</td>`;
       if(c.key==='country') return `<td class="country-cell">${p.country||'—'}</td>`;
       if(c.key==='_span') return `<td style="font-size:12px;color:var(--text3)">${p.fromYear||'?'}–${p.toYear||'?'}</td>`;
       if(c.key==='_bowlType'){
@@ -1802,6 +1802,7 @@ CTExport.init({ build: buildExportModel, minFilters: 2 });
 
 <footer data-ct-nav="footer"></footer>
 
+<script src="/ct-player-link.js"></script>
 <script src="ct-nav.js"></script>
 </body>
 </html>

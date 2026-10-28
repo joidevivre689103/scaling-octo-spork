@@ -1033,7 +1033,7 @@ renderModelCards();
 function buildPlayerData() {
   if (typeof D === 'undefined' || !D.P) return [];
   return D.P.map(p => ({
-    name: p[1], runs: p[9], avg: p[11], sr: p[10] > 0 ? Math.round((p[9] / p[10]) * 10000) / 100 : 0, tests: p[6],
+    id: p[0], name: p[1], runs: p[9], avg: p[11], sr: p[10] > 0 ? Math.round((p[9] / p[10]) * 10000) / 100 : 0, tests: p[6],
     from: p[4], to: p[5], country: p[3], mom: p[29] || 0,
     homeResultPct: p[32] || {win:0,draw:0,loss:0},
     awayResultPct: p[33] || {win:0,draw:0,loss:0},
@@ -1360,7 +1360,7 @@ function updateResultsTable() {
     tbody.innerHTML = limitedPlayers.map((player, index) => `
     <tr>
       <td class="num">${index + 1}</td>
-      <td class="player-name">${player.name}</td>
+      <td class="player-name">${(window.CTPlayer?CTPlayer.link(player.id,player.name,null):player.name)}</td>
       <td>${player.country || '—'}</td>
       <td>${player.from && player.to ? player.from + '–' + player.to : '—'}</td>
       <td class="num">${player.bowlTests || 0}</td>
@@ -1375,7 +1375,7 @@ function updateResultsTable() {
     tbody.innerHTML = limitedPlayers.map((player, index) => `
     <tr>
       <td class="num">${index + 1}</td>
-      <td class="player-name">${player.name}</td>
+      <td class="player-name">${(window.CTPlayer?CTPlayer.link(player.id,player.name,null):player.name)}</td>
       <td>${player.country || '—'}</td>
       <td>${player.from && player.to ? player.from + '–' + player.to : '—'}</td>
       <td class="num">${player.tests || 0}</td>
@@ -1903,6 +1903,7 @@ function exportToExcel(){
 </div><!-- end site-content -->
 
 <!-- Legacy compat Firebase removed (Phase 3 §3): feature-flags.js is the sole Firebase owner; db was unused -->
+<script src="/ct-player-link.js"></script>
 <script src="ct-nav.js"></script>
 </body>
 </html>
