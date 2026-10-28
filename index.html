@@ -1092,6 +1092,7 @@ body.articles-loading .analysis-section{ visibility:hidden; }
         <div>
           <h3 class="sim-feature-title">Simulation</h3>
           <p class="sim-feature-desc">Settle the arguments cricket can&rsquo;t. Pick two countries from any era and let their best elevens play it out. Build a side from anyone in history, Bradman and Bumrah in the same team if you like. Or take a real Test, swap a player, and see how the result might have changed. Think someone didn&rsquo;t deserve to be dropped? Add him to the eleven and see the outcome.</p>
+          <p class="sim-feature-example"><span class="sim-feature-example-tag">Try this</span> India left R Ashwin out of the 2023 World Test Championship final at The Oval, and Australia won by 209 runs. Open <em>What-If Replay</em>, find India v Australia in 2023, put Ashwin back in the eleven and see whether the result changes.</p>
           <span class="sim-feature-cta">Pick your XIs &rarr;</span>
         </div>
       </div>
@@ -1126,8 +1127,10 @@ body.articles-loading .analysis-section{ visibility:hidden; }
     <a href="yorker.html" class="home-card" id="homeYorker">
       <span class="home-card-kicker">Yorker &middot; free monthly quiz</span>
       <h3 class="home-card-title" id="homeYorkerName">This month&rsquo;s Yorker</h3>
-      <p class="home-card-meta" id="homeYorkerMeta"></p>
-      <p class="home-card-text" id="homeYorkerTheme">The month&rsquo;s Test cricket, a few Googlies and some history, with the answers explained.</p>
+      <div class="home-card-sub">
+        <p class="home-card-meta" id="homeYorkerMeta"></p>
+        <p class="home-card-text" id="homeYorkerTheme">The month&rsquo;s Test cricket, a few Googlies and some history, with the answers explained.</p>
+      </div>
       <ul class="home-card-list">
         <li>A new edition on the 1st of every month</li>
         <li>Every answer explained, some with a smile</li>
@@ -1139,7 +1142,9 @@ body.articles-loading .analysis-section{ visibility:hidden; }
     <a href="subscribe.html" class="home-card" id="homeSubscribe">
       <span class="home-card-kicker">Subscribe</span>
       <h3 class="home-card-title" id="homeSubTitle">Every Test since 1877</h3>
-      <p class="home-card-text" id="homeSubText">The whole of Test cricket, one page at a time.</p>
+      <div class="home-card-sub">
+        <p class="home-card-text" id="homeSubText">The whole of Test cricket, one page at a time.</p>
+      </div>
       <ul class="home-card-list" id="homeSubList">
         <li>Every stats page, from Countries to Simulation</li>
         <li>Every past edition of Yorker</li>
@@ -1213,6 +1218,8 @@ body.articles-loading .analysis-section{ visibility:hidden; }
 .sim-feature-icon svg{ width:32px; height:32px; stroke:var(--gold); fill:none; stroke-width:2; }
 .sim-feature-title{ font-family:'Playfair Display',serif; font-size:26px; font-weight:700; margin:0 0 8px; }
 .sim-feature-desc{ font-size:15px; color:var(--text2); line-height:1.6; margin:0 0 14px; max-width:760px; }
+.sim-feature-example{ font-size:15px; line-height:1.6; color:var(--text); margin:0 0 16px; max-width:760px; padding:12px 16px; background:var(--accent-dim,rgba(139,0,0,.06)); border-left:3px solid var(--accent,#8b1a1a); }
+.sim-feature-example-tag{ display:inline-block; margin-right:8px; font-family:'Inter',sans-serif; font-size:10px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--accent,#8b1a1a); }
 .sim-feature-cta{ font-family:'Inter',sans-serif; font-size:12px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--accent,#8b1a1a); }
 @media(max-width:900px){ .stats-cards{ grid-template-columns:repeat(2,1fr); gap:14px; } .stat-card{ padding:18px; } }
 @media(max-width:560px){ .stats-cards{ grid-template-columns:1fr; } .sim-feature{ padding:22px 20px; } .sim-feature-body{ flex-direction:column; gap:14px; } }
@@ -2241,8 +2248,29 @@ document.addEventListener('DOMContentLoaded', () => {
 <style>
 .home-actions-band{ background:var(--surface2); border-top:1px solid var(--border); border-bottom:1px solid var(--border); padding:48px 24px; }
 .home-actions{ max-width:1400px; margin:0 auto; display:grid; grid-template-columns:repeat(3,1fr); gap:24px; align-items:stretch; }
-.home-actions .ct-nl{ margin:0; height:100%; box-sizing:border-box; }
+.home-actions .ct-nl{ margin:0; box-sizing:border-box; }
 .home-actions .ct-nl__row{ grid-template-columns:1fr; }
+/* 2026-10-28 (IJ): the three boxes share one set of rows (CSS subgrid), so
+   kicker, title, subtitle, body, button and fine print line up across all
+   three and the red buttons sit on exactly the same line. Rows:
+   1 kicker · 2 title · 3 subtitle · 4 list / fields · 5 button · 6 message · 7 fine print.
+   The newsletter form is display:contents so its fields and button can take
+   rows 4 and 5 like the other cards; it still submits as a form. */
+@media(min-width:1001px){
+  .home-actions{ grid-template-rows:repeat(7,auto); row-gap:0; }
+  .home-actions > .home-card, .home-actions > .ct-nl{ display:grid; grid-row:span 7; grid-template-rows:subgrid; grid-template-columns:minmax(0,1fr); justify-items:center; align-content:start; }
+  .home-actions .home-card-btn, .home-actions .ct-nl__btn{ box-sizing:border-box; min-height:44px; padding:13px 24px; line-height:1.2; font-size:12px; letter-spacing:.18em; }
+  .home-actions .home-card-kicker, .home-actions .ct-nl__kicker{ grid-row:1; margin:0 0 8px; align-self:start; }
+  .home-actions .home-card-title, .home-actions .ct-nl__heading{ grid-row:2; margin:0 0 8px; align-self:start; }
+  .home-actions .home-card-sub, .home-actions .ct-nl__dek{ grid-row:3; margin:0 0 20px; align-self:start; }
+  .home-actions .home-card-list, .home-actions .ct-nl__row{ grid-row:4; width:100%; align-self:start; margin:0 0 20px; }
+  .home-actions .home-card-btn, .home-actions .ct-nl__btn{ grid-row:5; width:100%; align-self:start; }
+  .home-actions .ct-nl__msg{ grid-row:6; }
+  .home-actions .ct-nl__fine{ grid-row:7; }
+  .home-actions .ct-nl__form{ display:contents; }
+}
+.home-card-sub{ width:100%; }
+.home-card-sub .home-card-text{ margin:0; }
 .home-card{ display:flex; flex-direction:column; align-items:center; text-align:center; background:var(--paper,#faf5e9); border:1px solid var(--rule,#c9bda5); padding:32px 28px 26px; text-decoration:none; color:var(--ink,#1a1612); font-family:'Source Serif 4',Georgia,serif; transition:border-color .2s, box-shadow .2s; }
 .home-card:hover{ border-color:var(--crimson,#8b1a1a); box-shadow:0 10px 30px rgba(139,26,26,.08); }
 .home-card-kicker{ font-family:'Special Elite',monospace; font-size:11px; letter-spacing:.28em; text-transform:uppercase; color:var(--ink-mute,#6b6157); margin-bottom:8px; }
@@ -2252,7 +2280,7 @@ document.addEventListener('DOMContentLoaded', () => {
 .home-card-list{ list-style:none; padding:0; margin:0 0 22px; width:100%; font-size:15px; color:var(--ink-soft,#3a322a); line-height:1.5; }
 .home-card-list li{ padding:7px 0; border-top:1px solid var(--rule,#c9bda5); }
 .home-card-list li:last-child{ border-bottom:1px solid var(--rule,#c9bda5); }
-.home-card{ justify-content:center; }
+.home-card{ justify-content:flex-start; }
 .home-card-btn{ display:block; width:100%; box-sizing:border-box; padding:12px 24px; font-family:'Special Elite',monospace; font-size:12px; letter-spacing:.18em; text-transform:uppercase; background:var(--crimson,#8b1a1a); color:var(--paper,#faf5e9); border-radius:2px; }
 .home-card:hover .home-card-btn{ background:var(--crimson-deep,#6b1010); }
 @media(max-width:1000px){ .home-actions{ grid-template-columns:1fr; max-width:600px; } }
