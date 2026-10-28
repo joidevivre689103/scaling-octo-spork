@@ -1032,42 +1032,64 @@ body.articles-loading .analysis-section{ visibility:hidden; }
       <p>Comprehensive data and analysis tools covering every Test match ever played</p>
     </div>
     <div class="stats-cards">
-      <a href="countries.html" class="stat-card">
+      <a href="countries.html" class="stat-card" data-card="countries">
         <div class="stat-card-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
         <h3 class="stat-card-title">Countries</h3>
-        <p class="stat-card-desc">Head-to-head records and historical results between nations</p>
+        <p class="stat-card-desc">Head-to-head records and every result between nations</p>
+        <dl class="stat-card-facts" hidden></dl>
+        <span class="stat-card-more">More &rarr;</span>
       </a>
-      <a href="batting.html" class="stat-card">
+      <a href="batting.html" class="stat-card" data-card="batting">
         <div class="stat-card-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></svg></div>
         <h3 class="stat-card-title">Batting Records</h3>
-        <p class="stat-card-desc">All-time batting leaders with advanced filtering options</p>
+        <p class="stat-card-desc">All-time batting leaders, with filters for era, country and more</p>
+        <dl class="stat-card-facts" hidden></dl>
+        <span class="stat-card-more">More &rarr;</span>
       </a>
-      <a href="bowling.html" class="stat-card">
+      <a href="bowling.html" class="stat-card" data-card="bowling">
         <div class="stat-card-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg></div>
         <h3 class="stat-card-title">Bowling Records</h3>
-        <p class="stat-card-desc">All-time bowling leaders with wickets, averages and strike rates</p>
+        <p class="stat-card-desc">All-time bowling leaders: wickets, averages and strike rates</p>
+        <dl class="stat-card-facts" hidden></dl>
+        <span class="stat-card-more">More &rarr;</span>
       </a>
-      <a href="keeping.html" class="stat-card">
+      <a href="keeping.html" class="stat-card" data-card="keeping">
         <div class="stat-card-icon"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div>
         <h3 class="stat-card-title">Keeping</h3>
-        <p class="stat-card-desc">Wicketkeeping records including catches, stumpings and dismissals</p>
+        <p class="stat-card-desc">Wicketkeeping records: catches, stumpings and dismissals</p>
+        <dl class="stat-card-facts" hidden></dl>
+        <span class="stat-card-more">More &rarr;</span>
       </a>
-      <a href="captaincy.html" class="stat-card">
+      <a href="captaincy.html" class="stat-card" data-card="captaincy">
         <div class="stat-card-icon"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
         <h3 class="stat-card-title">Captaincy</h3>
-        <p class="stat-card-desc">Captain records with win rates, series results and leadership stats</p>
+        <p class="stat-card-desc">Captains’ records, win rates and series results</p>
+        <dl class="stat-card-facts" hidden></dl>
+        <span class="stat-card-more">More &rarr;</span>
       </a>
-      <a href="compare.html" class="stat-card">
+      <a href="compare.html" class="stat-card" data-card="compare">
         <div class="stat-card-icon"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
         <h3 class="stat-card-title">Player Compare</h3>
-        <p class="stat-card-desc">Side-by-side statistical comparison of any two players</p>
-      </a>
-      <a href="simulation.html" class="stat-card">
-        <div class="stat-card-icon"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="3"/><circle cx="8" cy="8" r="1.5" fill="currentColor" stroke="none"/><circle cx="16" cy="8" r="1.5" fill="currentColor" stroke="none"/><circle cx="8" cy="16" r="1.5" fill="currentColor" stroke="none"/><circle cx="16" cy="16" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/></svg></div>
-        <h3 class="stat-card-title">Simulation</h3>
-        <p class="stat-card-desc">Custom weighted rankings based on your criteria</p>
+        <p class="stat-card-desc">Any two players, side by side</p>
+        <dl class="stat-card-facts" hidden></dl>
+        <span class="stat-card-more">More &rarr;</span>
       </a>
     </div>
+    <!-- 2026-10-28 (IJ): Simulation gets the full width below the six cards,
+         led in with "…and one more thing". Was a seventh small card sitting
+         alone on a second row, and linked to simulation.html, which 404s:
+         the page is simulations.html. -->
+    <a href="simulations.html" class="sim-feature">
+      <span class="sim-feature-lead">&hellip;and one more thing</span>
+      <div class="sim-feature-body">
+        <div class="sim-feature-icon"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="3"/><circle cx="8" cy="8" r="1.5" fill="currentColor" stroke="none"/><circle cx="16" cy="8" r="1.5" fill="currentColor" stroke="none"/><circle cx="8" cy="16" r="1.5" fill="currentColor" stroke="none"/><circle cx="16" cy="16" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/></svg></div>
+        <div>
+          <h3 class="sim-feature-title">Simulation</h3>
+          <p class="sim-feature-desc">Settle the arguments cricket can&rsquo;t. Pick two countries from any era and let their best elevens play it out. Build a side from anyone in history, Bradman and Bumrah in the same team if you like. Or take a real Test, swap a player, and see how the result might have changed.</p>
+          <span class="sim-feature-cta">Pick your XIs &rarr;</span>
+        </div>
+      </div>
+    </a>
   </div>
 </section>
 
@@ -1086,22 +1108,39 @@ body.articles-loading .analysis-section{ visibility:hidden; }
   </div>
 </section>
 
-<!-- NEWSLETTER SIGNUP -->
-<section style="background:var(--surface2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:48px 24px;">
-  <div style="max-width:600px;margin:0 auto;">
-    <div class="ct-newsletter-block">
-      <span class="nl-kicker">The Grass Bank Dispatch &middot; Free newsletter</span>
-      <h3>Get new analysis in your inbox</h3>
-      <p>Sign up for summaries of our latest stories and statistical deep dives, delivered to your inbox when new pieces are published.</p>
-      <form id="ct-nl-form" novalidate>
-        <div class="nl-row">
-          <input type="email" id="ct-nl-email" placeholder="your@email.com" required autocomplete="email" />
-          <button type="submit" id="ct-nl-btn">Sign up</button>
-        </div>
-        <p class="nl-note">No spam. Unsubscribe anytime. &nbsp;·&nbsp; <a href="subscribe.html">Full signup &amp; privacy info</a></p>
-        <div class="nl-msg" id="ct-nl-msg"></div>
-      </form>
-    </div>
+<!-- YORKER · NEWSLETTER · SUBSCRIBE (2026-10-28, IJ) — three cards side by
+     side where the newsletter box sat alone in white space. Yorker reads the
+     current edition (config/currentOracle → oracleEditions/{id}); the
+     newsletter is the shared ct-newsletter.js component (source "homepage");
+     Subscribe turns into a "Your subscription" link for readers who already
+     have paid or complimentary access. Wording rule (ct-newsletter.js):
+     "subscribe" means the paid tier only; readers "sign up" for the Dispatch. -->
+<section class="home-actions-band">
+  <div class="home-actions">
+    <a href="yorker.html" class="home-card" id="homeYorker">
+      <span class="home-card-kicker">Yorker &middot; free monthly quiz</span>
+      <h3 class="home-card-title" id="homeYorkerName">This month&rsquo;s Yorker</h3>
+      <p class="home-card-meta" id="homeYorkerMeta"></p>
+      <p class="home-card-text" id="homeYorkerTheme">The month&rsquo;s Test cricket, a few Googlies and some history, with the answers explained.</p>
+      <ul class="home-card-list">
+        <li>A new edition on the 1st of every month</li>
+        <li>Every answer explained, some with a smile</li>
+        <li>Free with an account</li>
+      </ul>
+      <span class="home-card-btn">Play Yorker &rarr;</span>
+    </a>
+    <div class="ct-newsletter" data-ct-source="homepage"></div>
+    <a href="subscribe.html" class="home-card" id="homeSubscribe">
+      <span class="home-card-kicker">Subscribe</span>
+      <h3 class="home-card-title" id="homeSubTitle">Every Test since 1877</h3>
+      <p class="home-card-text" id="homeSubText">The whole of Test cricket, one page at a time.</p>
+      <ul class="home-card-list" id="homeSubList">
+        <li>Every stats page, from Countries to Simulation</li>
+        <li>Every past edition of Yorker</li>
+        <li>Annual or monthly, cancel any time</li>
+      </ul>
+      <span class="home-card-btn" id="homeSubBtn">See plans &rarr;</span>
+    </a>
   </div>
 </section>
 
@@ -1133,7 +1172,7 @@ body.articles-loading .analysis-section{ visibility:hidden; }
 .stats-header{ text-align:center; margin-bottom:36px; }
 .stats-header h2{ font-family:'Playfair Display',serif; font-size:32px; font-weight:700; margin-bottom:8px; }
 .stats-header p{ font-size:16px; color:var(--text2); }
-.stats-cards{ display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:20px; }
+.stats-cards{ display:grid; grid-template-columns:repeat(3,1fr); gap:20px; }
 .stat-card{
   background:var(--surface);
   border:1px solid var(--border);
@@ -1149,7 +1188,23 @@ body.articles-loading .analysis-section{ visibility:hidden; }
 .stat-card-icon svg{ width:24px; height:24px; stroke:var(--gold); fill:none; stroke-width:2; }
 .stat-card-title{ font-family:'Inter',sans-serif; font-size:14px; font-weight:700; margin-bottom:6px; }
 .stat-card-desc{ font-size:13px; color:var(--text3); line-height:1.45; }
+.stat-card{ display:flex; flex-direction:column; }
+.stat-card-facts{ margin:14px 0 0; padding:12px 0 0; border-top:1px solid var(--border); text-align:left; }
+.stat-card-facts div{ display:flex; justify-content:space-between; gap:12px; padding:4px 0; font-size:13px; }
+.stat-card-facts dt{ color:var(--text3); }
+.stat-card-facts dd{ margin:0; font-weight:600; color:var(--text); text-align:right; }
+.stat-card-more{ margin-top:auto; padding-top:14px; font-family:'Inter',sans-serif; font-size:12px; font-weight:700; letter-spacing:.04em; color:var(--gold); }
+.sim-feature{ display:block; margin-top:28px; padding:28px 32px; background:var(--surface); border:1px solid var(--border); border-radius:8px; text-decoration:none; color:inherit; transition:all .25s; }
+.sim-feature:hover{ border-color:var(--gold); transform:translateY(-3px); box-shadow:0 12px 40px rgba(192,128,24,0.12); }
+.sim-feature-lead{ display:block; font-family:'Playfair Display',serif; font-style:italic; font-size:18px; color:var(--text2); margin-bottom:14px; }
+.sim-feature-body{ display:flex; gap:24px; align-items:flex-start; }
+.sim-feature-icon{ flex:0 0 auto; width:64px; height:64px; background:var(--gold-dim); border-radius:14px; display:flex; align-items:center; justify-content:center; }
+.sim-feature-icon svg{ width:32px; height:32px; stroke:var(--gold); fill:none; stroke-width:2; }
+.sim-feature-title{ font-family:'Playfair Display',serif; font-size:26px; font-weight:700; margin:0 0 8px; }
+.sim-feature-desc{ font-size:15px; color:var(--text2); line-height:1.6; margin:0 0 14px; max-width:760px; }
+.sim-feature-cta{ font-family:'Inter',sans-serif; font-size:13px; font-weight:700; letter-spacing:.04em; color:var(--gold); }
 @media(max-width:900px){ .stats-cards{ grid-template-columns:repeat(2,1fr); gap:14px; } .stat-card{ padding:18px; } }
+@media(max-width:560px){ .stats-cards{ grid-template-columns:1fr; } .sim-feature{ padding:22px 20px; } .sim-feature-body{ flex-direction:column; gap:14px; } }
 
 .audio-listen-btn{
   display:inline-flex; align-items:center; gap:5px; padding:5px 12px;
@@ -2173,48 +2228,97 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 
 <style>
-.ct-newsletter-block{border:1px solid var(--border);border-top:3px solid var(--accent);background:var(--surface);padding:1.5rem 1.75rem;font-family:'Source Serif 4',Georgia,serif;}
-.ct-newsletter-block .nl-kicker{font-size:0.6rem;letter-spacing:0.25em;text-transform:uppercase;color:var(--accent);margin-bottom:0.5rem;display:block;}
-.ct-newsletter-block h3{font-family:'Playfair Display',Georgia,serif;font-size:1.15rem;font-weight:600;color:var(--text);margin:0 0 0.4rem;line-height:1.3;}
-.ct-newsletter-block p{font-size:0.85rem;color:var(--text2);line-height:1.65;margin:0 0 1rem;}
-.ct-newsletter-block .nl-row{display:flex;gap:0.5rem;flex-wrap:wrap;}
-.ct-newsletter-block input[type="email"]{flex:1;min-width:180px;border:1px solid var(--border);padding:0.6rem 0.85rem;font-family:'Source Serif 4',Georgia,serif;font-size:0.9rem;color:var(--text);background:#fff;outline:none;}
-.ct-newsletter-block input[type="email"]:focus{border-color:var(--accent);}
-.ct-newsletter-block button{background:var(--accent);color:#fff;border:none;padding:0.6rem 1.25rem;font-family:'Playfair Display',Georgia,serif;font-size:0.85rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:background 0.2s;}
-.ct-newsletter-block button:hover{background:var(--accent-hover);}
-.ct-newsletter-block button:disabled{opacity:0.6;cursor:not-allowed;}
-.ct-newsletter-block .nl-note{font-size:0.7rem;color:var(--text3);margin-top:0.6rem;}
-.ct-newsletter-block .nl-note a{color:var(--accent);}
-.ct-newsletter-block .nl-msg{font-size:0.85rem;margin-top:0.75rem;padding:0.5rem 0.75rem;display:none;}
-.ct-newsletter-block .nl-msg.success{display:block;background:#f0f7f0;border:1px solid #7aab7a;color:#2d5a2d;}
-.ct-newsletter-block .nl-msg.error{display:block;background:#fdf0f0;border:1px solid #c87a7a;color:#7a2020;}
+.home-actions-band{ background:var(--surface2); border-top:1px solid var(--border); border-bottom:1px solid var(--border); padding:48px 24px; }
+.home-actions{ max-width:1400px; margin:0 auto; display:grid; grid-template-columns:repeat(3,1fr); gap:24px; align-items:stretch; }
+.home-actions .ct-nl{ margin:0; height:100%; box-sizing:border-box; }
+.home-actions .ct-nl__row{ grid-template-columns:1fr; }
+.home-card{ display:flex; flex-direction:column; align-items:center; text-align:center; background:var(--paper,#faf5e9); border:1px solid var(--rule,#c9bda5); padding:32px 28px 26px; text-decoration:none; color:var(--ink,#1a1612); font-family:'Source Serif 4',Georgia,serif; transition:border-color .2s, box-shadow .2s; }
+.home-card:hover{ border-color:var(--crimson,#8b1a1a); box-shadow:0 10px 30px rgba(139,26,26,.08); }
+.home-card-kicker{ font-family:'Special Elite',monospace; font-size:11px; letter-spacing:.28em; text-transform:uppercase; color:var(--ink-mute,#6b6157); margin-bottom:8px; }
+.home-card-title{ font-family:'Playfair Display',serif; font-weight:700; font-size:28px; line-height:1.15; margin:0 0 6px; }
+.home-card-meta{ font-style:italic; color:var(--ink-mute,#6b6157); font-size:15px; margin:0 0 10px; min-height:1em; }
+.home-card-text{ font-style:italic; font-size:16px; color:var(--ink-soft,#3a322a); line-height:1.55; margin:0 0 20px; }
+.home-card-list{ list-style:none; padding:0; margin:0 0 22px; width:100%; font-size:15px; color:var(--ink-soft,#3a322a); line-height:1.5; }
+.home-card-list li{ padding:7px 0; border-top:1px solid var(--rule,#c9bda5); }
+.home-card-list li:last-child{ border-bottom:1px solid var(--rule,#c9bda5); }
+.home-card{ justify-content:center; }
+.home-card-btn{ display:block; width:100%; box-sizing:border-box; padding:12px 24px; font-family:'Special Elite',monospace; font-size:12px; letter-spacing:.18em; text-transform:uppercase; background:var(--crimson,#8b1a1a); color:var(--paper,#faf5e9); border-radius:2px; }
+.home-card:hover .home-card-btn{ background:var(--crimson-deep,#6b1010); }
+@media(max-width:1000px){ .home-actions{ grid-template-columns:1fr; max-width:600px; } }
 </style>
 
-<script>
-(function(){
-  var FORM_ACTION='https://assets.mailerlite.com/jsonp/2259944/forms/184395234410497566/subscribe';
-  var form=document.getElementById('ct-nl-form');
-  var btn=document.getElementById('ct-nl-btn');
-  var msg=document.getElementById('ct-nl-msg');
-  if(!form)return;
-  form.addEventListener('submit',function(e){
-    e.preventDefault();
-    var email=document.getElementById('ct-nl-email').value.trim();
-    if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){msg.className='nl-msg error';msg.textContent='Please enter a valid email address.';return;}
-    btn.disabled=true;btn.textContent='…';msg.className='nl-msg';
-    var payload=new FormData();
-    payload.append('fields[email]',email);
-    payload.append('ml-submit','1');
-    payload.append('anticsrf','true');
-    payload.append('ajax','1');
-    fetch(FORM_ACTION,{method:'POST',body:payload})
-      .then(function(res){
-        if(res.ok){form.innerHTML='<p class="nl-msg success" style="display:block;margin:0;">Check your inbox — we\'ve sent a link to confirm. You\'ll join the list once you click it.</p>';}
-        else{throw new Error();}
-      })
-      .catch(function(){msg.className='nl-msg error';msg.textContent='Something went wrong. Try the full signup page.';btn.disabled=false;btn.textContent='Sign up';});
+<script src="/ct-newsletter.js" defer></script>
+
+<script type="module">
+/* 2026-10-28 (IJ): live figures on the stats cards, the current Yorker, and the
+   Subscribe card's signed-in state. Everything here is optional decoration: if
+   a read fails, the cards keep their static text and links. */
+import { getApp } from 'https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js';
+import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js';
+import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js';
+
+let db;
+try { db = window._fsDb || getFirestore(getApp()); } catch (e) { db = null; }
+const esc = t => String(t).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+// Stats cards: two lines each from liveScores/home.cards (built daily by
+// super-fortnight's build_home_feed.py). The description shows until they load.
+async function loadStatCards() {
+  if (!db) return;
+  try {
+    const snap = await getDoc(doc(db, 'liveScores', 'home'));
+    const cards = snap.exists() ? (snap.data().cards || {}) : {};
+    document.querySelectorAll('.stat-card[data-card]').forEach(el => {
+      const lines = cards[el.dataset.card];
+      if (!Array.isArray(lines) || !lines.length) return;
+      const dl = el.querySelector('.stat-card-facts');
+      dl.innerHTML = lines.map(x => `<div><dt>${esc(x.label)}</dt><dd>${esc(x.value)}</dd></div>`).join('');
+      dl.hidden = false;
+    });
+  } catch (e) { console.warn('[home] stat cards:', e && e.message); }
+}
+
+// Yorker: the current edition's name, month and question count.
+async function loadYorker() {
+  if (!db) return;
+  try {
+    const ptr = await getDoc(doc(db, 'config', 'currentOracle'));
+    const id = ptr.exists() ? ptr.data().editionId : null;
+    if (!id) return;
+    const ed = await getDoc(doc(db, 'oracleEditions', id));
+    if (!ed.exists()) return;
+    const d = ed.data();
+    const n = Array.isArray(d.questions) ? d.questions.length : 0;
+    if (d.name) document.getElementById('homeYorkerName').textContent = d.name;
+    if (d.theme) document.getElementById('homeYorkerTheme').textContent = d.theme;
+    document.getElementById('homeYorkerMeta').textContent =
+      [d.month, n ? `${n} questions` : ''].filter(Boolean).join(' \u00b7 ');
+  } catch (e) { console.warn('[home] yorker:', e && e.message); }
+}
+
+// Subscribe: readers with paid or complimentary access get a link to their
+// subscription instead of a pitch.
+function watchSubscriber() {
+  let auth;
+  try { auth = getAuth(getApp()); } catch (e) { return; }
+  onAuthStateChanged(auth, async user => {
+    if (!user || !user.email || !window.CTFeatureFlags || !db) return;
+    try {
+      const has = await window.CTFeatureFlags.getUserHasPaidAccess(db, user.email, user);
+      if (!has) return;
+      const card = document.getElementById('homeSubscribe');
+      card.href = 'manage.html';
+      document.getElementById('homeSubTitle').textContent = 'You\u2019re a member';
+      document.getElementById('homeSubText').textContent = 'Thank you for reading The Grass Bank.';
+      document.getElementById('homeSubList').hidden = true;
+      document.getElementById('homeSubBtn').innerHTML = 'My subscription &rarr;';
+    } catch (e) { console.warn('[home] subscriber:', e && e.message); }
   });
-}());
+}
+
+loadStatCards();
+loadYorker();
+watchSubscriber();
 </script>
 
 <script src="/ct-nav.js"></script>
