@@ -232,74 +232,40 @@ body{
 .otd-more:hover{ color:var(--accent-hover); text-decoration:underline; }
 /* WTC race strip (2026-10-27): the top chances of reaching the final, from the
    public liveScores/wtc document; the full table is on /wtc.html (free). */
-.wtc-strip{ padding:30px 0 28px; }
-.feed-row{ display:grid; grid-template-columns:1fr 1fr; gap:0; padding:26px 0 22px; border-bottom:1px solid var(--border); }
-.feed-row[hidden], .feed-col[hidden]{ display:none; }
-.feed-row{ grid-template-columns:repeat(var(--feed-cols,3),minmax(0,1fr)); }
-.feed-col{ padding:0 24px; border-left:1px solid var(--surface3); min-width:0; }
-.feed-col.first{ padding-left:0; border-left:none; }
-.feed-col.last{ padding-right:0; }
-.feed-col.quiz-widget{ background:none; border-top:none; border-right:none; border-bottom:none; border-radius:0; margin:0; padding:0 24px; }
-.feed-col.quiz-widget.first{ border-left:none; padding-left:0; }
-.feed-col.quiz-widget.last{ padding-right:0; }
-.feed-col .quiz-question-text{ font-size:16px; }
-.feed-title{ font-family:'Playfair Display',serif; font-size:22px; font-weight:700; margin:0 0 10px; }
-.feed-score{ font-size:16px; line-height:1.5; color:var(--text); margin:6px 0; }
-.feed-list{ list-style:none; margin:0; padding:0; }
-.feed-list li{ font-size:15px; line-height:1.45; color:var(--text2); padding:7px 0; border-top:1px solid var(--surface3); }
-.feed-list li:first-child{ border-top:none; padding-top:0; }
-.feed-list a{ color:inherit; text-decoration:none; }
-.feed-list a:hover{ color:var(--accent); }
-.coming-up .cu-teams, .feed-list .cu-teams{ display:block; color:var(--text); }
-.feed-list .cu-meta{ display:block; font-family:'Inter',sans-serif; font-size:11px; letter-spacing:0.06em; text-transform:uppercase; color:var(--text3); margin-top:2px; }
-.feed-list .cu-live{ color:var(--accent); }
-@media (max-width:760px){
-  .feed-row{ grid-template-columns:1fr; }
-  .feed-row{ grid-template-columns:1fr !important; }
-  .feed-col, .feed-col.quiz-widget{ padding:16px 0 0 !important; border-left:none !important; border-top:1px solid var(--surface3) !important; margin-top:16px; }
-  .feed-col.first, .feed-col.quiz-widget.first{ padding-top:0 !important; border-top:none !important; margin-top:0; }
-}
-.sidebar-googlies{ margin-top:0; }
-.sidebar-googlies .quiz-question-text{ font-size:16px; }
-.wtc-pointer{ padding:24px 0 22px; border-bottom:1px solid var(--border); }
-.listen-strip{ padding:24px 0 22px; border-bottom:1px solid var(--border); }
-.listen-strip[hidden]{ display:none; }
-.listen-kicker{ font-family:'Inter',sans-serif; font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:var(--accent); margin:0 0 12px; }
-.listen-row{ display:flex; gap:18px; align-items:flex-start; }
-.listen-play{ flex:none; width:52px; height:52px; border-radius:50%; border:none; background:var(--accent); color:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; }
-.listen-play:hover{ background:var(--accent-hover); }
-.listen-play svg{ width:20px; height:20px; fill:currentColor; }
-.listen-text{ min-width:0; }
-.listen-title{ font-family:'Playfair Display',serif; font-size:24px; font-weight:700; line-height:1.25; margin:0 0 6px; }
-.listen-title a{ color:var(--text); text-decoration:none; }
-.listen-title a:hover{ color:var(--accent); }
-.listen-point{ font-size:17px; line-height:1.55; color:var(--text2); margin:0 0 8px; }
-.listen-meta{ font-family:'Inter',sans-serif; font-size:12px; color:var(--text3); margin:0; display:flex; gap:12px; flex-wrap:wrap; font-variant-numeric:tabular-nums; }
-.listen-meta a{ color:var(--accent); text-decoration:none; }
-.wtc-pointer[hidden]{ display:none; }
-.wtc-pointer-kicker{ font-family:'Inter',sans-serif; font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:var(--accent); margin:0 0 8px; }
-.wtc-pointer-body{ font-size:17px; line-height:1.6; color:var(--text2); margin:0 0 10px; max-width:820px; }
-.wtc-pointer:not([hidden]){ display:grid; grid-template-columns:minmax(0,1fr) auto; gap:40px; align-items:center; }
-.wtc-pointer-stats{ margin:0; padding:0 0 0 36px; border-left:1px solid var(--surface3); display:flex; flex-direction:column; gap:14px; min-width:190px; }
-.wtc-pointer-stats div{ display:flex; align-items:baseline; gap:12px; }
-.wtc-pointer-stats dt{ font-family:'Playfair Display',serif; font-size:44px; font-weight:700; line-height:1; color:var(--text); min-width:1.6ch; text-align:right; font-variant-numeric:lining-nums tabular-nums; }
-.wtc-pointer-stats dd{ margin:0; font-family:'Inter',sans-serif; font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:var(--text3); }
-@media (max-width:900px){
-  .wtc-pointer:not([hidden]){ display:block; }
-  .wtc-pointer-stats{ flex-direction:row; flex-wrap:wrap; gap:22px; border-left:none; padding:16px 0 0; margin-top:16px; border-top:1px solid var(--surface3); min-width:0; }
-  .wtc-pointer-stats dt{ font-size:32px; min-width:0; }
-}
-.wtc-pointer-q{ font-family:'Playfair Display',serif; font-size:21px; font-weight:700; color:var(--text); margin:0; }
-.wtc-pointer-q span{ font-family:'Inter',sans-serif; font-size:13px; font-weight:600; color:var(--accent); white-space:nowrap; margin-left:10px; }
 .wtc-strip[hidden]{ display:none; }
-.wtc-strip-row{ display:flex; align-items:baseline; gap:22px; flex-wrap:wrap; }
-.wtc-strip-title{ font-family:'Playfair Display',serif; font-size:20px; font-weight:700; margin:0; }
-.wtc-strip-teams{ display:flex; gap:22px; flex-wrap:wrap; flex:1; }
-.wtc-strip-team{ font-size:15px; color:var(--text2); white-space:nowrap; }
-.wtc-strip-team b{ font-family:'Playfair Display',serif; font-size:19px; color:var(--text); margin-left:6px; font-variant-numeric:lining-nums tabular-nums; }
-.wtc-strip-more{ font-family:'Inter',sans-serif; font-size:12px; letter-spacing:0.04em; color:var(--accent); text-decoration:none; white-space:nowrap; }
-.wtc-strip-more:hover{ color:var(--accent-hover); text-decoration:underline; }
-.wtc-strip-note{ font-family:'Inter',sans-serif; font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--text3); margin:8px 0 0; }
+.wtc-counter{ position:relative; margin:36px 0 40px; padding:0 0 26px; background:linear-gradient(180deg,#3a1d12 0%,#2a140c 100%); border-radius:10px; overflow:hidden; color:#fff6e6; box-shadow:0 18px 50px rgba(60,20,5,.28); }
+.wtc-counter::before{ content:""; position:absolute; inset:0 0 auto 0; height:300px; background:radial-gradient(ellipse 70% 100% at 50% 0%, rgba(255,166,64,.42), rgba(255,120,40,.12) 55%, transparent 75%); pointer-events:none; }
+.wtc-counter-lamps{ position:relative; display:flex; justify-content:space-around; padding:0 6%; height:18px; }
+.wtc-counter-lamps span{ width:64px; height:12px; border-radius:0 0 40px 40px; background:linear-gradient(180deg,#5a5a5a,#2b2b2b); box-shadow:0 10px 28px 8px rgba(255,170,70,.55); }
+.wtc-counter-sign{ position:relative; text-align:center; padding:26px 120px 6px; }
+.wtc-counter-hot{ display:inline-block; padding:6px 18px; background:#c8161d; color:#fff; font-family:'Inter',sans-serif; font-weight:800; font-size:13px; letter-spacing:.22em; text-transform:uppercase; border-radius:3px; box-shadow:0 0 0 3px #fff6e6 inset, 0 4px 14px rgba(200,22,29,.5); }
+.wtc-counter .wtc-strip-title{ font-family:'Playfair Display',serif; font-size:40px; font-weight:700; color:#fff6e6; margin:14px 0 6px; text-shadow:0 2px 18px rgba(255,150,50,.35); }
+.wtc-counter-sub{ font-size:16px; font-style:italic; color:#f3d9b8; margin:0 auto; max-width:620px; line-height:1.5; }
+.wtc-counter-free{ position:absolute; right:28px; top:22px; width:92px; height:92px; display:flex; align-items:center; justify-content:center; text-align:center; background:#ffd23f; color:#2a140c; font-family:'Inter',sans-serif; font-weight:900; font-size:15px; line-height:1.05; letter-spacing:.04em; text-transform:uppercase; border-radius:50%; transform:rotate(-12deg); box-shadow:0 0 0 4px #2a140c, 0 0 0 7px #ffd23f, 0 8px 20px rgba(0,0,0,.35); }
+.wtc-counter-case{ position:relative; margin:22px 24px 0; padding:22px 18px 18px; background:linear-gradient(180deg,rgba(255,200,120,.10),rgba(255,200,120,.02)); border:1px solid rgba(255,210,150,.28); border-radius:8px; }
+.wtc-counter-glass{ position:absolute; inset:0 0 auto 0; height:10px; border-radius:8px 8px 0 0; background:linear-gradient(90deg,rgba(255,255,255,.05),rgba(255,255,255,.32),rgba(255,255,255,.05)); }
+.wtc-counter-trays{ display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:18px 14px; padding-top:4px; }
+.wtc-tray{ position:relative; display:flex; flex-direction:column; align-items:center; gap:10px; padding:16px 10px 14px; border-radius:40px 40px 10px 10px; background:radial-gradient(ellipse at 50% 30%, #e0a04c 0%, #b8691f 55%, #7f4012 100%); box-shadow:inset 0 -6px 12px rgba(60,20,0,.35), 0 6px 16px rgba(0,0,0,.35); text-decoration:none; color:#2a140c; transition:transform .2s; }
+.wtc-tray:hover{ transform:translateY(-3px); }
+.wtc-tray-team{ font-family:'Playfair Display',serif; font-weight:700; font-size:18px; color:#fff6e6; text-shadow:0 1px 3px rgba(60,20,0,.6); }
+.wtc-tray-tag{ display:flex; flex-direction:column; align-items:center; min-width:96px; padding:6px 12px 7px; background:#fffdf6; border:2px solid #c8161d; border-radius:4px; box-shadow:0 3px 8px rgba(0,0,0,.25); }
+.wtc-tray-tag b{ font-family:'Inter',sans-serif; font-weight:900; font-size:30px; line-height:1; color:#c8161d; font-variant-numeric:tabular-nums; }
+.wtc-tray-tag small{ text-align:center; font-family:'Inter',sans-serif; font-size:9px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:#5a4636; margin-top:3px; }
+.wtc-tray-move{ position:absolute; top:-8px; right:-4px; box-shadow:0 2px 6px rgba(0,0,0,.3); font-family:'Inter',sans-serif; font-size:11px; font-weight:800; padding:2px 6px; border-radius:10px; background:#fff6e6; }
+.wtc-tray-move.up{ color:#1f7a3a; } .wtc-tray-move.down{ color:#c8161d; }
+.wtc-counter-foot{ position:relative; padding:0 18px; text-align:center; display:flex; align-items:center; justify-content:center; gap:22px; flex-wrap:wrap; margin-top:22px; }
+.wtc-counter-cta{ display:inline-block; padding:13px 28px; background:#ffd23f; color:#2a140c; font-family:'Inter',sans-serif; font-weight:800; font-size:14px; letter-spacing:.06em; text-transform:uppercase; text-decoration:none; border-radius:4px; box-shadow:0 6px 18px rgba(0,0,0,.3); }
+.wtc-counter-cta:hover{ background:#ffe27a; }
+.wtc-counter .wtc-strip-note{ font-family:'Inter',sans-serif; font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:#d9b892; margin:0; }
+@media(max-width:700px){
+  .wtc-counter-sign{ padding:22px 18px 6px; }
+  .wtc-counter .wtc-strip-title{ font-size:30px; }
+  .wtc-counter-free{ position:static; margin:16px auto 0; width:78px; height:78px; font-size:13px; }
+  .wtc-counter-case{ margin:18px 12px 0; padding:18px 10px 12px; }
+  .wtc-counter-trays{ grid-template-columns:repeat(2,1fr); gap:10px; }
+  .wtc-counter-lamps span{ width:40px; }
+  .wtc-counter-cta{ font-size:13px; padding:12px 18px; letter-spacing:.03em; }
+}
 @media(max-width:900px){
   .otd-grid{ grid-template-columns:1fr; }
   .otd-entry{ padding:16px 0; border-left:none; border-top:1px solid var(--surface3); }
@@ -1092,7 +1058,7 @@ body.articles-loading .analysis-section{ visibility:hidden; }
         <div>
           <h3 class="sim-feature-title">Simulation</h3>
           <p class="sim-feature-desc">Settle the arguments cricket can&rsquo;t. Pick two countries from any era and let their best elevens play it out. Build a side from anyone in history, Bradman and Bumrah in the same team if you like. Or take a real Test, swap a player, and see how the result might have changed. Think someone didn&rsquo;t deserve to be dropped? Add him to the eleven and see the outcome.</p>
-          <p class="sim-feature-example"><span class="sim-feature-example-tag">Try this</span> India left R Ashwin out of the 2023 World Test Championship final at The Oval, and Australia won by 209 runs. Open <em>What-If Replay</em>, find India v Australia in 2023, put Ashwin back in the eleven and see whether the result changes.</p>
+          <p class="sim-feature-example"><span class="sim-feature-example-tag">Try this</span> India left R Ashwin out of the 2023 World Test Championship final at The Oval, and Australia won by 209 runs. Open <em>What-If Replay</em>, find India v Australia in 2023, put Ashwin back in the eleven and see whether India&rsquo;s chance of winning improves, and by how much.</p>
           <span class="sim-feature-cta">Pick your XIs &rarr;</span>
         </div>
       </div>
@@ -1160,13 +1126,26 @@ body.articles-loading .analysis-section{ visibility:hidden; }
      liveScores/wtc document (written daily by super-fortnight's wtc.yml).
      Hidden, with its pointer, until it has something to show. -->
 <div class="main">
-  <section class="wtc-strip" id="wtcStrip" hidden aria-labelledby="wtc-strip-title">
-    <div class="wtc-strip-row">
-      <h2 class="wtc-strip-title" id="wtc-strip-title">The race to Lord's</h2>
-      <div class="wtc-strip-teams" id="wtcStripTeams"></div>
-      <a class="wtc-strip-more" href="/wtc.html">Every team's chance →</a>
+  <!-- 2026-10-28 (IJ): dressed as a hot-food counter, the rotisserie-chicken
+       idea made literal: heat lamps, a HOT & READY sign, every team in a
+       warming tray with its chance as the price tag, and an "Always free"
+       badge. Evokes the counter only; no store name, logo or branding. -->
+  <section class="wtc-strip wtc-counter" id="wtcStrip" hidden aria-labelledby="wtc-strip-title">
+    <div class="wtc-counter-lamps" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+    <div class="wtc-counter-sign">
+      <span class="wtc-counter-hot">Hot &amp; ready</span>
+      <h2 class="wtc-strip-title" id="wtc-strip-title">The race to Lord&rsquo;s</h2>
+      <p class="wtc-counter-sub">Every team&rsquo;s chance of reaching the World Test Championship final, <span id="wtcFresh">fresh from the simulator</span>.</p>
+      <span class="wtc-counter-free" aria-label="Always free">Always<br>free</span>
     </div>
-    <p class="wtc-strip-note">Chance of reaching the World Test Championship final · updated as soon as we get the data</p>
+    <div class="wtc-counter-case">
+      <div class="wtc-counter-glass" aria-hidden="true"></div>
+      <div class="wtc-counter-trays" id="wtcStripTeams"></div>
+    </div>
+    <div class="wtc-counter-foot">
+      <a class="wtc-counter-cta" href="/wtc.html">Grab your team&rsquo;s chances &rarr;</a>
+      <span class="wtc-strip-note">No account needed &middot; cooked fresh every morning</span>
+    </div>
   </section>
 </div>
 
@@ -1760,20 +1739,41 @@ async function refreshFeedRow() {
     const snap = await getDoc(doc(window._fsDb, 'liveScores', 'wtc'));
     if (!snap.exists()) return;
     const rows = (snap.data().table || []).filter(r => r && r.team && r.chance > 0)
-      .sort((a, b) => b.chance - a.chance).slice(0, 4);
+      .sort((a, b) => b.chance - a.chance).slice(0, 6);
+    const moves = snap.data().moves || {};
     if (!rows.length) return;
     const box = document.getElementById('wtcStripTeams');
+    // Each team in its own warming tray, its chance on the price tag, and
+    // yesterday's move (from the same document) when it changed.
     rows.forEach(r => {
       const a = document.createElement('a');
-      a.className = 'wtc-strip-team';
+      a.className = 'wtc-tray';
       a.href = '/wtc.html?team=' + encodeURIComponent(r.team);
-      a.style.textDecoration = 'none';
-      a.textContent = r.team;
+      const team = document.createElement('span');
+      team.className = 'wtc-tray-team';
+      team.textContent = r.team;
+      const tag = document.createElement('span');
+      tag.className = 'wtc-tray-tag';
       const b = document.createElement('b');
       b.textContent = r.chanceText || (Math.round(r.chance * 100) + '%');
-      a.appendChild(b);
+      const small = document.createElement('small');
+      small.textContent = 'to reach the final';
+      tag.append(b, small);
+      a.append(team, tag);
+      const mv = Math.round(Number(moves[r.team]) || 0);
+      if (mv) {
+        const m = document.createElement('span');
+        m.className = 'wtc-tray-move ' + (mv > 0 ? 'up' : 'down');
+        m.textContent = (mv > 0 ? '\u25B2 ' : '\u25BC ') + Math.abs(mv);
+        m.title = (mv > 0 ? 'Up ' : 'Down ') + Math.abs(mv) + ' since the day before';
+        a.appendChild(m);
+      }
       box.appendChild(a);
     });
+    const gen = Date.parse(snap.data().generatedAt || '');
+    if (gen && Date.now() - gen < 30 * 3600 * 1000) {
+      document.getElementById('wtcFresh').textContent = 'fresh from the simulator this morning';
+    }
     document.getElementById('wtcStrip').hidden = false;
     // The pointer's copy, from the same document so its numbers stay true as
     // the cycle goes on: nations, Tests in the cycle, Tests left, and the
