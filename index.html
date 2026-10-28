@@ -294,38 +294,43 @@ body{
 .wtc-pointer-q span{ font-family:'Inter',sans-serif; font-size:13px; font-weight:600; color:var(--accent); white-space:nowrap; margin-left:10px; }
 
 .wtc-strip[hidden]{ display:none; }
-.wtc-counter{ position:relative; margin:36px 0 40px; padding:0 0 26px; background:linear-gradient(180deg,#3a1d12 0%,#2a140c 100%); border-radius:10px; overflow:hidden; color:#fff6e6; box-shadow:0 18px 50px rgba(60,20,5,.28); }
-.wtc-counter::before{ content:""; position:absolute; inset:0 0 auto 0; height:300px; background:radial-gradient(ellipse 70% 100% at 50% 0%, rgba(255,166,64,.42), rgba(255,120,40,.12) 55%, transparent 75%); pointer-events:none; }
-.wtc-counter-lamps{ position:relative; display:flex; justify-content:space-around; padding:0 6%; height:18px; }
-.wtc-counter-lamps span{ width:64px; height:12px; border-radius:0 0 40px 40px; background:linear-gradient(180deg,#5a5a5a,#2b2b2b); box-shadow:0 10px 28px 8px rgba(255,170,70,.55); }
-.wtc-counter-sign{ position:relative; text-align:center; padding:26px 120px 6px; }
-.wtc-counter-hot{ display:inline-block; padding:6px 18px; background:#c8161d; color:#fff; font-family:'Inter',sans-serif; font-weight:800; font-size:13px; letter-spacing:.22em; text-transform:uppercase; border-radius:3px; box-shadow:0 0 0 3px #fff6e6 inset, 0 4px 14px rgba(200,22,29,.5); }
-.wtc-counter .wtc-strip-title{ font-family:'Playfair Display',serif; font-size:40px; font-weight:700; color:#fff6e6; margin:14px 0 6px; text-shadow:0 2px 18px rgba(255,150,50,.35); }
-.wtc-counter-sub{ font-size:16px; font-style:italic; color:#f3d9b8; margin:0 auto; max-width:620px; line-height:1.5; }
-.wtc-counter-free{ position:absolute; right:28px; top:22px; width:92px; height:92px; display:flex; align-items:center; justify-content:center; text-align:center; background:#ffd23f; color:#2a140c; font-family:'Inter',sans-serif; font-weight:900; font-size:15px; line-height:1.05; letter-spacing:.04em; text-transform:uppercase; border-radius:50%; transform:rotate(-12deg); box-shadow:0 0 0 4px #2a140c, 0 0 0 7px #ffd23f, 0 8px 20px rgba(0,0,0,.35); }
-.wtc-counter-case{ position:relative; margin:22px 24px 0; padding:22px 18px 18px; background:linear-gradient(180deg,rgba(255,200,120,.10),rgba(255,200,120,.02)); border:1px solid rgba(255,210,150,.28); border-radius:8px; }
-.wtc-counter-glass{ position:absolute; inset:0 0 auto 0; height:10px; border-radius:8px 8px 0 0; background:linear-gradient(90deg,rgba(255,255,255,.05),rgba(255,255,255,.32),rgba(255,255,255,.05)); }
-.wtc-counter-trays{ display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:18px 14px; padding-top:4px; }
-.wtc-tray{ position:relative; display:flex; flex-direction:column; align-items:center; gap:10px; padding:16px 10px 14px; border-radius:40px 40px 10px 10px; background:radial-gradient(ellipse at 50% 30%, #e0a04c 0%, #b8691f 55%, #7f4012 100%); box-shadow:inset 0 -6px 12px rgba(60,20,0,.35), 0 6px 16px rgba(0,0,0,.35); text-decoration:none; color:#2a140c; transition:transform .2s; }
-.wtc-tray:hover{ transform:translateY(-3px); }
-.wtc-tray-team{ font-family:'Playfair Display',serif; font-weight:700; font-size:18px; color:#fff6e6; text-shadow:0 1px 3px rgba(60,20,0,.6); }
-.wtc-tray-tag{ display:flex; flex-direction:column; align-items:center; min-width:96px; padding:6px 12px 7px; background:#fffdf6; border:2px solid #c8161d; border-radius:4px; box-shadow:0 3px 8px rgba(0,0,0,.25); }
-.wtc-tray-tag b{ font-family:'Inter',sans-serif; font-weight:900; font-size:30px; line-height:1; color:#c8161d; font-variant-numeric:tabular-nums; }
-.wtc-tray-tag small{ text-align:center; font-family:'Inter',sans-serif; font-size:9px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:#5a4636; margin-top:3px; }
-.wtc-tray-move{ position:absolute; top:-8px; right:-4px; box-shadow:0 2px 6px rgba(0,0,0,.3); font-family:'Inter',sans-serif; font-size:11px; font-weight:800; padding:2px 6px; border-radius:10px; background:#fff6e6; }
-.wtc-tray-move.up{ color:#1f7a3a; } .wtc-tray-move.down{ color:#c8161d; }
-.wtc-counter-foot{ position:relative; padding:0 18px; text-align:center; display:flex; align-items:center; justify-content:center; gap:22px; flex-wrap:wrap; margin-top:22px; }
-.wtc-counter-cta{ display:inline-block; padding:13px 28px; background:#ffd23f; color:#2a140c; font-family:'Inter',sans-serif; font-weight:800; font-size:14px; letter-spacing:.06em; text-transform:uppercase; text-decoration:none; border-radius:4px; box-shadow:0 6px 18px rgba(0,0,0,.3); }
-.wtc-counter-cta:hover{ background:#ffe27a; }
-.wtc-counter .wtc-strip-note{ font-family:'Inter',sans-serif; font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:#d9b892; margin:0; }
+.wtc-cloche{ margin:40px 0 44px; padding:34px 28px 30px; background:var(--surface,#fffdf8); border:1px solid var(--border); border-radius:10px; text-align:center; }
+.wtc-cloche-kicker{ font-family:'Inter',sans-serif; font-size:11px; font-weight:700; letter-spacing:.28em; text-transform:uppercase; color:var(--accent,#8b0000); }
+.wtc-cloche .wtc-strip-title{ font-family:'Playfair Display',serif; font-size:34px; font-weight:700; color:var(--text); margin:8px 0 6px; }
+.wtc-cloche-sub{ font-style:italic; font-size:16px; color:var(--text2); margin:0 auto; max-width:600px; line-height:1.5; }
+/* The dome: a glass cloche — arched top, a faint warm glow inside, a
+   highlight down the left like light on glass, a brass knob on top. */
+.wtc-cloche-dome{ position:relative; max-width:1080px; margin:46px auto 0; padding:48px 7% 26px;
+  border-radius:50% 50% 14px 14px / 120px 120px 14px 14px;
+  background:radial-gradient(ellipse 60% 70% at 50% 100%, rgba(214,160,80,.12), transparent 70%), linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,250,238,.25));
+  border:1px solid rgba(150,120,80,.35);
+  box-shadow:inset 0 2px 0 rgba(255,255,255,.95), inset 0 -18px 36px rgba(190,140,70,.08), 0 14px 34px rgba(60,40,20,.08); }
+.wtc-cloche-dome::before{ content:""; position:absolute; left:7%; top:18%; width:16px; height:52%; border-radius:50%; background:linear-gradient(180deg, rgba(255,255,255,.85), rgba(255,255,255,0)); transform:rotate(14deg); pointer-events:none; }
+.wtc-cloche-dome::after{ content:""; position:absolute; right:9%; top:24%; width:6px; height:28%; border-radius:50%; background:linear-gradient(180deg, rgba(255,255,255,.7), rgba(255,255,255,0)); transform:rotate(-12deg); pointer-events:none; }
+.wtc-cloche-knob{ position:absolute; left:50%; top:-15px; width:30px; height:15px; transform:translateX(-50%); border-radius:16px 16px 4px 4px; background:linear-gradient(180deg,#e4c98d,#a8823f); box-shadow:0 2px 4px rgba(60,40,20,.25); }
+.wtc-cloche-stand{ position:relative; max-width:1120px; height:9px; margin:0 auto; border-radius:0 0 6px 6px; background:linear-gradient(180deg,#e1c58a,#a07a38); box-shadow:0 6px 14px rgba(60,40,20,.18); }
+/* A nod to the $4.99 rotisserie chicken, engraved on the stand (IJ,
+   2026-10-28). Keep it as is. */
+.wtc-cloche-plaque{ position:absolute; left:50%; top:3px; transform:translateX(-50%); padding:3px 12px 4px; background:linear-gradient(180deg,#d9bb7c,#a8823f); border-radius:0 0 5px 5px; font-family:'Playfair Display',serif; font-size:11px; font-weight:700; letter-spacing:.14em; color:#5a4220; text-shadow:0 1px 0 rgba(255,240,200,.6); box-shadow:inset 0 1px 2px rgba(60,40,20,.35); white-space:nowrap; }
+.wtc-cloche-items{ position:relative; display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:10px; }
+.wtc-cloche-item{ position:relative; display:flex; flex-direction:column; align-items:center; padding:10px 6px 12px; text-decoration:none; color:var(--text); border-right:1px solid rgba(150,120,80,.18); }
+.wtc-cloche-item:last-child{ border-right:0; }
+.wtc-cloche-item:hover .wtc-cloche-fig{ color:var(--accent-hover,#6b0000); }
+.wtc-cloche-team{ font-family:'Inter',sans-serif; font-size:11px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--text2); }
+.wtc-cloche-fig{ font-family:'Playfair Display',serif; font-size:40px; font-weight:700; line-height:1.1; color:var(--accent,#8b0000); font-variant-numeric:lining-nums tabular-nums; margin-top:4px; }
+.wtc-cloche-move{ font-family:'Inter',sans-serif; font-size:11px; font-weight:700; margin-top:2px; min-height:14px; }
+.wtc-cloche-move.up{ color:#2f7a45; } .wtc-cloche-move.down{ color:var(--accent,#8b0000); }
+.wtc-cloche-foot{ margin-top:38px; display:flex; flex-direction:column; align-items:center; gap:10px; }
+.wtc-cloche-cta{ display:inline-block; padding:12px 26px; background:var(--accent,#8b0000); color:#fffdf8; font-family:'Inter',sans-serif; font-size:12px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; text-decoration:none; border-radius:3px; }
+.wtc-cloche-cta:hover{ background:var(--accent-hover,#6b0000); }
+.wtc-cloche .wtc-strip-note{ font-family:'Inter',sans-serif; font-size:11px; letter-spacing:.06em; color:var(--text3); margin:0; }
 @media(max-width:700px){
-  .wtc-counter-sign{ padding:22px 18px 6px; }
-  .wtc-counter .wtc-strip-title{ font-size:30px; }
-  .wtc-counter-free{ position:static; margin:16px auto 0; width:78px; height:78px; font-size:13px; }
-  .wtc-counter-case{ margin:18px 12px 0; padding:18px 10px 12px; }
-  .wtc-counter-trays{ grid-template-columns:repeat(2,1fr); gap:10px; }
-  .wtc-counter-lamps span{ width:40px; }
-  .wtc-counter-cta{ font-size:13px; padding:12px 18px; letter-spacing:.03em; }
+  .wtc-cloche{ padding:28px 14px 24px; }
+  .wtc-cloche .wtc-strip-title{ font-size:28px; }
+  .wtc-cloche-dome{ margin-top:36px; padding:34px 10px 16px; border-radius:50% 50% 12px 12px / 60px 60px 12px 12px; }
+  .wtc-cloche-items{ grid-template-columns:repeat(2,1fr); gap:6px 0; }
+  .wtc-cloche-item{ border-right:0; }
+  .wtc-cloche-fig{ font-size:32px; }
 }
 @media(max-width:900px){
   .otd-grid{ grid-template-columns:1fr; }
@@ -1187,25 +1192,25 @@ body.articles-loading .analysis-section{ visibility:hidden; }
      liveScores/wtc document (written daily by super-fortnight's wtc.yml).
      Hidden, with its pointer, until it has something to show. -->
 <div class="main">
-  <!-- 2026-10-28 (IJ): dressed as a hot-food counter, the rotisserie-chicken
-       idea made literal: heat lamps, a HOT & READY sign, every team in a
-       warming tray with its chance as the price tag, and an "Always free"
-       badge. Evokes the counter only; no store name, logo or branding. -->
-  <section class="wtc-strip wtc-counter" id="wtcStrip" hidden aria-labelledby="wtc-strip-title">
-    <div class="wtc-counter-lamps" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
-    <div class="wtc-counter-sign">
-      <span class="wtc-counter-hot">Hot &amp; ready</span>
+  <!-- 2026-10-28 (IJ): the rotisserie-chicken idea, kept elegant: every
+       team's chance under a glass cloche on a brass stand, in the site's own
+       cream, ink and crimson. A first version (heat lamps, a red sign, an
+       "Always free" badge) was too loud, and "always free" overstated it:
+       the WTC page also has paid sections. -->
+  <section class="wtc-strip wtc-cloche" id="wtcStrip" hidden aria-labelledby="wtc-strip-title">
+    <header class="wtc-cloche-head">
+      <span class="wtc-cloche-kicker">Hot &amp; ready</span>
       <h2 class="wtc-strip-title" id="wtc-strip-title">The race to Lord&rsquo;s</h2>
-      <p class="wtc-counter-sub">Every team&rsquo;s chance of reaching the World Test Championship final, <span id="wtcFresh">fresh from the simulator</span>.</p>
-      <span class="wtc-counter-free" aria-label="Always free">Always<br>free</span>
+      <p class="wtc-cloche-sub">Every team&rsquo;s chance of reaching the World Test Championship final, roasted fresh in our own simulations whenever a result comes in.</p>
+    </header>
+    <div class="wtc-cloche-dome">
+      <span class="wtc-cloche-knob" aria-hidden="true"></span>
+      <div class="wtc-cloche-items" id="wtcStripTeams"></div>
     </div>
-    <div class="wtc-counter-case">
-      <div class="wtc-counter-glass" aria-hidden="true"></div>
-      <div class="wtc-counter-trays" id="wtcStripTeams"></div>
-    </div>
-    <div class="wtc-counter-foot">
-      <a class="wtc-counter-cta" href="/wtc.html">Grab your team&rsquo;s chances &rarr;</a>
-      <span class="wtc-strip-note">No account needed &middot; cooked fresh every morning</span>
+    <div class="wtc-cloche-stand" aria-hidden="true"><span class="wtc-cloche-plaque">No. 4&middot;99</span></div>
+    <div class="wtc-cloche-foot">
+      <a class="wtc-cloche-cta" href="/wtc.html">Every team&rsquo;s chances &rarr;</a>
+      <p class="wtc-strip-note" id="wtcFresh">The table and every team&rsquo;s chance are free to see, no account needed.</p>
     </div>
   </section>
 </div>
@@ -1804,36 +1809,35 @@ async function refreshFeedRow() {
     const moves = snap.data().moves || {};
     if (!rows.length) return;
     const box = document.getElementById('wtcStripTeams');
-    // Each team in its own warming tray, its chance on the price tag, and
-    // yesterday's move (from the same document) when it changed.
+    // Each team under the cloche: name, chance, and its move since the last
+    // result (build_wtc.py records `moves` only when the results change).
     rows.forEach(r => {
       const a = document.createElement('a');
-      a.className = 'wtc-tray';
+      a.className = 'wtc-cloche-item';
       a.href = '/wtc.html?team=' + encodeURIComponent(r.team);
       const team = document.createElement('span');
-      team.className = 'wtc-tray-team';
+      team.className = 'wtc-cloche-team';
       team.textContent = r.team;
-      const tag = document.createElement('span');
-      tag.className = 'wtc-tray-tag';
-      const b = document.createElement('b');
-      b.textContent = r.chanceText || (Math.round(r.chance * 100) + '%');
-      const small = document.createElement('small');
-      small.textContent = 'to reach the final';
-      tag.append(b, small);
-      a.append(team, tag);
+      const fig = document.createElement('span');
+      fig.className = 'wtc-cloche-fig';
+      fig.textContent = r.chanceText || (Math.round(r.chance * 100) + '%');
+      const mvEl = document.createElement('span');
       const mv = Math.round(Number(moves[r.team]) || 0);
+      mvEl.className = 'wtc-cloche-move' + (mv ? (mv > 0 ? ' up' : ' down') : '');
       if (mv) {
-        const m = document.createElement('span');
-        m.className = 'wtc-tray-move ' + (mv > 0 ? 'up' : 'down');
-        m.textContent = (mv > 0 ? '\u25B2 ' : '\u25BC ') + Math.abs(mv);
-        m.title = (mv > 0 ? 'Up ' : 'Down ') + Math.abs(mv) + ' since the day before';
-        a.appendChild(m);
+        mvEl.textContent = (mv > 0 ? '\u25B2 ' : '\u25BC ') + Math.abs(mv);
+        mvEl.title = (mv > 0 ? 'Up ' : 'Down ') + Math.abs(mv) + ' since the last result';
       }
+      a.append(team, fig, mvEl);
       box.appendChild(a);
     });
-    const gen = Date.parse(snap.data().generatedAt || '');
-    if (gen && Date.now() - gen < 30 * 3600 * 1000) {
-      document.getElementById('wtcFresh').textContent = 'fresh from the simulator this morning';
+    // Honest freshness: the results it includes, not a promise of daily updates.
+    const to = snap.data().resultsTo;
+    if (to) {
+      const dt = new Date(to + 'T12:00:00Z');
+      const when = dt.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', timeZone: 'UTC' });
+      document.getElementById('wtcFresh').textContent =
+        'Includes every result to ' + when + '. The table and every team\u2019s chance are free to see, no account needed.';
     }
     document.getElementById('wtcStrip').hidden = false;
     // The pointer's copy, from the same document so its numbers stay true as
