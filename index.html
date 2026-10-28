@@ -259,12 +259,8 @@ body{
   .feed-col, .feed-col.quiz-widget{ padding:16px 0 0 !important; border-left:none !important; border-top:1px solid var(--surface3) !important; margin-top:16px; }
   .feed-col.first, .feed-col.quiz-widget.first{ padding-top:0 !important; border-top:none !important; margin-top:0; }
 }
-.googlies-strip{ padding:26px 0 24px; border-bottom:1px solid var(--border); }
-.googlies-strip[hidden]{ display:none; }
-.googlies-strip .quiz-widget{ background:none; border:none; border-radius:0; margin:0; padding:0; max-width:760px; }
-.googlies-strip .quiz-question-text{ font-size:18px; }
-.googlies-strip .quiz-options{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
-@media (max-width:760px){ .googlies-strip .quiz-options{ grid-template-columns:1fr; } }
+.sidebar-googlies{ margin-top:0; }
+.sidebar-googlies .quiz-question-text{ font-size:16px; }
 .wtc-pointer{ padding:24px 0 22px; border-bottom:1px solid var(--border); }
 .listen-strip{ padding:24px 0 22px; border-bottom:1px solid var(--border); }
 .listen-strip[hidden]{ display:none; }
@@ -910,7 +906,7 @@ body.articles-loading .analysis-section{ visibility:hidden; }
        Placement (IJ): On this day always leads; this row sits directly under it
        when there is no article from the last 7 days, and moves BELOW the articles
        when there is one — see refreshFeedRow(). Hidden until that is decided, so
-       it never jumps. Googlies has its own strip below the articles. -->
+       it never jumps. Googlies is in the side panel next to the lead article. -->
   <section class="feed-row" id="feedRow" hidden>
     <div class="feed-col" id="latestTest" hidden>
       <h2 class="feed-title">Latest completed Test</h2>
@@ -962,7 +958,17 @@ body.articles-loading .analysis-section{ visibility:hidden; }
 
     <aside class="hero-sidebar">
       <div class="sidebar-section"></div>
-
+      <!-- GOOGLIES (in the side panel since 2026-10-28, IJ; a column of the
+           homepage row before that). IJ's question from the CMS (config/quiz)
+           when dated today, else the day's generated one from liveScores/home.
+           Hidden until a question loads. -->
+      <div class="quiz-widget sidebar-googlies" id="quizWidget" style="display:none">
+        <h3 class="sidebar-title">Googlies</h3>
+        <div class="quiz-question-text" id="quizQuestionText"></div>
+        <div class="quiz-options" id="quizOptionsContainer"></div>
+        <div class="quiz-result" id="quizResult"></div>
+        <div class="quiz-contributed" id="quizContributedBy"></div>
+      </div>
     </aside>
   </section>
 
@@ -1015,19 +1021,6 @@ body.articles-loading .analysis-section{ visibility:hidden; }
     </div>
   </section>
 
-  <!-- GOOGLIES (own strip since 2026-10-28, IJ: the row above became Latest
-       completed Test · Coming up · Milestone watch). IJ's question from the CMS
-       (config/quiz) when dated today, else the day's generated one from
-       liveScores/home. Hidden until a question loads. -->
-  <section class="googlies-strip" id="googliesStrip" hidden>
-    <div class="quiz-widget" id="quizWidget" style="display:none">
-      <h2 class="feed-title">Googlies</h2>
-      <div class="quiz-question-text" id="quizQuestionText"></div>
-      <div class="quiz-options" id="quizOptionsContainer"></div>
-      <div class="quiz-result" id="quizResult"></div>
-      <div class="quiz-contributed" id="quizContributedBy"></div>
-    </div>
-  </section>
 
 </main>
 
@@ -1509,8 +1502,8 @@ function resetSnippetTimer() { startSnippetTimer(); }
 // from liveScores/wtc. Rendered with textContent only.
 // ═══════════════════════════════════════════════════════════════════════════
 // ── Feed row placement (2026-10-27, IJ) ───────────────────────────────────
-// On this day always leads. The feed row (Latest completed Test · Milestone
-// watch · Googlies) sits under it when the homepage has no article from the
+// On this day always leads. The feed row (Latest completed Test · Coming up ·
+// Milestone watch) sits under it when the homepage has no article from the
 // last 7 days, and below the articles when it has one: a fresh story comes
 // first. loadArticles() settles window._articlesFresh; the row waits for it
 // (at most 4 s) before it is shown, so it never jumps after appearing.
@@ -2096,7 +2089,6 @@ function toggleArticleAudio(btn) {
     });
     if (quiz.contributedBy) document.getElementById('quizContributedBy').textContent = `Contributed by: ${quiz.contributedBy}`;
     document.getElementById('quizWidget').style.display = 'block';
-    document.getElementById('googliesStrip').hidden = false;
   } catch(e) { /* quiz widget stays hidden */ }
 })();
 // ═══════════════════════════════════════════════════════════════════════════
