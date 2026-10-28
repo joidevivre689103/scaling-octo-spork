@@ -250,19 +250,21 @@ body{
 .feed-list li:first-child{ border-top:none; padding-top:0; }
 .feed-list a{ color:inherit; text-decoration:none; }
 .feed-list a:hover{ color:var(--accent); }
-.coming-up{ margin-top:22px; }
-#latestBlock[hidden] + .coming-up{ margin-top:0; }
-.coming-up[hidden], #latestBlock[hidden]{ display:none; }
-.coming-up-title{ font-family:'Playfair Display',serif; font-size:17px; font-weight:700; margin:0 0 8px; }
-.coming-up .cu-teams{ display:block; color:var(--text); }
-.coming-up .cu-meta{ display:block; font-family:'Inter',sans-serif; font-size:11px; letter-spacing:0.06em; text-transform:uppercase; color:var(--text3); margin-top:2px; }
-.coming-up .cu-live{ color:var(--accent); }
+.coming-up .cu-teams, .feed-list .cu-teams{ display:block; color:var(--text); }
+.feed-list .cu-meta{ display:block; font-family:'Inter',sans-serif; font-size:11px; letter-spacing:0.06em; text-transform:uppercase; color:var(--text3); margin-top:2px; }
+.feed-list .cu-live{ color:var(--accent); }
 @media (max-width:760px){
   .feed-row{ grid-template-columns:1fr; }
   .feed-row{ grid-template-columns:1fr !important; }
   .feed-col, .feed-col.quiz-widget{ padding:16px 0 0 !important; border-left:none !important; border-top:1px solid var(--surface3) !important; margin-top:16px; }
   .feed-col.first, .feed-col.quiz-widget.first{ padding-top:0 !important; border-top:none !important; margin-top:0; }
 }
+.googlies-strip{ padding:26px 0 24px; border-bottom:1px solid var(--border); }
+.googlies-strip[hidden]{ display:none; }
+.googlies-strip .quiz-widget{ background:none; border:none; border-radius:0; margin:0; padding:0; max-width:760px; }
+.googlies-strip .quiz-question-text{ font-size:18px; }
+.googlies-strip .quiz-options{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+@media (max-width:760px){ .googlies-strip .quiz-options{ grid-template-columns:1fr; } }
 .wtc-pointer{ padding:24px 0 22px; border-bottom:1px solid var(--border); }
 .listen-strip{ padding:24px 0 22px; border-bottom:1px solid var(--border); }
 .listen-strip[hidden]{ display:none; }
@@ -895,42 +897,35 @@ body.articles-loading .analysis-section{ visibility:hidden; }
     </dl>
   </section>
 
-  <!-- LATEST COMPLETED TEST · MILESTONE WATCH · GOOGLIES (2026-10-27). The
-       first two from liveScores/home (home-feed.yml, daily), the Googlies from
-       config/quiz or the generated question. Three columns on the same grid as
-       On this day; each column hides if empty. Placement (IJ): On this day
-       always leads; this row sits directly under it when there is no article
-       from the last 7 days, and moves BELOW the articles when there is one —
-       see placeFeedRow(). Hidden until that is decided, so it never jumps. -->
+  <!-- LATEST COMPLETED TEST · COMING UP · MILESTONE WATCH (2026-10-27; Coming up
+       and the tie between the last two 2026-10-28, IJ). All from liveScores/home
+       (home-feed.yml, rebuilt after every data build). Three columns on the same
+       grid as On this day; each column hides if empty.
+       * Coming up: the next three Tests, each checked against the READER's date
+         (a Test whose five days have passed drops off even if the feed hasn't
+         rebuilt) — renderComingUp().
+       * Milestone watch: the players from the sides in those Tests who are near a
+         milestone, each with the Test it could come in; the general list when
+         none are — renderMilestones().
+       Placement (IJ): On this day always leads; this row sits directly under it
+       when there is no article from the last 7 days, and moves BELOW the articles
+       when there is one — see refreshFeedRow(). Hidden until that is decided, so
+       it never jumps. Googlies has its own strip below the articles. -->
   <section class="feed-row" id="feedRow" hidden>
     <div class="feed-col" id="latestTest" hidden>
-      <h2 class="feed-title" id="latestTitle">Latest completed Test</h2>
-      <div id="latestBlock" hidden>
-        <p class="otd-label" id="latestLabel"></p>
-        <p class="feed-score" id="latestScore"></p>
-        <p class="otd-standout" id="latestStandout"></p>
-        <a class="otd-more" id="latestMore" href="/countries.html">Full scorecard →</a>
-      </div>
-      <!-- COMING UP (2026-10-28): the next Tests, from liveScores/home `upcoming`
-           (scripts/fixtures/upcoming-tests.json). Each is checked against the
-           reader's own date before it is shown: a Test whose five days have
-           passed drops off even if the feed hasn't rebuilt. Filled by
-           renderComingUp(). -->
-      <div class="coming-up" id="comingUp" hidden>
-        <h3 class="coming-up-title">Coming up</h3>
-        <ul class="feed-list" id="comingUpList"></ul>
-      </div>
+      <h2 class="feed-title">Latest completed Test</h2>
+      <p class="otd-label" id="latestLabel"></p>
+      <p class="feed-score" id="latestScore"></p>
+      <p class="otd-standout" id="latestStandout"></p>
+      <a class="otd-more" id="latestMore" href="/countries.html">Full scorecard →</a>
+    </div>
+    <div class="feed-col coming-up" id="comingUp" hidden>
+      <h2 class="feed-title">Coming up</h2>
+      <ul class="feed-list" id="comingUpList"></ul>
     </div>
     <div class="feed-col" id="milestoneWatch" hidden>
       <h2 class="feed-title">Milestone watch</h2>
       <ul class="feed-list" id="milestoneList"></ul>
-    </div>
-    <div class="feed-col quiz-widget" id="quizWidget" style="display:none">
-      <h2 class="feed-title">Googlies</h2>
-      <div class="quiz-question-text" id="quizQuestionText"></div>
-      <div class="quiz-options" id="quizOptionsContainer"></div>
-      <div class="quiz-result" id="quizResult"></div>
-      <div class="quiz-contributed" id="quizContributedBy"></div>
     </div>
   </section>
 
@@ -1017,6 +1012,20 @@ body.articles-loading .analysis-section{ visibility:hidden; }
     </div>
     <div class="analysis-grid">
       <!-- Empty: loadArticles() finds this via document.querySelector('.analysis-grid') and populates with up to 3 article cards. -->
+    </div>
+  </section>
+
+  <!-- GOOGLIES (own strip since 2026-10-28, IJ: the row above became Latest
+       completed Test · Coming up · Milestone watch). IJ's question from the CMS
+       (config/quiz) when dated today, else the day's generated one from
+       liveScores/home. Hidden until a question loads. -->
+  <section class="googlies-strip" id="googliesStrip" hidden>
+    <div class="quiz-widget" id="quizWidget" style="display:none">
+      <h2 class="feed-title">Googlies</h2>
+      <div class="quiz-question-text" id="quizQuestionText"></div>
+      <div class="quiz-options" id="quizOptionsContainer"></div>
+      <div class="quiz-result" id="quizResult"></div>
+      <div class="quiz-contributed" id="quizContributedBy"></div>
     </div>
   </section>
 
@@ -1522,7 +1531,7 @@ function articleTime(a) {
 // Returns true if anything was shown.
 function renderComingUp(list) {
   const ul = document.getElementById('comingUpList');
-  if (!ul) return false;
+  if (!ul) return [];
   ul.textContent = '';
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -1563,7 +1572,44 @@ function renderComingUp(list) {
     ul.appendChild(li);
   });
   document.getElementById('comingUp').hidden = !pick.length;
-  return pick.length > 0;
+  return pick.map(r => r.u);
+}
+
+// Milestone watch: players from the sides in the Tests under Coming up (dated
+// ones only) who are near a milestone, closest first, each with the Test it
+// could come in. Falls back to the general list when none are. Up to four.
+function renderMilestones(d, next) {
+  const ul = document.getElementById('milestoneList');
+  if (!ul) return false;
+  ul.textContent = '';
+  const nextFor = {};
+  (next || []).filter(u => u.start).forEach(u => {
+    const city = (u.city || '').split(' (')[0];
+    if (!nextFor[u.host]) nextFor[u.host] = 'v ' + u.visitor + (city ? ', ' + city : '');
+    if (!nextFor[u.visitor]) nextFor[u.visitor] = 'v ' + u.host + (city ? ', ' + city : '');
+  });
+  let ms = (d.watch || []).filter(m => m && m.text && nextFor[m.team]).slice(0, 4);
+  const tied = ms.length > 0;
+  if (!tied) ms = (d.milestones || []).filter(m => m && m.text).slice(0, 4);
+  ms.forEach(m => {
+    const li = document.createElement('li');
+    const a = document.createElement('a');
+    a.href = m.kind === 'wkts' ? '/bowling.html' : '/batting.html';
+    const t = document.createElement('span');
+    t.className = 'cu-teams';
+    t.textContent = m.text;
+    a.appendChild(t);
+    if (tied) {
+      const meta = document.createElement('span');
+      meta.className = 'cu-meta';
+      meta.textContent = m.team + ' · ' + nextFor[m.team];
+      a.appendChild(meta);
+    }
+    li.appendChild(a);
+    ul.appendChild(li);
+  });
+  document.getElementById('milestoneWatch').hidden = !ms.length;
+  return ms.length > 0;
 }
 
 let _feedPlaced = null;
@@ -1627,29 +1673,12 @@ async function refreshFeedRow() {
       document.getElementById('latestScore').textContent = lt.scoreline;
       document.getElementById('latestStandout').textContent = lt.standout || '';
       if (lt.test) document.getElementById('latestMore').href = '/countries.html?otd=' + parseInt(lt.test, 10) + '#onthisday';
-      document.getElementById('latestBlock').hidden = false;
       document.getElementById('latestTest').hidden = false;
       shown++;
     }
-    if (renderComingUp(d.upcoming || [])) {
-      if (!(lt && lt.scoreline)) document.getElementById('latestTitle').hidden = true;
-      document.getElementById('latestTest').hidden = false;
-      shown++;
-    }
-    const ms = (d.milestones || []).filter(m => m && m.text).slice(0, 4);
-    if (ms.length) {
-      const ul = document.getElementById('milestoneList');
-      ms.forEach(m => {
-        const li = document.createElement('li');
-        const a = document.createElement('a');
-        a.href = m.kind === 'wkts' ? '/bowling.html' : '/batting.html';
-        a.textContent = m.text;
-        li.appendChild(a);
-        ul.appendChild(li);
-      });
-      document.getElementById('milestoneWatch').hidden = false;
-      shown++;
-    }
+    const next = renderComingUp(d.upcoming || []);
+    if (next.length) shown++;
+    if (renderMilestones(d, next)) shown++;
     refreshFeedRow();
   } catch (err) {
     console.warn('[home-feed] not shown:', err && err.message);
@@ -2067,7 +2096,7 @@ function toggleArticleAudio(btn) {
     });
     if (quiz.contributedBy) document.getElementById('quizContributedBy').textContent = `Contributed by: ${quiz.contributedBy}`;
     document.getElementById('quizWidget').style.display = 'block';
-    refreshFeedRow();
+    document.getElementById('googliesStrip').hidden = false;
   } catch(e) { /* quiz widget stays hidden */ }
 })();
 // ═══════════════════════════════════════════════════════════════════════════
