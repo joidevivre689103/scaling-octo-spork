@@ -864,6 +864,18 @@ body.articles-loading .analysis-section{ visibility:hidden; }
 </head>
 <body class="articles-loading">
 
+<!-- A TO Z (2026-10-28, IJ): together, the top nav, the section nav and every
+     always-shown title on this page start with every letter from A to Z. It is
+     meant to be found, never announced; keep it true when renaming anything.
+       nav:  Archive Audio · Batting Bowling · Countries Captaincy Compare · Home ·
+             Keeping · Simulations · Yorker (Yorker Archives)
+       here: Deep Analysis · Explore Stats · Figures from every Test ever played ·
+             Googlies · Inside every Test since 1877 (members: In good company) ·
+             Just in · Latest · Milestone watch · Never miss a dispatch ·
+             On this day · Player Compare · Quiz of the month · Run machines ·
+             The race to Lord's · Up next · Viewpoints · World Test Championship ·
+             XI v XI · Zooters to bouncers
+     Up next and Milestone watch hide only when there is nothing to list. -->
 <!-- MASTHEAD -->
 <header data-ct-nav="masthead"></header>
 
@@ -941,14 +953,14 @@ body.articles-loading .analysis-section{ visibility:hidden; }
        it never jumps. Googlies is in the side panel next to the lead article. -->
   <section class="feed-row" id="feedRow" hidden>
     <div class="feed-col" id="latestTest" hidden>
-      <h2 class="feed-title">Latest completed Test</h2>
+      <h2 class="feed-title">Just in</h2>
       <p class="otd-label" id="latestLabel"></p>
       <p class="feed-score" id="latestScore"></p>
       <p class="otd-standout" id="latestStandout"></p>
       <a class="otd-more" id="latestMore" href="/countries.html">Full scorecard →</a>
     </div>
     <div class="feed-col coming-up" id="comingUp" hidden>
-      <h2 class="feed-title">Coming up</h2>
+      <h2 class="feed-title">Up next</h2>
       <ul class="feed-list" id="comingUpList"></ul>
     </div>
     <div class="feed-col" id="milestoneWatch" hidden>
@@ -1043,7 +1055,7 @@ body.articles-loading .analysis-section{ visibility:hidden; }
   </section>
 
   <!-- ANALYSIS -->
-  <section class="analysis-section" id="analysis" data-nav="Analysis" data-nav-target="analysis-title">
+  <section class="analysis-section" id="analysis" data-nav="Viewpoints" data-nav-target="analysis-title">
     <div class="section-header">
       <h2 class="section-title" id="analysis-title">Deep Analysis</h2>
       <a href="#" class="section-link">View all analysis →</a>
@@ -1060,8 +1072,8 @@ body.articles-loading .analysis-section{ visibility:hidden; }
 <section class="stats-promo" id="statsPromo" data-nav="Explore Stats" data-nav-target="statsPromo-title">
   <div class="stats-promo-inner">
     <div class="stats-header">
-      <h2 id="statsPromo-title">Explore Test Cricket Statistics</h2>
-      <p>Comprehensive data and analysis tools covering every Test match ever played</p>
+      <h2 id="statsPromo-title">Figures from every Test ever played</h2>
+      <p>Data and analysis tools covering every Test match since 1877</p>
     </div>
     <div class="stats-cards">
       <a href="countries.html" class="stat-card" data-card="countries">
@@ -1074,7 +1086,7 @@ body.articles-loading .analysis-section{ visibility:hidden; }
       </a>
       <a href="batting.html" class="stat-card" data-card="batting">
         <div class="stat-card-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></svg></div>
-        <h3 class="stat-card-title">Batting Records</h3>
+        <h3 class="stat-card-title">Run machines</h3>
         <p class="stat-card-desc">All-time batting leaders, with filters for era, country and more</p>
         <dl class="stat-card-facts" hidden></dl>
         <p class="stat-card-q">Who has the highest Test average after Bradman?</p>
@@ -1082,7 +1094,7 @@ body.articles-loading .analysis-section{ visibility:hidden; }
       </a>
       <a href="bowling.html" class="stat-card" data-card="bowling">
         <div class="stat-card-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg></div>
-        <h3 class="stat-card-title">Bowling Records</h3>
+        <h3 class="stat-card-title">Zooters to bouncers</h3>
         <p class="stat-card-desc">All-time bowling leaders: wickets, averages and strike rates</p>
         <dl class="stat-card-facts" hidden></dl>
         <p class="stat-card-q">Anderson or Warne: who took more Test wickets?</p>
@@ -1122,7 +1134,7 @@ body.articles-loading .analysis-section{ visibility:hidden; }
       <div class="sim-feature-body">
         <div class="sim-feature-icon"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="3"/><circle cx="8" cy="8" r="1.5" fill="currentColor" stroke="none"/><circle cx="16" cy="8" r="1.5" fill="currentColor" stroke="none"/><circle cx="8" cy="16" r="1.5" fill="currentColor" stroke="none"/><circle cx="16" cy="16" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/></svg></div>
         <div>
-          <h3 class="sim-feature-title">Simulation</h3>
+          <h3 class="sim-feature-title">XI v XI</h3>
           <p class="sim-feature-desc">Settle the arguments cricket can&rsquo;t. Pick two countries from any era and let their best elevens play it out. Build a side from anyone in history, Bradman and Bumrah in the same team if you like. Or take a real Test, swap a player, and see how the result might have changed. Think someone didn&rsquo;t deserve to be dropped? Add him to the eleven and see the outcome.</p>
           <p class="sim-feature-example"><span class="sim-feature-example-tag">Try this</span> India left R Ashwin out of the 2023 World Test Championship final at The Oval, and Australia won by 209 runs. Open <em>What-If Replay</em>, find India v Australia in 2023, put Ashwin back in the eleven and see whether India&rsquo;s chance of winning improves, and by how much.</p>
           <span class="sim-feature-cta">Pick your XIs &rarr;</span>
@@ -1158,7 +1170,7 @@ body.articles-loading .analysis-section{ visibility:hidden; }
   <div class="home-actions">
     <a href="yorker.html" class="home-card" id="homeYorker">
       <span class="home-card-kicker">Yorker &middot; free monthly quiz</span>
-      <h3 class="home-card-title" id="homeYorkerName">This month&rsquo;s Yorker</h3>
+      <h3 class="home-card-title">Quiz of the month</h3>
       <div class="home-card-sub">
         <p class="home-card-meta" id="homeYorkerMeta"></p>
         <p class="home-card-text" id="homeYorkerTheme">The month&rsquo;s Test cricket, a few Googlies and some history, with the answers explained.</p>
@@ -1170,10 +1182,10 @@ body.articles-loading .analysis-section{ visibility:hidden; }
       </ul>
       <span class="home-card-btn">Play Yorker &rarr;</span>
     </a>
-    <div class="ct-newsletter" data-ct-source="homepage"></div>
+    <div class="ct-newsletter" data-ct-source="homepage" data-ct-heading="Never miss a dispatch"></div>
     <a href="subscribe.html" class="home-card" id="homeSubscribe">
       <span class="home-card-kicker">Subscribe</span>
-      <h3 class="home-card-title" id="homeSubTitle">Every Test since 1877</h3>
+      <h3 class="home-card-title" id="homeSubTitle">Inside every Test since 1877</h3>
       <div class="home-card-sub">
         <p class="home-card-text" id="homeSubText">The whole of Test cricket, one page at a time.</p>
       </div>
@@ -2398,10 +2410,9 @@ async function loadYorker() {
     if (!ed.exists()) return;
     const d = ed.data();
     const n = Array.isArray(d.questions) ? d.questions.length : 0;
-    if (d.name) document.getElementById('homeYorkerName').textContent = d.name;
     if (d.theme) document.getElementById('homeYorkerTheme').textContent = d.theme;
     document.getElementById('homeYorkerMeta').textContent =
-      [d.month, n ? `${n} questions` : ''].filter(Boolean).join(' \u00b7 ');
+      [d.name, d.month, n ? `${n} questions` : ''].filter(Boolean).join(' \u00b7 ');
   } catch (e) { console.warn('[home] yorker:', e && e.message); }
 }
 
@@ -2417,7 +2428,7 @@ function watchSubscriber() {
       if (!has) return;
       const card = document.getElementById('homeSubscribe');
       card.href = 'manage.html';
-      document.getElementById('homeSubTitle').textContent = 'You\u2019re a member';
+      document.getElementById('homeSubTitle').textContent = 'In good company';
       document.getElementById('homeSubText').textContent = 'Thank you for reading The Grass Bank.';
       document.getElementById('homeSubList').hidden = true;
       document.getElementById('homeSubBtn').innerHTML = 'My subscription &rarr;';
