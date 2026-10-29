@@ -626,8 +626,9 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
         <div><span class="d-k" id="strBLbl">Team B</span> <span class="d-k">Batting</span> <span class="d-v" id="strBBat">—</span> <span class="d-k">Bowling</span> <span class="d-v" id="strBBow">—</span></div>
       </div>
       <div class="diff-row">
-        <div><span class="d-k" id="strDiffBatLbl">Bat A − Bow B</span> <span class="d-v" id="strDiffBat">—</span></div>
-        <div><span class="d-k" id="strDiffBowLbl">Bow A − Bat B</span> <span class="d-v" id="strDiffBow">—</span></div>
+        <div><span class="d-k">Batting edge</span> <span class="d-v" id="strEdgeBat">—</span></div>
+        <div><span class="d-k">Bowling edge</span> <span class="d-v" id="strEdgeBow">—</span></div>
+        <div><span class="d-k">Overall</span> <span class="d-v" id="strEdgeAll">—</span></div>
       </div>
     </div>
 
@@ -653,9 +654,9 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
         <div class="prob-pct" id="pctB">—</div>
       </div>
       <div class="diff-row">
-        <div><span class="d-k">Diff (D)</span> <span class="d-v" id="diffVal">—</span></div>
-        <div><span class="d-k" id="diffBatLbl">Bat A − Bow B</span> <span class="d-v" id="diffBat">—</span></div>
-        <div><span class="d-k" id="diffBowLbl">Bow A − Bat B</span> <span class="d-v" id="diffBow">—</span></div>
+        <div><span class="d-k">Batting edge</span> <span class="d-v" id="edgeBat">—</span></div>
+        <div><span class="d-k">Bowling edge</span> <span class="d-v" id="edgeBow">—</span></div>
+        <div><span class="d-k">Overall</span> <span class="d-v" id="edgeAll">—</span></div>
         <div><span class="d-k">Home effect</span> <span class="d-v" id="diffHome">—</span></div>
         <div><span class="d-k">Bats first</span> <span class="d-v" id="diffBatFirst">—</span></div>
       </div>
@@ -1315,12 +1316,15 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
       updateRunButtons();
     }
 
-    const signed=v=>(v>=0?"+":"")+v.toFixed(2);
-    // Difference rows name the teams ("England batting − India bowling").
-    const batLbl=labels.A+" batting − "+labels.B+" bowling";
-    const bowLbl=labels.A+" bowling − "+labels.B+" batting";
-    ["strDiffBatLbl","diffBatLbl"].forEach(id=>{document.getElementById(id).textContent=batLbl;});
-    ["strDiffBowLbl","diffBowLbl"].forEach(id=>{document.getElementById(id).textContent=bowLbl;});
+    // Like-for-like edges: each side's batting against the other's batting,
+    // bowling against bowling, and the two together. Named for the side ahead.
+    const edgeText=v=>Math.abs(v)<0.005?"Even":(v>0?labels.A:labels.B)+" +"+Math.abs(v).toFixed(2);
+    const setEdges=prefix=>{
+      const bat=r.A.team_bat-r.B.team_bat, bow=r.A.team_bow-r.B.team_bow;
+      document.getElementById(prefix+"Bat").textContent=edgeText(bat);
+      document.getElementById(prefix+"Bow").textContent=edgeText(bow);
+      document.getElementById(prefix+"All").textContent=edgeText(bat+bow);
+    };
     const probCard=document.getElementById("matchProbCard");
     const seriesCard=document.getElementById("seriesCard");
     const strengthCard=document.getElementById("strengthCard");
@@ -1341,15 +1345,14 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
       document.getElementById("strABow").textContent=r.A.team_bow.toFixed(2);
       document.getElementById("strBBat").textContent=r.B.team_bat.toFixed(2);
       document.getElementById("strBBow").textContent=r.B.team_bow.toFixed(2);
-      document.getElementById("strDiffBat").textContent=signed(r.A.team_bat-r.B.team_bow);
-      document.getElementById("strDiffBow").textContent=signed(r.A.team_bow-r.B.team_bat);
+      setEdges("strEdge");
     }else{
       strengthCard.style.display="none";
       probCard.style.display="block";
       const probs=r.probs;
       document.getElementById("probLabelA").innerHTML=`${labels.A}<small>P(wins)</small>`;
       document.getElementById("probLabelB").innerHTML=`${labels.B}<small>P(wins)</small>`;
-      const pctA=(probs.pA*100).toFixed(1), pctD=(probs.pDraw*100).toFixed(1), pctB=(probs.pB*100).toFixed(1);
+      const pctA=(probs.pA*100).toFixed(0), pctD=(probs.pDraw*100).toFixed(0), pctB=(probs.pB*100).toFixed(0);
       document.getElementById("barA").style.width=pctA+"%";
       document.getElementById("barD").style.width=pctD+"%";
       document.getElementById("barB").style.width=pctB+"%";
@@ -1368,10 +1371,7 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
       fitLabel("barA",probs.pA,pctA);
       fitLabel("barD",probs.pDraw,pctD);
       fitLabel("barB",probs.pB,pctB);
-      document.getElementById("diffVal").textContent=signed(probs.D);
-      document.getElementById("diffVal").className="d-v "+(probs.D>0?"pos":probs.D<0?"neg":"");
-      document.getElementById("diffBat").textContent=signed(probs.batDiff);
-      document.getElementById("diffBow").textContent=signed(probs.bowDiff);
+      setEdges("edge");
       document.getElementById("diffHome").textContent=probs.home===0?"neutral":(probs.home>0?labels.A+" home":labels.B+" home");
       document.getElementById("diffBatFirst").textContent=probs.bat_first===0?"model chooses":(probs.bat_first>0?labels.A:labels.B);
 
@@ -1379,7 +1379,7 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
         const series=r.series;
         seriesCard.style.display="block";
         document.getElementById("seriesSub").innerHTML=`<strong>${series.N}-Test series</strong> · ${series.iters.toLocaleString()} iterations · seed 42`;
-        const fmt=p=>(p*100).toFixed(1)+"%";
+        const fmt=p=>(p*100).toFixed(0)+"%";
         document.getElementById("pSeriesA").textContent=fmt(series.pSeriesA);
         document.getElementById("pSeriesTied").textContent=fmt(series.pSeriesTied);
         document.getElementById("pSeriesB").textContent=fmt(series.pSeriesB);
@@ -1397,7 +1397,7 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
           const barW=(row.prob/maxP)*80;
           tr.innerHTML=`
           <td class="scoreline">${labels.A} ${row.winsA} · ${row.draws} drawn · ${row.winsB} ${labels.B}</td>
-          <td class="num prob-cell"><span class="mini-bar" style="width:${barW}px"></span>${(row.prob*100).toFixed(2)}%</td>
+          <td class="num prob-cell"><span class="mini-bar" style="width:${barW}px"></span>${(row.prob*100).toFixed(0)}%</td>
           <td class="num">${row.prob>0?(1/row.prob).toFixed(1):"—"}</td>
         `;
           tbody.appendChild(tr);
