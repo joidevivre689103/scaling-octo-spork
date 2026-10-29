@@ -626,8 +626,8 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
         <div><span class="d-k" id="strBLbl">Team B</span> <span class="d-k">Batting</span> <span class="d-v" id="strBBat">—</span> <span class="d-k">Bowling</span> <span class="d-v" id="strBBow">—</span></div>
       </div>
       <div class="diff-row">
-        <div><span class="d-k">Bat A − Bow B</span> <span class="d-v" id="strDiffBat">—</span></div>
-        <div><span class="d-k">Bow A − Bat B</span> <span class="d-v" id="strDiffBow">—</span></div>
+        <div><span class="d-k" id="strDiffBatLbl">Bat A − Bow B</span> <span class="d-v" id="strDiffBat">—</span></div>
+        <div><span class="d-k" id="strDiffBowLbl">Bow A − Bat B</span> <span class="d-v" id="strDiffBow">—</span></div>
       </div>
     </div>
 
@@ -654,8 +654,8 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
       </div>
       <div class="diff-row">
         <div><span class="d-k">Diff (D)</span> <span class="d-v" id="diffVal">—</span></div>
-        <div><span class="d-k">Bat A − Bow B</span> <span class="d-v" id="diffBat">—</span></div>
-        <div><span class="d-k">Bow A − Bat B</span> <span class="d-v" id="diffBow">—</span></div>
+        <div><span class="d-k" id="diffBatLbl">Bat A − Bow B</span> <span class="d-v" id="diffBat">—</span></div>
+        <div><span class="d-k" id="diffBowLbl">Bow A − Bat B</span> <span class="d-v" id="diffBow">—</span></div>
         <div><span class="d-k">Home effect</span> <span class="d-v" id="diffHome">—</span></div>
         <div><span class="d-k">Bats first</span> <span class="d-v" id="diffBatFirst">—</span></div>
       </div>
@@ -706,7 +706,7 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
     <p style="margin-top:8px"><strong>Match outcome.</strong> Three-way logistic on <code>D = (A_bat − B_bow) + (A_bow − B_bat)</code>, plus home effect and a bat-first effect (the decision made at the toss — which team chose to bat first). Fit on <span id="calibN">~2,500</span> historical Tests. Out-of-the-box calibration: log-loss <span id="calibLogLoss">0.97</span> (vs <span id="calibLogLossBase">1.10</span> uniform baseline), Brier <span id="calibBrier">0.58</span> (vs <span id="calibBrierBase">0.67</span>).</p>
     <p style="margin-top:8px"><strong>When win chances are not shown.</strong> The Grass Bank does not publish forecasts of real upcoming Tests. When both sides are current &mdash; six or more of the eleven have played a Test in the last two years &mdash; you see each side&rsquo;s strength but no win chances. What-If Replay of a Test played more than a year ago always shows them, with up to two changes per side and three in all.</p>
     <p style="margin-top:8px"><strong>Known v1 quirks.</strong> XI reconstruction drops ~3% of historical Tests where country-matching fails (e.g. ICC World XI). Empty slots default to a below-average filler (0.5 bat, 0 bow). All documented in <code>sim_model.json</code>.</p>
-    <p style="margin-top:12px;padding-top:10px;border-top:1px dotted var(--border);font-size:12px;color:var(--text3)"><strong style="color:var(--text2)">Data files:</strong> the ratings and match model are pipeline artifacts served from The Grass Bank's authenticated data endpoint, not fetched as public files. The accuracy figures above come from a separate published calibration file. <span id="dataFilesGen"></span></p>
+    <p style="margin-top:12px;padding-top:10px;border-top:1px dotted var(--border);font-size:12px;color:var(--text3)"><strong style="color:var(--text2)">Data files:</strong> the ratings are a pipeline artifact served from The Grass Bank's authenticated data endpoint, not a public file. The match model runs on our server, so its fitted coefficients never reach your browser. The accuracy figures above come from a separate published calibration file. <span id="dataFilesGen"></span></p>
   </div>
 </main>
 </div>
@@ -1319,6 +1319,11 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
     }
 
     const signed=v=>(v>=0?"+":"")+v.toFixed(2);
+    // Difference rows name the teams ("England batting − India bowling").
+    const batLbl=labels.A+" batting − "+labels.B+" bowling";
+    const bowLbl=labels.A+" bowling − "+labels.B+" batting";
+    ["strDiffBatLbl","diffBatLbl"].forEach(id=>{document.getElementById(id).textContent=batLbl;});
+    ["strDiffBowLbl","diffBowLbl"].forEach(id=>{document.getElementById(id).textContent=bowLbl;});
     const probCard=document.getElementById("matchProbCard");
     const seriesCard=document.getElementById("seriesCard");
     const strengthCard=document.getElementById("strengthCard");
