@@ -710,6 +710,14 @@
         if (s === 403) throw CTDataError('forbidden', 'Simulation access was denied.', { status: 403, reason: reason || 'paywall' });
         if (s === 401) throw CTDataError('unauthorized', 'Authentication failed for simulateMatch.', { status: 401 });
         if (s === 400) throw CTDataError('bad-request', 'simulateMatch rejected the request (' + reason + ').', { status: 400, reason: reason });
+        if (s === 429) {
+          // Run limit (functions/runLimit.js). The body says which limit and when it resets.
+          var lim = (body && body.limits) || null;
+          var e = CTDataError('rate-limited', 'Simulation run limit reached.',
+            { status: 429, reason: 'run-limit', retryAfter: lim && lim.resetsInSeconds });
+          e.limits = lim;
+          throw e;
+        }
         throw CTDataError('transient', 'simulateMatch is temporarily unavailable -- please retry.', { status: s, reason: reason });
       });
     });
