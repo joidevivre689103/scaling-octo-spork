@@ -290,7 +290,7 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
   <div class="info-panel">
     <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
     <div class="info-text">
-      <strong>How it works:</strong> Pick two XIs, choose venue and who bats first, and get three-way match probabilities or a full bilateral series distribution. Ratings are era-normalised career averages — Bradman's 2.99 means he scored roughly three times his era's global batting average. This is the <strong>v1 baseline</strong>; a hierarchical Bayesian upgrade (v1.5) will replace these crude ratings once it beats v1 on held-out calibration.
+      <strong>How it works:</strong> Pick two XIs, choose the venue and who bats first, and see how the sides compare. Where the match couldn&rsquo;t happen today &mdash; players from different eras, or a Test from the past &mdash; you&rsquo;ll also see each side&rsquo;s chances.
     </div>
   </div>
 
@@ -420,7 +420,7 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
     <div class="info-panel" style="background:rgba(184,134,11,0.06);border-color:rgba(184,134,11,0.25)">
       <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="stroke:var(--gold)"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
       <div class="info-text">
-        <strong>Cross-Era XI:</strong> Build a side from any players across history — Bradman and Bumrah in the same XI if you like. Click any slot to open the player picker, then search by name or filter by country. Ratings are era-normalised, so the crude v1 comparison is already accounting for the 1930s vs 2020s bowling-average difference.
+        <strong>Cross-Era XI:</strong> Build a side from any players across history — Bradman and Bumrah in the same XI if you like. Click any slot to open the player picker, then search by name or filter by country. Ratings are measured against each player&rsquo;s own era, so the comparison is fair across decades.
       </div>
     </div>
     <div class="teams-grid">
@@ -533,7 +533,7 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
         <button class="picker-close" id="whatIfFindBtn">Find Matches</button>
       </div>
       <div class="hp-info" id="whatIfStatus">
-        <strong>How it works:</strong> Find a historical Test, start from the actual XIs and venue, then swap any player(s) to see how the match outcome probability shifts. v1 gives the match-level P(win/draw/loss) — individual innings simulation is a v1.5 feature.
+        <strong>How it works:</strong> Find a historical Test, start from the actual XIs and venue, then swap a player or two to see how the result might have changed.
       </div>
     </div>
 
@@ -1299,6 +1299,7 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
   function showRunLimit(lim,hit){
     const el=document.getElementById("runLimitNote");
     if(!el || !lim) return;
+    if(lim.unlimited){ el.classList.remove("hit"); el.textContent="No run limit on this account."; return; }
     el.classList.toggle("hit",!!hit);
     if(hit){
       const at=new Date(Date.now()+(lim.resetsInSeconds||0)*1000);
