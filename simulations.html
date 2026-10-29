@@ -615,6 +615,22 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
       <div class="results-meta" id="resultsMeta"></div>
     </div>
 
+    <!-- Strength only: both sides current (2026-10-29) -->
+    <div class="prob-card" id="strengthCard" style="display:none">
+      <div class="prob-card-head">
+        <div class="pch-title">Team strength</div>
+        <div class="pch-sub" id="strengthNote">Win chances aren&rsquo;t shown for two current sides.</div>
+      </div>
+      <div class="diff-row" style="margin-top:0">
+        <div><span class="d-k" id="strALbl">Team A</span> <span class="d-k">Batting</span> <span class="d-v" id="strABat">—</span> <span class="d-k">Bowling</span> <span class="d-v" id="strABow">—</span></div>
+        <div><span class="d-k" id="strBLbl">Team B</span> <span class="d-k">Batting</span> <span class="d-v" id="strBBat">—</span> <span class="d-k">Bowling</span> <span class="d-v" id="strBBow">—</span></div>
+      </div>
+      <div class="diff-row">
+        <div><span class="d-k">Bat A − Bow B</span> <span class="d-v" id="strDiffBat">—</span></div>
+        <div><span class="d-k">Bow A − Bat B</span> <span class="d-v" id="strDiffBow">—</span></div>
+      </div>
+    </div>
+
     <!-- Single match probability -->
     <div class="prob-card" id="matchProbCard">
       <div class="prob-card-head">
@@ -688,6 +704,7 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
     <p style="margin-top:8px"><strong>XI selection.</strong> In Team vs Team, each side auto-picks the <em>best eleven</em> from its country in the chosen time slice — 6 top batters by batting rating + 4 top bowlers by bowling rating + 1 all-rounder, with filler if fewer than 11 qualify. Eligibility: "Current" = any player whose last Test was within the last 2–5 years; decade buckets = any player whose career overlapped the decade. Changing Team A's era syncs Team B until you change B independently.</p>
     <p style="margin-top:8px"><strong>Team aggregates.</strong> <em>Batting Strength</em> = position-weighted sum of the XI's batting ratings (top-order batters count ~3× more than the tail). <em>Bowling Strength</em> = sum of the top-5 bowling ratings in the XI.</p>
     <p style="margin-top:8px"><strong>Match outcome.</strong> Three-way logistic on <code>D = (A_bat − B_bow) + (A_bow − B_bat)</code>, plus home effect and a bat-first effect (the decision made at the toss — which team chose to bat first). Fit on <span id="calibN">~2,500</span> historical Tests. Out-of-the-box calibration: log-loss <span id="calibLogLoss">0.97</span> (vs <span id="calibLogLossBase">1.10</span> uniform baseline), Brier <span id="calibBrier">0.58</span> (vs <span id="calibBrierBase">0.67</span>).</p>
+    <p style="margin-top:8px"><strong>When win chances are not shown.</strong> The Grass Bank does not publish forecasts of real upcoming Tests. When both sides are current &mdash; six or more of the eleven have played a Test in the last two years &mdash; you see each side&rsquo;s strength but no win chances. What-If Replay of a Test played more than a year ago always shows them, with up to two changes per side and three in all.</p>
     <p style="margin-top:8px"><strong>Known v1 quirks.</strong> XI reconstruction drops ~3% of historical Tests where country-matching fails (e.g. ICC World XI). Empty slots default to a below-average filler (0.5 bat, 0 bow). All documented in <code>sim_model.json</code>.</p>
     <p style="margin-top:12px;padding-top:10px;border-top:1px dotted var(--border);font-size:12px;color:var(--text3)"><strong style="color:var(--text2)">Data files:</strong> the ratings and match model are pipeline artifacts served from The Grass Bank's authenticated data endpoint, not fetched as public files. The accuracy figures above come from a separate published calibration file. <span id="dataFilesGen"></span></p>
   </div>
@@ -727,7 +744,8 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
 <!-- ═══ sim-engine.js (inlined for single-file page) ═══ -->
 <script>
 /* The Grass Bank Simulation Engine v1 — browser runtime
-   Pure functions. Loads sim_ratings.json + sim_model.json. */
+   Pure functions. Loads sim_ratings.json + the sim_model SETTINGS (strength
+   arithmetic only). Win/draw/loss runs on the server: CTData.simulate. */
 (function(global){
   "use strict";
   const ENGINE_VERSION="v1";
@@ -822,60 +840,12 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
     return {team_bat,team_bow,perPlayer};
   }
 
-  function sigmoid(x){return 1/(1+Math.exp(-x));}
-  function dot(coef,feats){let s=0;for(let i=0;i<coef.length;i++)s+=coef[i]*feats[i];return s;}
+  // The match model (win/draw/loss percentages and the series Monte Carlo) no
+  // longer runs in the browser (2026-10-29). Its coefficients are withheld from
+  // ?file=model and the page asks the simulateMatch function instead, which
+  // refuses percentages when both sides are current. See CTData.simulate.
 
-  function matchProbs(A,B,opts){
-    requireLoaded();
-    opts=opts||{};
-    const home=opts.home!=null?opts.home:0;
-    // Accept bat_first; fall back to legacy 'toss' alias for backwards compat.
-    const bat_first=opts.bat_first!=null?opts.bat_first:(opts.toss!=null?opts.toss:0);
-    const batDiff=A.team_bat-B.team_bow; const bowDiff=A.team_bow-B.team_bat;
-    const D=batDiff+bowDiff;
-    const dm=MODEL.models.decisive_vs_draw; const wm=MODEL.models.home_win_given_decisive;
-    const pDecisive=sigmoid(dm.intercept+dot(dm.coef,[Math.abs(D)]));
-    const pAWinGivenDec=sigmoid(wm.intercept+dot(wm.coef,[D,home,bat_first]));
-    const pDraw=1-pDecisive;
-    const pA=pDecisive*pAWinGivenDec; const pB=pDecisive*(1-pAWinGivenDec);
-    return {pA,pDraw,pB,D,batDiff,bowDiff,home,bat_first};
-  }
-
-  function rngFromSeed(seed){
-    let s=seed>>>0;
-    return function(){s=(s+0x6D2B79F5)>>>0;let t=s;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return((t^(t>>>14))>>>0)/4294967296;};
-  }
-
-  function sampleOutcome(probs,rnd){const u=rnd();if(u<probs.pA) return "A";if(u<probs.pA+probs.pDraw) return "D";return "B";}
-
-  function seriesDist(A,B,N,opts){
-    requireLoaded();
-    opts=opts||{}; const iters=opts.iters||10000; const seed=opts.seed||42;
-    const rnd=rngFromSeed(seed);
-    const perMatch=[];
-    const bfOpt=opts.bat_first!=null?opts.bat_first:opts.toss;
-    for(let i=0;i<N;i++){
-      const h=Array.isArray(opts.home)?opts.home[i]:(opts.home||0);
-      const bf=Array.isArray(bfOpt)?bfOpt[i]:(bfOpt||0);
-      perMatch.push(matchProbs(A,B,{home:h,bat_first:bf}));
-    }
-    const counts=new Map(); let sA=0,sB=0,sD=0;
-    for(let it=0;it<iters;it++){
-      let wA=0,wB=0,dr=0;
-      for(let i=0;i<N;i++){const r=sampleOutcome(perMatch[i],rnd);if(r==="A")wA++;else if(r==="B")wB++;else dr++;}
-      sA+=wA; sB+=wB; sD+=dr;
-      const k=wA+"-"+dr+"-"+wB;
-      counts.set(k,(counts.get(k)||0)+1);
-    }
-    const dist=[];
-    counts.forEach((cnt,k)=>{const [a,d,b]=k.split("-").map(Number);dist.push({winsA:a,winsB:b,draws:d,prob:cnt/iters});});
-    dist.sort((x,y)=>y.prob-x.prob);
-    let pSA=0,pSB=0,pST=0;
-    for(const r of dist){if(r.winsA>r.winsB) pSA+=r.prob; else if(r.winsB>r.winsA) pSB+=r.prob; else pST+=r.prob;}
-    return {N,iters,perMatchProbs:perMatch,expectedWinsA:sA/iters,expectedWinsB:sB/iters,expectedDraws:sD/iters,pSeriesA:pSA,pSeriesTied:pST,pSeriesB:pSB,seriesOutcomeDist:dist};
-  }
-
-  global.SimEngine={version:ENGINE_VERSION,load,isLoaded,getPlayer,searchPlayers,aggregate,matchProbs,seriesDist,_state:()=>({ratings:RATINGS,model:MODEL})};
+  global.SimEngine={version:ENGINE_VERSION,load,isLoaded,getPlayer,searchPlayers,aggregate,_state:()=>({ratings:RATINGS,model:MODEL})};
 })(window);
 </script>
 
@@ -1319,73 +1289,113 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
   });
 
   // ── Simulation run — shared function
-  function runSim(sideA,sideB,opts,labels){
-    const A=SimEngine.aggregate(MS.xi[sideA]);
-    const B=SimEngine.aggregate(MS.xi[sideB]);
-    const probs=SimEngine.matchProbs(A,B,{home:opts.home,bat_first:opts.bat_first});
-
-    // Update labels and bars
-    document.getElementById("probLabelA").innerHTML=`${labels.A}<small>P(wins)</small>`;
-    document.getElementById("probLabelB").innerHTML=`${labels.B}<small>P(wins)</small>`;
-    const pctA=(probs.pA*100).toFixed(1), pctD=(probs.pDraw*100).toFixed(1), pctB=(probs.pB*100).toFixed(1);
-    document.getElementById("barA").style.width=pctA+"%";
-    document.getElementById("barD").style.width=pctD+"%";
-    document.getElementById("barB").style.width=pctB+"%";
-    document.getElementById("pctA").textContent=pctA+"%";
-    document.getElementById("pctD").textContent=pctD+"%";
-    document.getElementById("pctB").textContent=pctB+"%";
-
-    // Labels inside bars (if wide enough)
-    document.getElementById("barA").textContent=probs.pA>=0.18?pctA+"%":"";
-    document.getElementById("barD").textContent=probs.pDraw>=0.18?pctD+"%":"";
-    document.getElementById("barB").textContent=probs.pB>=0.18?pctB+"%":"";
-
-    // Diff row
-    const signed=v=>(v>=0?"+":"")+v.toFixed(2);
-    document.getElementById("diffVal").textContent=signed(probs.D);
-    document.getElementById("diffVal").className="d-v "+(probs.D>0?"pos":probs.D<0?"neg":"");
-    document.getElementById("diffBat").textContent=signed(probs.batDiff);
-    document.getElementById("diffBow").textContent=signed(probs.bowDiff);
-    document.getElementById("diffHome").textContent=probs.home===0?"neutral":(probs.home>0?labels.A+" home":labels.B+" home");
-    document.getElementById("diffBatFirst").textContent=probs.bat_first===0?"model chooses":(probs.bat_first>0?labels.A:labels.B);
-
-    // Series card
-    const seriesCard=document.getElementById("seriesCard");
-    if(opts.N>1){
-      seriesCard.style.display="block";
-      const series=SimEngine.seriesDist(A,B,opts.N,{home:opts.home,bat_first:opts.bat_first,iters:opts.iters||10000,seed:42});
-      document.getElementById("seriesSub").innerHTML=`<strong>${opts.N}-Test series</strong> · ${(opts.iters||10000).toLocaleString()} iterations · seed 42`;
-      const fmt=p=>(p*100).toFixed(1)+"%";
-      document.getElementById("pSeriesA").textContent=fmt(series.pSeriesA);
-      document.getElementById("pSeriesTied").textContent=fmt(series.pSeriesTied);
-      document.getElementById("pSeriesB").textContent=fmt(series.pSeriesB);
-      document.getElementById("sSeriesALbl").textContent=labels.A+" wins series";
-      document.getElementById("sSeriesBLbl").textContent=labels.B+" wins series";
-      document.getElementById("sExpA").textContent="E["+labels.A+" wins] = "+series.expectedWinsA.toFixed(2);
-      document.getElementById("sExpTied").textContent="E[draws] = "+series.expectedDraws.toFixed(2);
-      document.getElementById("sExpB").textContent="E["+labels.B+" wins] = "+series.expectedWinsB.toFixed(2);
-
-      const tbody=document.getElementById("outcomeTbody");
-      tbody.innerHTML="";
-      const top=series.seriesOutcomeDist.slice(0,12);
-      const maxP=top[0].prob;
-      for(const r of top){
-        const tr=document.createElement("tr");
-        const barW=(r.prob/maxP)*80; // max 80px
-        tr.innerHTML=`
-          <td class="scoreline">${labels.A} ${r.winsA} · ${r.draws} drawn · ${r.winsB} ${labels.B}</td>
-          <td class="num prob-cell"><span class="mini-bar" style="width:${barW}px"></span>${(r.prob*100).toFixed(2)}%</td>
-          <td class="num">${r.prob>0?(1/r.prob).toFixed(1):"—"}</td>
-        `;
-        tbody.appendChild(tr);
-      }
-    }else{
-      seriesCard.style.display="none";
+  // Runs on the server (CTData.simulate -> simulateMatch). The browser sends
+  // player ids only; ratings, the rule and, for replays, the real match all
+  // come from the server's own files.
+  const FLOW_OF={A:"team-vs-team",X:"cross-era",H:"what-if"};
+  let simBusy=false;
+  async function runSim(sideA,sideB,opts,labels){
+    if(simBusy) return;
+    simBusy=true;
+    const btns=["runBtn","runBtn2","runBtn3"].map(id=>document.getElementById(id));
+    btns.forEach(b=>{ if(b){ b.dataset.wasDisabled=b.disabled?"1":""; b.disabled=true; } });
+    let r;
+    try{
+      r=await CTData.simulate({
+        flow:FLOW_OF[sideA],
+        A:MS.xi[sideA].map(p=>p?p.id:null),
+        B:MS.xi[sideB].map(p=>p?p.id:null),
+        home:opts.home, bat_first:opts.bat_first, N:opts.N, iters:opts.iters||10000,
+        tid:opts.tid
+      });
+    }catch(e){
+      console.error(e);
+      toast(e && e.code==="forbidden" ? "Simulations need a subscription." : "Simulation failed — please try again.",true);
+      return;
+    }finally{
+      simBusy=false;
+      btns.forEach(b=>{ if(b) b.disabled=b.dataset.wasDisabled==="1"; });
+      updateRunButtons();
     }
 
-    // Results title/meta
+    const signed=v=>(v>=0?"+":"")+v.toFixed(2);
+    const probCard=document.getElementById("matchProbCard");
+    const seriesCard=document.getElementById("seriesCard");
+    const strengthCard=document.getElementById("strengthCard");
+
+    if(r.mode!=="chances"){
+      // Both sides current: strength numbers only. No percentages exist in
+      // this response — the server never computed them.
+      probCard.style.display="none";
+      seriesCard.style.display="none";
+      strengthCard.style.display="block";
+      document.getElementById("strengthNote").textContent=
+        "Win chances aren\u2019t shown for two current sides (six or more players with a Test since "+r.meta.currentSince+").";
+      document.getElementById("strALbl").textContent=labels.A;
+      document.getElementById("strBLbl").textContent=labels.B;
+      document.getElementById("strABat").textContent=r.A.team_bat.toFixed(2);
+      document.getElementById("strABow").textContent=r.A.team_bow.toFixed(2);
+      document.getElementById("strBBat").textContent=r.B.team_bat.toFixed(2);
+      document.getElementById("strBBow").textContent=r.B.team_bow.toFixed(2);
+      document.getElementById("strDiffBat").textContent=signed(r.A.team_bat-r.B.team_bow);
+      document.getElementById("strDiffBow").textContent=signed(r.A.team_bow-r.B.team_bat);
+    }else{
+      strengthCard.style.display="none";
+      probCard.style.display="block";
+      const probs=r.probs;
+      document.getElementById("probLabelA").innerHTML=`${labels.A}<small>P(wins)</small>`;
+      document.getElementById("probLabelB").innerHTML=`${labels.B}<small>P(wins)</small>`;
+      const pctA=(probs.pA*100).toFixed(1), pctD=(probs.pDraw*100).toFixed(1), pctB=(probs.pB*100).toFixed(1);
+      document.getElementById("barA").style.width=pctA+"%";
+      document.getElementById("barD").style.width=pctD+"%";
+      document.getElementById("barB").style.width=pctB+"%";
+      document.getElementById("pctA").textContent=pctA+"%";
+      document.getElementById("pctD").textContent=pctD+"%";
+      document.getElementById("pctB").textContent=pctB+"%";
+      document.getElementById("barA").textContent=probs.pA>=0.18?pctA+"%":"";
+      document.getElementById("barD").textContent=probs.pDraw>=0.18?pctD+"%":"";
+      document.getElementById("barB").textContent=probs.pB>=0.18?pctB+"%":"";
+      document.getElementById("diffVal").textContent=signed(probs.D);
+      document.getElementById("diffVal").className="d-v "+(probs.D>0?"pos":probs.D<0?"neg":"");
+      document.getElementById("diffBat").textContent=signed(probs.batDiff);
+      document.getElementById("diffBow").textContent=signed(probs.bowDiff);
+      document.getElementById("diffHome").textContent=probs.home===0?"neutral":(probs.home>0?labels.A+" home":labels.B+" home");
+      document.getElementById("diffBatFirst").textContent=probs.bat_first===0?"model chooses":(probs.bat_first>0?labels.A:labels.B);
+
+      if(r.series){
+        const series=r.series;
+        seriesCard.style.display="block";
+        document.getElementById("seriesSub").innerHTML=`<strong>${series.N}-Test series</strong> · ${series.iters.toLocaleString()} iterations · seed 42`;
+        const fmt=p=>(p*100).toFixed(1)+"%";
+        document.getElementById("pSeriesA").textContent=fmt(series.pSeriesA);
+        document.getElementById("pSeriesTied").textContent=fmt(series.pSeriesTied);
+        document.getElementById("pSeriesB").textContent=fmt(series.pSeriesB);
+        document.getElementById("sSeriesALbl").textContent=labels.A+" wins series";
+        document.getElementById("sSeriesBLbl").textContent=labels.B+" wins series";
+        document.getElementById("sExpA").textContent="E["+labels.A+" wins] = "+series.expectedWinsA.toFixed(2);
+        document.getElementById("sExpTied").textContent="E[draws] = "+series.expectedDraws.toFixed(2);
+        document.getElementById("sExpB").textContent="E["+labels.B+" wins] = "+series.expectedWinsB.toFixed(2);
+        const tbody=document.getElementById("outcomeTbody");
+        tbody.innerHTML="";
+        const top=series.seriesOutcomeDist;
+        const maxP=top.length?top[0].prob:1;
+        for(const row of top){
+          const tr=document.createElement("tr");
+          const barW=(row.prob/maxP)*80;
+          tr.innerHTML=`
+          <td class="scoreline">${labels.A} ${row.winsA} · ${row.draws} drawn · ${row.winsB} ${labels.B}</td>
+          <td class="num prob-cell"><span class="mini-bar" style="width:${barW}px"></span>${(row.prob*100).toFixed(2)}%</td>
+          <td class="num">${row.prob>0?(1/row.prob).toFixed(1):"—"}</td>
+        `;
+          tbody.appendChild(tr);
+        }
+      }else{
+        seriesCard.style.display="none";
+      }
+    }
+
     document.getElementById("resultsTitle").textContent=labels.A+" vs "+labels.B;
-    document.getElementById("resultsMeta").textContent="Engine "+SimEngine.version+" · ratings "+SimEngine._state().model.version+" · "+SimEngine._state().ratings.n_matches+" historical matches in fit";
+    document.getElementById("resultsMeta").textContent="Engine "+SimEngine.version+" · ratings "+(r.meta.modelVersion||"v1")+(r.meta.nMatches?" · "+r.meta.nMatches+" historical matches in fit":"");
     document.getElementById("resultsSection").classList.add("visible");
     document.getElementById("resultsSection").scrollIntoView({behavior:"smooth",block:"start"});
   }
@@ -1566,7 +1576,7 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
       if(h.batFirstTeam===h.t1Name) bat_first=1;
       else if(h.batFirstTeam===h.t2Name) bat_first=-1;
     }
-    runSim("H","V",{home,bat_first,N:1,iters:10000},{A:h.t1Name,B:h.t2Name});
+    runSim("H","V",{home,bat_first,N:1,iters:10000,tid:h.tid},{A:h.t1Name,B:h.t2Name});
   });
 
   // ── Boot

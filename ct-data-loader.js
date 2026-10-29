@@ -10,7 +10,9 @@
  * Public API (window.CTData):
  *     await CTData.load('data')      -> full dataset D    (derived/data.json.gz)
  *     await CTData.load('ratings')   -> sim ratings       (derived/sim_ratings.json.gz)
- *     await CTData.load('model')     -> sim model         (derived/sim_model.json.gz)
+ *     await CTData.load('model')     -> sim model SETTINGS only (derived/sim_model.json.gz;
+ *                                       the win/draw coefficients are withheld server-side)
+ *     await CTData.simulate({...})   -> run the match model on the server (simulateMatch)
  *     CTData.clearCache(['data'])    -> drop cached copy/copies (default: all)
  *
  * Requires (already provided by feature-flags.js / prelaunch-guard.js on every
@@ -661,5 +663,57 @@
     return panel;
   }
 
-  window.CTData = { load: load, clearCache: clearCache, renderError: renderError, _endpoint: ENDPOINT };
+  /* --- simulate (2026-10-29) ------------------------------------------------
+   * Runs the match model on the server (functions/simulateMatch.js). The model's
+   * win/draw coefficients are no longer sent to the browser -- ?file=model now
+   * carries only the settings the strength numbers need -- so simulations.html
+   * posts the two XIs here and gets back either the percentages or, when both
+   * sides are current, strength numbers only. Same token, App Check header and
+   * error codes as load(), so renderError() and the page's toasts work as-is. */
+  var SIM_ENDPOINT = 'https://us-west1-hitwicket-cba02.cloudfunctions.net/simulateMatch';
+
+  function postSimulate(payload, token, acToken) {
+    var ctrl  = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+    var timer = ctrl ? setTimeout(function () { ctrl.abort(); }, REQUEST_TIMEOUT_MS) : null;
+    var headers = { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Accept': 'application/json' };
+    if (acToken) headers['X-Firebase-AppCheck'] = acToken;
+    return fetch(SIM_ENDPOINT, {
+      method: 'POST', headers: headers, body: JSON.stringify(payload), cache: 'no-store',
+      signal: ctrl ? ctrl.signal : undefined
+    }).then(
+      function (resp) { if (timer) clearTimeout(timer); return resp; },
+      function (err)  {
+        if (timer) clearTimeout(timer);
+        if (err && err.name === 'AbortError') throw CTDataError('timeout', 'simulateMatch timed out (possible cold start).');
+        throw CTDataError('network', 'simulateMatch unreachable -- likely a CORS origin mismatch (this page must be served from https://thegrassbank.com).');
+      }
+    );
+  }
+
+  function simulate(payload) {
+    function attempt(force) {
+      return getToken(force).then(function (t) {
+        return appCheckToken().then(function (ac) { return postSimulate(payload, t, ac); });
+      });
+    }
+    return attempt(false).then(function (resp) {
+      return resp.status === 401 ? attempt(true) : resp;   // stale token -> refresh once
+    }).then(function (resp) {
+      var s = resp.status;
+      if (s === 200) {
+        return resp.json().catch(function () {
+          throw CTDataError('parse', 'simulateMatch returned a body that was not valid JSON.');
+        });
+      }
+      return resp.json().catch(function () { return {}; }).then(function (body) {
+        var reason = (body && (body.reason || body.error)) || null;
+        if (s === 403) throw CTDataError('forbidden', 'Simulation access was denied.', { status: 403, reason: reason || 'paywall' });
+        if (s === 401) throw CTDataError('unauthorized', 'Authentication failed for simulateMatch.', { status: 401 });
+        if (s === 400) throw CTDataError('bad-request', 'simulateMatch rejected the request (' + reason + ').', { status: 400, reason: reason });
+        throw CTDataError('transient', 'simulateMatch is temporarily unavailable -- please retry.', { status: s, reason: reason });
+      });
+    });
+  }
+
+  window.CTData = { load: load, simulate: simulate, clearCache: clearCache, renderError: renderError, _endpoint: ENDPOINT };
 })();
