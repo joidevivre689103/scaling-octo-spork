@@ -327,8 +327,8 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
           </div>
           <div class="xi-list" data-xi="A"></div>
           <div class="team-aggs" data-aggs="A">
-            <span class="k" title="Position-weighted sum of the XI's batting ratings. Top-order batters (positions 1–7) count ~3× more than the tail (8–11).">Batting Strength</span><span class="v">—</span>
-            <span class="k" title="Sum of the top-5 bowling ratings in the XI. Only the main attack contributes; part-timers outside the top 5 do not.">Bowling Strength</span><span class="v bow">—</span>
+            <span class="k" title="The XI's batting added up, with the top order counting most.">Batting Strength</span><span class="v">—</span>
+            <span class="k" title="The main attack's bowling added up.">Bowling Strength</span><span class="v bow">—</span>
           </div>
         </div>
       </div>
@@ -360,8 +360,8 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
           </div>
           <div class="xi-list" data-xi="B"></div>
           <div class="team-aggs" data-aggs="B">
-            <span class="k" title="Position-weighted sum of the XI's batting ratings. Top-order batters (positions 1–7) count ~3× more than the tail (8–11).">Batting Strength</span><span class="v">—</span>
-            <span class="k" title="Sum of the top-5 bowling ratings in the XI. Only the main attack contributes; part-timers outside the top 5 do not.">Bowling Strength</span><span class="v bow">—</span>
+            <span class="k" title="The XI's batting added up, with the top order counting most.">Batting Strength</span><span class="v">—</span>
+            <span class="k" title="The main attack's bowling added up.">Bowling Strength</span><span class="v bow">—</span>
           </div>
         </div>
       </div>
@@ -440,8 +440,8 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
           </div>
           <div class="xi-list" data-xi="X"></div>
           <div class="team-aggs" data-aggs="X">
-            <span class="k" title="Position-weighted sum of the XI's batting ratings. Top-order batters (positions 1–7) count ~3× more than the tail (8–11).">Batting Strength</span><span class="v">—</span>
-            <span class="k" title="Sum of the top-5 bowling ratings in the XI. Only the main attack contributes; part-timers outside the top 5 do not.">Bowling Strength</span><span class="v bow">—</span>
+            <span class="k" title="The XI's batting added up, with the top order counting most.">Batting Strength</span><span class="v">—</span>
+            <span class="k" title="The main attack's bowling added up.">Bowling Strength</span><span class="v bow">—</span>
           </div>
         </div>
       </div>
@@ -465,8 +465,8 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
           </div>
           <div class="xi-list" data-xi="Y"></div>
           <div class="team-aggs" data-aggs="Y">
-            <span class="k" title="Position-weighted sum of the XI's batting ratings. Top-order batters (positions 1–7) count ~3× more than the tail (8–11).">Batting Strength</span><span class="v">—</span>
-            <span class="k" title="Sum of the top-5 bowling ratings in the XI. Only the main attack contributes; part-timers outside the top 5 do not.">Bowling Strength</span><span class="v bow">—</span>
+            <span class="k" title="The XI's batting added up, with the top order counting most.">Batting Strength</span><span class="v">—</span>
+            <span class="k" title="The main attack's bowling added up.">Bowling Strength</span><span class="v bow">—</span>
           </div>
         </div>
       </div>
@@ -556,8 +556,8 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
             </div>
             <div class="xi-list" data-xi="H"></div>
             <div class="team-aggs" data-aggs="H">
-              <span class="k" title="Position-weighted sum of the XI's batting ratings. Top-order batters (positions 1–7) count ~3× more than the tail (8–11).">Batting Strength</span><span class="v">—</span>
-              <span class="k" title="Sum of the top-5 bowling ratings in the XI. Only the main attack contributes; part-timers outside the top 5 do not.">Bowling Strength</span><span class="v bow">—</span>
+              <span class="k" title="The XI's batting added up, with the top order counting most.">Batting Strength</span><span class="v">—</span>
+              <span class="k" title="The main attack's bowling added up.">Bowling Strength</span><span class="v bow">—</span>
             </div>
           </div>
         </div>
@@ -578,8 +578,8 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
             </div>
             <div class="xi-list" data-xi="V"></div>
             <div class="team-aggs" data-aggs="V">
-              <span class="k" title="Position-weighted sum of the XI's batting ratings. Top-order batters (positions 1–7) count ~3× more than the tail (8–11).">Batting Strength</span><span class="v">—</span>
-              <span class="k" title="Sum of the top-5 bowling ratings in the XI. Only the main attack contributes; part-timers outside the top 5 do not.">Bowling Strength</span><span class="v bow">—</span>
+              <span class="k" title="The XI's batting added up, with the top order counting most.">Batting Strength</span><span class="v">—</span>
+              <span class="k" title="The main attack's bowling added up.">Bowling Strength</span><span class="v bow">—</span>
             </div>
           </div>
         </div>
@@ -699,14 +699,12 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
 
   <!-- Method note -->
   <div class="method-note">
-    <h4>Method · v1</h4>
-    <p><strong>Ratings.</strong> A hybrid of career averages and strike rate, both era-normalised. Base: player's average divided by the weighted-mean decade-global average across their active decades (baseline 1.0 = era-average). Augmented: multiplied by (player's strike rate / era strike rate)<sup>0.3</sup>, so aggressive scorers get credit over pure compilers without overwhelming the underlying average. Higher is better for both batting and bowling; era-normalised so Bradman's 3.27 and Bumrah's 1.68 are comparable across decades.</p>
-    <p style="margin-top:8px"><strong>XI selection.</strong> In Team vs Team, each side auto-picks the <em>best eleven</em> from its country in the chosen time slice — 6 top batters by batting rating + 4 top bowlers by bowling rating + 1 all-rounder, with filler if fewer than 11 qualify. Eligibility: "Current" = any player whose last Test was within the last 2–5 years; decade buckets = any player whose career overlapped the decade. Changing Team A's era syncs Team B until you change B independently.</p>
-    <p style="margin-top:8px"><strong>Team aggregates.</strong> <em>Batting Strength</em> = position-weighted sum of the XI's batting ratings (top-order batters count ~3× more than the tail). <em>Bowling Strength</em> = sum of the top-5 bowling ratings in the XI.</p>
-    <p style="margin-top:8px"><strong>Match outcome.</strong> Three-way logistic on <code>D = (A_bat − B_bow) + (A_bow − B_bat)</code>, plus home effect and a bat-first effect (the decision made at the toss — which team chose to bat first). Fit on <span id="calibN">~2,500</span> historical Tests. Out-of-the-box calibration: log-loss <span id="calibLogLoss">0.97</span> (vs <span id="calibLogLossBase">1.10</span> uniform baseline), Brier <span id="calibBrier">0.58</span> (vs <span id="calibBrierBase">0.67</span>).</p>
-    <p style="margin-top:8px"><strong>When win chances are not shown.</strong> The Grass Bank does not publish forecasts of real upcoming Tests. When both sides are current &mdash; six or more of the eleven have played a Test in the last two years &mdash; you see each side&rsquo;s strength but no win chances. What-If Replay of a Test played more than a year ago always shows them, with up to two changes per side and three in all.</p>
-    <p style="margin-top:8px"><strong>Known v1 quirks.</strong> XI reconstruction drops ~3% of historical Tests where country-matching fails (e.g. ICC World XI). Empty slots default to a below-average filler (0.5 bat, 0 bow). All documented in <code>sim_model.json</code>.</p>
-    <p style="margin-top:12px;padding-top:10px;border-top:1px dotted var(--border);font-size:12px;color:var(--text3)"><strong style="color:var(--text2)">Data files:</strong> the ratings are a pipeline artifact served from The Grass Bank's authenticated data endpoint, not a public file. The match model runs on our server, so its fitted coefficients never reach your browser. The accuracy figures above come from a separate published calibration file. <span id="dataFilesGen"></span></p>
+    <h4>Method</h4>
+    <p><strong>Ratings.</strong> Each player&rsquo;s batting and bowling are rated against the players of their own era, so 1.0 is an average Test player in any decade and Bradman and Bumrah can be compared fairly. Higher is better.</p>
+    <p style="margin-top:8px"><strong>Team strength.</strong> Batting strength adds up the XI&rsquo;s batting, with the top order counting most. Bowling strength adds up the main attack.</p>
+    <p style="margin-top:8px"><strong>Results.</strong> Win, draw and loss chances come from a model built on about 2,500 past Tests. It is a first version and gets better as the data grows.</p>
+    <p style="margin-top:8px"><strong>Upcoming Tests.</strong> We don&rsquo;t forecast real upcoming matches. When both sides are made up of today&rsquo;s players, you&rsquo;ll see their strength but not their chances.</p>
+    <p style="margin-top:12px;padding-top:10px;border-top:1px dotted var(--border);font-size:12px;color:var(--text3)"><span id="dataFilesGen"></span></p>
   </div>
 </main>
 </div>
@@ -859,7 +857,6 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
   // filenames ("sim_ratings.json"), were left behind by Phase 3 §3 when both
   // artifacts moved behind CTData/serveDerivedData, and their only remaining
   // reader was the error overlay that quoted them at the reader.
-  const CALIB_URL="https://firebasestorage.googleapis.com/v0/b/hitwicket-cba02.firebasestorage.app/o/public%2Fcalibration.json?alt=media";     // public Storage artifact — non-blocking (accuracy numbers in method-note)
 
   const MS={
     xi:{A:Array(11).fill(null),B:Array(11).fill(null),X:Array(11).fill(null),Y:Array(11).fill(null),H:Array(11).fill(null),V:Array(11).fill(null)},
@@ -1077,14 +1074,14 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
     if(!aggsEl) return;
     const full=xi.every(p=>p!=null);
     if(!xi.some(p=>p!=null)){
-      aggsEl.innerHTML=`<span class="k" title="Position-weighted sum of the XI's batting ratings. Top-order batters (positions 1–7) count ~3× more than the tail (8–11).">Batting Strength</span><span class="v">—</span><span class="k" title="Sum of the top-5 bowling ratings in the XI. Only the main attack contributes; part-timers outside the top 5 do not.">Bowling Strength</span><span class="v bow">—</span>`;
+      aggsEl.innerHTML=`<span class="k" title="The XI's batting added up, with the top order counting most.">Batting Strength</span><span class="v">—</span><span class="k" title="The main attack's bowling added up.">Bowling Strength</span><span class="v bow">—</span>`;
       return;
     }
     const agg=SimEngine.aggregate(xi);
     const filledN=xi.filter(p=>p!=null).length;
     aggsEl.innerHTML=`
-      <span class="k" title="Position-weighted sum of the XI's batting ratings. Top-order batters (positions 1–7) count ~3× more than the tail (8–11).">Batting Strength ${full?"":`<span style="color:var(--text4);font-weight:400">(${filledN}/11)</span>`}</span><span class="v">${agg.team_bat.toFixed(2)}</span>
-      <span class="k" title="Sum of the top-5 bowling ratings in the XI. Only the main attack contributes; part-timers outside the top 5 do not.">Bowling Strength</span><span class="v bow">${agg.team_bow.toFixed(2)}</span>
+      <span class="k" title="The XI's batting added up, with the top order counting most.">Batting Strength ${full?"":`<span style="color:var(--text4);font-weight:400">(${filledN}/11)</span>`}</span><span class="v">${agg.team_bat.toFixed(2)}</span>
+      <span class="k" title="The main attack's bowling added up.">Bowling Strength</span><span class="v bow">${agg.team_bow.toFixed(2)}</span>
     `;
   }
 
@@ -1337,7 +1334,7 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
       seriesCard.style.display="none";
       strengthCard.style.display="block";
       document.getElementById("strengthNote").textContent=
-        "Win chances aren\u2019t shown for two current sides (six or more players with a Test since "+r.meta.currentSince+").";
+        "Win chances aren\u2019t shown for two current sides.";
       document.getElementById("strALbl").textContent=labels.A;
       document.getElementById("strBLbl").textContent=labels.B;
       document.getElementById("strABat").textContent=r.A.team_bat.toFixed(2);
@@ -1612,22 +1609,9 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
         const state=SimEngine._state();
         const g=(state.ratings.generated_at||"").slice(0,10);
         const el=document.getElementById("dataFilesGen");
-        if(el && g) el.innerHTML='<span style="color:var(--text3)">· ratings generated '+g+'</span>';
+        if(el && g) el.textContent='Ratings updated '+g;
       }catch(e){/* non-fatal */}
       document.getElementById("dataLoadingOverlay").style.display="none";
-      // Non-blocking: fetch calibration.json and populate the method-note accuracy numbers.
-      // If this fails (missing file, parse error, network hiccup) the hardcoded fallback values
-      // rendered in the HTML stay put. Never blocks the engine or the UI.
-      fetch(CALIB_URL).then(r=>r.ok?r.json():null).then(calib=>{
-        if(!calib) return;
-        const at=calib.all_time||{}, base=calib.baseline||{};
-        const setText=(id,v)=>{const el=document.getElementById(id); if(el && v!=null) el.textContent=v;};
-        if(calib.n_matches_scored) setText("calibN", Number(calib.n_matches_scored).toLocaleString());
-        if(at.log_loss!=null) setText("calibLogLoss", at.log_loss.toFixed(2));
-        if(at.brier_multiclass!=null) setText("calibBrier", at.brier_multiclass.toFixed(2));
-        if(base.uniform_three_class_log_loss!=null) setText("calibLogLossBase", base.uniform_three_class_log_loss.toFixed(2));
-        if(base.uniform_three_class_brier!=null) setText("calibBrierBase", base.uniform_three_class_brier.toFixed(2));
-      }).catch(()=>{/* non-fatal, fallback numbers stay */});
     }catch(e){
       console.error(e);
       // (1c): one message for every data failure across the site. Rendered INTO
