@@ -1327,6 +1327,8 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
     const probCard=document.getElementById("matchProbCard");
     const seriesCard=document.getElementById("seriesCard");
     const strengthCard=document.getElementById("strengthCard");
+    // Show the results first so the bars have a real width to measure.
+    document.getElementById("resultsSection").classList.add("visible");
 
     if(r.mode!=="chances"){
       // Both sides current: strength numbers only. No percentages exist in
@@ -1357,9 +1359,18 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
       document.getElementById("pctA").textContent=pctA+"%";
       document.getElementById("pctD").textContent=pctD+"%";
       document.getElementById("pctB").textContent=pctB+"%";
-      document.getElementById("barA").textContent=probs.pA>=0.18?pctA+"%":"";
-      document.getElementById("barD").textContent=probs.pDraw>=0.18?pctD+"%":"";
-      document.getElementById("barB").textContent=probs.pB>=0.18?pctB+"%":"";
+      // Label inside the bar whenever it fits. Judged on the bar's final width
+      // in pixels (track width x share), not a fixed share: a 16% bar is roomy
+      // on a desktop track and too narrow on a phone. ~52px holds "100.0%"
+      // plus the bar's 10px left padding at 11px Inter.
+      const fitLabel=(id,p,txt)=>{
+        const bar=document.getElementById(id);
+        const trackW=bar.parentElement?bar.parentElement.clientWidth:0;
+        bar.textContent=(trackW*p>=52)?txt+"%":"";
+      };
+      fitLabel("barA",probs.pA,pctA);
+      fitLabel("barD",probs.pDraw,pctD);
+      fitLabel("barB",probs.pB,pctB);
       document.getElementById("diffVal").textContent=signed(probs.D);
       document.getElementById("diffVal").className="d-v "+(probs.D>0?"pos":probs.D<0?"neg":"");
       document.getElementById("diffBat").textContent=signed(probs.batDiff);
