@@ -16,24 +16,26 @@
 <script src="/ct-urlstate.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
 <title>WTC Race — The Grass Bank</title>
-<!-- World Test Championship (2026-10-27). FREE page: the table, every team's
-     chance of reaching the final and the series left come from the public
-     liveScores/wtc document (written daily by super-fortnight's wtc.yml).
-     The PAID sections (what each team needs, results that help, what-if) come
-     from derived/wtc.json.gz through serveDerivedData ?file=wtc, so the server
+<!-- World Test Championship (2026-10-27; arithmetic only since 2026-10-30 —
+     no match model, no simulation, no chances). FREE page: the table, each
+     team's best possible finish, who is through or out, and the series left
+     come from the public liveScores/wtc document (written daily by
+     super-fortnight's wtc.yml). The PAID sections (each team's finish by its
+     own series, results that matter, the exact what-if) come from
+     derived/wtc.json.gz through serveDerivedData ?file=wtc, so the server
      decides who sees them; a reader without access sees the locked panel. -->
-<meta name="description" content="Every team's chance of reaching the World Test Championship final, from 20,000 simulations of every Test still to play.">
+<meta name="description" content="The World Test Championship table: points, each team's best possible finish, and who is through to the final or out.">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="The Grass Bank">
 <meta property="og:title" content="WTC Race — The Grass Bank">
-<meta property="og:description" content="Every team's chance of reaching the World Test Championship final, updated as soon as we get the data.">
+<meta property="og:description" content="The World Test Championship table and what is still possible for every team, updated as soon as we get the data.">
 <meta property="og:url" content="https://thegrassbank.com/wtc.html">
 <meta property="og:image" content="https://thegrassbank.com/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="WTC Race — The Grass Bank">
-<meta name="twitter:description" content="Every team's chance of reaching the World Test Championship final, updated as soon as we get the data.">
+<meta name="twitter:description" content="The World Test Championship table and what is still possible for every team, updated as soon as we get the data.">
 <meta name="twitter:image" content="https://thegrassbank.com/og-image.png">
 <link rel="canonical" href="https://thegrassbank.com/wtc.html">
 <link rel="stylesheet" href="/fonts/fonts-opsz.css">
@@ -67,10 +69,10 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
 .rec-table tbody tr[data-team]{cursor:pointer}
 .team{font-weight:600;white-space:nowrap}
 .pct{font-weight:700}
-.chance{display:flex;align-items:center;gap:10px;min-width:150px}
-.bar{flex:1;height:8px;border-radius:4px;background:var(--surface3);overflow:hidden}
-.bar i{display:block;height:100%;background:var(--accent);border-radius:4px}
-.chance b{min-width:44px;text-align:right;font-size:15px}
+.status{display:inline-block;padding:3px 9px;border-radius:12px;font-family:'Inter',sans-serif;font-size:11px;font-weight:700;letter-spacing:.3px;white-space:nowrap}
+.st-through{background:var(--green-dim);color:var(--green)}
+.st-alive{background:var(--surface2);color:var(--text2)}
+.st-out{background:var(--accent-dim);color:var(--accent)}
 .lbl-short{display:none}
 .note{font-size:12px;color:var(--text3);line-height:1.5}
 .remaining{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
@@ -94,7 +96,7 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
 .picker button.on{background:var(--accent);border-color:var(--accent);color:#fff}
 .card{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:18px 20px;margin-bottom:12px}
 .card h4{font-size:15px;font-weight:700;margin-bottom:10px}
-.need-row{display:grid;grid-template-columns:1fr repeat(3,90px);gap:8px;align-items:center;padding:8px 0;border-top:1px solid var(--surface3);font-size:14px}
+.need-row{display:grid;grid-template-columns:1fr repeat(3,110px);gap:8px;align-items:center;padding:8px 0;border-top:1px solid var(--surface3);font-size:14px}
 .need-row:first-of-type{border-top:none}
 .need-row.head{font-family:'Inter',sans-serif;font-size:10px;letter-spacing:0.8px;text-transform:uppercase;color:var(--text3);font-weight:700}
 .need-row span.v{text-align:center;font-weight:700;font-variant-numeric:tabular-nums}
@@ -103,15 +105,10 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
 .whatif{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px;margin-bottom:14px}
 .whatif label{display:block;font-size:13px;font-weight:600;margin-bottom:4px}
 .whatif select{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-family:'Outfit',sans-serif;font-size:14px;background:var(--surface)}
-.delta-up{color:var(--green);font-weight:700}
-.delta-down{color:var(--accent);font-weight:700}
 @media(max-width:700px){
   .main{padding:18px 16px 50px}
   .page-title{font-size:25px}
   .hide-sm{display:none}
-  .chance{min-width:0;gap:6px}
-  .bar{min-width:36px}
-  .chance b{min-width:36px;font-size:14px}
   .rec-table thead th,.rec-table tbody td{padding:9px 7px}
   .rec-table thead th.hide-xs,.rec-table tbody td.hide-xs{display:none}
   .lbl-long{display:none}
@@ -126,7 +123,7 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
 <main class="main">
   <div class="page-head" id="pageHead">
     <h1 class="page-title">The race to Lord's</h1>
-    <p class="page-desc">Every team's chance of reaching the World Test Championship final in June 2027. We play every Test still to come 20,000 times with our match model and count how often each team finishes in the top two.</p>
+    <p class="page-desc">The World Test Championship table, and what is still possible for every team before the final in June 2027. Worked out from the results alone: nothing here is a prediction.</p>
   </div>
   <p class="asof" id="asof">Loading…</p>
 
@@ -134,22 +131,22 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
     <table class="rec-table" id="wtcTable">
       <thead><tr>
         <th class="hide-xs">#</th><th class="left">Team</th><th>P</th><th class="hide-sm">W</th><th class="hide-sm">L</th><th class="hide-sm">D</th>
-        <th class="hide-sm">Ded</th><th class="hide-sm">Pts</th><th>%</th><th class="left"><span class="lbl-long">Chance of the final</span><span class="lbl-short">Final</span></th>
+        <th class="hide-sm">Ded</th><th class="hide-sm">Pts</th><th>%</th><th><span class="lbl-long">Best possible</span><span class="lbl-short">Best</span></th><th class="left">Status</th>
       </tr></thead>
       <tbody></tbody>
     </table>
   </div>
-  <p class="note">% is points won as a share of points available (12 a win, 4 a draw, 6 a tie, less any points docked for slow over rates). The top two at the end of the cycle play the final. These are chances, not odds.</p>
+  <p class="note">% is points won as a share of points available (12 a win, 4 a draw, 6 a tie, less any points docked for slow over rates). Best possible is the % a team finishes on if it wins every Test it has left. The top two at the end of the cycle play the final. Through and out follow from the points alone; points docked later could still change them.</p>
 
   <h2 class="sec-title">Still to play</h2>
   <div class="remaining" id="remaining"></div>
 
-  <!-- PAID: what each team needs · results that help · what if -->
+  <!-- PAID: where each team finishes · results that matter · what if -->
   <h2 class="sec-title" id="needs">What does each team need?</h2>
   <div class="paid" id="paidBox">
     <div class="locked" id="locked">
       <h3 id="lockedTitle">How does each team get there?</h3>
-      <p>Subscribers see what every team needs from its own series, which other results help it, and can pick their own results to watch every team's chance change.</p>
+      <p>Subscribers see where every team would finish from each of its series, which other results matter to it, and can pick results and watch the table change.</p>
       <div class="btns">
         <a class="btn solid" href="/subscribe.html">Subscribe</a>
         <a class="btn" id="signinBtn" href="/login.html">Sign in</a>
@@ -160,11 +157,11 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
       <div class="card" id="needCard"></div>
       <div class="card" id="helpCard"></div>
       <h2 class="sec-title">What if?</h2>
-      <p class="sec-desc">Pick a result for any series still to play. Everything you leave on "Let it play out" is simulated as before.</p>
+      <p class="sec-desc">Pick a result for any series still to play, and the table recalculates from those results alone. Series left on "Not decided" are not counted yet.</p>
       <div class="whatif" id="whatif"></div>
       <div class="tbl-wrap">
         <table class="rec-table" id="whatifTable">
-          <thead><tr><th class="left">Team</th><th>Now</th><th>With your results</th><th>Change</th></tr></thead>
+          <thead><tr><th class="left">Team</th><th>Now</th><th>With your results</th><th class="hide-xs">Best possible</th><th class="left">Status</th></tr></thead>
           <tbody></tbody>
         </table>
       </div>
@@ -177,22 +174,30 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
 <script>
 (function () {
   'use strict';
+  // Arithmetic only (2026-10-30): every number on this page follows from
+  // results already played (or picked by the reader) and the ICC points
+  // rules. No match model, no simulation, no chances.
   var PUB = null, GATED = null, picked = null;
   var params = new URLSearchParams(location.search);
   picked = params.get('team');
+  var STATUS = { through: 'Through', alive: 'Can still make it', out: 'Out' };
+  var STATUS_SHORT = { through: 'Through', alive: 'In', out: 'Out' };
 
   function el(tag, cls, text) { var n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; }
-  function pctText(p) {
-    if (p == null) return '—';
-    if (p <= 0) return '0%';
-    if (p < 0.01) return '<1%';
-    if (p > 0.99 && p < 1) return '>99%';
-    return Math.round(p * 100) + '%';
-  }
+  function pc(x) { return x == null ? '—' : Number(x).toFixed(2) + '%'; }
   function fmtDate(iso) {
     if (!iso) return '';
     var d = new Date(iso + 'T12:00:00Z');
     return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+  }
+  function statusCell(s) {
+    var td = el('td', 'left');
+    if (!s) { td.textContent = '—'; return td; }
+    var b = el('span', 'status st-' + s);
+    b.appendChild(el('span', 'lbl-long', STATUS[s]));
+    b.appendChild(el('span', 'lbl-short', STATUS_SHORT[s]));
+    td.appendChild(b);
+    return td;
   }
   function setTeam(t) {
     picked = t;
@@ -203,6 +208,29 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
     if (GATED) renderPaid();
     var lt = document.getElementById('lockedTitle');
     if (lt) lt.textContent = t ? 'What do ' + t + ' need?' : 'How does each team get there?';
+  }
+
+  // ── The arithmetic (same rules as scripts/build_wtc.py) ──────────────────
+  function r2(x) { return Math.round(x * 100) / 100; }
+  function pctOf(points, played) { return played ? r2(100 * points / (12 * played)) : 0; }
+  // base: { team: {points, played} }; series: [{host, visitor, left}] still open.
+  function standing(base, series) {
+    var left = {};
+    Object.keys(base).forEach(function (t) { left[t] = 0; });
+    series.forEach(function (s) { left[s.host] += s.left; left[s.visitor] += s.left; });
+    var rng = {};
+    Object.keys(base).forEach(function (t) {
+      var n = base[t].played + left[t];
+      rng[t] = { pct: pctOf(base[t].points, base[t].played),
+                 worst: pctOf(base[t].points, n), best: pctOf(base[t].points + 12 * left[t], n) };
+    });
+    Object.keys(rng).forEach(function (t) {
+      var others = Object.keys(rng).filter(function (u) { return u !== t; });
+      var above = others.filter(function (u) { return rng[u].worst > rng[t].best; }).length;
+      var catchUp = others.filter(function (u) { return rng[u].best >= rng[t].worst; }).length;
+      rng[t].status = above >= 2 ? 'out' : catchUp <= 1 ? 'through' : 'alive';
+    });
+    return rng;
   }
 
   // ── Free part ───────────────────────────────────────────────────────────
@@ -220,12 +248,9 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
       ['won', 'lost', 'drawn'].forEach(function (k) { tr.appendChild(el('td', 'hide-sm', String(r[k] + (k === 'drawn' ? (r.tied || 0) : 0)))); });
       tr.appendChild(el('td', 'hide-sm', r.deducted ? '−' + r.deducted : '0'));
       tr.appendChild(el('td', 'hide-sm', String(r.points)));
-      tr.appendChild(el('td', 'pct', r.pct.toFixed(2)));
-      var td = el('td', 'left');
-      var c = el('div', 'chance');
-      var bar = el('span', 'bar'); var fill = el('i'); fill.style.width = Math.max(0, Math.min(100, r.chance * 100)) + '%';
-      bar.appendChild(fill); c.appendChild(bar); c.appendChild(el('b', '', r.chanceText || pctText(r.chance)));
-      td.appendChild(c); tr.appendChild(td);
+      tr.appendChild(el('td', 'pct', Number(r.pct).toFixed(2)));
+      tr.appendChild(el('td', '', r.best == null ? '—' : Number(r.best).toFixed(2)));
+      tr.appendChild(statusCell(r.status));
       tr.addEventListener('click', function () { setTeam(r.team === picked ? null : r.team); });
       tb.appendChild(tr);
     });
@@ -250,12 +275,12 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
     });
   }
   function shareText() {
-    var t = PUB.table.slice().sort(function (a, b) { return b.chance - a.chance; });
     if (picked) {
       var r = PUB.table.find(function (x) { return x.team === picked; });
-      if (r) return r.team + "'s chance of reaching the WTC final: " + (r.chanceText || pctText(r.chance)) + '. What do they need? · The Grass Bank';
+      if (r) return r.team + ' are on ' + pc(r.pct) + ' in the World Test Championship' +
+        (r.best != null ? ', best possible finish ' + pc(r.best) : '') + '. What do they need? · The Grass Bank';
     }
-    return 'The race to the WTC final: ' + t.slice(0, 3).map(function (r) { return r.team + ' ' + (r.chanceText || pctText(r.chance)); }).join(', ') +
+    return 'The race to the WTC final: ' + PUB.table.slice(0, 3).map(function (r) { return r.team + ' ' + pc(r.pct); }).join(', ') +
       '. Who takes the last place? · The Grass Bank';
   }
 
@@ -270,96 +295,57 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
       box.appendChild(b);
     });
   }
-  function outcomeWord(s, key) {
-    var an = function (t) { return (/^[AEIOU]/.test(t) ? 'an ' : 'a ') + t; };
-    return key === 'host' ? an(s.host) + ' series win' : key === 'visitor' ? an(s.visitor) + ' series win' : 'a drawn series';
-  }
   function renderPaid() {
     var team = picked || PUB.table[0].team;
     if (!picked) picked = team;
     teamPicker();
+    var row = PUB.table.find(function (x) { return x.team === team; }) || {};
+    var last = PUB.lastCycle;
+
     var nc = document.getElementById('needCard'); nc.textContent = '';
-    nc.appendChild(el('h4', '', team + ' — chance of the final, by how their own series end'));
+    nc.appendChild(el('h4', '', team + ' — where they finish, series by series'));
     var needs = (GATED.needs || {})[team] || [];
     if (!needs.length) {
       nc.appendChild(el('p', 'note', team + ' have no series left to play.'));
     } else {
       var h = el('div', 'need-row head');
-      ['Series', 'Win it', 'Level', 'Lose it'].forEach(function (x, i) { h.appendChild(el('span', i ? 'v' : '', x)); });
+      ['Series', 'Win every Test', 'Draw every Test', 'Lose every Test'].forEach(function (x, i) { h.appendChild(el('span', i ? 'v' : '', x)); });
       nc.appendChild(h);
       needs.forEach(function (n) {
-        var row = el('div', 'need-row');
-        row.appendChild(el('span', '', (n.home ? 'v ' : 'in ') + n.opponent + ' · ' + n.when + ' · ' + n.left + ' left'));
-        ['win', 'level', 'lose'].forEach(function (k) { row.appendChild(el('span', 'v', pctText(n[k]))); });
-        nc.appendChild(row);
+        var rw = el('div', 'need-row');
+        rw.appendChild(el('span', '', (n.home ? 'v ' : 'in ') + n.opponent + ' · ' + n.when + ' · ' + n.left + ' left'));
+        ['winAll', 'drawAll', 'loseAll'].forEach(function (k) { rw.appendChild(el('span', 'v', pc(n[k]))); });
+        nc.appendChild(rw);
       });
-      nc.appendChild(el('p', 'note', '"Level" means the series ends with the same number of wins each. A dash means it almost never happens in the simulations.'));
+      nc.appendChild(el('p', 'note', 'Each figure is ' + team + '’s % once that series is over, before the later series are played. ' +
+        'Best possible finish: ' + pc(row.best) + '.' +
+        (last ? ' Last cycle (' + String(last.cycle).replace('-', '–') + '), second place finished on ' + pc(last.secondPct) + '.' : '')));
     }
+
     var hc = document.getElementById('helpCard'); hc.textContent = '';
-    hc.appendChild(el('h4', '', 'Other results that help ' + team));
+    hc.appendChild(el('h4', '', 'Other results that matter to ' + team));
     var helps = (GATED.helps || {})[team] || [];
-    if (!helps.length) {
-      hc.appendChild(el('p', 'note', 'No other series moves ' + team + "'s chance by more than a couple of points."));
+    if (row.status === 'out') {
+      hc.appendChild(el('p', 'note', team + ' can no longer reach the final.'));
+    } else if (row.status === 'through') {
+      hc.appendChild(el('p', 'note', team + ' are through to the final.'));
+    } else if (!helps.length) {
+      hc.appendChild(el('p', 'note', 'No other series left involves a team that could finish above ' + team + '.'));
     } else {
       helps.forEach(function (x) {
         var p = el('p', 'help');
         p.appendChild(el('b', '', x.host + ' v ' + x.visitor));
-        p.appendChild(document.createTextNode(' (' + x.when + '): ' + team + ' reach the final ' + pctText(x.bestChance) +
-          ' of the time after ' + outcomeWord(x, x.best) + ', ' + pctText(x.worstChance) + ' after ' + outcomeWord(x, x.worst) + '.'));
+        var an = /^[AEIOU]/.test(x.helpedBy) ? 'an ' : 'a ';
+        p.appendChild(document.createTextNode(' (' + x.when + '): ' + an + x.helpedBy + ' win helps. ' + x.rival + ', ' +
+          (x.rivalAbove ? 'above ' : 'below ') + team + ' on ' + pc(x.rivalPct) + ', have up to ' + x.atStake + ' points at stake.'));
         hc.appendChild(p);
       });
     }
     renderWhatIf();
   }
 
-  // What if: the same simulation as the build script, in the browser, with the
-  // reader's picked series results held fixed.
+  // What if: the table recalculated exactly from the reader's picked results.
   var FIXED = {};
-  function rng(seed) {
-    var s = seed >>> 0;
-    return function () { s = (s + 0x6D2B79F5) >>> 0; var t = s; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
-  }
-  function simulate(fixed, iters) {
-    var P = GATED.points, series = GATED.seriesAll, probs = GATED.testProbs || {};
-    var teams = PUB.table.map(function (r) { return r.team; });
-    var basePts = {}, basePlayed = {}, baseSW = {};
-    PUB.table.forEach(function (r) { basePts[r.team] = r.points; basePlayed[r.team] = r.played; baseSW[r.team] = 0; });
-    series.forEach(function (s) {
-      if (s.left === 0 && s.hostWins !== s.visitorWins) baseSW[s.hostWins > s.visitorWins ? s.host : s.visitor]++;
-    });
-    var qual = {}; teams.forEach(function (t) { qual[t] = 0; });
-    var rnd = rng(2027);
-    for (var it = 0; it < iters; it++) {
-      var pts = Object.assign({}, basePts), played = Object.assign({}, basePlayed), sw = Object.assign({}, baseSW);
-      for (var i = 0; i < series.length; i++) {
-        var s = series[i]; if (!s.left) continue;
-        var hw = s.hostWins, vw = s.visitorWins;
-        var f = fixed[i];
-        if (f) {
-          hw += f[0]; vw += f[2];
-          pts[s.host] += P.win * f[0] + P.draw * f[1];
-          pts[s.visitor] += P.win * f[2] + P.draw * f[1];
-        } else {
-          var p = probs[String(i)];
-          for (var k = 0; k < s.left; k++) {
-            var u = rnd();
-            if (u < p[0]) { hw++; pts[s.host] += P.win; }
-            else if (u < p[0] + p[1]) { pts[s.host] += P.draw; pts[s.visitor] += P.draw; }
-            else { vw++; pts[s.visitor] += P.win; }
-          }
-        }
-        played[s.host] += s.left; played[s.visitor] += s.left;
-        if (hw !== vw) sw[hw > vw ? s.host : s.visitor]++;
-      }
-      var keyed = teams.map(function (t) {
-        return { t: t, pct: played[t] ? pts[t] / (P.win * played[t]) : 0, sw: sw[t], r: rnd() };
-      });
-      keyed.sort(function (a, b) { return (b.pct - a.pct) || (b.sw - a.sw) || (a.r - b.r); });
-      qual[keyed[0].t]++; qual[keyed[1].t]++;
-    }
-    teams.forEach(function (t) { qual[t] /= iters; });
-    return qual;
-  }
   function renderWhatIf() {
     var box = document.getElementById('whatif');
     if (!box.childElementCount) {
@@ -369,7 +355,7 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
         var lab = el('label', '', s.host + ' v ' + s.visitor + ' · ' + s.when);
         var sel = el('select');
         sel.id = 'wf' + i;
-        sel.appendChild(new Option('Let it play out', ''));
+        sel.appendChild(new Option('Not decided', ''));
         var opts = [];
         for (var h = 0; h <= s.left; h++) for (var v = 0; v <= s.left - h; v++) {
           var d = s.left - h - v, H = s.hostWins + h, V = s.visitorWins + v;
@@ -397,18 +383,33 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
     runWhatIf();
   }
   function runWhatIf() {
-    var now = {}; PUB.table.forEach(function (r) { now[r.team] = r.chance; });
-    var any = Object.keys(FIXED).length > 0;
-    var res = any ? simulate(FIXED, 8000) : now;
+    var base = {};
+    PUB.table.forEach(function (r) { base[r.team] = { points: r.points, played: r.played }; });
+    var open = [];
+    GATED.seriesAll.forEach(function (s, i) {
+      if (!s.left) return;
+      var f = FIXED[i];
+      if (f) {
+        base[s.host].points += 12 * f[0] + 4 * f[1];
+        base[s.visitor].points += 12 * f[2] + 4 * f[1];
+        base[s.host].played += s.left; base[s.visitor].played += s.left;
+      } else {
+        open.push(s);
+      }
+    });
+    var rng = standing(base, open);
+    var now = {}; PUB.table.forEach(function (r) { now[r.team] = r.pct; });
     var tb = document.querySelector('#whatifTable tbody'); tb.textContent = '';
-    PUB.table.slice().sort(function (a, b) { return res[b.team] - res[a.team]; }).forEach(function (r) {
+    PUB.table.slice().sort(function (a, b) {
+      return (rng[b.team].pct - rng[a.team].pct) || (base[b.team].points - base[a.team].points);
+    }).forEach(function (r) {
       var tr = el('tr');
       if (r.team === picked) tr.classList.add('picked');
       tr.appendChild(el('td', 'left team', r.team));
-      tr.appendChild(el('td', '', pctText(now[r.team])));
-      tr.appendChild(el('td', 'pct', pctText(res[r.team])));
-      var dlt = Math.round((res[r.team] - now[r.team]) * 100);
-      tr.appendChild(el('td', dlt > 0 ? 'delta-up' : dlt < 0 ? 'delta-down' : '', !any ? '' : dlt > 0 ? '+' + dlt : dlt < 0 ? '−' + (-dlt) : '0'));
+      tr.appendChild(el('td', '', pc(now[r.team])));
+      tr.appendChild(el('td', 'pct', pc(rng[r.team].pct)));
+      tr.appendChild(el('td', 'hide-xs', pc(rng[r.team].best)));
+      tr.appendChild(statusCell(rng[r.team].status));
       tb.appendChild(tr);
     });
   }
@@ -431,8 +432,8 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
       return;
     }
     if (picked && !PUB.table.some(function (r) { return r.team === picked; })) picked = null;
-    document.getElementById('asof').textContent = (PUB.resultsTo ? 'Includes Tests finished by ' + fmtDate(PUB.resultsTo) : '') +
-      ' · Updated as soon as we get the data · ' + Number(PUB.sims || 20000).toLocaleString('en-GB') + ' simulations';
+    document.getElementById('asof').textContent = (PUB.resultsTo ? 'Includes Tests finished by ' + fmtDate(PUB.resultsTo) + ' · ' : '') +
+      'Updated as soon as we get the data';
     renderTable();
     renderRemaining();
     setTeam(picked);
@@ -447,7 +448,7 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
     if (window.CTData) {
       try {
         GATED = await CTData.load('wtc', { renderError: false });
-        if (!GATED || !GATED.seriesAll) throw new Error('empty');
+        if (!GATED || !GATED.seriesAll || !GATED.needs) throw new Error('empty');
         document.getElementById('locked').hidden = true;
         document.getElementById('paid').hidden = false;
         renderPaid();
