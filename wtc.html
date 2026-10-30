@@ -75,6 +75,10 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
 .st-out{background:var(--accent-dim);color:var(--accent)}
 .lbl-short{display:none}
 .note{font-size:12px;color:var(--text3);line-height:1.5}
+.takes{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:6px 20px}
+.take{padding:11px 0;border-top:1px solid var(--surface3);font-size:15px;line-height:1.55;color:var(--text2)}
+.take:first-child{border-top:none}
+.take b{color:var(--text)}
 .remaining{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
 .fx{background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:12px 14px}
 .fx-teams{font-weight:600;font-size:14px}
@@ -137,6 +141,9 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
     </table>
   </div>
   <p class="note">% is points won as a share of points available (12 a win, 4 a draw, 6 a tie, less any points docked for slow over rates). Best possible is the % a team finishes on if it wins every Test it has left. The top two at the end of the cycle play the final. Through and out follow from the points alone; points docked later could still change them.</p>
+
+  <h2 class="sec-title">What it takes</h2>
+  <div class="takes" id="takes"></div>
 
   <h2 class="sec-title">Still to play</h2>
   <div class="remaining" id="remaining"></div>
@@ -255,6 +262,71 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
       tb.appendChild(tr);
     });
   }
+  // ── What it takes (2026-10-30) ──────────────────────────────────────────
+  // One line per team, from arithmetic only: how many wins from the Tests it
+  // has left would take it to the % that took second place last cycle,
+  // counting the other Tests as losses. A yardstick, never a prediction.
+  //
+  // THE WORDING IS IJ'S TO EDIT: change any line in TAKES below. Tokens:
+  // {T} team · {left} Tests left · {allLeft} 'all 7 remaining Tests' / 'both
+  // remaining Tests' / 'their one remaining Test' · {W} wins needed · {Y} last
+  // cycle's second place % · {best} best possible % · {worst} % if they lose
+  // the rest · {pct} now.
+  var TAKES = {
+    done:      '{T} have played every Test. {pct}% it is. Now they wait, and watch.',
+    through:   '{T} are through. Book the hotel in St John’s Wood.',
+    out:       '{T} are out. There’s always the next cycle.',
+    safe:      'Even losing {allLeft}, {T} finish on {worst}%, above the {Y}% that took second place last time. Not that anyone wants to test it.',
+    comfy:     '{W} wins from their last {left} would take {T} past {Y}%. Comfortable, for now.',
+    inIt:      '{W} wins from {left} take {T} to {Y}%. Very much in it.',
+    tall:      '{T} need {W} wins from {left} to reach {Y}%. A tall order, but cricket has seen taller.',
+    all:       '{T} must win {allLeft} to reach {Y}%. Not one slip. No pressure.',
+    shortNear: 'Winning {allLeft} takes {T} to {best}%, just short of last cycle’s {Y}%. Not hopeless: India finished second in 2021–23 on 58.80%.',
+    short:     'Winning {allLeft} takes {T} to {best}%, short of the {Y}% that took second place last time. They need a miracle, or several, elsewhere.',
+    shortFar:  'Even winning {allLeft} only takes {T} to {best}%, a long way short of last cycle’s {Y}%. It would take the mother of all miracles.'
+  };
+  function fill(t, v) { return t.replace(/\{(\w+)\}/g, function (m, k) { return v[k] != null ? v[k] : m; }); }
+  function takeLine(r, Y) {
+    var n = r.played + r.left;
+    var need = Y / 100 * 12 * n - r.points;                 // points still needed
+    var W = Math.max(0, Math.ceil(need / 12 - 1e-9));       // wins, the rest lost
+    var allLeft = r.left === 1 ? 'their one remaining Test' : r.left === 2 ? 'both remaining Tests' : 'all ' + r.left + ' remaining Tests';
+    var v = { T: r.team, left: r.left, W: W, Y: Number(Y).toFixed(2), allLeft: allLeft,
+              best: Number(r.best).toFixed(2), worst: Number(r.worst).toFixed(2), pct: Number(r.pct).toFixed(2) };
+    var key;
+    if (r.status === 'through') key = 'through';
+    else if (r.status === 'out') key = 'out';
+    else if (!r.left) key = 'done';
+    else if (W === 0) key = 'safe';
+    else if (W > r.left) key = r.best >= Y - 5 ? 'shortNear' : r.best < Y * 0.6 ? 'shortFar' : 'short';
+    else if (W === r.left) key = 'all';
+    else if (W / r.left >= 0.7) key = 'tall';
+    else if (W / r.left >= 0.4) key = 'inIt';
+    else key = 'comfy';
+    return fill(TAKES[key], v);
+  }
+  function renderTakes() {
+    var box = document.getElementById('takes');
+    box.textContent = '';
+    var last = PUB.lastCycle;
+    if (!last || PUB.table.some(function (r) { return r.best == null; })) { box.hidden = true; return; }
+    PUB.table.forEach(function (r) {
+      var p = el('p', 'take');
+      var line = takeLine(r, last.secondPct);
+      var i = line.indexOf(r.team);
+      if (i >= 0) {           // the team's name in bold where it appears
+        p.appendChild(document.createTextNode(line.slice(0, i)));
+        p.appendChild(el('b', '', r.team));
+        p.appendChild(document.createTextNode(line.slice(i + r.team.length)));
+      } else {
+        p.textContent = line;
+      }
+      box.appendChild(p);
+    });
+    box.appendChild(el('p', 'take note', last.secondPct.toFixed(2) + '% is what took second place last cycle (' + last.second + ', ' +
+      String(last.cycle).replace('-', '–') + '). It is a yardstick, not a cut-off: every cycle is different.'));
+  }
+
   function renderRemaining() {
     var box = document.getElementById('remaining');
     box.textContent = '';
@@ -435,6 +507,7 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
     document.getElementById('asof').textContent = (PUB.resultsTo ? 'Includes Tests finished by ' + fmtDate(PUB.resultsTo) + ' · ' : '') +
       'Updated as soon as we get the data';
     renderTable();
+    renderTakes();
     renderRemaining();
     setTeam(picked);
     if (window.CTUrlState) {
