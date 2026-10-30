@@ -331,7 +331,7 @@ body{
 .wtc-cloche-dome::after{ content:""; position:absolute; right:9%; top:24%; width:6px; height:28%; border-radius:50%; background:linear-gradient(180deg, rgba(255,255,255,.7), rgba(255,255,255,0)); transform:rotate(-12deg); pointer-events:none; }
 .wtc-cloche-knob{ position:absolute; left:50%; top:-15px; width:30px; height:15px; transform:translateX(-50%); border-radius:16px 16px 4px 4px; background:linear-gradient(180deg,#e4c98d,#a8823f); box-shadow:0 2px 4px rgba(60,40,20,.25); }
 .wtc-cloche-stand{ position:relative; max-width:1120px; height:9px; margin:0 auto; border-radius:0 0 6px 6px; background:linear-gradient(180deg,#e1c58a,#a07a38); box-shadow:0 6px 14px rgba(60,40,20,.18); }
-/* The plaque on the stand turns through No. 4·99 → No. 49·99 → No. 99·94:
+/* The plaque on the stand turns through 4·99 → 49·99 → 99·94 (numbers only, no "No."):
    the $4.99 rotisserie chicken, $49.99, and the Don's 99.94 (IJ, 2026-10-28;
    rotating and made larger 2026-10-29). Keep the three numbers as they are. */
 .wtc-cloche-plaque{ position:absolute; left:50%; top:3px; transform:translateX(-50%); padding:5px 18px 6px; background:linear-gradient(180deg,#e2c588,#a8823f); border-radius:0 0 6px 6px; font-family:'Playfair Display',serif; font-size:15px; font-weight:700; letter-spacing:.12em; color:#3b2810; text-shadow:0 1px 0 rgba(255,240,200,.7); box-shadow:inset 0 1px 2px rgba(60,40,20,.35), 0 2px 5px rgba(60,40,20,.2); white-space:nowrap; transition:opacity .6s ease; }
@@ -1248,13 +1248,13 @@ body.articles-loading .analysis-section{ visibility:hidden; }
       <span class="wtc-cloche-knob" aria-hidden="true"></span>
       <div class="wtc-cloche-items" id="wtcStripTeams"></div>
     </div>
-    <div class="wtc-cloche-stand" aria-hidden="true"><span class="wtc-cloche-plaque">No. 4&middot;99</span></div>
+    <div class="wtc-cloche-stand" aria-hidden="true"><span class="wtc-cloche-plaque">4&middot;99</span></div>
     <script>
     // The plaque turns through IJ's three numbers, one every 4 seconds.
     (function () {
       var el = document.currentScript.previousElementSibling.querySelector('.wtc-cloche-plaque');
       if (!el) return;
-      var names = ['No. 4\u00b799', 'No. 49\u00b799', 'No. 99\u00b794'], i = 0;
+      var names = ['4\u00b799', '49\u00b799', '99\u00b794'], i = 0;
       var still = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       setInterval(function () {
         if (document.hidden) return;
