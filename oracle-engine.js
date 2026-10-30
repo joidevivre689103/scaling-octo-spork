@@ -740,8 +740,8 @@ function getScoreBand(score, total) {
   const pct = (score / total) * 100;
   // Wording IJ's, 2026-10-30.
   if (pct >= 95) return { title: 'Impregnable Defence!', desc: 'Waqar, Lee and Akhtar need to look elsewhere.' };
-  if (pct >= 80) return { title: 'Well played!',         desc: 'Not many can hit Yorkers for fours.' };
-  if (pct >= 60) return { title: 'Good Defence.',        desc: 'But if Waqar doesn\u2019t get you, Brett Lee definitely will.' };
+  if (pct >= 80) return { title: 'Well played!',         desc: 'Not many can hit Yorkers for fours. You can!' };
+  if (pct >= 60) return { title: 'Good Defence.',        desc: '\u2026but if Waqar doesn\u2019t get you, Brett Lee definitely will.' };
   if (pct >= 35) return { title: 'Ouch!',                desc: 'Watch those toes, friend.' };
   return              { title: 'Clean Bowled!',          desc: 'Don\u2019t tell anyone.' };
 }
