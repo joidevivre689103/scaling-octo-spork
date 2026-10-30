@@ -944,7 +944,6 @@
       dnSay('Saving\u2026');
 
       const newKey = dnKey(name);
-      const oldKey = dnKey(dnCurrentName);
 
       try {
         // 1. CLAIM FIRST. A taken name fails here as permission-denied,
@@ -965,16 +964,11 @@
         await db.collection('users').doc(dnUser.uid)
                 .set({ displayName: name }, { merge: true });
 
-        // 4. Release the OLD claim last. If this fails the rename has still
-        //    succeeded; the cost is one name nobody can use again, which is
-        //    far better than a reader left without one.
-        if (oldKey && oldKey !== newKey) {
-          try {
-            await db.collection('displayNames').doc(oldKey).delete();
-          } catch (relErr) {
-            console.warn('[subscribed] old name claim not released:', relErr && relErr.message);
-          }
-        }
+        // 4. [2026-10-30, IJ] The OLD claim is KEPT, not released. A name a
+        //    reader has used must never go to someone else (it would confuse
+        //    anyone who knew it from comments, BTS or the leaderboard). The
+        //    claim stays pointing at this uid; closure retires it for good
+        //    (deleteReaderAccount). The rules now allow only admins to delete.
 
         dnCurrentName = name;
         const cur = document.getElementById('dnCurrent');
