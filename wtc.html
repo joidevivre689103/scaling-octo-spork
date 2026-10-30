@@ -79,6 +79,16 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
 .take{padding:11px 0;border-top:1px solid var(--surface3);font-size:15px;line-height:1.55;color:var(--text2)}
 .take:first-child{border-top:none}
 .take b{color:var(--text)}
+.status-cell{min-width:260px;max-width:380px}
+.take-line{margin-top:6px;font-size:13px;line-height:1.45;color:var(--text2);white-space:normal}
+.take-row{display:none}
+@media(max-width:700px){
+  .take-line{display:none}
+  .take-row{display:table-row}
+  .status-cell{min-width:0;max-width:none}
+  .rec-table tbody tr.has-take td{border-bottom:none}
+  .take-row td{padding:0 12px 11px;font-size:13px;line-height:1.45;color:var(--text2);text-align:left;white-space:normal}
+}
 .remaining{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
 .fx{background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:12px 14px}
 .fx-teams{font-weight:600;font-size:14px}
@@ -142,8 +152,7 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
   </div>
   <p class="note">% is points won as a share of points available (12 a win, 4 a draw, 6 a tie, less any points docked for slow over rates). Best possible is the % a team finishes on if it wins every Test it has left. The top two at the end of the cycle play the final. Through and out follow from the points alone; points docked later could still change them.</p>
 
-  <h2 class="sec-title">What it takes</h2>
-  <div class="takes" id="takes"></div>
+  <p class="note" id="takesNote" hidden></p>
 
   <h2 class="sec-title">Still to play</h2>
   <div class="remaining" id="remaining"></div>
@@ -342,9 +351,23 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
       tr.appendChild(el('td', 'hide-sm', String(r.points)));
       tr.appendChild(el('td', 'pct', Number(r.pct).toFixed(2)));
       tr.appendChild(el('td', '', r.best == null ? '—' : Number(r.best).toFixed(2)));
-      tr.appendChild(statusCell(r.status));
+      var sc = statusCell(r.status);
+      sc.classList.add('status-cell');
+      tr.classList.add('has-take');
+      var line = (PUB.lastCycle && r.best != null) ? takeLine(r, PUB.lastCycle.secondPct) : '';
+      if (line) sc.appendChild(el('div', 'take-line', line));
+      tr.appendChild(sc);
       tr.addEventListener('click', function () { setTeam(r.team === picked ? null : r.team); });
       tb.appendChild(tr);
+      // On a phone the line gets its own full-width row under the team (CSS
+      // shows one or the other), so the table doesn't scroll sideways.
+      if (line) {
+        var tr2 = el('tr', 'take-row' + (i < 2 ? ' top2' : '') + (r.team === picked ? ' picked' : ''));
+        var td2 = el('td', 'left', line); td2.colSpan = 11;
+        tr2.appendChild(td2);
+        tr2.addEventListener('click', function () { setTeam(r.team === picked ? null : r.team); });
+        tb.appendChild(tr2);
+      }
     });
   }
   // ── What it takes (2026-10-30) ──────────────────────────────────────────
@@ -365,7 +388,7 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
     safe:      'Even losing {allLeft}, {T} finish on {worst}%, above the {Y}% that took second place last time. Not that anyone wants to test it.',
     comfy:     '{W} wins from their last {left} would take {T} past {Y}%. Comfortable, for now.',
     inIt:      '{W} wins from {left} take {T} to {Y}%. Definitely in with a chance.',
-    tall:      '{T} need {W} wins from {left} to reach {Y}%. In, if they Nike it.',
+    tall:      '{T} need {W} wins from {left} to reach {Y}%. In, if they can \u2018Nike\u2019.',
     all:       '{T} must win {allLeft} to reach {Y}%. Piece of cake. 🤨',
     shortNear: 'Winning {allLeft} takes {T} to {best}%, just short of last cycle’s {Y}%. Hope springs eternal: India finished second in 2021–23 on 58.80%.',
     short:     'Winning {allLeft} takes {T} to {best}%, short of the {Y}% that took second place last time. {hero}',
@@ -405,26 +428,16 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
     else key = 'comfy';
     return fill(TAKES[key], v);
   }
+  // The What-it-takes lines sit in the table's Status column (2026-10-30,
+  // IJ); this only fills the footnote that explains the yardstick.
   function renderTakes() {
-    var box = document.getElementById('takes');
-    box.textContent = '';
+    var note = document.getElementById('takesNote');
     var last = PUB.lastCycle;
-    if (!last || PUB.table.some(function (r) { return r.best == null; })) { box.hidden = true; return; }
-    PUB.table.forEach(function (r) {
-      var p = el('p', 'take');
-      var line = takeLine(r, last.secondPct);
-      var i = line.indexOf(r.team);
-      if (i >= 0) {           // the team's name in bold where it appears
-        p.appendChild(document.createTextNode(line.slice(0, i)));
-        p.appendChild(el('b', '', r.team));
-        p.appendChild(document.createTextNode(line.slice(i + r.team.length)));
-      } else {
-        p.textContent = line;
-      }
-      box.appendChild(p);
-    });
-    box.appendChild(el('p', 'take note', last.secondPct.toFixed(2) + '% is what took second place last cycle (' + last.second + ', ' +
-      String(last.cycle).replace('-', '–') + '). It is a yardstick, not a cut-off: every cycle is different.'));
+    if (!last || PUB.table.some(function (r) { return r.best == null; })) { note.hidden = true; return; }
+    note.textContent = 'The lines under each status count wins to ' + last.secondPct.toFixed(2) +
+      '%, what took second place last cycle (' + last.second + ', ' + String(last.cycle).replace('-', '–') +
+      '), with the other Tests counted as losses. A yardstick, not a cut-off: every cycle is different.';
+    note.hidden = false;
   }
 
   function renderRemaining() {
