@@ -299,23 +299,50 @@ body{
    homepage in one colour, so the alphabet can be spotted. See the A TO Z
    comment at the top of the body for the list. Homepage only: these rules
    live in index.html, so the nav on other pages is unchanged. */
-.ct-nav-bar .ct-nav-link::first-letter,
-#pageNav .nav-link::first-letter,
-.otd-title::first-letter, .feed-title::first-letter, .sidebar-title::first-letter, .col-header::first-letter,
-.snippets-title::first-letter, .section-title::first-letter, #statsPromo-title::first-letter,
-.stat-card-title::first-letter, .sim-feature-title::first-letter, .home-card-title::first-letter,
-.ct-nl__heading::first-letter, .wtc-pointer-kicker::first-letter, .wtc-strip-title::first-letter,
-.hero-category::first-letter{
+.ct-nav-bar .ct-nav-link:not(.az-w)::first-letter,
+#pageNav .nav-link:not(.az-w)::first-letter,
+.otd-title:not(.az-w)::first-letter, .feed-title:not(.az-w)::first-letter, .sidebar-title:not(.az-w)::first-letter, .col-header:not(.az-w)::first-letter,
+.snippets-title:not(.az-w)::first-letter, .section-title:not(.az-w)::first-letter, #statsPromo-title:not(.az-w)::first-letter,
+.stat-card-title:not(.az-w)::first-letter, .sim-feature-title:not(.az-w)::first-letter, .home-card-title:not(.az-w)::first-letter,
+.ct-nl__heading:not(.az-w)::first-letter, .wtc-pointer-kicker:not(.az-w)::first-letter, .wtc-strip-title:not(.az-w)::first-letter,
+.hero-category:not(.az-w)::first-letter{
   /* antique gold, deeper than --gold so it reads on white and cream (~5:1) */
   color:#8A6508;
   font-size:1.15em;
 }
 /* Small capital labels get a bigger, heavier first letter, like a drop cap. */
-.col-header::first-letter, .hero-category::first-letter, .wtc-pointer-kicker::first-letter{ font-size:1.4em; font-weight:800; }
+.col-header:not(.az-w)::first-letter, .hero-category:not(.az-w)::first-letter, .wtc-pointer-kicker:not(.az-w)::first-letter{ font-size:1.4em; font-weight:800; }
 /* In the two nav bars the letters are small capitals, so the first one is a
    touch larger and heavier, like a drop cap. */
-.ct-nav-bar .ct-nav-link::first-letter,
-#pageNav .nav-link::first-letter{ font-size:1.4em; font-weight:800; }
+.ct-nav-bar .ct-nav-link:not(.az-w)::first-letter,
+#pageNav .nav-link:not(.az-w)::first-letter{ font-size:1.4em; font-weight:800; }
+/* A TO Z FLIP (2026-10-30, IJ): the script at the end of the page wraps each
+   gold first letter in .az-l and marks its title .az-w (so the ::first-letter
+   rules above stand down). Hover, or tap on a phone, flips the letter to its
+   place in the alphabet (A 1 ... Z 26), and a caption names that Test:
+   "Test No. 9 · The Oval, 1882". The A in the nav wobbles once, five seconds
+   in, on a reader's first visit. The number is drawn by CSS, so the titles'
+   text is unchanged for scripts and screen readers. */
+.az-l{ display:inline-block; position:relative; color:#8A6508; font-size:1.15em; line-height:1;
+  transform-style:preserve-3d; transition:transform .45s cubic-bezier(.3,.7,.3,1.25); cursor:default; }
+.col-header .az-l, .hero-category .az-l, .wtc-pointer-kicker .az-l,
+.ct-nav-bar .ct-nav-link .az-l, #pageNav .nav-link .az-l{ font-size:1.4em; font-weight:800; }
+.az-f{ display:inline-block; backface-visibility:hidden; -webkit-backface-visibility:hidden; transform-origin:50% 100%; }
+.az-l::after{ content:attr(data-n); position:absolute; left:50%; top:50%;
+  transform:translate(-50%,-50%) rotateY(180deg); backface-visibility:hidden; -webkit-backface-visibility:hidden;
+  font-family:'Inter',sans-serif; font-size:.62em; font-weight:800; letter-spacing:0; font-variant-numeric:tabular-nums;
+  color:#fff; background:#8A6508; border-radius:3px; padding:.18em .32em; line-height:1; white-space:nowrap; }
+.ct-nav-bar .ct-nav-link .az-l::after, #pageNav .nav-link .az-l::after{ font-size:.75em; }
+.az-l.az-on{ transform:rotateY(180deg); }
+.az-cap{ position:fixed; z-index:9999; pointer-events:none; opacity:0; transform:translateY(-3px);
+  transition:opacity .2s, transform .2s; font-family:'Inter',sans-serif; font-size:11px; font-weight:600;
+  letter-spacing:.06em; text-transform:none; color:#3a2a05; background:#fbf6e9; border:1px solid #8A6508;
+  border-radius:4px; padding:5px 9px; white-space:nowrap; box-shadow:0 2px 8px rgba(0,0,0,.12); }
+.az-cap.az-show{ opacity:1; transform:none; }
+@keyframes azWobble{ 0%,100%{transform:rotate(0)} 15%{transform:rotate(-14deg)} 35%{transform:rotate(10deg)}
+  55%{transform:rotate(-6deg)} 75%{transform:rotate(3deg)} }
+.az-nudge .az-f{ animation:azWobble 1.3s ease-in-out 1; }
+@media (prefers-reduced-motion: reduce){ .az-l{ transition:none; } .az-nudge .az-f{ animation:none; } }
 .wtc-cloche{ margin:40px 0 44px; padding:34px 28px 30px; background:var(--surface,#fffdf8); border:1px solid var(--border); border-radius:10px; text-align:center; }
 .wtc-cloche-kicker{ font-family:'Inter',sans-serif; font-size:11px; font-weight:700; letter-spacing:.28em; text-transform:uppercase; color:var(--accent,#8b0000); }
 .wtc-cloche .wtc-strip-title{ font-family:'Playfair Display',serif; font-size:34px; font-weight:700; color:var(--text); margin:8px 0 6px; }
@@ -2501,4 +2528,91 @@ watchSubscriber();
 </script>
 
 <script src="/ct-nav.js"></script>
+
+<!-- A TO Z FLIP (2026-10-30, IJ). See the A TO Z FLIP comment in the styles. -->
+<script>
+(function(){
+  'use strict';
+  var SEL = '.ct-nav-bar .ct-nav-link, #pageNav .nav-link, .otd-title, .feed-title, .sidebar-title, .col-header,' +
+    '.snippets-title, .section-title, #statsPromo-title, .stat-card-title, .sim-feature-title, .home-card-title,' +
+    '.ct-nl__heading, .wtc-pointer-kicker, .wtc-strip-title, .hero-category';
+  // Tests No. 1 to 26 by start year (checked against the published list, 2026-10-30).
+  var T = [null,['MCG',1877],['MCG',1877],['MCG',1879],['The Oval',1880],['MCG',1881],['SCG',1882],
+    ['SCG',1882],['MCG',1882],['The Oval',1882],['MCG',1882],['MCG',1883],['SCG',1883],['SCG',1883],
+    ['Old Trafford',1884],["Lord's",1884],['The Oval',1884],['Adelaide',1884],['MCG',1885],['SCG',1885],
+    ['SCG',1885],['MCG',1885],['Old Trafford',1886],["Lord's",1886],['The Oval',1886],['SCG',1887],['SCG',1887]];
+
+  function wrap(el){
+    var w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null), t;
+    while ((t = w.nextNode()) && !/\S/.test(t.nodeValue)) {}
+    if (!t) return;
+    var old = el.querySelector('.az-l');
+    if (old && old.contains(t)) return;              // already done
+    var m = /^(\s*)([A-Za-z])/.exec(t.nodeValue);
+    if (!m) return;                                  // starts with a digit or symbol: leave it
+    var rest = t.splitText(m[1].length);
+    rest.nodeValue = rest.nodeValue.slice(1);
+    var n = m[2].toUpperCase().charCodeAt(0) - 64;
+    var l = document.createElement('span'); l.className = 'az-l'; l.setAttribute('data-n', n);
+    var f = document.createElement('span'); f.className = 'az-f'; f.textContent = m[2];
+    l.appendChild(f); rest.parentNode.insertBefore(l, rest);
+    el.classList.add('az-w');
+  }
+  var queued = false;
+  function scan(){ queued = false; var a = document.querySelectorAll(SEL); for (var i = 0; i < a.length; i++) wrap(a[i]); }
+  function queue(){ if (!queued) { queued = true; requestAnimationFrame(scan); } }
+  scan();
+  new MutationObserver(queue).observe(document.body, { childList:true, subtree:true, characterData:true });
+
+  var cap = document.createElement('div'); cap.className = 'az-cap'; cap.setAttribute('aria-hidden','true');
+  document.body.appendChild(cap);
+  var cur = null, timer = 0;
+  function on(l){
+    if (cur && cur !== l) off();
+    cur = l; l.classList.add('az-on');
+    var n = +l.getAttribute('data-n'), d = T[n];
+    cap.textContent = 'Test No. ' + n + ' · ' + d[0] + ', ' + d[1];
+    var r = l.getBoundingClientRect(), cw = cap.offsetWidth, ch = cap.offsetHeight;
+    var x = Math.max(8, Math.min(innerWidth - cw - 8, r.left + r.width/2 - cw/2));
+    var y = r.bottom + 8; if (y + ch > innerHeight - 8) y = r.top - ch - 8;
+    cap.style.left = x + 'px'; cap.style.top = y + 'px'; cap.classList.add('az-show');
+  }
+  function off(){ clearTimeout(timer); if (cur) cur.classList.remove('az-on'); cur = null; cap.classList.remove('az-show'); }
+
+  // Mouse: flip on hover.
+  document.addEventListener('pointerover', function(e){
+    if (e.pointerType !== 'mouse') return;
+    var l = e.target.closest && e.target.closest('.az-l'); if (l && l !== cur) on(l);
+  });
+  document.addEventListener('pointerout', function(e){
+    if (e.pointerType !== 'mouse' || !cur) return;
+    if (!(e.relatedTarget && cur.contains(e.relatedTarget))) off();
+  });
+  // Touch: the first tap on a letter flips it (and does not follow the link);
+  // a second tap goes through as normal. It flips back after three seconds.
+  var touch = false;
+  document.addEventListener('pointerdown', function(e){ touch = e.pointerType !== 'mouse'; }, true);
+  document.addEventListener('click', function(e){
+    var l = e.target.closest && e.target.closest('.az-l');
+    if (!touch) return;
+    if (!l) { off(); return; }
+    if (l === cur) return;
+    e.preventDefault(); e.stopPropagation(); on(l); timer = setTimeout(off, 3000);
+  }, true);
+  addEventListener('scroll', function(){ if (cur) off(); }, { passive:true });
+
+  // The nudge: the A wobbles once, five seconds in, on a reader's first visit.
+  var seen = false; try { seen = localStorage.getItem('tgb_az_nudge') === '1'; } catch (e) {}
+  if (!seen && !(matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) {
+    setTimeout(function(){
+      var a = document.querySelectorAll('.az-l[data-n="1"]');
+      for (var i = 0; i < a.length; i++) { if (a[i].getClientRects().length) {
+        var el = a[i]; el.classList.add('az-nudge');
+        setTimeout(function(){ el.classList.remove('az-nudge'); }, 1500);
+        try { localStorage.setItem('tgb_az_nudge','1'); } catch (e) {}
+        break; } }
+    }, 5000);
+  }
+})();
+</script>
 </html>
