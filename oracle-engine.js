@@ -732,28 +732,54 @@ function showPreviousScore() {
 // REWRITTEN 2026-08-14 with the rename, and not optionally. The old bands were
 // an oracle SPEAKING — it bowed, nodded, was impressed, expected more. A yorker
 // is a delivery, not a character: it cannot nod. So the verdicts became outcomes
-// of a delivery rather than moods of a seer, which is also why the bottom band
-// can be the brand word itself. Keep any future band in that register.
+// of a delivery rather than moods of a seer. Keep any future band in that
+// register. (Rewritten again 2026-10-30 in IJ's words: from Impregnable
+// Defence! down to Clean Bowled!)
 // ═══════════════════════════════════════════════════════════════════════════
 function getScoreBand(score, total) {
   const pct = (score / total) * 100;
-  if (pct >= 95) return { title: 'Middled it',           desc: 'Not one got through. Please confirm your answer to question 14 was not a fluke.' };
-  if (pct >= 80) return { title: 'Right off the middle', desc: 'You know your five-fors from your five wickets. Rare company.' };
-  if (pct >= 60) return { title: 'Solid defence',        desc: 'A respectable showing. Nothing got past you that shouldn\'t have.' };
-  if (pct >= 35) return { title: 'Inside edge',          desc: 'You watch the game. Now read about it too.' };
-  return              { title: 'Yorked',                 desc: 'Did you mean to take a T20 quiz?' };
+  // Wording IJ's, 2026-10-30.
+  if (pct >= 95) return { title: 'Impregnable Defence!', desc: 'Waqar, Lee and Akhtar need to look elsewhere.' };
+  if (pct >= 80) return { title: 'Well played!',         desc: 'Not many can hit Yorkers for fours. You can!' };
+  if (pct >= 60) return { title: 'Good Defence.',        desc: '\u2026but if Waqar doesn\u2019t get you, Brett Lee definitely will.' };
+  if (pct >= 35) return { title: 'Ouch!',                desc: 'Watch those toes, friend.' };
+  return              { title: 'Clean Bowled!',          desc: 'Don\u2019t tell anyone.' };
 }
 
 function getPercentileText(score, total) {
+  // Wording IJ's, 2026-10-30. These describe the score; they are NOT a
+  // ranking against other readers (the old "Top 1% of all takers" was not
+  // worked out from real results). The real comparison is appended by
+  // addRealComparison() below once an edition has enough saved scores.
   const pct = (score / total) * 100;
-  if (pct >= 95) return 'Top 1% of all takers';
-  if (pct >= 80) return 'Top 10% · Rare air';
-  if (pct >= 65) return 'Above average';
-  // [2026-06-04] Edition-agnostic: the old "(13/20)" suffix was inaugural
-  // data and rendered nonsense on other editions (e.g. an 8/15 in June).
-  if (pct >= 50) return 'Right around average';
-  if (pct >= 30) return 'Below average';
-  return 'Below average — plenty to learn';
+  if (pct >= 95) return 'Bradmanesque!';
+  if (pct >= 80) return 'In great company \u2014 the 3 Ws will smile';
+  if (pct >= 65) return 'You can play ODI cricket';
+  if (pct >= 50) return 'You can play backyard cricket';
+  if (pct >= 30) return 'You can play book cricket';
+  return 'Tennis, anybody?';
+}
+
+// Real comparison (2026-10-30): once an edition has YORKER_MIN_TAKERS saved
+// scores, append how this score compares, from liveScores/yorkerStats
+// (counts per edition, refreshed hourly by super-fortnight's
+// publishYorkerStats; no names). Fails silently: the line above stays as is.
+const YORKER_MIN_TAKERS = 10;
+async function addRealComparison(correct, total) {
+  try {
+    if (!currentEdition) return;
+    const snap = await getDoc(doc(db, 'liveScores', 'yorkerStats'));
+    const e = snap.exists() && snap.data().editions && snap.data().editions[currentEdition.id];
+    if (!e || !(e.n >= YORKER_MIN_TAKERS)) return;
+    let below = 0;
+    Object.keys(e.counts || {}).forEach(function (k) { if (Number(k) < correct) below += e.counts[k]; });
+    const pct = Math.round(100 * below / e.n);
+    if (pct < 1) return;
+    document.getElementById('score-percentile').textContent =
+      getPercentileText(correct, total) + ' \u00b7 better than ' + pct + '% of ' + e.n + ' readers';
+  } catch (err) {
+    console.warn('Yorker comparison not shown:', err && err.message);
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -766,6 +792,7 @@ function renderScore(score) {
   document.getElementById('score-num').textContent = score;
   document.getElementById('score-total').textContent = total;
   document.getElementById('score-percentile').textContent = getPercentileText(score, total);
+  addRealComparison(score, total);
   document.getElementById('score-band').textContent = band.title;
   document.getElementById('score-band-desc').textContent = band.desc;
 
