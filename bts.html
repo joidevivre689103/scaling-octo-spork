@@ -709,10 +709,20 @@ async function resolveProfileNames(uids) {
   }));
 }
 
-/** Byline for a stored document. `legacy` is its old authorName, if any. */
+/** Byline for a stored document. `legacy` is its old authorName, if any.
+ *
+ * [2026-10-30] The legacy authorName is now used ONLY for the editor accounts.
+ * On reader posts from before 2026-08-07 it is the email local part (see
+ * above), so falling back to it could put a fragment of a reader's address
+ * beside their post — and, with the planned cap/crown marks, next to a badge.
+ * Every byline a reader sees is the generated name from publicProfiles/{uid},
+ * the same one comments show; a missing profile means a closed account, as
+ * before, and shows 'Former reader'. */
 function bylineFor(uid, legacy) {
   const resolved = uid ? _btsProfileCache.get(uid) : null;
-  return resolved || legacy || 'Former reader';
+  if (resolved) return resolved;
+  if (uid && CT_EDITOR_UIDS.has(uid) && legacy) return legacy;
+  return 'Former reader';
 }
 
 // (g) 2026-06-03: render-time byline accent. Posts/replies authored from the

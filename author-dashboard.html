@@ -542,7 +542,7 @@
           const data = docSnap.data();
 
           // Set author name
-          authorNameSpan.textContent = data.name || email.split('@')[0];
+          authorNameSpan.textContent = data.name || 'Author';  // [2026-10-30] never derive a name from the email address
 
           // Agreement status
           if (data.agreementSigned) {
@@ -590,7 +590,7 @@
 
         } else {
           // No author document yet — prompt to sign agreement
-          authorNameSpan.textContent = email.split('@')[0];
+          authorNameSpan.textContent = 'Author';
 
           agreementStatus.classList.add('warning');
           agreementValue.innerHTML = '<a href="contributor-agreement.html">Sign Now →</a>';
@@ -605,7 +605,7 @@
 
       } catch (err) {
         console.error('Error loading author data:', err);
-        authorNameSpan.textContent = email.split('@')[0];
+        authorNameSpan.textContent = 'Author';
       }
     }
 
