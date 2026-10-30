@@ -526,7 +526,7 @@
       <div class="card-body">
         <p>You have <strong>complimentary access</strong> to The Grass Bank &mdash; full access to the archive, the simulation tool, data export and everything else, with nothing to pay.</p>
         <p id="comp-honorary" style="display:none">You are <strong>Honorary Member <span id="comp-honorary-number">—</span></strong>.</p>
-        <p id="comp-until" style="display:none">Your complimentary access runs until <strong id="comp-until-date">—</strong>.</p>
+        <p id="comp-until" style="display:none">You&rsquo;re our <strong>Twelfth Man (XII)</strong> until <strong id="comp-until-date">—</strong>: part of the side, not yet capped.</p>
         <p style="color: var(--ink-muted); font-style: italic;">There's no plan or billing to manage, so there's nothing for you to do on this page. If you think this is wrong, or you'd rather move to a paid subscription, get in touch.</p>
         <div class="btn-row">
           <a class="btn" href="/">Back to The Grass Bank</a>
@@ -1081,7 +1081,9 @@
     const comp = await hasComplimentaryAccess(user);
     if (comp) {
       const emailKey = (user.email || "").toLowerCase().replace(/[.@]/g, "_");
-      const label = honoraryLabel(emailKey ? await loadMember(emailKey) : null);
+      // [2026-10-30] A time-limited Honorary member is the Twelfth Man (XII):
+      // no H number, which stays for life members. See comp-until below.
+      const label = compUntilMs ? null : honoraryLabel(emailKey ? await loadMember(emailKey) : null);
       document.getElementById("comp-honorary").style.display = label ? "" : "none";
       if (label) document.getElementById("comp-honorary-number").textContent = label;
       const untilEl = document.getElementById("comp-until");
