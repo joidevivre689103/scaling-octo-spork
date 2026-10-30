@@ -270,6 +270,25 @@ body{
 .sop-strip-item b{ font-weight:600; color:var(--text); }
 .sop-strip-item i{ color:var(--text3); }
 @media (max-width:760px){ .sop-teams{ font-size:19px; } .sop-test-top{ flex-direction:column; gap:2px; } }
+/* State of play + On this day on one row (spec §7.1, IJ 2026-10-30).
+   .is-paired is set by livePairLayout() only when BOTH are showing. */
+.live-pair.is-paired{ display:grid; grid-template-columns:minmax(0,62fr) minmax(0,38fr); border-bottom:1px solid var(--border); }
+.live-pair.is-paired > .sop-section,
+.live-pair.is-paired > .otd-section{ border-bottom:none; }
+.live-pair.is-paired > .sop-section{ padding-right:40px; }
+.live-pair.is-paired > .otd-section{ padding-left:40px; border-left:1px solid var(--border); }
+.live-pair.is-paired .sop-tests{ grid-template-columns:minmax(0,1fr); }
+.live-pair.is-paired .otd-grid{ grid-template-columns:minmax(0,1fr); }
+.live-pair.is-paired .otd-entry{ padding:16px 0; border-left:none; border-top:1px solid var(--surface3); }
+.live-pair.is-paired .otd-entry:first-child{ padding-top:0; border-top:none; }
+.live-pair.is-paired .otd-prose{ font-size:15px; }
+.live-pair.is-paired .otd-score{ font-size:14px; }
+.live-pair.is-paired .otd-standout{ font-size:13px; }
+@media (max-width:980px){
+  .live-pair.is-paired{ display:block; }
+  .live-pair.is-paired > .sop-section{ padding-right:0; border-bottom:1px solid var(--border); }
+  .live-pair.is-paired > .otd-section{ padding-left:0; border-left:none; }
+}
 /* WTC race strip (2026-10-27): the top of the WTC table, from the public
    liveScores/wtc document; the full table is on /wtc.html (free). Arithmetic
    only since 2026-10-30: WTC %, never a chance of the final. */
@@ -998,6 +1017,29 @@ body.articles-loading .analysis-section{ visibility:hidden; }
 <!-- MAIN -->
 <main class="main">
 
+  <div class="live-pair" id="livePair">
+  <!-- STATE OF PLAY — Scores Module §7.1/§9 (2026-10-30). Filled by
+       loadStateOfPlay() from the public liveScores/current document (written
+       hourly by fetchScores once the go-live switch is on) and the published
+       notes in matchNotes. Shares a row with On this day (IJ, 2026-10-30):
+       State of play left (~62%), On this day right, divided by a hairline;
+       either takes the full width when the other is hidden; stacked on
+       narrow screens. Stays hidden when there is nothing to show. -->
+  <section class="sop-section" id="stateOfPlay" hidden aria-labelledby="sop-title">
+    <div class="sop-head">
+      <h2 class="sop-title" id="sop-title">State of play</h2>
+      <span class="sop-preview-tag" id="sopPreviewTag" hidden>Preview · admins only</span>
+      <span class="sop-rule" aria-hidden="true"></span>
+      <span class="sop-updated" id="sopUpdated"></span>
+    </div>
+    <div class="sop-tests" id="sopTests"></div>
+    <div class="sop-group" id="sopIntl" hidden>
+      <h3 class="sop-group-title">Other internationals</h3>
+      <div class="sop-rows" id="sopIntlRows"></div>
+    </div>
+    <div class="sop-strip" id="sopFranchise" hidden></div>
+  </section>
+
   <!-- ON THIS DAY — Scores Module §8 (2026-10-27). Filled by loadOnThisDay()
        from the public liveScores/onThisDay document (written daily by the
        publishOnThisDay function). Stays hidden if there is nothing for the
@@ -1011,6 +1053,7 @@ body.articles-loading .analysis-section{ visibility:hidden; }
     <div class="otd-grid" id="otdGrid"></div>
     <a class="otd-more" id="otdMore" href="/countries.html">More from the archive →</a>
   </section>
+  </div>
 
   <!-- WTC RACE pointer (2026-10-27). ALWAYS the second module, straight after
        On this day (IJ): it needs the visibility, or readers take the first row
@@ -1033,25 +1076,6 @@ body.articles-loading .analysis-section{ visibility:hidden; }
     </dl>
   </section>
 
-  <!-- STATE OF PLAY — Scores Module §7.1/§9 (2026-10-30). Filled by
-       loadStateOfPlay() from the public liveScores/current document (written
-       hourly by fetchScores once the go-live switch is on) and the published
-       notes in matchNotes. Third, after the WTC pointer. Stays hidden when
-       there is nothing to show. -->
-  <section class="sop-section" id="stateOfPlay" hidden aria-labelledby="sop-title">
-    <div class="sop-head">
-      <h2 class="sop-title" id="sop-title">State of play</h2>
-      <span class="sop-preview-tag" id="sopPreviewTag" hidden>Preview · admins only</span>
-      <span class="sop-rule" aria-hidden="true"></span>
-      <span class="sop-updated" id="sopUpdated"></span>
-    </div>
-    <div class="sop-tests" id="sopTests"></div>
-    <div class="sop-group" id="sopIntl" hidden>
-      <h3 class="sop-group-title">Other internationals</h3>
-      <div class="sop-rows" id="sopIntlRows"></div>
-    </div>
-    <div class="sop-strip" id="sopFranchise" hidden></div>
-  </section>
 
   <!-- LATEST COMPLETED TEST · COMING UP · MILESTONE WATCH (2026-10-27; Coming up
        and the tie between the last two 2026-10-28, IJ). All from liveScores/home
@@ -2034,6 +2058,12 @@ async function refreshFeedRow() {
   }
 })();
 
+// State of play and On this day share a row only when both are showing.
+window.livePairLayout = function () {
+  const sop = document.getElementById('stateOfPlay'), otd = document.getElementById('onThisDay');
+  const pair = document.getElementById('livePair');
+  if (pair && sop && otd) pair.classList.toggle('is-paired', !sop.hidden && !otd.hidden);
+};
 (async function loadOnThisDay() {
   try {
     let attempts = 0;
@@ -2070,6 +2100,7 @@ async function refreshFeedRow() {
     document.getElementById('otdDate').textContent =
       now.toLocaleDateString('en-GB', { day: 'numeric', month: 'long' });
     document.getElementById('onThisDay').hidden = false;
+    window.livePairLayout();
   } catch (err) {
     console.warn('[on-this-day] not shown:', err && err.message);
   }
@@ -2201,6 +2232,7 @@ async function refreshFeedRow() {
       'Updated ' + up.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZoneName: 'short' });
     if (preview) document.getElementById('sopPreviewTag').hidden = false;
     document.getElementById('stateOfPlay').hidden = false;
+    if (window.livePairLayout) window.livePairLayout();
   } catch (err) {
     console.warn('[state-of-play] not shown:', err && err.message);
   }
