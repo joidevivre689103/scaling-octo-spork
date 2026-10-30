@@ -221,21 +221,106 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
   function r2(x) { return Math.round(x * 100) / 100; }
   function pctOf(points, played) { return played ? r2(100 * points / (12 * played)) : 0; }
   // base: { team: {points, played} }; series: [{host, visitor, left}] still open.
+  // Status is EXACT (2026-10-30): every way the remaining results could fall
+  // is searched — a port of exact_status() in scripts/build_wtc.py, checked
+  // against it by deploytest. A level % counts in a team's favour for "out"
+  // and against it for "through", so neither is ever called wrongly.
+  // ==SIM-STATUS-START==
+  function canHold(caps, matches) {
+    var BIG = 1e9;
+    var order = matches.slice().sort(function (m1, m2) {
+      var a = Math.min(caps[m1[0]] == null ? BIG : caps[m1[0]], caps[m1[1]] == null ? BIG : caps[m1[1]]);
+      var b = Math.min(caps[m2[0]] == null ? BIG : caps[m2[0]], caps[m2[1]] == null ? BIG : caps[m2[1]]);
+      return a - b;
+    });
+    var seen = {};
+    function go(i, cap) {
+      if (i === order.length) return true;
+      var x = order[i][0], y = order[i][1], L = order[i][2];
+      var key = i + '|' + Object.keys(cap).sort().map(function (k) { return cap[k] == null ? '' : k + cap[k]; }).join(',');
+      if (seen[key]) return false;
+      for (var wx = 0; wx <= L; wx++) for (var wy = 0; wy <= L - wx; wy++) {
+        var d = L - wx - wy, gx = 12 * wx + 4 * d, gy = 12 * wy + 4 * d;
+        var cx = cap[x], cy = cap[y];
+        if ((cx != null && gx > cx) || (cy != null && gy > cy)) continue;
+        var nxt = Object.assign({}, cap);
+        if (cx != null) nxt[x] = cx - gx;
+        if (cy != null) nxt[y] = cy - gy;
+        if (go(i + 1, nxt)) return true;
+      }
+      seen[key] = true;
+      return false;
+    }
+    return go(0, Object.assign({}, caps));
+  }
+  function finalN(base, open) {
+    var n = {};
+    Object.keys(base).forEach(function (t) { n[t] = base[t].played; });
+    open.forEach(function (s) { n[s.host] += s.left; n[s.visitor] += s.left; });
+    return n;
+  }
+  function aliveExact(t, base, open) {
+    var n = finalN(base, open);
+    var tPts = base[t].points;
+    open.forEach(function (s) { if (s.host === t || s.visitor === t) tPts += 12 * s.left; });
+    var others = Object.keys(base).filter(function (u) { return u !== t; });
+    var excs = [null].concat(others);
+    for (var e = 0; e < excs.length; e++) {
+      var exc = excs[e], caps = {}, ok = true;
+      for (var i = 0; i < others.length; i++) {
+        var u = others[i];
+        if (u === exc) { caps[u] = null; continue; }
+        var limit = n[t] ? Math.floor(tPts * n[u] / n[t]) : 0;
+        caps[u] = limit - base[u].points;
+        if (caps[u] < 0) { ok = false; break; }
+      }
+      if (!ok) continue;
+      var matches = [];
+      open.forEach(function (s) {
+        if (s.host === t || s.visitor === t || s.host === exc || s.visitor === exc) return;
+        matches.push([s.host, s.visitor, s.left]);
+      });
+      if (canHold(caps, matches)) return true;
+    }
+    return false;
+  }
+  function throughExact(t, base, open) {
+    var n = finalN(base, open), tPts = base[t].points;
+    var others = Object.keys(base).filter(function (u) { return u !== t; });
+    function reach(u, g) { return (base[u].points + g) * n[t] >= tPts * n[u]; }
+    for (var i = 0; i < others.length; i++) for (var j = i + 1; j < others.length; j++) {
+      var a = others[i], b = others[j], ga = 0, gb = 0, between = 0;
+      open.forEach(function (s) {
+        var hasA = s.host === a || s.visitor === a, hasB = s.host === b || s.visitor === b;
+        if (hasA && hasB) between += s.left;
+        else if (hasA) ga += 12 * s.left;
+        else if (hasB) gb += 12 * s.left;
+      });
+      for (var wa = 0; wa <= between; wa++) for (var wb = 0; wb <= between - wa; wb++) {
+        var d = between - wa - wb;
+        if (reach(a, ga + 12 * wa + 4 * d) && reach(b, gb + 12 * wb + 4 * d)) return false;
+      }
+    }
+    return true;
+  }
+  function exactStatus(base, open) {
+    var out = {};
+    Object.keys(base).forEach(function (t) {
+      out[t] = throughExact(t, base, open) ? 'through' : aliveExact(t, base, open) ? 'alive' : 'out';
+    });
+    return out;
+  }
+  // ==SIM-STATUS-END==
   function standing(base, series) {
     var left = {};
     Object.keys(base).forEach(function (t) { left[t] = 0; });
     series.forEach(function (s) { left[s.host] += s.left; left[s.visitor] += s.left; });
+    var st = exactStatus(base, series);
     var rng = {};
     Object.keys(base).forEach(function (t) {
       var n = base[t].played + left[t];
       rng[t] = { pct: pctOf(base[t].points, base[t].played),
-                 worst: pctOf(base[t].points, n), best: pctOf(base[t].points + 12 * left[t], n) };
-    });
-    Object.keys(rng).forEach(function (t) {
-      var others = Object.keys(rng).filter(function (u) { return u !== t; });
-      var above = others.filter(function (u) { return rng[u].worst > rng[t].best; }).length;
-      var catchUp = others.filter(function (u) { return rng[u].best >= rng[t].worst; }).length;
-      rng[t].status = above >= 2 ? 'out' : catchUp <= 1 ? 'through' : 'alive';
+                 worst: pctOf(base[t].points, n), best: pctOf(base[t].points + 12 * left[t], n), status: st[t] };
     });
     return rng;
   }
@@ -271,19 +356,29 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
   // {T} team · {left} Tests left · {allLeft} 'all 7 remaining Tests' / 'both
   // remaining Tests' / 'their one remaining Test' · {W} wins needed · {Y} last
   // cycle's second place % · {best} best possible % · {worst} % if they lose
-  // the rest · {pct} now.
+  // the rest · {pct} now · {hero} the team's line in HEROES.
   var TAKES = {
     done:      '{T} have played every Test. {pct}% it is. Now they wait, and watch.',
     through:   '{T} are through. Book the hotel in St John’s Wood.',
-    out:       '{T} are out. There’s always the next cycle.',
+    out:       '{T} can’t reach the final now, even winning {allLeft}. {hero}',
+    outDone:   '{T} are out. There’s always the next cycle.',
     safe:      'Even losing {allLeft}, {T} finish on {worst}%, above the {Y}% that took second place last time. Not that anyone wants to test it.',
     comfy:     '{W} wins from their last {left} would take {T} past {Y}%. Comfortable, for now.',
-    inIt:      '{W} wins from {left} take {T} to {Y}%. Very much in it.',
-    tall:      '{T} need {W} wins from {left} to reach {Y}%. A tall order, but cricket has seen taller.',
-    all:       '{T} must win {allLeft} to reach {Y}%. Not one slip. No pressure.',
-    shortNear: 'Winning {allLeft} takes {T} to {best}%, just short of last cycle’s {Y}%. Not hopeless: India finished second in 2021–23 on 58.80%.',
-    short:     'Winning {allLeft} takes {T} to {best}%, short of the {Y}% that took second place last time. They need a miracle, or several, elsewhere.',
-    shortFar:  'Even winning {allLeft} only takes {T} to {best}%, a long way short of last cycle’s {Y}%. It would take the mother of all miracles.'
+    inIt:      '{W} wins from {left} take {T} to {Y}%. Definitely in with a chance.',
+    tall:      '{T} need {W} wins from {left} to reach {Y}%. In, if they Nike it.',
+    all:       '{T} must win {allLeft} to reach {Y}%. Piece of cake. 🤨',
+    shortNear: 'Winning {allLeft} takes {T} to {best}%, just short of last cycle’s {Y}%. Hope springs eternal: India finished second in 2021–23 on 58.80%.',
+    short:     'Winning {allLeft} takes {T} to {best}%, short of the {Y}% that took second place last time. {hero}',
+    shortFar:  'Even winning {allLeft} only takes {T} to {best}%, a long way short of last cycle’s {Y}%. {hero}'
+  };
+  // When winning everything still falls short: a line per team (IJ, 2026-10-30).
+  var HEROES = {
+    'England':     'They might want 007 (or Jude Bellingham).',
+    'India':       'They need Rajni.',
+    'Sri Lanka':   'Murali needs to come back, and then some.',
+    'West Indies': 'Holding needs to come back, and Viv too.',
+    'Pakistan':    'Imran and Javed, anybody?',
+    _default:      'They need a miracle, or several, elsewhere.'
   };
   function fill(t, v) { return t.replace(/\{(\w+)\}/g, function (m, k) { return v[k] != null ? v[k] : m; }); }
   function takeLine(r, Y) {
@@ -292,10 +387,11 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
     var W = Math.max(0, Math.ceil(need / 12 - 1e-9));       // wins, the rest lost
     var allLeft = r.left === 1 ? 'their one remaining Test' : r.left === 2 ? 'both remaining Tests' : 'all ' + r.left + ' remaining Tests';
     var v = { T: r.team, left: r.left, W: W, Y: Number(Y).toFixed(2), allLeft: allLeft,
+              hero: HEROES[r.team] || HEROES._default,
               best: Number(r.best).toFixed(2), worst: Number(r.worst).toFixed(2), pct: Number(r.pct).toFixed(2) };
     var key;
     if (r.status === 'through') key = 'through';
-    else if (r.status === 'out') key = 'out';
+    else if (r.status === 'out') key = r.left ? 'out' : 'outDone';
     else if (!r.left) key = 'done';
     else if (W === 0) key = 'safe';
     else if (W > r.left) key = r.best >= Y - 5 ? 'shortNear' : r.best < Y * 0.6 ? 'shortFar' : 'short';
