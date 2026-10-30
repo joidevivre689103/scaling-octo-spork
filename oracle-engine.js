@@ -749,8 +749,8 @@ function getScoreBand(score, total) {
 function getPercentileText(score, total) {
   // Wording IJ's, 2026-10-30. These describe the score; they are NOT a
   // ranking against other readers (the old "Top 1% of all takers" was not
-  // worked out from real results). When real comparisons exist, append them
-  // here, e.g. text + ' · better than 72% of readers this edition'.
+  // worked out from real results). The real comparison is appended by
+  // addRealComparison() below once an edition has enough saved scores.
   const pct = (score / total) * 100;
   if (pct >= 95) return 'Bradmanesque!';
   if (pct >= 80) return 'In great company \u2014 the 3 Ws will smile';
@@ -758,6 +758,28 @@ function getPercentileText(score, total) {
   if (pct >= 50) return 'You can play backyard cricket';
   if (pct >= 30) return 'You can play book cricket';
   return 'Tennis, anybody?';
+}
+
+// Real comparison (2026-10-30): once an edition has YORKER_MIN_TAKERS saved
+// scores, append how this score compares, from liveScores/yorkerStats
+// (counts per edition, refreshed hourly by super-fortnight's
+// publishYorkerStats; no names). Fails silently: the line above stays as is.
+const YORKER_MIN_TAKERS = 10;
+async function addRealComparison(correct, total) {
+  try {
+    if (!currentEdition) return;
+    const snap = await getDoc(doc(db, 'liveScores', 'yorkerStats'));
+    const e = snap.exists() && snap.data().editions && snap.data().editions[currentEdition.id];
+    if (!e || !(e.n >= YORKER_MIN_TAKERS)) return;
+    let below = 0;
+    Object.keys(e.counts || {}).forEach(function (k) { if (Number(k) < correct) below += e.counts[k]; });
+    const pct = Math.round(100 * below / e.n);
+    if (pct < 1) return;
+    document.getElementById('score-percentile').textContent =
+      getPercentileText(correct, total) + ' \u00b7 better than ' + pct + '% of ' + e.n + ' readers';
+  } catch (err) {
+    console.warn('Yorker comparison not shown:', err && err.message);
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -770,6 +792,7 @@ function renderScore(score) {
   document.getElementById('score-num').textContent = score;
   document.getElementById('score-total').textContent = total;
   document.getElementById('score-percentile').textContent = getPercentileText(score, total);
+  addRealComparison(score, total);
   document.getElementById('score-band').textContent = band.title;
   document.getElementById('score-band-desc').textContent = band.desc;
 
