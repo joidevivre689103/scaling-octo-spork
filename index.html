@@ -331,9 +331,12 @@ body{
 .wtc-cloche-dome::after{ content:""; position:absolute; right:9%; top:24%; width:6px; height:28%; border-radius:50%; background:linear-gradient(180deg, rgba(255,255,255,.7), rgba(255,255,255,0)); transform:rotate(-12deg); pointer-events:none; }
 .wtc-cloche-knob{ position:absolute; left:50%; top:-15px; width:30px; height:15px; transform:translateX(-50%); border-radius:16px 16px 4px 4px; background:linear-gradient(180deg,#e4c98d,#a8823f); box-shadow:0 2px 4px rgba(60,40,20,.25); }
 .wtc-cloche-stand{ position:relative; max-width:1120px; height:9px; margin:0 auto; border-radius:0 0 6px 6px; background:linear-gradient(180deg,#e1c58a,#a07a38); box-shadow:0 6px 14px rgba(60,40,20,.18); }
-/* No. 4·999, engraved on the stand: the $4.99 rotisserie chicken, and the
-   Don's 99.94 (IJ, 2026-10-28). Keep it as is. */
-.wtc-cloche-plaque{ position:absolute; left:50%; top:3px; transform:translateX(-50%); padding:3px 12px 4px; background:linear-gradient(180deg,#d9bb7c,#a8823f); border-radius:0 0 5px 5px; font-family:'Playfair Display',serif; font-size:11px; font-weight:700; letter-spacing:.14em; color:#5a4220; text-shadow:0 1px 0 rgba(255,240,200,.6); box-shadow:inset 0 1px 2px rgba(60,40,20,.35); white-space:nowrap; }
+/* The plaque on the stand turns through No. 4·99 → No. 49·99 → No. 99·94:
+   the $4.99 rotisserie chicken, $49.99, and the Don's 99.94 (IJ, 2026-10-28;
+   rotating and made larger 2026-10-29). Keep the three numbers as they are. */
+.wtc-cloche-plaque{ position:absolute; left:50%; top:3px; transform:translateX(-50%); padding:5px 18px 6px; background:linear-gradient(180deg,#e2c588,#a8823f); border-radius:0 0 6px 6px; font-family:'Playfair Display',serif; font-size:15px; font-weight:700; letter-spacing:.12em; color:#3b2810; text-shadow:0 1px 0 rgba(255,240,200,.7); box-shadow:inset 0 1px 2px rgba(60,40,20,.35), 0 2px 5px rgba(60,40,20,.2); white-space:nowrap; transition:opacity .6s ease; }
+.wtc-cloche-plaque.is-turning{ opacity:0; }
+@media (prefers-reduced-motion: reduce){ .wtc-cloche-plaque{ transition:none; } }
 .wtc-cloche-items{ position:relative; display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:10px; }
 .wtc-cloche-item{ position:relative; display:flex; flex-direction:column; align-items:center; padding:10px 6px 12px; text-decoration:none; color:var(--text); border-right:1px solid rgba(150,120,80,.18); }
 .wtc-cloche-item:last-child{ border-right:0; }
@@ -1245,7 +1248,23 @@ body.articles-loading .analysis-section{ visibility:hidden; }
       <span class="wtc-cloche-knob" aria-hidden="true"></span>
       <div class="wtc-cloche-items" id="wtcStripTeams"></div>
     </div>
-    <div class="wtc-cloche-stand" aria-hidden="true"><span class="wtc-cloche-plaque">No. 4&middot;999</span></div>
+    <div class="wtc-cloche-stand" aria-hidden="true"><span class="wtc-cloche-plaque">No. 4&middot;99</span></div>
+    <script>
+    // The plaque turns through IJ's three numbers, one every 4 seconds.
+    (function () {
+      var el = document.currentScript.previousElementSibling.querySelector('.wtc-cloche-plaque');
+      if (!el) return;
+      var names = ['No. 4\u00b799', 'No. 49\u00b799', 'No. 99\u00b794'], i = 0;
+      var still = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      setInterval(function () {
+        if (document.hidden) return;
+        i = (i + 1) % names.length;
+        if (still) { el.textContent = names[i]; return; }
+        el.classList.add('is-turning');
+        setTimeout(function () { el.textContent = names[i]; el.classList.remove('is-turning'); }, 600);
+      }, 4000);
+    })();
+    </script>
     <div class="wtc-cloche-foot">
       <a class="wtc-cloche-cta" href="/wtc.html">The full table &rarr;</a>
       <p class="wtc-strip-note" id="wtcFresh">The table is free to see, no account needed.</p>
