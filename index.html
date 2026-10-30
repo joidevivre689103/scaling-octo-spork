@@ -230,6 +230,46 @@ body{
 .otd-standout{ font-size:14px; line-height:1.5; color:var(--accent); }
 .otd-more{ display:inline-block; margin-top:18px; font-family:'Inter',sans-serif; font-size:12px; letter-spacing:0.04em; color:var(--accent); text-decoration:none; }
 .otd-more:hover{ color:var(--accent-hover); text-decoration:underline; }
+/* ─── STATE OF PLAY (Scores Module §7.1/§9, 2026-10-30) ───
+   Current matches from liveScores/current, written hourly by fetchScores.
+   Tests first with full depth and IJ's optional note; other internationals
+   compact; franchise scores a one-line strip at the bottom. Hidden when the
+   document is missing or empty, so there is never an empty state.
+   ?scores=preview shows the admin-only preview document (admins only). */
+.sop-section{ padding:28px 0 24px; border-bottom:1px solid var(--border); }
+.sop-section[hidden], .sop-section [hidden]{ display:none; }
+.sop-head{ display:flex; align-items:baseline; gap:14px; margin-bottom:20px; }
+.sop-title{ font-family:'Playfair Display',serif; font-size:26px; font-weight:700; letter-spacing:-0.01em; margin:0; }
+.sop-rule{ flex:1; height:1px; background:var(--border); }
+.sop-updated{ font-family:'Inter',sans-serif; font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:var(--text3); white-space:nowrap; }
+.sop-preview-tag{ font-family:'Inter',sans-serif; font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:#fff; background:var(--accent); padding:3px 7px; border-radius:2px; }
+.sop-tests{ display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr)); gap:22px 40px; }
+.sop-test{ border-left:3px solid var(--surface3); padding:2px 0 2px 18px; display:flex; flex-direction:column; gap:8px; min-width:0; }
+.sop-test.is-live{ border-left-color:var(--accent); }
+.sop-test-top{ display:flex; justify-content:space-between; align-items:baseline; gap:16px; }
+.sop-teams{ font-family:'Playfair Display',serif; font-size:22px; font-weight:500; margin:0; }
+.sop-day{ font-family:'Inter',sans-serif; font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:var(--text3); white-space:nowrap; }
+.sop-test.is-live .sop-day{ color:var(--accent); }
+.sop-meta{ font-size:13px; color:var(--text3); margin:0; }
+.sop-inns{ margin:0; font-size:17px; line-height:1.5; color:var(--text); font-variant-numeric:tabular-nums; }
+.sop-inns b{ font-weight:600; }
+.sop-inns + .sop-inns{ margin-top:-6px; }
+.sop-state{ font-size:15px; font-style:italic; color:var(--text2); margin:0; }
+.sop-note{ margin-top:4px; padding:12px 16px; background:var(--surface2); border-radius:2px; display:flex; flex-direction:column; gap:7px; }
+.sop-note p{ margin:0; font-size:15px; line-height:1.55; color:var(--text); }
+.sop-note span{ font-family:'Inter',sans-serif; font-size:10.5px; letter-spacing:0.12em; text-transform:uppercase; color:var(--text3); }
+.sop-group{ margin-top:24px; }
+.sop-group-title{ font-family:'Inter',sans-serif; font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:var(--text3); margin:0 0 10px; font-weight:400; }
+.sop-rows{ display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr)); gap:12px 32px; }
+.sop-row{ display:flex; flex-direction:column; gap:3px; min-width:0; }
+.sop-row-teams{ font-size:15px; font-weight:600; margin:0; }
+.sop-row-score{ font-size:14px; color:var(--text2); margin:0; font-variant-numeric:tabular-nums; }
+.sop-row-state{ font-size:13px; font-style:italic; color:var(--text3); margin:0; }
+.sop-strip{ margin-top:22px; padding-top:14px; border-top:1px solid var(--surface3); display:flex; flex-wrap:wrap; align-items:baseline; gap:6px 22px; font-size:13px; color:var(--text2); }
+.sop-strip-label{ font-family:'Inter',sans-serif; font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:var(--text3); }
+.sop-strip-item b{ font-weight:600; color:var(--text); }
+.sop-strip-item i{ color:var(--text3); }
+@media (max-width:760px){ .sop-teams{ font-size:19px; } .sop-test-top{ flex-direction:column; gap:2px; } }
 /* WTC race strip (2026-10-27): the top of the WTC table, from the public
    liveScores/wtc document; the full table is on /wtc.html (free). Arithmetic
    only since 2026-10-30: WTC %, never a chance of the final. */
@@ -991,6 +1031,26 @@ body.articles-loading .analysis-section{ visibility:hidden; }
       <div><dt>2</dt><dd>places in the final</dd></div>
       <div><dt id="wtcStatLeft">—</dt><dd>Tests left</dd></div>
     </dl>
+  </section>
+
+  <!-- STATE OF PLAY — Scores Module §7.1/§9 (2026-10-30). Filled by
+       loadStateOfPlay() from the public liveScores/current document (written
+       hourly by fetchScores once the go-live switch is on) and the published
+       notes in matchNotes. Third, after the WTC pointer. Stays hidden when
+       there is nothing to show. -->
+  <section class="sop-section" id="stateOfPlay" hidden aria-labelledby="sop-title">
+    <div class="sop-head">
+      <h2 class="sop-title" id="sop-title">State of play</h2>
+      <span class="sop-preview-tag" id="sopPreviewTag" hidden>Preview · admins only</span>
+      <span class="sop-rule" aria-hidden="true"></span>
+      <span class="sop-updated" id="sopUpdated"></span>
+    </div>
+    <div class="sop-tests" id="sopTests"></div>
+    <div class="sop-group" id="sopIntl" hidden>
+      <h3 class="sop-group-title">Other internationals</h3>
+      <div class="sop-rows" id="sopIntlRows"></div>
+    </div>
+    <div class="sop-strip" id="sopFranchise" hidden></div>
   </section>
 
   <!-- LATEST COMPLETED TEST · COMING UP · MILESTONE WATCH (2026-10-27; Coming up
@@ -2012,6 +2072,137 @@ async function refreshFeedRow() {
     document.getElementById('onThisDay').hidden = false;
   } catch (err) {
     console.warn('[on-this-day] not shown:', err && err.message);
+  }
+})();
+
+(async function loadStateOfPlay() {
+  try {
+    let attempts = 0;
+    while (!window._fsDb && attempts++ < 20) await new Promise(r => setTimeout(r, 100));
+    if (!window._fsDb) return;
+    const { getDoc, doc } = await import('https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js');
+    // ?scores=preview: an admin checks the admin-only preview document before
+    // the go-live switch. Wait for the sign-in so the read carries the admin's
+    // token; anyone else is refused by the rules and simply sees nothing.
+    const preview = new URLSearchParams(location.search).get('scores') === 'preview';
+    if (preview) {
+      const { getAuth, onAuthStateChanged } = await import('https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js');
+      const { getApp } = await import('https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js');
+      await new Promise(res => { const off = onAuthStateChanged(getAuth(getApp()), () => { off(); res(); }); });
+    }
+    const snap = await getDoc(doc(window._fsDb, preview ? 'scoresPreview' : 'liveScores', 'current'));
+    if (!snap.exists()) return;
+    const data = snap.data() || {};
+    const matches = Array.isArray(data.matches) ? data.matches : [];
+    if (!matches.length) return;
+
+    const tests = matches.filter(m => m.tier === 'test');
+    const intl = matches.filter(m => m.tier === 'international');
+    const fran = matches.filter(m => m.tier === 'franchise');
+
+    // Published notes, Tests and internationals only (franchise is score only).
+    const notes = {};
+    await Promise.all(tests.concat(intl).map(async m => {
+      try {
+        const n = await getDoc(doc(window._fsDb, 'matchNotes', String(m.matchId)));
+        if (n.exists() && n.data().text) notes[m.matchId] = n.data();
+      } catch (e) { /* a missing note is normal */ }
+    }));
+
+    const el = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
+    const fig = i => (i.wickets === 10 || i.wickets == null) ? String(i.runs) : i.runs + '/' + i.wickets;
+    const starts = iso => {
+      const d = new Date(iso);
+      if (isNaN(d)) return '';
+      return d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }) + ', ' +
+        d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    };
+    const dayTag = m => m.state === 'upcoming' ? 'Starts ' + starts(m.startsAt)
+      : m.state === 'result' ? 'Result'
+      : [m.dayLabel, m.dayState].filter(Boolean).join(' · ') || 'In play';
+    const stateLine = m => m.state === 'result' ? m.result : m.state === 'live' ? (m.statusNote || m.toss) : m.toss;
+    // Innings grouped by team in batting order: "England 412 & 78/2".
+    const byTeam = m => {
+      const inns = Array.isArray(m.innings) ? m.innings : [];
+      if (!m.inningsAttributed || !inns.length) return null;
+      const order = [];
+      inns.forEach(i => { if (i.team && !order.includes(i.team)) order.push(i.team); });
+      return order.map(t => ({ team: t, figs: inns.filter(i => i.team === t).map(fig).join(' & ') }));
+    };
+
+    // Tests — full depth.
+    const testBox = document.getElementById('stateOfPlay').querySelector('#sopTests');
+    tests.forEach(m => {
+      const card = el('article', 'sop-test' + (m.state === 'live' ? ' is-live' : ''));
+      const top = el('div', 'sop-test-top');
+      top.appendChild(el('h3', 'sop-teams', (m.teams || []).join(' v ')));
+      top.appendChild(el('span', 'sop-day', dayTag(m)));
+      card.appendChild(top);
+      const meta = [m.venue, m.competition].filter(Boolean).join(' · ');
+      if (meta) card.appendChild(el('p', 'sop-meta', meta));
+      const rows = byTeam(m);
+      if (rows) {
+        rows.forEach(r => {
+          const p = el('p', 'sop-inns');
+          p.appendChild(el('b', '', r.team));
+          p.appendChild(document.createTextNode(' ' + r.figs));
+          card.appendChild(p);
+        });
+      } else if (m.summary) {
+        card.appendChild(el('p', 'sop-inns', m.summary));
+      }
+      const st = stateLine(m);
+      if (st) card.appendChild(el('p', 'sop-state', st));
+      const n = notes[m.matchId];
+      if (n) {
+        const box = el('div', 'sop-note');
+        box.appendChild(el('p', '', n.text));
+        box.appendChild(el('span', '', [n.authorName, n.writtenOnDay ? 'written ' + n.writtenOnDay : ''].filter(Boolean).join(' · ')));
+        card.appendChild(box);
+      }
+      testBox.appendChild(card);
+    });
+    if (!tests.length) testBox.hidden = true;
+
+    // Other internationals — compact.
+    if (intl.length) {
+      const rowsBox = document.getElementById('sopIntlRows');
+      intl.forEach(m => {
+        const r = el('div', 'sop-row');
+        r.appendChild(el('p', 'sop-row-teams', (m.teams || []).join(' v ')));
+        const line = m.state === 'upcoming' ? 'Starts ' + starts(m.startsAt) : m.summary;
+        if (line) r.appendChild(el('p', 'sop-row-score', line));
+        const st = m.state === 'upcoming' ? m.competition : (stateLine(m) || m.competition);
+        if (st) r.appendChild(el('p', 'sop-row-state', st));
+        const n = notes[m.matchId];
+        if (n) { const nb = el('div', 'sop-note'); nb.appendChild(el('p', '', n.text)); r.appendChild(nb); }
+        rowsBox.appendChild(r);
+      });
+      document.getElementById('sopIntl').hidden = false;
+    }
+
+    // Franchise — one subordinate strip, score line only.
+    if (fran.length) {
+      const strip = document.getElementById('sopFranchise');
+      strip.appendChild(el('span', 'sop-strip-label', 'Elsewhere'));
+      fran.forEach(m => {
+        const it = el('span', 'sop-strip-item');
+        it.appendChild(el('b', '', m.competition || (m.teams || []).join(' v ')));
+        it.appendChild(document.createTextNode(' ' + (m.summary || (m.teams || []).join(' v '))));
+        const st = m.state === 'result' ? m.result : m.state === 'live' ? 'in play' : null;
+        if (st) { it.appendChild(document.createTextNode(' · ')); it.appendChild(el('i', '', st)); }
+        strip.appendChild(it);
+      });
+      strip.hidden = false;
+    }
+
+    const up = data.updatedAt && data.updatedAt.toDate ? data.updatedAt.toDate() : null;
+    if (up) document.getElementById('sopUpdated').textContent =
+      'Updated ' + up.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZoneName: 'short' });
+    if (preview) document.getElementById('sopPreviewTag').hidden = false;
+    document.getElementById('stateOfPlay').hidden = false;
+  } catch (err) {
+    console.warn('[state-of-play] not shown:', err && err.message);
   }
 })();
 
