@@ -230,8 +230,9 @@ body{
 .otd-standout{ font-size:14px; line-height:1.5; color:var(--accent); }
 .otd-more{ display:inline-block; margin-top:18px; font-family:'Inter',sans-serif; font-size:12px; letter-spacing:0.04em; color:var(--accent); text-decoration:none; }
 .otd-more:hover{ color:var(--accent-hover); text-decoration:underline; }
-/* WTC race strip (2026-10-27): the top chances of reaching the final, from the
-   public liveScores/wtc document; the full table is on /wtc.html (free). */
+/* WTC race strip (2026-10-27): the top of the WTC table, from the public
+   liveScores/wtc document; the full table is on /wtc.html (free). Arithmetic
+   only since 2026-10-30: WTC %, never a chance of the final. */
 /* Restored 2026-10-28: these rules were removed by mistake with the old WTC
    strip styles (#102) — the WTC pointer, homepage feed, Googlies and Listen strip. */
 .feed-row{ display:grid; grid-template-columns:1fr 1fr; gap:0; padding:26px 0 22px; border-bottom:1px solid var(--border); }
@@ -951,10 +952,10 @@ body.articles-loading .analysis-section{ visibility:hidden; }
     <div class="wtc-pointer-main">
       <p class="wtc-pointer-kicker" id="wtcPointerKicker">World Test Championship</p>
       <p class="wtc-pointer-body" id="wtcPointerBody"></p>
-      <p class="wtc-pointer-q">Think your team will make it? What are your team's chances of reaching the WTC final? <span>It&rsquo;s hot and ready at the bottom of the page ↓</span></p>
+      <p class="wtc-pointer-q">Think your team will make it? See where every team stands in the race to the WTC final. <span>It&rsquo;s hot and ready at the bottom of the page ↓</span></p>
     </div>
     <!-- The figures that set up the race (2026-10-27, IJ: option 1) — never
-         the chances themselves, which stay at the bottom of the page. -->
+         the table itself, which stays at the bottom of the page. -->
     <dl class="wtc-pointer-stats" aria-label="The race in numbers">
       <div><dt id="wtcStatTeams">9</dt><dd>teams</dd></div>
       <div><dt>2</dt><dd>places in the final</dd></div>
@@ -1230,7 +1231,7 @@ body.articles-loading .analysis-section{ visibility:hidden; }
      Hidden, with its pointer, until it has something to show. -->
 <div class="main">
   <!-- 2026-10-28 (IJ): the rotisserie-chicken idea, kept elegant: every
-       team's chance under a glass cloche on a brass stand, in the site's own
+       team's WTC % under a glass cloche on a brass stand, in the site's own
        cream, ink and crimson. A first version (heat lamps, a red sign, an
        "Always free" badge) was too loud, and "always free" overstated it:
        the WTC page also has paid sections. -->
@@ -1238,7 +1239,7 @@ body.articles-loading .analysis-section{ visibility:hidden; }
     <header class="wtc-cloche-head">
       <span class="wtc-cloche-kicker">Hot &amp; ready</span>
       <h2 class="wtc-strip-title" id="wtc-strip-title">The race to Lord&rsquo;s</h2>
-      <p class="wtc-cloche-sub">Every team&rsquo;s chance of reaching the World Test Championship final, roasted fresh in our own simulations whenever a result comes in.</p>
+      <p class="wtc-cloche-sub">The World Test Championship table, roasted fresh whenever a result comes in. The top two go to Lord&rsquo;s.</p>
     </header>
     <div class="wtc-cloche-dome">
       <span class="wtc-cloche-knob" aria-hidden="true"></span>
@@ -1246,8 +1247,8 @@ body.articles-loading .analysis-section{ visibility:hidden; }
     </div>
     <div class="wtc-cloche-stand" aria-hidden="true"><span class="wtc-cloche-plaque">No. 4&middot;999</span></div>
     <div class="wtc-cloche-foot">
-      <a class="wtc-cloche-cta" href="/wtc.html">Every team&rsquo;s chances &rarr;</a>
-      <p class="wtc-strip-note" id="wtcFresh">The table and every team&rsquo;s chance are free to see, no account needed.</p>
+      <a class="wtc-cloche-cta" href="/wtc.html">The full table &rarr;</a>
+      <p class="wtc-strip-note" id="wtcFresh">The table is free to see, no account needed.</p>
     </div>
   </section>
 </div>
@@ -1653,8 +1654,8 @@ function resetSnippetTimer() { startSnippetTimer(); }
 // line. Rendered with textContent only.
 // ═══════════════════════════════════════════════════════════════════════════
 // ═══════════════════════════════════════════════════════════════════════════
-// WTC RACE STRIP (2026-10-27) — the four best chances of reaching the final,
-// from liveScores/wtc. Rendered with textContent only.
+// WTC RACE STRIP (2026-10-27) — the top of the WTC table by %, from
+// liveScores/wtc (arithmetic only since 2026-10-30). textContent only.
 // ═══════════════════════════════════════════════════════════════════════════
 // ── Feed row placement (2026-10-27, IJ) ───────────────────────────────────
 // On this day always leads. The feed row (Latest completed Test · Coming up ·
@@ -1851,13 +1852,15 @@ async function refreshFeedRow() {
     const { getDoc, doc } = await import('https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js');
     const snap = await getDoc(doc(window._fsDb, 'liveScores', 'wtc'));
     if (!snap.exists()) return;
-    const rows = (snap.data().table || []).filter(r => r && r.team && r.chance > 0)
-      .sort((a, b) => b.chance - a.chance).slice(0, 6);
+    // The top six of the table by WTC %, as published (already in order).
+    // Documents from before 2026-10-30 (version 1) held chances: not shown.
+    if (snap.data().version !== 2) return;
+    const rows = (snap.data().table || []).filter(r => r && r.team).slice(0, 6);
     const moves = snap.data().moves || {};
     if (!rows.length) return;
     const box = document.getElementById('wtcStripTeams');
-    // Each team under the cloche: name, chance, and its move since the last
-    // result (build_wtc.py records `moves` only when the results change).
+    // Each team under the cloche: name, WTC %, and its move in % since the
+    // last result (build_wtc.py records `moves` only when the results change).
     rows.forEach(r => {
       const a = document.createElement('a');
       a.className = 'wtc-cloche-item';
@@ -1867,13 +1870,15 @@ async function refreshFeedRow() {
       team.textContent = r.team;
       const fig = document.createElement('span');
       fig.className = 'wtc-cloche-fig';
-      fig.textContent = r.chanceText || (Math.round(r.chance * 100) + '%');
+      fig.textContent = Number(r.pct).toFixed(1) + '%';
       const mvEl = document.createElement('span');
-      const mv = Math.round(Number(moves[r.team]) || 0);
+      const mv = Math.round((Number(moves[r.team]) || 0) * 10) / 10;
       mvEl.className = 'wtc-cloche-move' + (mv ? (mv > 0 ? ' up' : ' down') : '');
       if (mv) {
-        mvEl.textContent = (mv > 0 ? '\u25B2 ' : '\u25BC ') + Math.abs(mv);
-        mvEl.title = (mv > 0 ? 'Up ' : 'Down ') + Math.abs(mv) + ' since the last result';
+        mvEl.textContent = (mv > 0 ? '\u25B2 ' : '\u25BC ') + Math.abs(mv).toFixed(1);
+        mvEl.title = (mv > 0 ? 'Up ' : 'Down ') + Math.abs(mv).toFixed(1) + ' points of a percentage since the last result';
+      } else if (r.status === 'through' || r.status === 'out') {
+        mvEl.textContent = r.status === 'through' ? 'Through' : 'Out';
       }
       a.append(team, fig, mvEl);
       box.appendChild(a);
@@ -1884,7 +1889,7 @@ async function refreshFeedRow() {
       const dt = new Date(to + 'T12:00:00Z');
       const when = dt.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', timeZone: 'UTC' });
       document.getElementById('wtcFresh').textContent =
-        'Includes every result to ' + when + '. The table and every team\u2019s chance are free to see, no account needed.';
+        'Includes every result to ' + when + '. The table is free to see, no account needed.';
     }
     document.getElementById('wtcStrip').hidden = false;
     // The pointer's copy, from the same document so its numbers stay true as
