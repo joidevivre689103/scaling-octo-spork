@@ -272,6 +272,13 @@ body{
 .lc-cap{ font-family:'Inter',sans-serif; font-size:9.5px; letter-spacing:0.12em; text-transform:uppercase; color:var(--text3); }
 .lc-result{ margin:0; font-size:13px; line-height:1.45; color:var(--text2); }
 .lc-first{ display:flex; flex-direction:column; gap:2px; margin-top:2px; }
+.lc-q{ margin:0; font-size:13.5px; font-weight:600; color:var(--text); }
+.lc-guesses{ display:flex; flex-wrap:wrap; gap:6px; margin:3px 0 4px; }
+.lc-guess{ font-family:'Inter',sans-serif; font-size:11.5px; padding:5px 9px; border:1px solid var(--border2); border-radius:3px; background:var(--bg); color:var(--text); cursor:pointer; line-height:1.2; }
+.lc-guess:hover, .lc-guess:focus-visible{ border-color:var(--accent); color:var(--accent); outline:none; }
+.lc-answer{ margin:0 0 4px; font-size:13px; line-height:1.45; color:var(--text); }
+.lc-answer b{ color:var(--text2); }
+.lc-answer.is-right b{ color:#1E7A55; }
 .lc-link{ font-size:13px; line-height:1.4; color:var(--accent); text-decoration:none; font-weight:600; }
 .lc-link:hover{ color:var(--accent-hover); text-decoration:underline; }
 .lc-standout{ margin:0; font-size:12.5px; line-height:1.4; color:var(--accent); }
@@ -2128,13 +2135,53 @@ window.lsCard = (function () {
       // one more reason to subscribe. Signed-out readers meet that page's gate.
       const foot = el('div', 'lc-foot');
       const test = parseInt(e.test, 10);
-      if (test > 0) {
-        foot.appendChild(el('span', 'lc-cap', 'For subscribers'));
-        // A question, not an answer (IJ, 2026-10-31). "How did it end?" rather
-        // than "Who won?", because about a quarter of Tests are drawn.
-        const a = el('a', 'lc-link', 'How did it end? See the full scorecard →');
+      const scoreLink = (text) => {
+        const a = el('a', 'lc-link', text);
         a.href = '/countries.html?otd=' + test + '#onthisday';
-        foot.appendChild(a);
+        return a;
+      };
+      const sides = String(e.teams || '').split(' v ');
+      if (test > 0 && e.outcome && e.result && sides.length === 2) {
+        // "Who do you think won?" (IJ, 2026-10-31). The reader guesses, then the
+        // card gives the one-line result and the link to the full scorecard
+        // (subscribers). The guess stays in this browser only, so a return
+        // visit shows the answer; nothing is sent or scored. A tie counts as
+        // a right answer for "Draw".
+        const key = 'tgb-otd-guess-' + test;
+        let saved = null;
+        try { saved = localStorage.getItem(key); } catch (err) { /* private mode */ }
+        const answer = (guess) => {
+          foot.textContent = '';
+          const right = guess === e.outcome || (guess === 'draw' && e.outcome === 'tie');
+          const p = el('p', 'lc-answer' + (right ? ' is-right' : ''));
+          p.appendChild(el('b', '', right ? '✓ Right. ' : 'Not this time. '));
+          p.appendChild(document.createTextNode(e.result + '.'));
+          foot.appendChild(p);
+          foot.appendChild(el('span', 'lc-cap', 'For subscribers'));
+          foot.appendChild(scoreLink('See the full scorecard →'));
+          window.lsCard.equalize();
+        };
+        if (saved) {
+          answer(saved);
+        } else {
+          foot.appendChild(el('p', 'lc-q', 'Who do you think won?'));
+          const row = el('div', 'lc-guesses');
+          sides.concat(['Draw']).forEach((label, i) => {
+            const b = el('button', 'lc-guess', label);
+            b.type = 'button';
+            b.addEventListener('click', () => {
+              const g = i < 2 ? sides[i] : 'draw';
+              try { localStorage.setItem(key, g); } catch (err) { /* fine without it */ }
+              answer(g);
+            });
+            row.appendChild(b);
+          });
+          foot.appendChild(row);
+          foot.appendChild(scoreLink('Or see the full scorecard (subscribers) →'));
+        }
+      } else if (test > 0) {
+        foot.appendChild(el('span', 'lc-cap', 'For subscribers'));
+        foot.appendChild(scoreLink('How did it end? See the full scorecard →'));
       } else {
         foot.appendChild(el('span', 'lc-cap', 'Result'));
         foot.appendChild(el('p', 'lc-result', e.scoreline));
