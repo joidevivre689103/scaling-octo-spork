@@ -230,64 +230,57 @@ body{
 .otd-standout{ font-size:14px; line-height:1.5; color:var(--accent); }
 .otd-more{ display:inline-block; margin-top:18px; font-family:'Inter',sans-serif; font-size:12px; letter-spacing:0.04em; color:var(--accent); text-decoration:none; }
 .otd-more:hover{ color:var(--accent-hover); text-decoration:underline; }
-/* ─── STATE OF PLAY (Scores Module §7.1/§9, 2026-10-30) ───
-   Current matches from liveScores/current, written hourly by fetchScores.
-   Tests first with full depth and IJ's optional note; other internationals
-   compact; franchise scores a one-line strip at the bottom. Hidden when the
-   document is missing or empty, so there is never an empty state.
-   ?scores=preview shows the admin-only preview document (admins only). */
-.sop-section{ padding:28px 0 24px; border-bottom:1px solid var(--border); }
-.sop-section[hidden], .sop-section [hidden]{ display:none; }
-.sop-head{ display:flex; align-items:baseline; gap:14px; margin-bottom:20px; }
-.sop-title{ font-family:'Playfair Display',serif; font-size:26px; font-weight:700; letter-spacing:-0.01em; margin:0; }
-.sop-rule{ flex:1; height:1px; background:var(--border); }
-.sop-updated{ font-family:'Inter',sans-serif; font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:var(--text3); white-space:nowrap; }
-.sop-preview-tag{ font-family:'Inter',sans-serif; font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:#fff; background:var(--accent); padding:3px 7px; border-radius:2px; }
-.sop-tests{ display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr)); gap:22px 40px; }
-.sop-test{ border-left:3px solid var(--surface3); padding:2px 0 2px 18px; display:flex; flex-direction:column; gap:8px; min-width:0; }
-.sop-test.is-live{ border-left-color:var(--accent); }
-.sop-test-top{ display:flex; justify-content:space-between; align-items:baseline; gap:16px; }
-.sop-teams{ font-family:'Playfair Display',serif; font-size:22px; font-weight:500; margin:0; }
-.sop-day{ font-family:'Inter',sans-serif; font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:var(--text3); white-space:nowrap; }
-.sop-test.is-live .sop-day{ color:var(--accent); }
-.sop-meta{ font-size:13px; color:var(--text3); margin:0; }
-.sop-inns{ margin:0; font-size:17px; line-height:1.5; color:var(--text); font-variant-numeric:tabular-nums; }
-.sop-inns b{ font-weight:600; }
-.sop-inns + .sop-inns{ margin-top:-6px; }
-.sop-state{ font-size:15px; font-style:italic; color:var(--text2); margin:0; }
-.sop-note{ margin-top:4px; padding:12px 16px; background:var(--surface2); border-radius:2px; display:flex; flex-direction:column; gap:7px; }
-.sop-note p{ margin:0; font-size:15px; line-height:1.55; color:var(--text); }
-.sop-note span{ font-family:'Inter',sans-serif; font-size:10.5px; letter-spacing:0.12em; text-transform:uppercase; color:var(--text3); }
-.sop-group{ margin-top:24px; }
-.sop-group-title{ font-family:'Inter',sans-serif; font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:var(--text3); margin:0 0 10px; font-weight:400; }
-.sop-rows{ display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr)); gap:12px 32px; }
-.sop-row{ display:flex; flex-direction:column; gap:3px; min-width:0; }
-.sop-row-teams{ font-size:15px; font-weight:600; margin:0; }
-.sop-row-score{ font-size:14px; color:var(--text2); margin:0; font-variant-numeric:tabular-nums; }
-.sop-row-state{ font-size:13px; font-style:italic; color:var(--text3); margin:0; }
-.sop-strip{ margin-top:22px; padding-top:14px; border-top:1px solid var(--surface3); display:flex; flex-wrap:wrap; align-items:baseline; gap:6px 22px; font-size:13px; color:var(--text2); }
-.sop-strip-label{ font-family:'Inter',sans-serif; font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:var(--text3); }
-.sop-strip-item b{ font-weight:600; color:var(--text); }
-.sop-strip-item i{ color:var(--text3); }
-@media (max-width:760px){ .sop-teams{ font-size:19px; } .sop-test-top{ flex-direction:column; gap:2px; } }
-/* State of play + On this day on one row (spec §7.1, IJ 2026-10-30).
-   .is-paired is set by livePairLayout() only when BOTH are showing. */
-.live-pair.is-paired{ display:grid; grid-template-columns:minmax(0,62fr) minmax(0,38fr); border-bottom:1px solid var(--border); }
-.live-pair.is-paired > .sop-section,
-.live-pair.is-paired > .otd-section{ border-bottom:none; }
-.live-pair.is-paired > .sop-section{ padding-right:40px; }
-.live-pair.is-paired > .otd-section{ padding-left:40px; border-left:1px solid var(--border); }
-.live-pair.is-paired .sop-tests{ grid-template-columns:minmax(0,1fr); }
-.live-pair.is-paired .otd-grid{ grid-template-columns:minmax(0,1fr); }
-.live-pair.is-paired .otd-entry{ padding:16px 0; border-left:none; border-top:1px solid var(--surface3); }
-.live-pair.is-paired .otd-entry:first-child{ padding-top:0; border-top:none; }
-.live-pair.is-paired .otd-prose{ font-size:15px; }
-.live-pair.is-paired .otd-score{ font-size:14px; }
-.live-pair.is-paired .otd-standout{ font-size:13px; }
-@media (max-width:980px){
-  .live-pair.is-paired{ display:block; }
-  .live-pair.is-paired > .sop-section{ padding-right:0; border-bottom:1px solid var(--border); }
-  .live-pair.is-paired > .otd-section{ padding-left:0; border-left:none; }
+/* ─── STATE OF PLAY + ON THIS DAY — card strip (IJ, 2026-10-31) ───
+   Top of the page: up to three small cards for current matches (State of
+   play, from liveScores/current) and three from the archive (On this day,
+   from liveScores/onThisDay). Desktop: both groups on one row. Narrower:
+   one group under the other. Phones: each group a sideways-scrolling row.
+   A group with nothing to show is hidden; the strip is hidden if both are.
+   ?scores=preview shows the admin-only State of play preview (admins only). */
+.live-strip{ padding:22px 0 24px; border-bottom:1px solid var(--border); display:grid; grid-template-columns:minmax(0,1fr); gap:26px 32px; }
+.live-strip[hidden], .live-strip [hidden]{ display:none !important; }
+.live-strip.has-both{ grid-template-columns:repeat(2,minmax(0,1fr)); }
+.ls-group{ min-width:0; display:flex; flex-direction:column; }
+.ls-head{ display:flex; align-items:baseline; gap:12px; margin-bottom:12px; }
+.ls-title, .ls-title.otd-title{ font-family:'Playfair Display',serif; font-size:21px; font-weight:700; letter-spacing:-0.01em; margin:0; white-space:nowrap; }
+.ls-rule{ flex:1; height:1px; background:var(--border); min-width:12px; }
+.ls-meta{ font-family:'Inter',sans-serif; font-size:10.5px; letter-spacing:0.12em; text-transform:uppercase; color:var(--text3); white-space:nowrap; }
+.ls-more{ align-self:flex-start; margin-top:10px; font-family:'Inter',sans-serif; font-size:12px; letter-spacing:0.04em; color:var(--accent); text-decoration:none; }
+.ls-more:hover{ color:var(--accent-hover); text-decoration:underline; }
+.sop-preview-tag{ font-family:'Inter',sans-serif; font-size:9.5px; letter-spacing:0.12em; text-transform:uppercase; color:#fff; background:var(--accent); padding:3px 6px; border-radius:2px; white-space:nowrap; }
+.ls-cards{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; flex:1; }
+.lc{ background:var(--surface); border:1px solid var(--border); border-radius:4px; padding:12px 14px 13px; display:flex; flex-direction:column; gap:5px; min-width:0; }
+.lc.is-live{ box-shadow:inset 0 3px 0 var(--accent); padding-top:14px; }
+.lc-top{ display:flex; justify-content:space-between; align-items:baseline; gap:8px; font-family:'Inter',sans-serif; font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text3); }
+.lc-top span:first-child{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.lc-tag{ white-space:nowrap; }
+.lc.is-live .lc-tag{ color:var(--accent); }
+.lc-year{ font-family:'Playfair Display',serif; font-size:19px; font-weight:700; letter-spacing:0; text-transform:none; color:var(--text); font-variant-numeric:lining-nums tabular-nums; }
+.lc-teams{ font-family:'Playfair Display',serif; font-size:16.5px; font-weight:600; line-height:1.25; margin:0; color:var(--text); }
+.lc-sub{ font-size:12px; color:var(--text3); margin:0; line-height:1.4; }
+.lc-inns{ margin:0; font-size:14px; line-height:1.35; color:var(--text); font-variant-numeric:tabular-nums; }
+.lc-inns b{ font-weight:600; }
+.lc-state{ margin:0; font-size:12.5px; line-height:1.45; font-style:italic; color:var(--text2); }
+.lc-prose{ margin:0; font-size:13.5px; line-height:1.5; color:var(--text); }
+.lc-foot{ margin-top:auto; padding-top:8px; border-top:1px solid var(--surface3); display:flex; flex-direction:column; gap:3px; }
+.lc-cap{ font-family:'Inter',sans-serif; font-size:9.5px; letter-spacing:0.12em; text-transform:uppercase; color:var(--text3); }
+.lc-result{ margin:0; font-size:13px; line-height:1.45; color:var(--text2); }
+.lc-standout{ margin:0; font-size:12.5px; line-height:1.4; color:var(--accent); }
+.lc-note{ margin-top:auto; padding-top:6px; }
+.lc-note summary{ cursor:pointer; list-style:none; font-family:'Inter',sans-serif; font-size:11px; letter-spacing:0.04em; color:var(--accent); }
+.lc-note summary::-webkit-details-marker{ display:none; }
+.lc-note summary::after{ content:' +'; }
+.lc-note[open] summary::after{ content:' −'; }
+.lc-note p{ margin:6px 0 0; font-size:13px; line-height:1.5; color:var(--text); }
+.lc-note span{ display:block; margin-top:4px; font-family:'Inter',sans-serif; font-size:9.5px; letter-spacing:0.12em; text-transform:uppercase; color:var(--text3); }
+@media (max-width:1100px){
+  .live-strip.has-both{ grid-template-columns:minmax(0,1fr); }
+}
+@media (max-width:700px){
+  .ls-cards{ display:flex; overflow-x:auto; scroll-snap-type:x mandatory; scroll-padding-inline:16px; gap:10px; margin:0 -16px; padding:0 16px 4px; scrollbar-width:none; }
+  .ls-cards::-webkit-scrollbar{ display:none; }
+  .lc{ flex:0 0 78%; scroll-snap-align:start; }
+  .ls-cards > .lc:only-child{ flex-basis:100%; }
 }
 /* WTC race strip (2026-10-27): the top of the WTC table, from the public
    liveScores/wtc document; the full table is on /wtc.html (free). Arithmetic
@@ -1017,43 +1010,32 @@ body.articles-loading .analysis-section{ visibility:hidden; }
 <!-- MAIN -->
 <main class="main">
 
-  <div class="live-pair" id="livePair">
-  <!-- STATE OF PLAY — Scores Module §7.1/§9 (2026-10-30). Filled by
-       loadStateOfPlay() from the public liveScores/current document (written
-       hourly by fetchScores once the go-live switch is on) and the published
-       notes in matchNotes. Shares a row with On this day (IJ, 2026-10-30):
-       State of play left (~62%), On this day right, divided by a hairline;
-       either takes the full width when the other is hidden; stacked on
-       narrow screens. Stays hidden when there is nothing to show. -->
-  <section class="sop-section" id="stateOfPlay" hidden aria-labelledby="sop-title">
-    <div class="sop-head">
-      <h2 class="sop-title" id="sop-title">State of play</h2>
-      <span class="sop-preview-tag" id="sopPreviewTag" hidden>Preview · admins only</span>
-      <span class="sop-rule" aria-hidden="true"></span>
-      <span class="sop-updated" id="sopUpdated"></span>
+  <!-- STATE OF PLAY + ON THIS DAY — card strip (IJ, 2026-10-31). Up to three
+       current-match cards (loadStateOfPlay, from liveScores/current and the
+       published notes in matchNotes) and up to three archive cards
+       (loadOnThisDay, from liveScores/onThisDay: Tests that finished on this
+       date first, then Tests that were in progress on it). Each group hides
+       itself when empty; the whole strip stays hidden if both are. -->
+  <section class="live-strip" id="liveStrip" hidden aria-label="State of play and On this day">
+    <div class="ls-group" id="sopGroup" hidden>
+      <div class="ls-head">
+        <h2 class="ls-title" id="sop-title">State of play</h2>
+        <span class="sop-preview-tag" id="sopPreviewTag" hidden>Preview · admins only</span>
+        <span class="ls-rule" aria-hidden="true"></span>
+        <span class="ls-meta" id="sopUpdated"></span>
+      </div>
+      <div class="ls-cards" id="sopCards"></div>
     </div>
-    <div class="sop-tests" id="sopTests"></div>
-    <div class="sop-group" id="sopIntl" hidden>
-      <h3 class="sop-group-title">Other internationals</h3>
-      <div class="sop-rows" id="sopIntlRows"></div>
+    <div class="ls-group" id="otdGroup" hidden>
+      <div class="ls-head">
+        <h2 class="ls-title otd-title" id="otd-title">On this day</h2>
+        <span class="ls-rule" aria-hidden="true"></span>
+        <span class="ls-meta" id="otdDate"></span>
+      </div>
+      <div class="ls-cards" id="otdCards"></div>
+      <a class="ls-more" id="otdMore" href="/countries.html">More from the archive →</a>
     </div>
-    <div class="sop-strip" id="sopFranchise" hidden></div>
   </section>
-
-  <!-- ON THIS DAY — Scores Module §8 (2026-10-27). Filled by loadOnThisDay()
-       from the public liveScores/onThisDay document (written daily by the
-       publishOnThisDay function). Stays hidden if there is nothing for the
-       reader's date, so there is never an empty state. -->
-  <section class="otd-section" id="onThisDay" hidden aria-labelledby="otd-title">
-    <div class="otd-head">
-      <h2 class="otd-title" id="otd-title">On this day</h2>
-      <span class="otd-rule" aria-hidden="true"></span>
-      <span class="otd-date" id="otdDate"></span>
-    </div>
-    <div class="otd-grid" id="otdGrid"></div>
-    <a class="otd-more" id="otdMore" href="/countries.html">More from the archive →</a>
-  </section>
-  </div>
 
   <!-- WTC RACE pointer (2026-10-27). ALWAYS the second module, straight after
        On this day (IJ): it needs the visibility, or readers take the first row
@@ -2058,12 +2040,25 @@ async function refreshFeedRow() {
   }
 })();
 
-// State of play and On this day share a row only when both are showing.
-window.livePairLayout = function () {
-  const sop = document.getElementById('stateOfPlay'), otd = document.getElementById('onThisDay');
-  const pair = document.getElementById('livePair');
-  if (pair && sop && otd) pair.classList.toggle('is-paired', !sop.hidden && !otd.hidden);
-};
+// State of play + On this day card strip (IJ, 2026-10-31). Shared helpers.
+window.lsCard = (function () {
+  const el = (tag, cls, text) => {
+    const n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  };
+  // Show a group once it has cards; the strip shows when either group does.
+  const show = (groupId) => {
+    document.getElementById(groupId).hidden = false;
+    const strip = document.getElementById('liveStrip');
+    strip.hidden = false;
+    strip.classList.toggle('has-both',
+      !document.getElementById('sopGroup').hidden && !document.getElementById('otdGroup').hidden);
+  };
+  return { el, show };
+})();
+
 (async function loadOnThisDay() {
   try {
     let attempts = 0;
@@ -2074,23 +2069,30 @@ window.livePairLayout = function () {
     if (!snap.exists()) return;
     const now = new Date();
     const key = String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+    // Already ordered by the build: Tests that finished on this date first,
+    // then Tests that were in progress on it. Three at most.
     const entries = ((snap.data().days || {})[key] || []).slice(0, 3)
       .filter(e => e && e.year && e.scoreline);
     if (!entries.length) return;
-    const grid = document.getElementById('otdGrid');
-    const el = (tag, cls, text) => { const n = document.createElement(tag); n.className = cls; n.textContent = text; return n; };
+    const { el, show } = window.lsCard;
+    const box = document.getElementById('otdCards');
     entries.forEach(e => {
-      const item = el('article', 'otd-entry', '');
-      item.appendChild(el('span', 'otd-year', String(e.year)));
-      const body = el('div', 'otd-body', '');
-      if (e.label) body.appendChild(el('p', 'otd-label', e.label));
-      if (e.prose) body.appendChild(el('p', 'otd-prose', e.prose));
-      body.appendChild(el('p', 'otd-score', e.scoreline));
-      if (e.standout) body.appendChild(el('p', 'otd-standout', e.standout));
-      item.appendChild(body);
-      grid.appendChild(item);
+      const inProgress = e.state === 'inprogress';
+      const card = el('article', 'lc');
+      const top = el('div', 'lc-top');
+      top.appendChild(el('span', 'lc-year', String(e.year)));
+      if (e.day) top.appendChild(el('span', 'lc-tag', inProgress ? 'Day ' + e.day + ' · in progress' : 'Day ' + e.day + ' · final day'));
+      card.appendChild(top);
+      card.appendChild(el('h3', 'lc-teams', e.teams || e.label || ''));
+      if (e.teams && e.label) card.appendChild(el('p', 'lc-sub', e.label));
+      if (e.prose) card.appendChild(el('p', 'lc-prose', e.prose));
+      const foot = el('div', 'lc-foot');
+      foot.appendChild(el('span', 'lc-cap', 'Result'));
+      foot.appendChild(el('p', 'lc-result', e.scoreline));
+      if (e.standout) foot.appendChild(el('p', 'lc-standout', e.standout));
+      card.appendChild(foot);
+      box.appendChild(card);
     });
-    grid.style.setProperty('--otd-cols', entries.length);
     // "More from the archive" opens these Tests' full scorecards on the
     // countries page (paid; signed-out readers meet its gate).
     const tests = entries.map(e => parseInt(e.test, 10)).filter(n => n > 0);
@@ -2099,8 +2101,7 @@ window.livePairLayout = function () {
     }
     document.getElementById('otdDate').textContent =
       now.toLocaleDateString('en-GB', { day: 'numeric', month: 'long' });
-    document.getElementById('onThisDay').hidden = false;
-    window.livePairLayout();
+    show('otdGroup');
   } catch (err) {
     console.warn('[on-this-day] not shown:', err && err.message);
   }
@@ -2124,23 +2125,29 @@ window.livePairLayout = function () {
     const snap = await getDoc(doc(window._fsDb, preview ? 'scoresPreview' : 'liveScores', 'current'));
     if (!snap.exists()) return;
     const data = snap.data() || {};
-    const matches = Array.isArray(data.matches) ? data.matches : [];
-    if (!matches.length) return;
+    const all = Array.isArray(data.matches) ? data.matches : [];
+    if (!all.length) return;
 
-    const tests = matches.filter(m => m.tier === 'test');
-    const intl = matches.filter(m => m.tier === 'international');
-    const fran = matches.filter(m => m.tier === 'franchise');
+    // Three cards. Tests in play first, then Test results, internationals in
+    // play, Tests about to start, international results, then franchise.
+    const rank = m => {
+      const r = { test: { live: 0, result: 1, upcoming: 3 }, international: { live: 2, result: 4, upcoming: 7 },
+                  franchise: { live: 5, result: 6, upcoming: 8 } };
+      return ((r[m.tier] || {})[m.state] ?? 9);
+    };
+    const matches = all.map((m, i) => ({ m, i })).sort((a, b) => rank(a.m) - rank(b.m) || a.i - b.i)
+      .slice(0, 3).map(x => x.m);
 
-    // Published notes, Tests and internationals only (franchise is score only).
+    // Published notes for the cards shown (franchise cards carry none).
     const notes = {};
-    await Promise.all(tests.concat(intl).map(async m => {
+    await Promise.all(matches.filter(m => m.tier !== 'franchise').map(async m => {
       try {
         const n = await getDoc(doc(window._fsDb, 'matchNotes', String(m.matchId)));
         if (n.exists() && n.data().text) notes[m.matchId] = n.data();
       } catch (e) { /* a missing note is normal */ }
     }));
 
-    const el = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
+    const { el, show } = window.lsCard;
     const fig = i => (i.wickets === 10 || i.wickets == null) ? String(i.runs) : i.runs + '/' + i.wickets;
     const starts = iso => {
       const d = new Date(iso);
@@ -2148,11 +2155,10 @@ window.livePairLayout = function () {
       return d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }) + ', ' +
         d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     };
-    const dayTag = m => m.state === 'upcoming' ? 'Starts ' + starts(m.startsAt)
+    const tierLabel = m => m.tier === 'test' ? 'Test' : m.tier === 'international' ? 'International' : (m.competition || 'Franchise');
+    const tag = m => m.state === 'upcoming' ? 'Upcoming'
       : m.state === 'result' ? 'Result'
       : [m.dayLabel, m.dayState].filter(Boolean).join(' · ') || 'In play';
-    const stateLine = m => m.state === 'result' ? m.result : m.state === 'live' ? (m.statusNote || m.toss) : m.toss;
-    // Innings grouped by team in batting order: "England 412 & 78/2".
     const byTeam = m => {
       const inns = Array.isArray(m.innings) ? m.innings : [];
       if (!m.inningsAttributed || !inns.length) return null;
@@ -2161,78 +2167,46 @@ window.livePairLayout = function () {
       return order.map(t => ({ team: t, figs: inns.filter(i => i.team === t).map(fig).join(' & ') }));
     };
 
-    // Tests — full depth.
-    const testBox = document.getElementById('stateOfPlay').querySelector('#sopTests');
-    tests.forEach(m => {
-      const card = el('article', 'sop-test' + (m.state === 'live' ? ' is-live' : ''));
-      const top = el('div', 'sop-test-top');
-      top.appendChild(el('h3', 'sop-teams', (m.teams || []).join(' v ')));
-      top.appendChild(el('span', 'sop-day', dayTag(m)));
+    const box = document.getElementById('sopCards');
+    matches.forEach(m => {
+      const card = el('article', 'lc' + (m.state === 'live' ? ' is-live' : ''));
+      const top = el('div', 'lc-top');
+      top.appendChild(el('span', '', tierLabel(m)));
+      top.appendChild(el('span', 'lc-tag', tag(m)));
       card.appendChild(top);
-      const meta = [m.venue, m.competition].filter(Boolean).join(' · ');
-      if (meta) card.appendChild(el('p', 'sop-meta', meta));
-      const rows = byTeam(m);
-      if (rows) {
-        rows.forEach(r => {
-          const p = el('p', 'sop-inns');
+      card.appendChild(el('h3', 'lc-teams', (m.teams || []).join(' v ')));
+      const venue = (m.venue || '').split(',')[0].trim();
+      if (venue) card.appendChild(el('p', 'lc-sub', venue));
+      if (m.state === 'upcoming') {
+        card.appendChild(el('p', 'lc-state', 'Starts ' + starts(m.startsAt)));
+      } else {
+        const rows = byTeam(m);
+        if (rows) rows.forEach(r => {
+          const p = el('p', 'lc-inns');
           p.appendChild(el('b', '', r.team));
           p.appendChild(document.createTextNode(' ' + r.figs));
           card.appendChild(p);
         });
-      } else if (m.summary) {
-        card.appendChild(el('p', 'sop-inns', m.summary));
+        else if (m.summary) card.appendChild(el('p', 'lc-inns', m.summary));
+        const st = m.state === 'result' ? m.result : (m.statusNote || m.toss);
+        if (st) card.appendChild(el('p', 'lc-state', st));
       }
-      const st = stateLine(m);
-      if (st) card.appendChild(el('p', 'sop-state', st));
       const n = notes[m.matchId];
       if (n) {
-        const box = el('div', 'sop-note');
-        box.appendChild(el('p', '', n.text));
-        box.appendChild(el('span', '', [n.authorName, n.writtenOnDay ? 'written ' + n.writtenOnDay : ''].filter(Boolean).join(' · ')));
-        card.appendChild(box);
+        const d = el('details', 'lc-note');
+        d.appendChild(el('summary', '', 'Note'));
+        d.appendChild(el('p', '', n.text));
+        d.appendChild(el('span', '', [n.authorName, n.writtenOnDay ? 'written ' + n.writtenOnDay : ''].filter(Boolean).join(' · ')));
+        card.appendChild(d);
       }
-      testBox.appendChild(card);
+      box.appendChild(card);
     });
-    if (!tests.length) testBox.hidden = true;
-
-    // Other internationals — compact.
-    if (intl.length) {
-      const rowsBox = document.getElementById('sopIntlRows');
-      intl.forEach(m => {
-        const r = el('div', 'sop-row');
-        r.appendChild(el('p', 'sop-row-teams', (m.teams || []).join(' v ')));
-        const line = m.state === 'upcoming' ? 'Starts ' + starts(m.startsAt) : m.summary;
-        if (line) r.appendChild(el('p', 'sop-row-score', line));
-        const st = m.state === 'upcoming' ? m.competition : (stateLine(m) || m.competition);
-        if (st) r.appendChild(el('p', 'sop-row-state', st));
-        const n = notes[m.matchId];
-        if (n) { const nb = el('div', 'sop-note'); nb.appendChild(el('p', '', n.text)); r.appendChild(nb); }
-        rowsBox.appendChild(r);
-      });
-      document.getElementById('sopIntl').hidden = false;
-    }
-
-    // Franchise — one subordinate strip, score line only.
-    if (fran.length) {
-      const strip = document.getElementById('sopFranchise');
-      strip.appendChild(el('span', 'sop-strip-label', 'Elsewhere'));
-      fran.forEach(m => {
-        const it = el('span', 'sop-strip-item');
-        it.appendChild(el('b', '', m.competition || (m.teams || []).join(' v ')));
-        it.appendChild(document.createTextNode(' ' + (m.summary || (m.teams || []).join(' v '))));
-        const st = m.state === 'result' ? m.result : m.state === 'live' ? 'in play' : null;
-        if (st) { it.appendChild(document.createTextNode(' · ')); it.appendChild(el('i', '', st)); }
-        strip.appendChild(it);
-      });
-      strip.hidden = false;
-    }
 
     const up = data.updatedAt && data.updatedAt.toDate ? data.updatedAt.toDate() : null;
     if (up) document.getElementById('sopUpdated').textContent =
       'Updated ' + up.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZoneName: 'short' });
     if (preview) document.getElementById('sopPreviewTag').hidden = false;
-    document.getElementById('stateOfPlay').hidden = false;
-    if (window.livePairLayout) window.livePairLayout();
+    show('sopGroup');
   } catch (err) {
     console.warn('[state-of-play] not shown:', err && err.message);
   }
