@@ -287,6 +287,8 @@ body{
 .lc-series{ font-style:italic; }
 .lc-pick{ margin-top:auto; padding-top:8px; border-top:1px solid var(--surface3); }
 .lc-verdict{ margin:2px 0 0; font-size:13px; line-height:1.45; color:var(--text); font-weight:600; }
+.lc-next{ margin:0; font-size:12.5px; line-height:1.45; color:var(--text2); }
+.lc-next b{ font-weight:600; color:var(--text); }
 .lc-link{ font-size:13px; line-height:1.4; color:var(--accent); text-decoration:none; font-weight:600; }
 .lc-link:hover{ color:var(--accent-hover); text-decoration:underline; }
 .lc-standout{ margin:0; font-size:12.5px; line-height:1.4; color:var(--accent); }
@@ -2271,6 +2273,25 @@ window.lsCard = (function () {
 
     const { el, show } = window.lsCard;
     const fig = i => (i.wickets === 10 || i.wickets == null) ? String(i.runs) : i.runs + '/' + i.wickets;
+    // Next day's start for a Test at stumps (IJ, 2026-10-31), in the reader's
+    // own time zone. A Test's days normally start at the same clock time as
+    // day 1, so it is day 1's start time on the next date after now; marked
+    // "scheduled" because rain or a rest day can move it.
+    const nextDay = m => {
+      if (m.tier !== 'test' || m.state !== 'live' || !/stumps|end of day/i.test(String(m.dayState || ''))) return null;
+      const first = new Date(m.startsAt);
+      const n = parseInt(String(m.dayLabel || '').replace(/\D/g, ''), 10);
+      if (isNaN(first) || !n || n >= 5) return null;
+      const now = new Date();
+      const next = new Date(now);
+      next.setUTCHours(first.getUTCHours(), first.getUTCMinutes(), 0, 0);
+      if (next <= now) next.setUTCDate(next.getUTCDate() + 1);
+      return {
+        label: 'Day ' + (n + 1),
+        when: next.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }) + ', ' +
+          next.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZoneName: 'short' }),
+      };
+    };
     const starts = iso => {
       const d = new Date(iso);
       if (isNaN(d)) return '';
@@ -2446,6 +2467,13 @@ window.lsCard = (function () {
         else if (m.summary) card.appendChild(el('p', 'lc-inns', m.summary));
         const st = m.state === 'result' ? m.result : (m.statusNote || m.toss);
         if (st) card.appendChild(el('p', 'lc-state', st));
+        const nd = nextDay(m);
+        if (nd) {
+          const p = el('p', 'lc-next');
+          p.appendChild(el('b', '', nd.label + ' starts '));
+          p.appendChild(document.createTextNode(nd.when + ' (scheduled)'));
+          card.appendChild(p);
+        }
         const v = m.state === 'result' && fmtOf(m) === 't20' ? t20Verdict(m) : '';
         if (v) {
           // The match totals the line is drawn from, then the line itself.
