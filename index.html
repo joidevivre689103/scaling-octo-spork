@@ -2231,6 +2231,13 @@ window.lsCard = (function () {
     const snap = await getDoc(doc(window._fsDb, preview ? 'scoresPreview' : 'liveScores', 'current'));
     if (!snap.exists()) return;
     const data = snap.data() || {};
+    // Never show readers stale scores (IJ, 2026-10-31): if the last good fetch
+    // is more than 3 hours old, the group stays hidden. Admins on the preview
+    // still see it, with the age flagged, so they know something is wrong.
+    const STALE_MS = 3 * 3600 * 1000;
+    const fetchedAt = data.updatedAt && data.updatedAt.toDate ? data.updatedAt.toDate() : null;
+    const stale = !fetchedAt || Date.now() - fetchedAt.getTime() > STALE_MS;
+    if (stale && !preview) return;
     const all = Array.isArray(data.matches) ? data.matches : [];
     if (!all.length) return;
 
@@ -2501,6 +2508,12 @@ window.lsCard = (function () {
     const up = data.updatedAt && data.updatedAt.toDate ? data.updatedAt.toDate() : null;
     if (up) document.getElementById('sopUpdated').textContent =
       'Updated ' + up.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZoneName: 'short' });
+    if (stale && preview) {
+      const u = document.getElementById('sopUpdated');
+      const h = fetchedAt ? Math.round((Date.now() - fetchedAt.getTime()) / 3600000) : null;
+      u.textContent = 'Stale' + (h != null ? ': ' + h + ' h old' : '') + ' \u00b7 hidden from readers';
+      u.style.color = 'var(--accent)';
+    }
     if (preview) document.getElementById('sopPreviewTag').hidden = false;
     show('sopGroup');
   } catch (err) {
