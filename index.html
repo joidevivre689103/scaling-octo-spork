@@ -281,6 +281,7 @@ body{
 .lc-answer.is-right b{ color:#1E7A55; }
 .lc-ov{ font-size:12px; color:var(--text3); }
 .lc-series{ font-style:italic; }
+.lc-pick{ margin-top:auto; padding-top:8px; border-top:1px solid var(--surface3); }
 .lc-link{ font-size:13px; line-height:1.4; color:var(--accent); text-decoration:none; font-weight:600; }
 .lc-link:hover{ color:var(--accent-hover); text-decoration:underline; }
 .lc-standout{ margin:0; font-size:12.5px; line-height:1.4; color:var(--accent); }
@@ -2300,6 +2301,65 @@ window.lsCard = (function () {
       if (i.overs != null && i.overs !== '') p.appendChild(el('span', 'lc-ov', ' (' + i.overs + ' ov)'));
     });
 
+    // "Who will win?" (IJ, 2026-10-31). Live and upcoming Tests and
+    // internationals. The pick stays in this browser only (nothing is sent,
+    // counted or shown as odds); a short reply replaces the buttons, and once
+    // the result is in the card says whether the reader called it.
+    const REPLIES = ['Bold. We\u2019ll hold you to it.', 'Noted. Watch this space.', 'Brave call. Let\u2019s see.'];
+    const winnerOf = m => {
+      const r = String(m.result || '');
+      if (/\bdraw/i.test(r)) return 'draw';
+      if (/\btie[d]?\b/i.test(r)) return 'tie';
+      return (m.teams || []).find(t => r.toLowerCase().startsWith(String(t).toLowerCase() + ' won')) || null;
+    };
+    const pickBox = (card, m) => {
+      if (m.tier === 'franchise' || !m.matchId || (m.teams || []).length !== 2) return;
+      const key = 'tgb-sop-pick-' + m.matchId;
+      let pick = null;
+      try { pick = localStorage.getItem(key); } catch (err) { /* private mode */ }
+      const isTest = m.tier === 'test';
+      const name = p => p === 'draw' ? 'a draw' : p;
+      if (m.state === 'result') {
+        if (!pick) return;                       // nothing to predict after the end
+        const w = winnerOf(m);
+        if (!w) return;
+        const right = pick === w || (pick === 'draw' && w === 'tie');
+        const p = el('p', 'lc-answer' + (right ? ' is-right' : ''));
+        p.appendChild(document.createTextNode('You picked ' + name(pick) + '. '));
+        p.appendChild(el('b', '', right ? '\u2713 Called it.' : 'Not this time.'));
+        card.appendChild(p);
+        return;
+      }
+      const wrap = el('div', 'lc-pick');
+      const reply = (p) => {
+        wrap.textContent = '';
+        const line = el('p', 'lc-answer');
+        line.appendChild(el('b', '', 'You picked ' + name(p) + '. '));
+        const i = Math.abs([...String(m.matchId)].reduce((a, c) => a + c.charCodeAt(0), 0)) % REPLIES.length;
+        line.appendChild(document.createTextNode(p === 'draw' ? 'A draw? A purist. Watch this space.' : REPLIES[i]));
+        wrap.appendChild(line);
+      };
+      if (pick) reply(pick);
+      else {
+        wrap.appendChild(el('p', 'lc-q', 'Who will win?'));
+        const row = el('div', 'lc-guesses');
+        const options = m.teams.concat(isTest ? ['Draw'] : []);
+        options.forEach((label, i) => {
+          const b = el('button', 'lc-guess', label);
+          b.type = 'button';
+          b.addEventListener('click', () => {
+            const p = i < 2 ? m.teams[i] : 'draw';
+            try { localStorage.setItem(key, p); } catch (err) { /* fine without it */ }
+            reply(p);
+            window.lsCard.equalize();
+          });
+          row.appendChild(b);
+        });
+        wrap.appendChild(row);
+      }
+      card.appendChild(wrap);
+    };
+
     const box = document.getElementById('sopCards');
     matches.forEach(m => {
       const f = fmtOf(m);
@@ -2331,6 +2391,7 @@ window.lsCard = (function () {
         const st = m.state === 'result' ? m.result : (m.statusNote || m.toss);
         if (st) card.appendChild(el('p', 'lc-state', st));
       }
+      pickBox(card, m);
       const n = notes[m.matchId];
       if (n) {
         const d = el('details', 'lc-note');
