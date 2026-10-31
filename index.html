@@ -2406,9 +2406,9 @@ window.lsCard = (function () {
     //   A  not comparable (DLS, shortened, no result, The Hundred, innings
     //      missing)                                   → no line
     //   B  comparable, tied (incl. super overs)
-    //   M  comparable, a comfortable win: by more than 20 runs, or by more
-    //      than 5 wickets, AND the match ended with 3 or more of the 20 overs
-    //      of the second innings left → "Comfortable win for X. Y needs to
+    //   M  comparable, a comfortable win: by more than 20 runs (however
+    //      many overs the chase used), or by more than 5 wickets with 3 or
+    //      more of the chase's 20 overs left → "Comfortable win for X. Y needs to
     //      introspect." Nothing about the pitch; the caption adds the match's
     //      RPO (runs per over) and RPW (runs per wicket) (IJ, 2026-10-31).
     //      C–H below are all "not comfortable".
@@ -2466,7 +2466,7 @@ window.lsCard = (function () {
       if (tied) return 'B';
       const byWkts = res.match(/won by (\d+) (wkt|wicket)/i);
       const oversLeft = 120 - balls(inns[1].overs) >= 18;
-      if (oversLeft && ((byRuns && Number(byRuns[1]) > 20) || (byWkts && Number(byWkts[1]) > 5))) return 'M';
+      if ((byRuns && Number(byRuns[1]) > 20) || (oversLeft && byWkts && Number(byWkts[1]) > 5)) return 'M';
       const W = inns.reduce((x, i) => x + (Number(i.wickets) || 0), 0);
       const R = inns.reduce((x, i) => x + (Number(i.runs) || 0), 0);
       if (W >= 17) return 'C';
