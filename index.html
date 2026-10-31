@@ -2449,7 +2449,7 @@ window.lsCard = (function () {
           const runs = inns.reduce((a, i) => a + (Number(i.runs) || 0), 0);
           const wkts = inns.reduce((a, i) => a + (Number(i.wickets) || 0), 0);
           const box2 = el('div', 'lc-pick');
-          box2.appendChild(el('span', 'lc-cap', runs + ' runs \u00b7 ' + wkts + ' wickets in the match'));
+          box2.appendChild(el('span', 'lc-cap', runs + ' runs \u00b7 ' + wkts + ' wickets'));
           box2.appendChild(el('p', 'lc-verdict', v));
           card.appendChild(box2);
         }
