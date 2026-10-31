@@ -2109,10 +2109,11 @@ window.lsCard = (function () {
       card.appendChild(el('h3', 'lc-teams', e.teams || e.label || ''));
       if (e.teams && e.label) card.appendChild(el('p', 'lc-sub', e.label));
       if (e.prose) card.appendChild(el('p', 'lc-prose', e.prose));
-      // A Test in progress that day: each side's first innings (IJ, 2026-10-31).
-      if (inProgress && Array.isArray(e.firstInnings) && e.firstInnings.length) {
+      // Each side's first innings, on every card (IJ, 2026-10-31), labelled so
+      // nobody takes it for the score at the end of that day.
+      if (Array.isArray(e.firstInnings) && e.firstInnings.length) {
         const fi = el('div', 'lc-first');
-        fi.appendChild(el('span', 'lc-cap', 'First innings'));
+        fi.appendChild(el('span', 'lc-cap', 'First-innings scores'));
         e.firstInnings.forEach(line => {
           const sp = String(line).match(/^(.*?)\s+(\d[\d/d]*)$/);
           const p = el('p', 'lc-inns');
