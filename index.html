@@ -2281,18 +2281,18 @@ window.lsCard = (function () {
     const { el, show } = window.lsCard;
     const fig = i => (i.wickets === 10 || i.wickets == null) ? String(i.runs) : i.runs + '/' + i.wickets;
     // Next day's start for a Test at stumps (IJ, 2026-10-31), in the reader's
-    // own time zone. A Test's days normally start at the same clock time as
-    // day 1, so it is day 1's start time on the next date after now; marked
-    // "scheduled" because rain or a rest day can move it.
+    // own time zone. Day N+1 = day 1's start time + N days (assumes no rest
+    // day). If that moment has already passed while the card still says
+    // stumps, the feed is behind: show nothing rather than guess (IJ's
+    // screenshot 2026-10-31: a stale "Day 4 · Stumps" rolled Day 5 to the
+    // wrong date). Marked "scheduled" because rain can move a start.
     const nextDay = m => {
       if (m.tier !== 'test' || m.state !== 'live' || !/stumps|end of day/i.test(String(m.dayState || ''))) return null;
       const first = new Date(m.startsAt);
       const n = parseInt(String(m.dayLabel || '').replace(/\D/g, ''), 10);
       if (isNaN(first) || !n || n >= 5) return null;
-      const now = new Date();
-      const next = new Date(now);
-      next.setUTCHours(first.getUTCHours(), first.getUTCMinutes(), 0, 0);
-      if (next <= now) next.setUTCDate(next.getUTCDate() + 1);
+      const next = new Date(first.getTime() + n * 24 * 3600 * 1000);
+      if (next.getTime() < Date.now()) return null;
       return {
         label: 'Day ' + (n + 1),
         when: next.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }) + ', ' +
