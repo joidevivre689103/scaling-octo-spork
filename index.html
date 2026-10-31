@@ -2361,29 +2361,55 @@ window.lsCard = (function () {
       card.appendChild(wrap);
     };
 
-    // A one-line read on a finished T20 (IJ's rules, 2026-10-31), checked in
-    // this order: more than 16 wickets → bowlers; fewer than 12 wickets or
-    // 440+ runs → batters; a close last-over finish → exciting; else one-sided.
-    // "Close" = the chasing side won in the 20th over, or a margin of 10 runs
-    // or fewer (a side batting out its 20 overs and losing by 87 is not
-    // close). Rain-affected (DLS) and no-result matches get no line.
-    const balls = o => { const n = Number(o) || 0; const w = Math.floor(n); return w * 6 + Math.round((n - w) * 10); };
-    const t20Verdict = m => {
-      const inns = Array.isArray(m.innings) ? m.innings : [];
-      const res = String(m.result || '');
-      if (inns.length !== 2 || /\b(dls|d\/l|duckworth|no result|abandon)/i.test(res)) return '';
-      const wkts = inns.reduce((a, i) => a + (Number(i.wickets) || 0), 0);
-      const runs = inns.reduce((a, i) => a + (Number(i.runs) || 0), 0);
-      if (wkts > 16) return 'There\u2019s something for the bowlers in T20 after all.';
-      if (wkts < 12 || runs >= 440) return 'Looks like the batters dominated this one.';
-      const lastOver = balls(inns[1].overs) > 19 * 6;
-      const byRuns = res.match(/won by (\d+) run/i);
-      const chaseWon = /won by \d+ (wkt|wicket)/i.test(res);
-      if (lastOver && (chaseWon || (byRuns && Number(byRuns[1]) <= 10))) {
-        return 'Exciting finish, and a good balance between bat and ball.';
-      }
-      return 'One-sided in the end.';
+    // A one-line read on a finished T20 (IJ, 2026-10-31). The cases are MECE:
+    // each is defined by its own conditions, not by the order of checks.
+    //   W = wickets in the match (0–20), R = runs in the match, both from the
+    //   two main innings; close = the chase won in the 20th over, or a margin
+    //   of 10 runs or fewer.
+    //   A  not comparable (DLS, shortened, no result, The Hundred, innings
+    //      missing)                                   → no line
+    //   B  comparable, tied (incl. super overs)
+    //   C  comparable, not tied, W 17–20
+    //   D  comparable, not tied, W 0–11,  R ≥ 300
+    //   E  comparable, not tied, W 0–11,  R < 300
+    //   F  comparable, not tied, W 12–16, R ≥ 440
+    //   G  comparable, not tied, W 12–16, R < 440, close
+    //   H  comparable, not tied, W 12–16, R < 440, not close
+    const T20_LINES = {
+      B: 'Tied! It doesn\u2019t get closer than that.',
+      C: 'There\u2019s something for the bowlers in T20 after all.',
+      D: 'Looks like the batters dominated this one.',
+      E: 'Low-scoring: the pitch had the final say.',
+      F: 'Looks like the batters dominated this one.',
+      G: 'Exciting finish, and a good balance between bat and ball.',
+      H: 'One-sided in the end.',
     };
+    const balls = o => { const n = Number(o) || 0; const w = Math.floor(n); return w * 6 + Math.round((n - w) * 10); };
+    const t20Case = m => {
+      const inns = Array.isArray(m.innings) ? m.innings.slice(0, 2) : [];
+      const res = String(m.result || '');
+      const tied = /\btie[ds]?\b|super over/i.test(res);
+      const chaseWon = /won by \d+ (wkt|wicket)/i.test(res);
+      const byRuns = res.match(/won by (\d+) run/i);
+      // Comparable: two innings, no rain rule or abandonment, not The Hundred,
+      // and neither innings cut short (an innings under 20 overs must have
+      // been bowled out, or be a winning chase).
+      const short1 = inns[0] && balls(inns[0].overs) < 120 && Number(inns[0].wickets) < 10;
+      const short2 = inns[1] && balls(inns[1].overs) < 120 && Number(inns[1].wickets) < 10 && !chaseWon && !tied;
+      const comparable = inns.length === 2 && !short1 && !short2
+        && !/\b(dls|d\/l|duckworth|no result|abandon)/i.test(res)
+        && !/hundred/i.test(String(m.competition || ''));
+      if (!comparable) return 'A';
+      if (tied) return 'B';
+      const W = inns.reduce((x, i) => x + (Number(i.wickets) || 0), 0);
+      const R = inns.reduce((x, i) => x + (Number(i.runs) || 0), 0);
+      if (W >= 17) return 'C';
+      if (W <= 11) return R >= 300 ? 'D' : 'E';
+      if (R >= 440) return 'F';                                   // W 12–16 from here
+      const close = (chaseWon && balls(inns[1].overs) > 114) || (!!byRuns && Number(byRuns[1]) <= 10);
+      return close ? 'G' : 'H';
+    };
+    const t20Verdict = m => T20_LINES[t20Case(m)] || '';
 
     const box = document.getElementById('sopCards');
     matches.forEach(m => {
