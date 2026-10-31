@@ -279,6 +279,9 @@ body{
 .lc-answer{ margin:0 0 4px; font-size:13px; line-height:1.45; color:var(--text); }
 .lc-answer b{ color:var(--text2); }
 .lc-answer.is-right b{ color:#1E7A55; }
+.lc-ov{ font-size:12px; color:var(--text3); }
+.lc-series{ font-style:italic; }
+.lc-pick{ margin-top:auto; padding-top:8px; border-top:1px solid var(--surface3); }
 .lc-link{ font-size:13px; line-height:1.4; color:var(--accent); text-decoration:none; font-weight:600; }
 .lc-link:hover{ color:var(--accent-hover); text-decoration:underline; }
 .lc-standout{ margin:0; font-size:12.5px; line-height:1.4; color:var(--accent); }
@@ -2289,7 +2292,72 @@ window.lsCard = (function () {
       if (!m.inningsAttributed || !inns.length) return null;
       const order = [];
       inns.forEach(i => { if (i.team && !order.includes(i.team)) order.push(i.team); });
-      return order.map(t => ({ team: t, figs: inns.filter(i => i.team === t).map(fig).join(' & ') }));
+      return order.map(t => ({ team: t, inns: inns.filter(i => i.team === t) }));
+    };
+    // "329 (98.2 ov)": overs in a lighter span after each innings (IJ, 2026-10-31).
+    const innsLine = (p, list) => list.forEach((i, k) => {
+      if (k) p.appendChild(document.createTextNode(' & '));
+      p.appendChild(document.createTextNode(fig(i)));
+      if (i.overs != null && i.overs !== '') p.appendChild(el('span', 'lc-ov', ' (' + i.overs + ' ov)'));
+    });
+
+    // "Who will win?" (IJ, 2026-10-31). Live and upcoming Tests and
+    // internationals. The pick stays in this browser only (nothing is sent,
+    // counted or shown as odds); a short reply replaces the buttons, and once
+    // the result is in the card says whether the reader called it.
+    const REPLIES = ['Bold. We\u2019ll hold you to it.', 'Noted. Watch this space.', 'Brave call. Let\u2019s see.'];
+    const winnerOf = m => {
+      const r = String(m.result || '');
+      if (/\bdraw/i.test(r)) return 'draw';
+      if (/\btie[d]?\b/i.test(r)) return 'tie';
+      return (m.teams || []).find(t => r.toLowerCase().startsWith(String(t).toLowerCase() + ' won')) || null;
+    };
+    const pickBox = (card, m) => {
+      if (m.tier === 'franchise' || !m.matchId || (m.teams || []).length !== 2) return;
+      const key = 'tgb-sop-pick-' + m.matchId;
+      let pick = null;
+      try { pick = localStorage.getItem(key); } catch (err) { /* private mode */ }
+      const isTest = m.tier === 'test';
+      const name = p => p === 'draw' ? 'a draw' : p;
+      if (m.state === 'result') {
+        if (!pick) return;                       // nothing to predict after the end
+        const w = winnerOf(m);
+        if (!w) return;
+        const right = pick === w || (pick === 'draw' && w === 'tie');
+        const p = el('p', 'lc-answer' + (right ? ' is-right' : ''));
+        p.appendChild(document.createTextNode('You picked ' + name(pick) + '. '));
+        p.appendChild(el('b', '', right ? '\u2713 Called it.' : 'Not this time.'));
+        card.appendChild(p);
+        return;
+      }
+      const wrap = el('div', 'lc-pick');
+      const reply = (p) => {
+        wrap.textContent = '';
+        const line = el('p', 'lc-answer');
+        line.appendChild(el('b', '', 'You picked ' + name(p) + '. '));
+        const i = Math.abs([...String(m.matchId)].reduce((a, c) => a + c.charCodeAt(0), 0)) % REPLIES.length;
+        line.appendChild(document.createTextNode(p === 'draw' ? 'Boring or thriller? Watch this space.' : REPLIES[i]));
+        wrap.appendChild(line);
+      };
+      if (pick) reply(pick);
+      else {
+        wrap.appendChild(el('p', 'lc-q', 'Who will win?'));
+        const row = el('div', 'lc-guesses');
+        const options = m.teams.concat(isTest ? ['Draw'] : []);
+        options.forEach((label, i) => {
+          const b = el('button', 'lc-guess', label);
+          b.type = 'button';
+          b.addEventListener('click', () => {
+            const p = i < 2 ? m.teams[i] : 'draw';
+            try { localStorage.setItem(key, p); } catch (err) { /* fine without it */ }
+            reply(p);
+            window.lsCard.equalize();
+          });
+          row.appendChild(b);
+        });
+        wrap.appendChild(row);
+      }
+      card.appendChild(wrap);
     };
 
     const box = document.getElementById('sopCards');
@@ -2301,8 +2369,13 @@ window.lsCard = (function () {
       top.appendChild(el('span', 'lc-tag', tag(m)));
       card.appendChild(top);
       card.appendChild(el('h3', 'lc-teams', (m.teams || []).join(' v ')));
+      // Which match and where ("2nd Test · Newlands"), then the series
+      // ("Australia tour of South Africa") — IJ, 2026-10-31.
       const venue = (m.venue || '').split(',')[0].trim();
-      if (venue) card.appendChild(el('p', 'lc-sub', venue));
+      const where = [m.matchLabel, venue].filter(Boolean).join(' · ');
+      if (where) card.appendChild(el('p', 'lc-sub', where));
+      const series = m.tier === 'franchise' ? '' : String(m.competition || '').replace(/,\s*\d{4}(-\d{2,4})?$/, '').trim();
+      if (series) card.appendChild(el('p', 'lc-sub lc-series', series));
       if (m.state === 'upcoming') {
         card.appendChild(el('p', 'lc-state', 'Starts ' + starts(m.startsAt)));
       } else {
@@ -2310,13 +2383,15 @@ window.lsCard = (function () {
         if (rows) rows.forEach(r => {
           const p = el('p', 'lc-inns');
           p.appendChild(el('b', '', r.team));
-          p.appendChild(document.createTextNode(' ' + r.figs));
+          p.appendChild(document.createTextNode(' '));
+          innsLine(p, r.inns);
           card.appendChild(p);
         });
         else if (m.summary) card.appendChild(el('p', 'lc-inns', m.summary));
         const st = m.state === 'result' ? m.result : (m.statusNote || m.toss);
         if (st) card.appendChild(el('p', 'lc-state', st));
       }
+      pickBox(card, m);
       const n = notes[m.matchId];
       if (n) {
         const d = el('details', 'lc-note');
