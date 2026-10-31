@@ -279,6 +279,8 @@ body{
 .lc-answer{ margin:0 0 4px; font-size:13px; line-height:1.45; color:var(--text); }
 .lc-answer b{ color:var(--text2); }
 .lc-answer.is-right b{ color:#1E7A55; }
+.lc-ov{ font-size:12px; color:var(--text3); }
+.lc-series{ font-style:italic; }
 .lc-link{ font-size:13px; line-height:1.4; color:var(--accent); text-decoration:none; font-weight:600; }
 .lc-link:hover{ color:var(--accent-hover); text-decoration:underline; }
 .lc-standout{ margin:0; font-size:12.5px; line-height:1.4; color:var(--accent); }
@@ -2289,8 +2291,14 @@ window.lsCard = (function () {
       if (!m.inningsAttributed || !inns.length) return null;
       const order = [];
       inns.forEach(i => { if (i.team && !order.includes(i.team)) order.push(i.team); });
-      return order.map(t => ({ team: t, figs: inns.filter(i => i.team === t).map(fig).join(' & ') }));
+      return order.map(t => ({ team: t, inns: inns.filter(i => i.team === t) }));
     };
+    // "329 (98.2 ov)": overs in a lighter span after each innings (IJ, 2026-10-31).
+    const innsLine = (p, list) => list.forEach((i, k) => {
+      if (k) p.appendChild(document.createTextNode(' & '));
+      p.appendChild(document.createTextNode(fig(i)));
+      if (i.overs != null && i.overs !== '') p.appendChild(el('span', 'lc-ov', ' (' + i.overs + ' ov)'));
+    });
 
     const box = document.getElementById('sopCards');
     matches.forEach(m => {
@@ -2301,8 +2309,13 @@ window.lsCard = (function () {
       top.appendChild(el('span', 'lc-tag', tag(m)));
       card.appendChild(top);
       card.appendChild(el('h3', 'lc-teams', (m.teams || []).join(' v ')));
+      // Which match and where ("2nd Test · Newlands"), then the series
+      // ("Australia tour of South Africa") — IJ, 2026-10-31.
       const venue = (m.venue || '').split(',')[0].trim();
-      if (venue) card.appendChild(el('p', 'lc-sub', venue));
+      const where = [m.matchLabel, venue].filter(Boolean).join(' · ');
+      if (where) card.appendChild(el('p', 'lc-sub', where));
+      const series = m.tier === 'franchise' ? '' : String(m.competition || '').replace(/,\s*\d{4}(-\d{2,4})?$/, '').trim();
+      if (series) card.appendChild(el('p', 'lc-sub lc-series', series));
       if (m.state === 'upcoming') {
         card.appendChild(el('p', 'lc-state', 'Starts ' + starts(m.startsAt)));
       } else {
@@ -2310,7 +2323,8 @@ window.lsCard = (function () {
         if (rows) rows.forEach(r => {
           const p = el('p', 'lc-inns');
           p.appendChild(el('b', '', r.team));
-          p.appendChild(document.createTextNode(' ' + r.figs));
+          p.appendChild(document.createTextNode(' '));
+          innsLine(p, r.inns);
           card.appendChild(p);
         });
         else if (m.summary) card.appendChild(el('p', 'lc-inns', m.summary));
