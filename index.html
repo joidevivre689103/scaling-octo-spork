@@ -439,8 +439,11 @@ body{
 .wtc-cloche-stand{ position:relative; max-width:1120px; height:9px; margin:0 auto; border-radius:0 0 6px 6px; background:linear-gradient(180deg,#e1c58a,#a07a38); box-shadow:0 6px 14px rgba(60,40,20,.18); }
 /* The plaque on the stand turns through 4·99 → 49·99 → 99·94 (numbers only, no "No."):
    the $4.99 rotisserie chicken, $49.99, and the Don's 99.94 (IJ, 2026-10-28;
-   rotating and made larger 2026-10-29). Keep the three numbers as they are. */
-.wtc-cloche-plaque{ position:absolute; left:50%; top:3px; transform:translateX(-50%); padding:5px 18px 6px; background:linear-gradient(180deg,#e2c588,#a8823f); border-radius:0 0 6px 6px; font-family:'Playfair Display',serif; font-size:15px; font-weight:700; letter-spacing:.12em; color:#3b2810; text-shadow:0 1px 0 rgba(255,240,200,.7); box-shadow:inset 0 1px 2px rgba(60,40,20,.35), 0 2px 5px rgba(60,40,20,.2); white-space:nowrap; transition:opacity .6s ease; }
+   rotating 2026-10-29). Keep the three numbers as they are.
+   "Hidden in plain sight" (IJ, 2026-10-31): no longer a gold tab hanging in
+   the middle of the stand, but a small maker's mark in the stand's own gold,
+   tucked under its right-hand end. */
+.wtc-cloche-plaque{ position:absolute; right:7%; top:calc(100% + 5px); font-family:'Playfair Display',serif; font-size:10px; font-weight:700; line-height:1; letter-spacing:.18em; color:#b89558; white-space:nowrap; transition:opacity .6s ease; }
 .wtc-cloche-plaque.is-turning{ opacity:0; }
 @media (prefers-reduced-motion: reduce){ .wtc-cloche-plaque{ transition:none; } }
 .wtc-cloche-items{ position:relative; display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:10px; }
@@ -1387,7 +1390,7 @@ body.articles-loading .analysis-section{ visibility:hidden; }
     </script>
     <div class="wtc-cloche-foot">
       <a class="wtc-cloche-cta" href="/wtc.html">The full table &rarr;</a>
-      <p class="wtc-strip-note" id="wtcFresh">The table is free to see, no account needed.</p>
+      <p class="wtc-strip-note" id="wtcFresh">Figures are points %, not chances of winning. The table is free to see, no account needed.</p>
     </div>
   </section>
 </div>
@@ -2009,13 +2012,15 @@ async function refreshFeedRow() {
       team.textContent = r.team;
       const fig = document.createElement('span');
       fig.className = 'wtc-cloche-fig';
-      fig.textContent = Number(r.pct).toFixed(1) + '%';
+      // Whole numbers (IJ, 2026-10-31): 75%, not 75.0%. A move that rounds
+      // to 0 is not shown.
+      fig.textContent = Math.round(Number(r.pct)) + '%';
       const mvEl = document.createElement('span');
-      const mv = Math.round((Number(moves[r.team]) || 0) * 10) / 10;
+      const mv = Math.round(Number(moves[r.team]) || 0);
       mvEl.className = 'wtc-cloche-move' + (mv ? (mv > 0 ? ' up' : ' down') : '');
       if (mv) {
-        mvEl.textContent = (mv > 0 ? '\u25B2 ' : '\u25BC ') + Math.abs(mv).toFixed(1);
-        mvEl.title = (mv > 0 ? 'Up ' : 'Down ') + Math.abs(mv).toFixed(1) + ' points of a percentage since the last result';
+        mvEl.textContent = (mv > 0 ? '\u25B2 ' : '\u25BC ') + Math.abs(mv);
+        mvEl.title = (mv > 0 ? 'Up ' : 'Down ') + Math.abs(mv) + ' points of a percentage since the last result';
       } else if (r.status === 'through' || r.status === 'out') {
         mvEl.textContent = r.status === 'through' ? 'Through' : 'Out';
       }
@@ -2028,7 +2033,7 @@ async function refreshFeedRow() {
       const dt = new Date(to + 'T12:00:00Z');
       const when = dt.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', timeZone: 'UTC' });
       document.getElementById('wtcFresh').textContent =
-        'Includes every result to ' + when + '. The table is free to see, no account needed.';
+        'Figures are points %, not chances of winning. Includes every result to ' + when + '. The table is free to see, no account needed.';
     }
     document.getElementById('wtcStrip').hidden = false;
     // The pointer's copy, from the same document so its numbers stay true as
