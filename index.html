@@ -259,6 +259,10 @@ body{
 .lc-top{ display:flex; justify-content:space-between; align-items:baseline; gap:8px; font-family:'Inter',sans-serif; font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text3); }
 .lc-top span:first-child{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .lc-tag{ white-space:nowrap; }
+/* A long status ("Day 4 · Rain stops play") wraps on the right; the format
+   label ("Test") never shrinks (IJ's screenshot, 2026-10-31: it read "T…"). */
+.lc-top .lc-fmt{ flex:none; overflow:visible; }
+#sopCards .lc-tag{ white-space:normal; text-align:right; min-width:0; }
 .lc.is-live .lc-tag{ color:var(--fmt); font-weight:600; }
 .lc.is-live .lc-tag::before{ content:'\25CF\00A0'; }
 .lc-year{ font-family:'Playfair Display',serif; font-size:19px; font-weight:700; letter-spacing:0; text-transform:none; color:var(--text); font-variant-numeric:lining-nums tabular-nums; }
