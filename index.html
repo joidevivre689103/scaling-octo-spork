@@ -2142,12 +2142,24 @@ window.lsCard = (function () {
     const all = Array.isArray(data.matches) ? data.matches : [];
     if (!all.length) return;
 
-    // Three cards. Tests in play first, then Test results, internationals in
-    // play, Tests about to start, international results, then franchise.
+    // Three cards (IJ, 2026-10-31). Tests first. Then ODIs and T20Is between
+    // two of the top eleven, a Test about to start, internationals with one
+    // top side, any other international, and franchise cricket last.
+    // m.top (0–2) comes from fetchScores; worked out here if it is missing.
+    const TOP = ['india', 'south africa', 'australia', 'england', 'pakistan', 'west indies',
+      'new zealand', 'sri lanka', 'bangladesh', 'afghanistan', 'ireland'];
+    const topOf = m => typeof m.top === 'number' ? m.top
+      : (m.teams || []).filter(t => TOP.includes(String(t).toLowerCase().replace(/\s+(women|men)$/, ''))).length;
     const rank = m => {
-      const r = { test: { live: 0, result: 1, upcoming: 3 }, international: { live: 2, result: 4, upcoming: 7 },
-                  franchise: { live: 5, result: 6, upcoming: 8 } };
-      return ((r[m.tier] || {})[m.state] ?? 9);
+      const live = m.state === 'live' ? 0 : m.state === 'result' ? 1 : 2;
+      if (m.tier === 'test') return m.state === 'upcoming' ? 4 : live;          // 0 live, 1 result, 4 upcoming
+      if (m.tier === 'international') {
+        if (m.state === 'upcoming') return 12;
+        const top = topOf(m);
+        return top === 2 ? 2 + live : top === 1 ? 5 + live : 7 + live;      // 2–3, 5–6, 7–8
+      }
+      if (m.tier === 'franchise') return m.state === 'upcoming' ? 13 : 9 + live; // 9–10
+      return 14;
     };
     const matches = all.map((m, i) => ({ m, i })).sort((a, b) => rank(a.m) - rank(b.m) || a.i - b.i)
       .slice(0, 3).map(x => x.m);
