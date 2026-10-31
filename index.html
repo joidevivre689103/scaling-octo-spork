@@ -2336,7 +2336,7 @@ window.lsCard = (function () {
         const line = el('p', 'lc-answer');
         line.appendChild(el('b', '', 'You picked ' + name(p) + '. '));
         const i = Math.abs([...String(m.matchId)].reduce((a, c) => a + c.charCodeAt(0), 0)) % REPLIES.length;
-        line.appendChild(document.createTextNode(p === 'draw' ? 'A draw? A purist. Watch this space.' : REPLIES[i]));
+        line.appendChild(document.createTextNode(p === 'draw' ? 'Boring or thriller? Watch this space.' : REPLIES[i]));
         wrap.appendChild(line);
       };
       if (pick) reply(pick);
