@@ -2365,7 +2365,11 @@ window.lsCard = (function () {
         const p = el('p', 'lc-answer' + (right ? ' is-right' : ''));
         p.appendChild(document.createTextNode('You picked ' + name(pick) + '. '));
         p.appendChild(el('b', '', right ? '\u2713 Called it.' : 'Not this time.'));
-        card.appendChild(p);
+        // In the boxed foot like every other closing comment (IJ, 2026-10-31);
+        // a T20I that already has a verdict box shares it.
+        let box = card.querySelector('.lc-pick');
+        if (!box) { box = el('div', 'lc-pick'); card.appendChild(box); }
+        box.appendChild(p);
         return;
       }
       const wrap = el('div', 'lc-pick');
