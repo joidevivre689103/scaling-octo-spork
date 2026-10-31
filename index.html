@@ -286,6 +286,7 @@ body{
 .lc-ov{ font-size:12px; color:var(--text3); }
 .lc-series{ font-style:italic; }
 .lc-pick{ margin-top:auto; padding-top:8px; border-top:1px solid var(--surface3); }
+.lc-rates{ display:block; margin-top:2px; }
 .lc-verdict{ margin:2px 0 0; font-size:13px; line-height:1.45; color:var(--text); font-weight:600; }
 .lc-next{ margin:0; font-size:12.5px; line-height:1.45; color:var(--text2); }
 .lc-next b{ font-weight:600; color:var(--text); }
@@ -2405,12 +2406,38 @@ window.lsCard = (function () {
     //   A  not comparable (DLS, shortened, no result, The Hundred, innings
     //      missing)                                   → no line
     //   B  comparable, tied (incl. super overs)
+    //   M  comparable, a comfortable win: by more than 20 runs, or by more
+    //      than 5 wickets, AND the match ended with 3 or more of the 20 overs
+    //      of the second innings left → "Comfortable win for X. Y needs to
+    //      introspect." Nothing about the pitch; the caption adds the match's
+    //      RPO (runs per over) and RPW (runs per wicket) (IJ, 2026-10-31).
+    //      C–H below are all "not comfortable".
     //   C  comparable, not tied, W 17–20
     //   D  comparable, not tied, W 0–11,  R ≥ 300
     //   E  comparable, not tied, W 0–11,  R < 300
     //   G  comparable, not tied, W 12–16, close (any R)
     //   F  comparable, not tied, W 12–16, not close, R ≥ 440
     //   H  comparable, not tied, W 12–16, not close, R < 440
+    // A team name over 12 letters becomes its shortest word, leaving out
+    // "Women"/"Men" ("Perth Scorchers Women" → "Perth"); a tie goes to the
+    // earlier word. The second sentence is added only if the whole line
+    // stays within 60 characters.
+    const shortTeam = t => {
+      t = String(t || '');
+      if (t.length <= 12) return t;
+      const words = t.split(/\s+/).filter(w => !/^(wo)?men$/i.test(w));
+      return words.reduce((a, w) => (w.length < a.length ? w : a), words[0] || t);
+    };
+    const comfortLine = m => {
+      const res = String(m.result || '');
+      const teams = m.teams || [];
+      const win = teams.find(t => res.toLowerCase().startsWith(String(t).toLowerCase() + ' won'));
+      const lose = teams.find(t => t !== win);
+      if (!win) return '';
+      const first = 'Comfortable win for ' + shortTeam(win) + '.';
+      const both = lose ? first + ' ' + shortTeam(lose) + ' needs to introspect.' : first;
+      return both.length <= 60 ? both : first;
+    };
     const T20_LINES = {
       B: 'Tied! It doesn\u2019t get closer than that.',
       C: 'There\u2019s something for the bowlers in T20 after all.',
@@ -2437,6 +2464,9 @@ window.lsCard = (function () {
         && !/hundred/i.test(String(m.competition || ''));
       if (!comparable) return 'A';
       if (tied) return 'B';
+      const byWkts = res.match(/won by (\d+) (wkt|wicket)/i);
+      const oversLeft = 120 - balls(inns[1].overs) >= 18;
+      if (oversLeft && ((byRuns && Number(byRuns[1]) > 20) || (byWkts && Number(byWkts[1]) > 5))) return 'M';
       const W = inns.reduce((x, i) => x + (Number(i.wickets) || 0), 0);
       const R = inns.reduce((x, i) => x + (Number(i.runs) || 0), 0);
       if (W >= 17) return 'C';
@@ -2446,7 +2476,7 @@ window.lsCard = (function () {
       if (close) return 'G';
       return R >= 440 ? 'F' : 'H';
     };
-    const t20Verdict = m => T20_LINES[t20Case(m)] || '';
+    const t20Verdict = m => { const c = t20Case(m); return c === 'M' ? comfortLine(m) : (T20_LINES[c] || ''); };
 
     const box = document.getElementById('sopCards');
     matches.forEach(m => {
@@ -2485,7 +2515,8 @@ window.lsCard = (function () {
           p.appendChild(document.createTextNode(nd.when + ' (scheduled)'));
           card.appendChild(p);
         }
-        const v = m.state === 'result' && fmtOf(m) === 't20' ? t20Verdict(m) : '';
+        const isT20Result = m.state === 'result' && fmtOf(m) === 't20';
+        const v = isT20Result ? t20Verdict(m) : '';
         if (v) {
           // The match totals the line is drawn from, then the line itself.
           const inns = m.innings || [];
@@ -2493,6 +2524,14 @@ window.lsCard = (function () {
           const wkts = inns.reduce((a, i) => a + (Number(i.wickets) || 0), 0);
           const box2 = el('div', 'lc-pick');
           box2.appendChild(el('span', 'lc-cap', runs + ' runs \u00b7 ' + wkts + ' wickets'));
+          // Comfortable wins: RPO and RPW for the match on a line of their
+          // own (RPW left out if no wicket fell).
+          if (t20Case(m) === 'M') {
+            const overs = inns.reduce((a, i) => a + balls(i.overs), 0) / 6;
+            const rates = [overs ? 'RPO = ' + (runs / overs).toFixed(1) : '', wkts ? 'RPW = ' + (runs / wkts).toFixed(1) : '']
+              .filter(Boolean).join(' \u00b7 ');
+            if (rates) box2.appendChild(el('span', 'lc-cap lc-rates', rates));
+          }
           box2.appendChild(el('p', 'lc-verdict', v));
           card.appendChild(box2);
         }
