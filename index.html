@@ -249,12 +249,18 @@ body{
 .ls-more:hover{ color:var(--accent-hover); text-decoration:underline; }
 .sop-preview-tag{ font-family:'Inter',sans-serif; font-size:9.5px; letter-spacing:0.12em; text-transform:uppercase; color:#fff; background:var(--accent); padding:3px 6px; border-radius:2px; white-space:nowrap; }
 .ls-cards{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; align-items:start; }
-.lc{ background:var(--surface); border:1px solid var(--border); border-radius:4px; padding:12px 14px 13px; display:flex; flex-direction:column; gap:5px; min-width:0; }
-.lc.is-live{ box-shadow:inset 0 3px 0 var(--accent); padding-top:14px; }
+/* Format colour (IJ, 2026-10-31): a 4px top border and the tag. Crimson for
+   Tests (the red ball), navy for ODIs, green for T20s; neutral if unknown. */
+.lc{ --fmt:var(--border2); background:var(--surface); border:1px solid var(--border); border-top:4px solid var(--fmt); border-radius:4px; padding:11px 14px 13px; display:flex; flex-direction:column; gap:5px; min-width:0; }
+.lc.fmt-test{ --fmt:#8B0000; }
+.lc.fmt-odi{ --fmt:#1D4E89; }
+.lc.fmt-t20{ --fmt:#1E7A55; }
+.lc-fmt{ color:var(--fmt); font-weight:600; }
 .lc-top{ display:flex; justify-content:space-between; align-items:baseline; gap:8px; font-family:'Inter',sans-serif; font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text3); }
 .lc-top span:first-child{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .lc-tag{ white-space:nowrap; }
-.lc.is-live .lc-tag{ color:var(--accent); }
+.lc.is-live .lc-tag{ color:var(--fmt); font-weight:600; }
+.lc.is-live .lc-tag::before{ content:'\25CF\00A0'; }
 .lc-year{ font-family:'Playfair Display',serif; font-size:19px; font-weight:700; letter-spacing:0; text-transform:none; color:var(--text); font-variant-numeric:lining-nums tabular-nums; }
 .lc-teams{ font-family:'Playfair Display',serif; font-size:16.5px; font-weight:600; line-height:1.25; margin:0; color:var(--text); }
 .lc-sub{ font-size:12px; color:var(--text3); margin:0; line-height:1.4; }
@@ -265,6 +271,8 @@ body{
 .lc-foot{ margin-top:auto; padding-top:8px; border-top:1px solid var(--surface3); display:flex; flex-direction:column; gap:3px; }
 .lc-cap{ font-family:'Inter',sans-serif; font-size:9.5px; letter-spacing:0.12em; text-transform:uppercase; color:var(--text3); }
 .lc-result{ margin:0; font-size:13px; line-height:1.45; color:var(--text2); }
+.lc-link{ font-size:13px; line-height:1.4; color:var(--accent); text-decoration:none; font-weight:600; }
+.lc-link:hover{ color:var(--accent-hover); text-decoration:underline; }
 .lc-standout{ margin:0; font-size:12.5px; line-height:1.4; color:var(--accent); }
 .lc-note{ margin-top:auto; padding-top:6px; }
 .lc-note summary{ cursor:pointer; list-style:none; font-family:'Inter',sans-serif; font-size:11px; letter-spacing:0.04em; color:var(--accent); }
@@ -2092,7 +2100,7 @@ window.lsCard = (function () {
     const box = document.getElementById('otdCards');
     entries.forEach(e => {
       const inProgress = e.state === 'inprogress';
-      const card = el('article', 'lc');
+      const card = el('article', 'lc fmt-test');
       const top = el('div', 'lc-top');
       top.appendChild(el('span', 'lc-year', String(e.year)));
       if (e.day) top.appendChild(el('span', 'lc-tag', inProgress ? 'Day ' + e.day + ' · in progress' : 'Day ' + e.day + ' · final day'));
@@ -2100,10 +2108,20 @@ window.lsCard = (function () {
       card.appendChild(el('h3', 'lc-teams', e.teams || e.label || ''));
       if (e.teams && e.label) card.appendChild(el('p', 'lc-sub', e.label));
       if (e.prose) card.appendChild(el('p', 'lc-prose', e.prose));
+      // The result is not on the card (IJ, 2026-10-31): the card links to our
+      // own page for the result and full scorecard, which is for subscribers —
+      // one more reason to subscribe. Signed-out readers meet that page's gate.
       const foot = el('div', 'lc-foot');
-      foot.appendChild(el('span', 'lc-cap', 'Result'));
-      foot.appendChild(el('p', 'lc-result', e.scoreline));
-      if (e.standout) foot.appendChild(el('p', 'lc-standout', e.standout));
+      const test = parseInt(e.test, 10);
+      if (test > 0) {
+        foot.appendChild(el('span', 'lc-cap', 'For subscribers'));
+        const a = el('a', 'lc-link', inProgress ? 'How it ended, with the full scorecard →' : 'Result and full scorecard →');
+        a.href = '/countries.html?otd=' + test + '#onthisday';
+        foot.appendChild(a);
+      } else {
+        foot.appendChild(el('span', 'lc-cap', 'Result'));
+        foot.appendChild(el('p', 'lc-result', e.scoreline));
+      }
       card.appendChild(foot);
       box.appendChild(card);
     });
@@ -2142,12 +2160,24 @@ window.lsCard = (function () {
     const all = Array.isArray(data.matches) ? data.matches : [];
     if (!all.length) return;
 
-    // Three cards. Tests in play first, then Test results, internationals in
-    // play, Tests about to start, international results, then franchise.
+    // Three cards (IJ, 2026-10-31). Tests first. Then ODIs and T20Is between
+    // two of the top twelve, a Test about to start, internationals with one
+    // top side, any other international, and franchise cricket last.
+    // m.top (0–2) comes from fetchScores; worked out here if it is missing.
+    const TOP = ['india', 'south africa', 'australia', 'england', 'pakistan', 'west indies',
+      'new zealand', 'sri lanka', 'bangladesh', 'afghanistan', 'ireland', 'zimbabwe'];
+    const topOf = m => typeof m.top === 'number' ? m.top
+      : (m.teams || []).filter(t => TOP.includes(String(t).toLowerCase().replace(/\s+(women|men)$/, ''))).length;
     const rank = m => {
-      const r = { test: { live: 0, result: 1, upcoming: 3 }, international: { live: 2, result: 4, upcoming: 7 },
-                  franchise: { live: 5, result: 6, upcoming: 8 } };
-      return ((r[m.tier] || {})[m.state] ?? 9);
+      const live = m.state === 'live' ? 0 : m.state === 'result' ? 1 : 2;
+      if (m.tier === 'test') return m.state === 'upcoming' ? 4 : live;          // 0 live, 1 result, 4 upcoming
+      if (m.tier === 'international') {
+        if (m.state === 'upcoming') return 12;
+        const top = topOf(m);
+        return top === 2 ? 2 + live : top === 1 ? 5 + live : 7 + live;      // 2–3, 5–6, 7–8
+      }
+      if (m.tier === 'franchise') return m.state === 'upcoming' ? 13 : 9 + live; // 9–10
+      return 14;
     };
     const matches = all.map((m, i) => ({ m, i })).sort((a, b) => rank(a.m) - rank(b.m) || a.i - b.i)
       .slice(0, 3).map(x => x.m);
@@ -2169,7 +2199,16 @@ window.lsCard = (function () {
       return d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }) + ', ' +
         d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     };
-    const tierLabel = m => m.tier === 'test' ? 'Test' : m.tier === 'international' ? 'International' : (m.competition || 'Franchise');
+    // Format for the card colour: from fetchScores (m.format), else guessed
+    // from the competition name until that field arrives.
+    const fmtOf = m => m.format || (m.tier === 'test' ? 'test'
+      : /\b(odi|one[- ]day)\b/i.test(m.competition || '') ? 'odi'
+      : /\bt20/i.test(m.competition || '') || m.tier === 'franchise' ? 't20' : '');
+    const tierLabel = m => {
+      if (m.tier === 'franchise') return m.competition || 'T20';
+      const f = fmtOf(m);
+      return f === 'test' ? 'Test' : f === 'odi' ? 'ODI' : f === 't20' ? 'T20I' : 'International';
+    };
     const tag = m => m.state === 'upcoming' ? 'Upcoming'
       : m.state === 'result' ? 'Result'
       : [m.dayLabel, m.dayState].filter(Boolean).join(' · ') || 'In play';
@@ -2183,9 +2222,10 @@ window.lsCard = (function () {
 
     const box = document.getElementById('sopCards');
     matches.forEach(m => {
-      const card = el('article', 'lc' + (m.state === 'live' ? ' is-live' : ''));
+      const f = fmtOf(m);
+      const card = el('article', 'lc' + (f ? ' fmt-' + f : '') + (m.state === 'live' ? ' is-live' : ''));
       const top = el('div', 'lc-top');
-      top.appendChild(el('span', '', tierLabel(m)));
+      top.appendChild(el('span', 'lc-fmt', tierLabel(m)));
       top.appendChild(el('span', 'lc-tag', tag(m)));
       card.appendChild(top);
       card.appendChild(el('h3', 'lc-teams', (m.teams || []).join(' v ')));
