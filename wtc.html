@@ -183,6 +183,7 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
           <tbody></tbody>
         </table>
       </div>
+      <p class="note" id="whatifNote" hidden></p>
       <button class="btn" type="button" id="whatifReset">Clear my results</button>
     </div>
   </div>
@@ -221,6 +222,12 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
   // possible % (winning every Test left) is below the % that took second
   // place last cycle. Sits beside Status in both tables, so "Can still make
   // it" keeps meaning "alive" and the yardstick has its own column.
+  // The same sentence under both tables (IJ, 2026-10-31): where 67.54% comes from.
+  function NEEDS_HELP_NOTE(last) {
+    return '\u201cNeeds help\u201d: still in it, but even winning every Test left won\u2019t reach ' +
+      Number(last.secondPct).toFixed(2) + '%, the points % of last cycle\u2019s second-placed team (' + last.second +
+      ', ' + String(last.cycle).replace('-', '\u2013') + '). They need other results to go their way.';
+  }
   function needsHelpCell(status, best) {
     var Y = PUB && PUB.lastCycle ? Number(PUB.lastCycle.secondPct) : NaN;
     var yes = status === 'alive' && best != null && isFinite(Y) && Number(best) < Y;
@@ -450,7 +457,9 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
     if (!last || PUB.table.some(function (r) { return r.best == null; })) { note.hidden = true; return; }
     note.textContent = 'The lines under each status count wins to ' + last.secondPct.toFixed(2) +
       '%, what took second place last cycle (' + last.second + ', ' + String(last.cycle).replace('-', '–') +
-      '), with the other Tests counted as losses. A yardstick, not a cut-off: every cycle is different.';
+      '), with the other Tests counted as losses. A yardstick, not a cut-off: every cycle is different. ' +
+      '\u201cNeeds help\u201d: still in it, but can\u2019t reach that ' + last.secondPct.toFixed(2) +
+      '% even winning every Test left, so they need other results to go their way.';
     note.hidden = false;
   }
 
@@ -582,6 +591,8 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
     runWhatIf();
   }
   function runWhatIf() {
+    var wn = document.getElementById('whatifNote');
+    if (PUB.lastCycle) { wn.textContent = NEEDS_HELP_NOTE(PUB.lastCycle); wn.hidden = false; }
     var base = {};
     PUB.table.forEach(function (r) { base[r.team] = { points: r.points, played: r.played }; });
     var open = [];
