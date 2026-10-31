@@ -282,6 +282,7 @@ body{
 .lc-ov{ font-size:12px; color:var(--text3); }
 .lc-series{ font-style:italic; }
 .lc-pick{ margin-top:auto; padding-top:8px; border-top:1px solid var(--surface3); }
+.lc-verdict{ margin:2px 0 0; font-size:13px; line-height:1.45; color:var(--text); font-weight:600; }
 .lc-link{ font-size:13px; line-height:1.4; color:var(--accent); text-decoration:none; font-weight:600; }
 .lc-link:hover{ color:var(--accent-hover); text-decoration:underline; }
 .lc-standout{ margin:0; font-size:12.5px; line-height:1.4; color:var(--accent); }
@@ -2360,6 +2361,57 @@ window.lsCard = (function () {
       card.appendChild(wrap);
     };
 
+    // A one-line read on a finished T20 (IJ, 2026-10-31). The cases are MECE:
+    // each is defined by its own conditions, not by the order of checks.
+    //   W = wickets in the match (0–20), R = runs in the match, both from the
+    //   two main innings; close = the chase won in the 20th over, or a margin
+    //   of 10 runs or fewer.
+    //   A  not comparable (DLS, shortened, no result, The Hundred, innings
+    //      missing)                                   → no line
+    //   B  comparable, tied (incl. super overs)
+    //   C  comparable, not tied, W 17–20
+    //   D  comparable, not tied, W 0–11,  R ≥ 300
+    //   E  comparable, not tied, W 0–11,  R < 300
+    //   G  comparable, not tied, W 12–16, close (any R)
+    //   F  comparable, not tied, W 12–16, not close, R ≥ 440
+    //   H  comparable, not tied, W 12–16, not close, R < 440
+    const T20_LINES = {
+      B: 'Tied! It doesn\u2019t get closer than that.',
+      C: 'There\u2019s something for the bowlers in T20 after all.',
+      D: 'Looks like the batters dominated this one.',
+      E: 'Low-scoring: the pitch had the final say.',
+      F: 'Good balance between bat and ball, even if it wasn\u2019t close.',
+      G: 'Exciting finish, and a good balance between bat and ball.',
+      H: 'Looks like the bowlers do matter.',
+    };
+    const balls = o => { const n = Number(o) || 0; const w = Math.floor(n); return w * 6 + Math.round((n - w) * 10); };
+    const t20Case = m => {
+      const inns = Array.isArray(m.innings) ? m.innings.slice(0, 2) : [];
+      const res = String(m.result || '');
+      const tied = /\btie[ds]?\b|super over/i.test(res);
+      const chaseWon = /won by \d+ (wkt|wicket)/i.test(res);
+      const byRuns = res.match(/won by (\d+) run/i);
+      // Comparable: two innings, no rain rule or abandonment, not The Hundred,
+      // and neither innings cut short (an innings under 20 overs must have
+      // been bowled out, or be a winning chase).
+      const short1 = inns[0] && balls(inns[0].overs) < 120 && Number(inns[0].wickets) < 10;
+      const short2 = inns[1] && balls(inns[1].overs) < 120 && Number(inns[1].wickets) < 10 && !chaseWon && !tied;
+      const comparable = inns.length === 2 && !short1 && !short2
+        && !/\b(dls|d\/l|duckworth|no result|abandon)/i.test(res)
+        && !/hundred/i.test(String(m.competition || ''));
+      if (!comparable) return 'A';
+      if (tied) return 'B';
+      const W = inns.reduce((x, i) => x + (Number(i.wickets) || 0), 0);
+      const R = inns.reduce((x, i) => x + (Number(i.runs) || 0), 0);
+      if (W >= 17) return 'C';
+      if (W <= 11) return R >= 300 ? 'D' : 'E';
+      // W 12–16 from here: closeness first, then runs (IJ, 2026-10-31).
+      const close = (chaseWon && balls(inns[1].overs) > 114) || (!!byRuns && Number(byRuns[1]) <= 10);
+      if (close) return 'G';
+      return R >= 440 ? 'F' : 'H';
+    };
+    const t20Verdict = m => T20_LINES[t20Case(m)] || '';
+
     const box = document.getElementById('sopCards');
     matches.forEach(m => {
       const f = fmtOf(m);
@@ -2390,6 +2442,17 @@ window.lsCard = (function () {
         else if (m.summary) card.appendChild(el('p', 'lc-inns', m.summary));
         const st = m.state === 'result' ? m.result : (m.statusNote || m.toss);
         if (st) card.appendChild(el('p', 'lc-state', st));
+        const v = m.state === 'result' && fmtOf(m) === 't20' ? t20Verdict(m) : '';
+        if (v) {
+          // The match totals the line is drawn from, then the line itself.
+          const inns = m.innings || [];
+          const runs = inns.reduce((a, i) => a + (Number(i.runs) || 0), 0);
+          const wkts = inns.reduce((a, i) => a + (Number(i.wickets) || 0), 0);
+          const box2 = el('div', 'lc-pick');
+          box2.appendChild(el('span', 'lc-cap', runs + ' runs \u00b7 ' + wkts + ' wickets in the match'));
+          box2.appendChild(el('p', 'lc-verdict', v));
+          card.appendChild(box2);
+        }
       }
       pickBox(card, m);
       const n = notes[m.matchId];
