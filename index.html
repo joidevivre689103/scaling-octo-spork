@@ -271,6 +271,7 @@ body{
 .lc-foot{ margin-top:auto; padding-top:8px; border-top:1px solid var(--surface3); display:flex; flex-direction:column; gap:3px; }
 .lc-cap{ font-family:'Inter',sans-serif; font-size:9.5px; letter-spacing:0.12em; text-transform:uppercase; color:var(--text3); }
 .lc-result{ margin:0; font-size:13px; line-height:1.45; color:var(--text2); }
+.lc-first{ display:flex; flex-direction:column; gap:2px; margin-top:2px; }
 .lc-link{ font-size:13px; line-height:1.4; color:var(--accent); text-decoration:none; font-weight:600; }
 .lc-link:hover{ color:var(--accent-hover); text-decoration:underline; }
 .lc-standout{ margin:0; font-size:12.5px; line-height:1.4; color:var(--accent); }
@@ -2108,6 +2109,19 @@ window.lsCard = (function () {
       card.appendChild(el('h3', 'lc-teams', e.teams || e.label || ''));
       if (e.teams && e.label) card.appendChild(el('p', 'lc-sub', e.label));
       if (e.prose) card.appendChild(el('p', 'lc-prose', e.prose));
+      // A Test in progress that day: each side's first innings (IJ, 2026-10-31).
+      if (inProgress && Array.isArray(e.firstInnings) && e.firstInnings.length) {
+        const fi = el('div', 'lc-first');
+        fi.appendChild(el('span', 'lc-cap', 'First innings'));
+        e.firstInnings.forEach(line => {
+          const sp = String(line).match(/^(.*?)\s+(\d[\d/d]*)$/);
+          const p = el('p', 'lc-inns');
+          if (sp) { p.appendChild(el('b', '', sp[1])); p.appendChild(document.createTextNode(' ' + sp[2])); }
+          else p.textContent = line;
+          fi.appendChild(p);
+        });
+        card.appendChild(fi);
+      }
       // The result is not on the card (IJ, 2026-10-31): the card links to our
       // own page for the result and full scorecard, which is for subscribers —
       // one more reason to subscribe. Signed-out readers meet that page's gate.
@@ -2179,7 +2193,13 @@ window.lsCard = (function () {
       if (m.tier === 'franchise') return m.state === 'upcoming' ? 13 : 9 + live; // 9–10
       return 14;
     };
-    const matches = all.map((m, i) => ({ m, i })).sort((a, b) => rank(a.m) - rank(b.m) || a.i - b.i)
+    // Within the same place in that order (IJ, 2026-10-31): Tests further into
+    // the match first (Day 4 before Day 3), then alphabetical by teams.
+    const dayNum = m => parseInt(String(m.dayLabel || '').replace(/\D/g, ''), 10) || 0;
+    const teamsKey = m => (m.teams || []).join(' v ').toLowerCase();
+    const matches = all.map((m, i) => ({ m, i })).sort((a, b) => rank(a.m) - rank(b.m)
+      || (a.m.tier === 'test' && b.m.tier === 'test' ? dayNum(b.m) - dayNum(a.m) || teamsKey(a.m).localeCompare(teamsKey(b.m)) : 0)
+      || a.i - b.i)
       .slice(0, 3).map(x => x.m);
 
     // Published notes for the cards shown (franchise cards carry none).
@@ -2199,15 +2219,17 @@ window.lsCard = (function () {
       return d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }) + ', ' +
         d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     };
-    // Format for the card colour: from fetchScores (m.format), else guessed
-    // from the competition name until that field arrives.
+    // Format for the card colour and label: from fetchScores (m.format), else
+    // guessed from the competition name, else from the overs (an innings over
+    // 20 overs can only be a 50-over match).
     const fmtOf = m => m.format || (m.tier === 'test' ? 'test'
       : /\b(odi|one[- ]day)\b/i.test(m.competition || '') ? 'odi'
-      : /\bt20/i.test(m.competition || '') || m.tier === 'franchise' ? 't20' : '');
+      : /\bt20/i.test(m.competition || '') || m.tier === 'franchise' ? 't20'
+      : (m.innings || []).some(i => Number(i.overs) > 20) ? 'odi' : '');
     const tierLabel = m => {
       if (m.tier === 'franchise') return m.competition || 'T20';
       const f = fmtOf(m);
-      return f === 'test' ? 'Test' : f === 'odi' ? 'ODI' : f === 't20' ? 'T20I' : 'International';
+      return f === 'test' ? 'Test' : f === 'odi' ? '50 overs' : f === 't20' ? 'T20' : 'International';
     };
     const tag = m => m.state === 'upcoming' ? 'Upcoming'
       : m.state === 'result' ? 'Result'
