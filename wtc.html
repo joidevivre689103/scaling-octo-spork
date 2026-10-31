@@ -400,10 +400,11 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
       var sc = statusCell(r.status);
       sc.classList.add('status-cell');
       tr.classList.add('has-take');
-      var line = (PUB.lastCycle && r.best != null) ? takeLine(r, PUB.lastCycle.secondPct) : '';
+      var own = r.status === 'alive' && ownHands(r.team, base0, PUB.remaining || []);
+      var line = (PUB.lastCycle && r.best != null) ? takeLine(r, PUB.lastCycle.secondPct, own) : '';
       if (line) sc.appendChild(el('div', 'take-line', line));
       tr.appendChild(sc);
-      tr.appendChild(ownHandsCell(r.status, r.status === 'alive' && ownHands(r.team, base0, PUB.remaining || [])));
+      tr.appendChild(ownHandsCell(r.status, own));
       tr.appendChild(needsHelpCell(r.status, r.best));
       tr.addEventListener('click', function () { setTeam(r.team === picked ? null : r.team); });
       tb.appendChild(tr);
@@ -430,6 +431,7 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
   // the rest · {pct} now · {hero} the team's line in HEROES.
   var TAKES = {
     done:      '{T} have played every Test. {pct}% it is. Now they wait, and watch.',
+    own:       '{T} are in their own hands: win {allLeft} and they\u2019re in the final, whatever else happens.',
     through:   '{T} are through. Book the hotel in St John’s Wood.',
     out:       '{T} can’t reach the final now, even winning {allLeft}. {hero}',
     outDone:   '{T} are out. There’s always the next cycle.',
@@ -456,7 +458,10 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
     _default:      'They need a miracle, or several, elsewhere.'
   };
   function fill(t, v) { return t.replace(/\{(\w+)\}/g, function (m, k) { return v[k] != null ? v[k] : m; }); }
-  function takeLine(r, Y) {
+  // own: the team is "In own hands" (exact). Then the yardstick doesn't
+  // matter and its line would contradict the column (IJ, 2026-10-31), so it
+  // gets the own-hands line instead.
+  function takeLine(r, Y, own) {
     var n = r.played + r.left;
     var need = Y / 100 * 12 * n - r.points;                 // points still needed
     var W = Math.max(0, Math.ceil(need / 12 - 1e-9));       // wins, the rest lost
@@ -468,6 +473,7 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
     if (r.status === 'through') key = 'through';
     else if (r.status === 'out') key = r.left ? 'out' : 'outDone';
     else if (!r.left) key = 'done';
+    else if (own) key = 'own';
     else if (W === 0) key = 'safe';
     else if (W > r.left) key = r.best >= Y - 5 ? 'shortNear' : r.best < Y * 0.6 ? 'shortFar' : 'short';
     else if (W === r.left) key = 'all';
@@ -482,7 +488,7 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
     var note = document.getElementById('takesNote');
     var last = PUB.lastCycle;
     if (!last || PUB.table.some(function (r) { return r.best == null; })) { note.hidden = true; return; }
-    note.textContent = 'The lines under each status count wins to ' + last.secondPct.toFixed(2) +
+    note.textContent = 'For teams not in their own hands, the lines under each status count wins to ' + last.secondPct.toFixed(2) +
       '%, what took second place last cycle (' + last.second + ', ' + String(last.cycle).replace('-', '–') +
       '), with the other Tests counted as losses. A yardstick, not a cut-off: every cycle is different. ' +
       '\u201cNeeds help\u201d: still in it, but can\u2019t reach that ' + last.secondPct.toFixed(2) +
