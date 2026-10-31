@@ -282,6 +282,7 @@ body{
 .lc-ov{ font-size:12px; color:var(--text3); }
 .lc-series{ font-style:italic; }
 .lc-pick{ margin-top:auto; padding-top:8px; border-top:1px solid var(--surface3); }
+.lc-verdict{ margin:2px 0 0; font-size:13px; line-height:1.45; color:var(--text); font-weight:600; }
 .lc-link{ font-size:13px; line-height:1.4; color:var(--accent); text-decoration:none; font-weight:600; }
 .lc-link:hover{ color:var(--accent-hover); text-decoration:underline; }
 .lc-standout{ margin:0; font-size:12.5px; line-height:1.4; color:var(--accent); }
@@ -2360,6 +2361,30 @@ window.lsCard = (function () {
       card.appendChild(wrap);
     };
 
+    // A one-line read on a finished T20 (IJ's rules, 2026-10-31), checked in
+    // this order: more than 16 wickets → bowlers; fewer than 12 wickets or
+    // 440+ runs → batters; a close last-over finish → exciting; else one-sided.
+    // "Close" = the chasing side won in the 20th over, or a margin of 10 runs
+    // or fewer (a side batting out its 20 overs and losing by 87 is not
+    // close). Rain-affected (DLS) and no-result matches get no line.
+    const balls = o => { const n = Number(o) || 0; const w = Math.floor(n); return w * 6 + Math.round((n - w) * 10); };
+    const t20Verdict = m => {
+      const inns = Array.isArray(m.innings) ? m.innings : [];
+      const res = String(m.result || '');
+      if (inns.length !== 2 || /\b(dls|d\/l|duckworth|no result|abandon)/i.test(res)) return '';
+      const wkts = inns.reduce((a, i) => a + (Number(i.wickets) || 0), 0);
+      const runs = inns.reduce((a, i) => a + (Number(i.runs) || 0), 0);
+      if (wkts > 16) return 'There\u2019s something for the bowlers in T20 after all.';
+      if (wkts < 12 || runs >= 440) return 'Looks like the batters dominated this one.';
+      const lastOver = balls(inns[1].overs) > 19 * 6;
+      const byRuns = res.match(/won by (\d+) run/i);
+      const chaseWon = /won by \d+ (wkt|wicket)/i.test(res);
+      if (lastOver && (chaseWon || (byRuns && Number(byRuns[1]) <= 10))) {
+        return 'Exciting finish, and a good balance between bat and ball.';
+      }
+      return 'One-sided in the end.';
+    };
+
     const box = document.getElementById('sopCards');
     matches.forEach(m => {
       const f = fmtOf(m);
@@ -2390,6 +2415,17 @@ window.lsCard = (function () {
         else if (m.summary) card.appendChild(el('p', 'lc-inns', m.summary));
         const st = m.state === 'result' ? m.result : (m.statusNote || m.toss);
         if (st) card.appendChild(el('p', 'lc-state', st));
+        const v = m.state === 'result' && fmtOf(m) === 't20' ? t20Verdict(m) : '';
+        if (v) {
+          // The match totals the line is drawn from, then the line itself.
+          const inns = m.innings || [];
+          const runs = inns.reduce((a, i) => a + (Number(i.runs) || 0), 0);
+          const wkts = inns.reduce((a, i) => a + (Number(i.wickets) || 0), 0);
+          const box2 = el('div', 'lc-pick');
+          box2.appendChild(el('span', 'lc-cap', runs + ' runs \u00b7 ' + wkts + ' wickets in the match'));
+          box2.appendChild(el('p', 'lc-verdict', v));
+          card.appendChild(box2);
+        }
       }
       pickBox(card, m);
       const n = notes[m.matchId];
