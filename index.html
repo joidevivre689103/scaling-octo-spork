@@ -248,7 +248,7 @@ body{
 .ls-more{ align-self:flex-start; margin-top:10px; font-family:'Inter',sans-serif; font-size:12px; letter-spacing:0.04em; color:var(--accent); text-decoration:none; }
 .ls-more:hover{ color:var(--accent-hover); text-decoration:underline; }
 .sop-preview-tag{ font-family:'Inter',sans-serif; font-size:9.5px; letter-spacing:0.12em; text-transform:uppercase; color:#fff; background:var(--accent); padding:3px 6px; border-radius:2px; white-space:nowrap; }
-.ls-cards{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; flex:1; }
+.ls-cards{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; align-items:start; }
 .lc{ background:var(--surface); border:1px solid var(--border); border-radius:4px; padding:12px 14px 13px; display:flex; flex-direction:column; gap:5px; min-width:0; }
 .lc.is-live{ box-shadow:inset 0 3px 0 var(--accent); padding-top:14px; }
 .lc-top{ display:flex; justify-content:space-between; align-items:baseline; gap:8px; font-family:'Inter',sans-serif; font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text3); }
@@ -2048,6 +2048,19 @@ window.lsCard = (function () {
     if (text != null) n.textContent = text;
     return n;
   };
+  // Every card in the strip is the same size (IJ, 2026-10-31): the tallest
+  // card sets the height for all six. Re-measured when a group appears, when
+  // a note opens or closes, when the web fonts arrive and on resize.
+  const equalize = () => {
+    const cards = [...document.querySelectorAll('#liveStrip .lc')];
+    cards.forEach(c => { c.style.height = ''; });
+    const h = Math.max(0, ...cards.map(c => c.offsetHeight));
+    if (h) cards.forEach(c => { c.style.height = h + 'px'; });
+  };
+  let resizeTimer = null;
+  window.addEventListener('resize', () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(equalize, 120); });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(equalize);
+  document.addEventListener('toggle', e => { if (e.target.closest && e.target.closest('#liveStrip')) equalize(); }, true);
   // Show a group once it has cards; the strip shows when either group does.
   const show = (groupId) => {
     document.getElementById(groupId).hidden = false;
@@ -2055,8 +2068,9 @@ window.lsCard = (function () {
     strip.hidden = false;
     strip.classList.toggle('has-both',
       !document.getElementById('sopGroup').hidden && !document.getElementById('otdGroup').hidden);
+    equalize();
   };
-  return { el, show };
+  return { el, show, equalize };
 })();
 
 (async function loadOnThisDay() {
