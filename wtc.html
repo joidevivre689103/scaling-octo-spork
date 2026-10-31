@@ -75,6 +75,7 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
 .st-out{background:var(--accent-dim);color:var(--accent)}
 .nh-yes{font-family:'Inter',sans-serif;font-size:12px;font-weight:700;color:#9a5b00}
 .nh-no{color:var(--text3)}
+.own-yes{font-family:'Inter',sans-serif;font-size:12px;font-weight:700;color:var(--green)}
 .lbl-short{display:none}
 .note{font-size:12px;color:var(--text3);line-height:1.5}
 .takes{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:6px 20px}
@@ -146,13 +147,13 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
   <div class="tbl-wrap">
     <table class="rec-table" id="wtcTable">
       <thead><tr>
-        <th class="hide-xs">#</th><th class="left">Team</th><th>P</th><th class="hide-sm">W</th><th class="hide-sm">L</th><th class="hide-sm">D</th>
-        <th class="hide-sm">Ded</th><th class="hide-sm">Pts</th><th>%</th><th><span class="lbl-long">Best possible</span><span class="lbl-short">Best</span></th><th class="left">Status</th><th class="nh" title="Still in it, but even winning every Test left falls short of the % that took second place last cycle. They need other results to go their way."><span class="lbl-long">Needs help</span><span class="lbl-short">Help?</span></th>
+        <th class="hide-xs">#</th><th class="left">Team</th><th class="hide-xs">P</th><th class="hide-sm">W</th><th class="hide-sm">L</th><th class="hide-sm">D</th>
+        <th class="hide-sm">Ded</th><th class="hide-sm">Pts</th><th>%</th><th><span class="lbl-long">Best possible</span><span class="lbl-short">Best</span></th><th class="left">Status</th><th class="nh" title="Win every Test they have left and they finish in the top two, whatever happens elsewhere. Worked out exactly, not against any yardstick."><span class="lbl-long">In own hands</span><span class="lbl-short">Own?</span></th><th class="nh" title="Still in it, but even winning every Test left falls short of the % that took second place last cycle. They need other results to go their way."><span class="lbl-long">Needs help</span><span class="lbl-short">Help?</span></th>
       </tr></thead>
       <tbody></tbody>
     </table>
   </div>
-  <p class="note">% is points won as a share of points available (12 a win, 4 a draw, 6 a tie, less any points docked for slow over rates). Best possible is the % a team finishes on if it wins every Test it has left. The top two at the end of the cycle play the final. Through and out follow from the points alone; points docked later could still change them.</p>
+  <p class="note">% is points won as a share of points available (12 a win, 4 a draw, 6 a tie, less any points docked for slow over rates). Best possible is the % a team finishes on if it wins every Test it has left. The top two at the end of the cycle play the final. Through and out follow from the points alone; points docked later could still change them. &ldquo;In own hands&rdquo;: win every Test they have left and they finish in the top two, whatever happens elsewhere.</p>
 
   <p class="note" id="takesNote" hidden></p>
 
@@ -179,7 +180,7 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
       <div class="whatif" id="whatif"></div>
       <div class="tbl-wrap">
         <table class="rec-table" id="whatifTable">
-          <thead><tr><th class="left">Team</th><th>Now</th><th><span class="lbl-long">With your results</span><span class="lbl-short">Yours</span></th><th class="hide-xs">Best possible</th><th class="left">Status</th><th class="nh" title="Still in it, but even winning every Test left falls short of the % that took second place last cycle. They need other results to go their way."><span class="lbl-long">Needs help</span><span class="lbl-short">Help?</span></th></tr></thead>
+          <thead><tr><th class="left">Team</th><th class="hide-xs">Now</th><th><span class="lbl-long">With your results</span><span class="lbl-short">Yours</span></th><th class="hide-xs">Best possible</th><th class="left">Status</th><th class="nh" title="Win every Test they have left and they finish in the top two, whatever happens elsewhere. Worked out exactly, not against any yardstick."><span class="lbl-long">In own hands</span><span class="lbl-short">Own?</span></th><th class="nh" title="Still in it, but even winning every Test left falls short of the % that took second place last cycle. They need other results to go their way."><span class="lbl-long">Needs help</span><span class="lbl-short">Help?</span></th></tr></thead>
           <tbody></tbody>
         </table>
       </div>
@@ -340,6 +341,29 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
     return out;
   }
   // ==SIM-STATUS-END==
+  // "In their own hands" (IJ, 2026-10-31): exact, no yardstick. Give the team
+  // a win in every Test it has left, then ask throughExact whether it is in
+  // the top two under every way the other results could fall.
+  function ownHands(t, base, open) {
+    var b = {};
+    Object.keys(base).forEach(function (u) { b[u] = { points: base[u].points, played: base[u].played }; });
+    var rest = [];
+    open.forEach(function (s) {
+      var L = s.left != null ? s.left : s.tests;
+      if (!L || !b[s.host] || !b[s.visitor]) return;
+      if (s.host === t || s.visitor === t) {
+        var o = s.host === t ? s.visitor : s.host;
+        b[t].points += 12 * L; b[t].played += L; b[o].played += L;
+      } else rest.push({ host: s.host, visitor: s.visitor, left: L });
+    });
+    return throughExact(t, b, rest);
+  }
+  function ownHandsCell(status, own) {
+    var yes = status === 'alive' && own;
+    var td = el('td', yes ? 'own-yes' : 'nh-no', yes ? 'Yes' : '\u2014');
+    if (yes) td.title = 'Win every Test left and they are in the final, whatever else happens';
+    return td;
+  }
   function standing(base, series) {
     var left = {};
     Object.keys(base).forEach(function (t) { left[t] = 0; });
@@ -357,6 +381,8 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
   // ── Free part ───────────────────────────────────────────────────────────
   function renderTable() {
     var tb = document.querySelector('#wtcTable tbody');
+    var base0 = {};
+    PUB.table.forEach(function (r) { base0[r.team] = { points: r.points, played: r.played }; });
     tb.textContent = '';
     PUB.table.forEach(function (r, i) {
       var tr = el('tr');
@@ -365,7 +391,7 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
       if (r.team === picked) tr.classList.add('picked');
       tr.appendChild(el('td', 'hide-xs', String(i + 1)));
       tr.appendChild(el('td', 'left team', r.team));
-      tr.appendChild(el('td', '', String(r.played)));
+      tr.appendChild(el('td', 'hide-xs', String(r.played)));
       ['won', 'lost', 'drawn'].forEach(function (k) { tr.appendChild(el('td', 'hide-sm', String(r[k] + (k === 'drawn' ? (r.tied || 0) : 0)))); });
       tr.appendChild(el('td', 'hide-sm', r.deducted ? '−' + r.deducted : '0'));
       tr.appendChild(el('td', 'hide-sm', String(r.points)));
@@ -377,6 +403,7 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
       var line = (PUB.lastCycle && r.best != null) ? takeLine(r, PUB.lastCycle.secondPct) : '';
       if (line) sc.appendChild(el('div', 'take-line', line));
       tr.appendChild(sc);
+      tr.appendChild(ownHandsCell(r.status, r.status === 'alive' && ownHands(r.team, base0, PUB.remaining || [])));
       tr.appendChild(needsHelpCell(r.status, r.best));
       tr.addEventListener('click', function () { setTeam(r.team === picked ? null : r.team); });
       tb.appendChild(tr);
@@ -384,7 +411,7 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
       // shows one or the other), so the table doesn't scroll sideways.
       if (line) {
         var tr2 = el('tr', 'take-row' + (i < 2 ? ' top2' : '') + (r.team === picked ? ' picked' : ''));
-        var td2 = el('td', 'left', line); td2.colSpan = 12;
+        var td2 = el('td', 'left', line); td2.colSpan = 13;
         tr2.appendChild(td2);
         tr2.addEventListener('click', function () { setTeam(r.team === picked ? null : r.team); });
         tb.appendChild(tr2);
@@ -592,7 +619,8 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
   }
   function runWhatIf() {
     var wn = document.getElementById('whatifNote');
-    if (PUB.lastCycle) { wn.textContent = NEEDS_HELP_NOTE(PUB.lastCycle); wn.hidden = false; }
+    wn.textContent = '\u201cIn own hands\u201d: win every Test they have left and they finish in the top two, whatever happens elsewhere. Worked out exactly, not from the yardstick.' + (PUB.lastCycle ? ' ' + NEEDS_HELP_NOTE(PUB.lastCycle) : '');
+    wn.hidden = false;
     var base = {};
     PUB.table.forEach(function (r) { base[r.team] = { points: r.points, played: r.played }; });
     var open = [];
@@ -616,10 +644,11 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
       var tr = el('tr');
       if (r.team === picked) tr.classList.add('picked');
       tr.appendChild(el('td', 'left team', r.team));
-      tr.appendChild(el('td', '', pc(now[r.team])));
+      tr.appendChild(el('td', 'hide-xs', pc(now[r.team])));
       tr.appendChild(el('td', 'pct', pc(rng[r.team].pct)));
       tr.appendChild(el('td', 'hide-xs', pc(rng[r.team].best)));
       tr.appendChild(statusCell(rng[r.team].status));
+      tr.appendChild(ownHandsCell(rng[r.team].status, rng[r.team].status === 'alive' && ownHands(r.team, base, open)));
       tr.appendChild(needsHelpCell(rng[r.team].status, rng[r.team].best));
       tb.appendChild(tr);
     });
