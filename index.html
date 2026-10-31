@@ -2372,17 +2372,17 @@ window.lsCard = (function () {
     //   C  comparable, not tied, W 17–20
     //   D  comparable, not tied, W 0–11,  R ≥ 300
     //   E  comparable, not tied, W 0–11,  R < 300
-    //   F  comparable, not tied, W 12–16, R ≥ 440
-    //   G  comparable, not tied, W 12–16, R < 440, close
-    //   H  comparable, not tied, W 12–16, R < 440, not close
+    //   G  comparable, not tied, W 12–16, close (any R)
+    //   F  comparable, not tied, W 12–16, not close, R ≥ 440
+    //   H  comparable, not tied, W 12–16, not close, R < 440
     const T20_LINES = {
       B: 'Tied! It doesn\u2019t get closer than that.',
       C: 'There\u2019s something for the bowlers in T20 after all.',
       D: 'Looks like the batters dominated this one.',
       E: 'Low-scoring: the pitch had the final say.',
-      F: 'Looks like the batters dominated this one.',
+      F: 'Good balance between bat and ball, even if it wasn\u2019t close.',
       G: 'Exciting finish, and a good balance between bat and ball.',
-      H: 'One-sided in the end.',
+      H: 'Looks like the bowlers do matter.',
     };
     const balls = o => { const n = Number(o) || 0; const w = Math.floor(n); return w * 6 + Math.round((n - w) * 10); };
     const t20Case = m => {
@@ -2405,9 +2405,10 @@ window.lsCard = (function () {
       const R = inns.reduce((x, i) => x + (Number(i.runs) || 0), 0);
       if (W >= 17) return 'C';
       if (W <= 11) return R >= 300 ? 'D' : 'E';
-      if (R >= 440) return 'F';                                   // W 12–16 from here
+      // W 12–16 from here: closeness first, then runs (IJ, 2026-10-31).
       const close = (chaseWon && balls(inns[1].overs) > 114) || (!!byRuns && Number(byRuns[1]) <= 10);
-      return close ? 'G' : 'H';
+      if (close) return 'G';
+      return R >= 440 ? 'F' : 'H';
     };
     const t20Verdict = m => T20_LINES[t20Case(m)] || '';
 
