@@ -2313,7 +2313,11 @@ window.lsCard = (function () {
       : /\bt20/i.test(m.competition || '') || m.tier === 'franchise' ? 't20'
       : (m.innings || []).some(i => Number(i.overs) > 20) ? 'odi' : '');
     const tierLabel = m => {
-      if (m.tier === 'franchise') return m.competition || 'T20';
+      // Franchise cards used to put the whole competition name here
+      // ("Womens Big Bash League 2026"), which can't shrink and pushed the
+      // Result tag off the card (IJ, 2026-10-31). The label is now the format,
+      // like the other cards; the competition goes on the series line below.
+      if (m.tier === 'franchise') return /hundred/i.test(m.competition || '') ? '100 balls' : 'T20';
       const f = fmtOf(m);
       return f === 'test' ? 'Test' : f === 'odi' ? '50 overs' : f === 't20' ? 'T20' : 'International';
     };
@@ -2458,7 +2462,7 @@ window.lsCard = (function () {
       const venue = (m.venue || '').split(',')[0].trim();
       const where = [m.matchLabel, venue].filter(Boolean).join(' · ');
       if (where) card.appendChild(el('p', 'lc-sub', where));
-      const series = m.tier === 'franchise' ? '' : String(m.competition || '').replace(/,\s*\d{4}(-\d{2,4})?$/, '').trim();
+      const series = String(m.competition || '').replace(/,?\s*\d{4}(-\d{2,4})?$/, '').replace(/\bWomens\b/g, "Women's").trim();
       if (series) card.appendChild(el('p', 'lc-sub lc-series', series));
       if (m.state === 'upcoming') {
         card.appendChild(el('p', 'lc-state', 'Starts ' + starts(m.startsAt)));
