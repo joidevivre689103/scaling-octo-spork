@@ -2130,7 +2130,9 @@ window.lsCard = (function () {
       const test = parseInt(e.test, 10);
       if (test > 0) {
         foot.appendChild(el('span', 'lc-cap', 'For subscribers'));
-        const a = el('a', 'lc-link', inProgress ? 'How it ended, with the full scorecard →' : 'Result and full scorecard →');
+        // A question, not an answer (IJ, 2026-10-31). "How did it end?" rather
+        // than "Who won?", because about a quarter of Tests are drawn.
+        const a = el('a', 'lc-link', 'How did it end? See the full scorecard →');
         a.href = '/countries.html?otd=' + test + '#onthisday';
         foot.appendChild(a);
       } else {
