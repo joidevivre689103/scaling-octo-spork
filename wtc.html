@@ -73,6 +73,8 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
 .st-through{background:var(--green-dim);color:var(--green)}
 .st-alive{background:var(--surface2);color:var(--text2)}
 .st-out{background:var(--accent-dim);color:var(--accent)}
+.nh-yes{font-family:'Inter',sans-serif;font-size:12px;font-weight:700;color:#9a5b00}
+.nh-no{color:var(--text3)}
 .lbl-short{display:none}
 .note{font-size:12px;color:var(--text3);line-height:1.5}
 .takes{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:6px 20px}
@@ -145,7 +147,7 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
     <table class="rec-table" id="wtcTable">
       <thead><tr>
         <th class="hide-xs">#</th><th class="left">Team</th><th>P</th><th class="hide-sm">W</th><th class="hide-sm">L</th><th class="hide-sm">D</th>
-        <th class="hide-sm">Ded</th><th class="hide-sm">Pts</th><th>%</th><th><span class="lbl-long">Best possible</span><span class="lbl-short">Best</span></th><th class="left">Status</th>
+        <th class="hide-sm">Ded</th><th class="hide-sm">Pts</th><th>%</th><th><span class="lbl-long">Best possible</span><span class="lbl-short">Best</span></th><th class="left">Status</th><th class="nh" title="Still in it, but even winning every Test left falls short of the % that took second place last cycle. They need other results to go their way."><span class="lbl-long">Needs help</span><span class="lbl-short">Help?</span></th>
       </tr></thead>
       <tbody></tbody>
     </table>
@@ -177,7 +179,7 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
       <div class="whatif" id="whatif"></div>
       <div class="tbl-wrap">
         <table class="rec-table" id="whatifTable">
-          <thead><tr><th class="left">Team</th><th>Now</th><th>With your results</th><th class="hide-xs">Best possible</th><th class="left">Status</th></tr></thead>
+          <thead><tr><th class="left">Team</th><th>Now</th><th><span class="lbl-long">With your results</span><span class="lbl-short">Yours</span></th><th class="hide-xs">Best possible</th><th class="left">Status</th><th class="nh" title="Still in it, but even winning every Test left falls short of the % that took second place last cycle. They need other results to go their way."><span class="lbl-long">Needs help</span><span class="lbl-short">Help?</span></th></tr></thead>
           <tbody></tbody>
         </table>
       </div>
@@ -213,6 +215,17 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
     b.appendChild(el('span', 'lbl-long', STATUS[s]));
     b.appendChild(el('span', 'lbl-short', STATUS_SHORT[s]));
     td.appendChild(b);
+    return td;
+  }
+  // "Needs help" (IJ, 2026-10-31): still mathematically alive, but the best
+  // possible % (winning every Test left) is below the % that took second
+  // place last cycle. Sits beside Status in both tables, so "Can still make
+  // it" keeps meaning "alive" and the yardstick has its own column.
+  function needsHelpCell(status, best) {
+    var Y = PUB && PUB.lastCycle ? Number(PUB.lastCycle.secondPct) : NaN;
+    var yes = status === 'alive' && best != null && isFinite(Y) && Number(best) < Y;
+    var td = el('td', yes ? 'nh-yes' : 'nh-no', yes ? 'Yes' : '\u2014');
+    if (yes) td.title = 'Best possible ' + Number(best).toFixed(2) + '%, short of last cycle\u2019s ' + Y.toFixed(2) + '%';
     return td;
   }
   function setTeam(t) {
@@ -357,13 +370,14 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
       var line = (PUB.lastCycle && r.best != null) ? takeLine(r, PUB.lastCycle.secondPct) : '';
       if (line) sc.appendChild(el('div', 'take-line', line));
       tr.appendChild(sc);
+      tr.appendChild(needsHelpCell(r.status, r.best));
       tr.addEventListener('click', function () { setTeam(r.team === picked ? null : r.team); });
       tb.appendChild(tr);
       // On a phone the line gets its own full-width row under the team (CSS
       // shows one or the other), so the table doesn't scroll sideways.
       if (line) {
         var tr2 = el('tr', 'take-row' + (i < 2 ? ' top2' : '') + (r.team === picked ? ' picked' : ''));
-        var td2 = el('td', 'left', line); td2.colSpan = 11;
+        var td2 = el('td', 'left', line); td2.colSpan = 12;
         tr2.appendChild(td2);
         tr2.addEventListener('click', function () { setTeam(r.team === picked ? null : r.team); });
         tb.appendChild(tr2);
@@ -595,6 +609,7 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
       tr.appendChild(el('td', 'pct', pc(rng[r.team].pct)));
       tr.appendChild(el('td', 'hide-xs', pc(rng[r.team].best)));
       tr.appendChild(statusCell(rng[r.team].status));
+      tr.appendChild(needsHelpCell(rng[r.team].status, rng[r.team].best));
       tb.appendChild(tr);
     });
   }
