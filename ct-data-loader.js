@@ -15,6 +15,12 @@
  *     await CTData.simulate({...})   -> run the match model on the server (simulateMatch)
  *     CTData.clearCache(['data'])    -> drop cached copy/copies (default: all)
  *
+ * Progress bar (2026-11-01): every load() shows a thin bar across the top of
+ * the window with a small "Loading data · 42%" note, unless it finishes inside
+ * SHOW_DELAY_MS (a warm cache usually does, so nothing flashes). The download
+ * share is real when serveDerivedData sends X-CT-Raw-Length; without it the
+ * bar eases forward on its own. Opt out with CTData.load(f, { progress: false }).
+ *
  * Requires (already provided by feature-flags.js / prelaunch-guard.js on every
  * gated page): an initialised Firebase compat app + auth, AND a signed-in user
  * holding the `derivedData` entitlement (paid / beta / admin). On a public or
@@ -288,7 +294,52 @@
   }
 
   /* --- response handling + retry branches ----------------------------------- */
-  function handle(file, resp, isRetry) {
+  /* Read a 200 body as JSON, reporting bytes to the progress bar as they
+   * arrive. The browser has already inflated the gzip, so the bytes counted
+   * here are the uncompressed JSON; X-CT-Raw-Length is the size of that same
+   * uncompressed body (read by the server from the gzip trailer), which is what
+   * makes the percentage honest. Falls back to resp.json() where streams are
+   * missing. A connection that drops mid-body is reported as 'network', not
+   * 'parse', so the panel says "try again" rather than blaming the data. */
+  function readJson(resp, track) {
+    var total = 0;
+    try { total = parseInt(resp.headers.get('X-CT-Raw-Length'), 10) || 0; } catch (_) {}
+    var canStream = track && resp.body && typeof resp.body.getReader === 'function' &&
+                    typeof TextDecoder === 'function' && typeof Uint8Array === 'function';
+    if (!canStream) {
+      if (track) track.downloading(0);
+      return resp.json().then(function (d) { if (track) track.preparing(); return d; }, function () {
+        throw CTDataError('parse', 'serveDerivedData returned a body that was not valid JSON.');
+      });
+    }
+    track.downloading(total);
+    var reader = resp.body.getReader(), chunks = [], got = 0;
+    function pump() {
+      return reader.read().then(function (r) {
+        if (r.done) return;
+        chunks.push(r.value); got += r.value.length;
+        track.bytes(got);
+        return pump();
+      });
+    }
+    return pump().then(function () {
+      track.preparing();
+      var all = new Uint8Array(got), off = 0;
+      for (var i = 0; i < chunks.length; i++) { all.set(chunks[i], off); off += chunks[i].length; }
+      chunks = null;
+      // Yield one frame so "Preparing" paints before the parse holds the thread.
+      return new Promise(function (r) { setTimeout(r, 0); }).then(function () {
+        try { return JSON.parse(new TextDecoder('utf-8').decode(all)); }
+        catch (_) { throw CTDataError('parse', 'serveDerivedData returned a body that was not valid JSON.'); }
+      });
+    }, function (err) {
+      if (err && err.name === 'CTDataError') throw err;
+      if (err && err.name === 'AbortError') throw CTDataError('timeout', 'serveDerivedData timed out mid-download.');
+      throw CTDataError('network', 'The connection dropped while the data was downloading.');
+    });
+  }
+
+  function handle(file, resp, isRetry, track) {
     var s = resp.status;
 
     if (s === 304) {
@@ -297,26 +348,24 @@
     }
     if (s === 200) {
       // The function sets Content-Encoding: gzip, so the browser has already
-      // inflated the body -- response.json() works directly (no DecompressionStream).
+      // inflated the body -- no DecompressionStream needed.
       // ETag is the version token for THIS body (exposed via CORS) -- store it
       // with the cache so the next load can revalidate cheaply.
       var newEtag = null;
       try { newEtag = resp.headers.get('ETag'); } catch (_) {}
-      return resp.json().then(function (data) {
+      return readJson(resp, track).then(function (data) {
         return { data: data, etag: newEtag };
-      }, function () {
-        throw CTDataError('parse', 'serveDerivedData returned a body that was not valid JSON.');
       });
     }
     if (s === 401 && !isRetry) {                 // stale/expired token -> force-refresh once, fetch unconditionally
       return getToken(true)
         .then(function (t) { return doFetch(file, t, null); })
-        .then(function (r) { return handle(file, r, true); });
+        .then(function (r) { return handle(file, r, true, track); });
     }
     if (s === 502 && !isRetry) {                 // transient upstream -> one retry (unconditional)
       return getToken(false)
         .then(function (t) { return doFetch(file, t, null); })
-        .then(function (r) { return handle(file, r, true); });
+        .then(function (r) { return handle(file, r, true, track); });
     }
     if (s === 403) {
       return resp.json().catch(function () { return {}; }).then(function (body) {
@@ -346,6 +395,162 @@
     throw CTDataError('http', 'serveDerivedData returned HTTP ' + s + '.', { status: s });
   }
 
+  /* --- progress bar (2026-11-01) -------------------------------------------
+   * One bar per page, shared by every load() in flight (simulations.html loads
+   * three files at once): the bar shows their average. Each load moves through
+   *   connecting -> requesting -> downloading -> preparing -> done
+   * and each stage owns a slice of the bar. Inside a slice the bar either
+   * tracks real bytes (downloading, when the server sent X-CT-Raw-Length) or
+   * eases toward the top of the slice without reaching it, so a slow cold
+   * start still shows movement and never claims to be finished early.
+   * Fixed to the top of the window above everything (simulations' overlay is
+   * z-index 9999), so it needs no mount point on any page. */
+  var SHOW_DELAY_MS = 250;
+  var BAR_ID = 'ctd-progress', NOTE_ID = 'ctd-progress-note', BAR_STYLE_ID = 'ctd-progress-style';
+  var BAR_CSS = [
+    '#ctd-progress{position:fixed;top:0;left:0;right:0;height:3px;z-index:10001;pointer-events:none;',
+      'background:var(--accent-dim,rgba(139,37,0,.12));opacity:0;transition:opacity .25s}',
+    '#ctd-progress.on{opacity:1}',
+    '#ctd-progress>i{display:block;height:100%;width:100%;background:var(--accent,#8B2500);',
+      'transform-origin:0 50%;transform:scaleX(0);transition:transform .2s linear}',
+    '#ctd-progress-note{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:10001;',
+      'pointer-events:none;padding:7px 14px;border-radius:999px;background:var(--surface,#fffdf8);',
+      'border:1px solid var(--border,#e0dcd5);box-shadow:0 4px 18px rgba(0,0,0,.08);',
+      'font-family:var(--font-body,Georgia,serif);font-size:12.5px;color:var(--text2,#555);',
+      'font-variant-numeric:tabular-nums;white-space:nowrap;opacity:0;transition:opacity .25s}',
+    '#ctd-progress-note.on{opacity:1}',
+    '@media (prefers-reduced-motion:reduce){#ctd-progress>i,#ctd-progress,#ctd-progress-note{transition:none}}'
+  ].join('');
+
+  // Stage -> [floor, ceiling] of the bar, as fractions.
+  var STAGES = {
+    connecting:  [0.02, 0.10],
+    requesting:  [0.10, 0.22],
+    downloading: [0.22, 0.90],
+    preparing:   [0.90, 0.98]
+  };
+
+  var bar = { jobs: [], shown: false, showTimer: null, tick: null, hideTimer: null, el: null, fill: null, note: null };
+
+  function barEnsure() {
+    if (bar.el && document.body && document.body.contains(bar.el)) return true;
+    if (typeof document === 'undefined' || !document.body) return false;
+    if (!document.getElementById(BAR_STYLE_ID)) {
+      var st = document.createElement('style');
+      st.id = BAR_STYLE_ID; st.textContent = BAR_CSS;
+      (document.head || document.documentElement).appendChild(st);
+    }
+    bar.el = document.createElement('div');
+    bar.el.id = BAR_ID;
+    bar.el.setAttribute('role', 'progressbar');
+    bar.el.setAttribute('aria-label', 'Loading data');
+    bar.el.setAttribute('aria-valuemin', '0');
+    bar.el.setAttribute('aria-valuemax', '100');
+    bar.fill = document.createElement('i');
+    bar.el.appendChild(bar.fill);
+    bar.note = document.createElement('div');
+    bar.note.id = NOTE_ID;
+    bar.note.setAttribute('aria-hidden', 'true');   // the bar itself carries the value for screen readers
+    document.body.appendChild(bar.el);
+    document.body.appendChild(bar.note);
+    return true;
+  }
+
+  function barValue() {
+    if (!bar.jobs.length) return 0;
+    var sum = 0;
+    for (var i = 0; i < bar.jobs.length; i++) sum += bar.jobs[i].v;
+    return sum / bar.jobs.length;
+  }
+
+  function barPaint() {
+    if (!bar.shown || !barEnsure()) return;
+    var v = Math.max(0, Math.min(1, barValue()));
+    var pct = Math.round(v * 100);
+    bar.fill.style.transform = 'scaleX(' + v.toFixed(4) + ')';
+    bar.el.setAttribute('aria-valuenow', String(pct));
+    var preparing = bar.jobs.length && bar.jobs.every(function (j) { return j.stage === 'preparing' || j.stage === 'done'; });
+    bar.note.textContent = (preparing ? 'Preparing' : 'Loading data') + ' \u00b7 ' + pct + '%';
+  }
+
+  // Ease every unfinished job toward the ceiling of its stage (never past it).
+  function barStep() {
+    for (var i = 0; i < bar.jobs.length; i++) {
+      var j = bar.jobs[i];
+      if (j.stage === 'done' || j.exact) continue;
+      var ceil = STAGES[j.stage][1];
+      if (j.v < ceil) j.v += (ceil - j.v) * 0.035;
+    }
+    barPaint();
+  }
+
+  function barShow() {
+    bar.showTimer = null;
+    if (!bar.jobs.length || bar.shown) return;
+    if (!barEnsure()) return;
+    bar.shown = true;
+    clearTimeout(bar.hideTimer);
+    bar.fill.style.transition = 'none';               // start from the current value, not from a slide-in
+    barPaint();
+    void bar.fill.offsetWidth;
+    bar.fill.style.transition = '';
+    bar.el.classList.add('on'); bar.note.classList.add('on');
+    bar.tick = setInterval(barStep, 120);
+  }
+
+  // failed: a load ended in an error -- fade out where it stands rather than
+  // filling to 100%, since the error panel is about to say it didn't load.
+  function barFinish(failed) {
+    clearTimeout(bar.showTimer); bar.showTimer = null;
+    clearInterval(bar.tick); bar.tick = null;
+    var wasShown = bar.shown;
+    bar.jobs = []; bar.shown = false;
+    if (!wasShown || !bar.el) return;
+    if (failed) {
+      bar.el.classList.remove('on'); bar.note.classList.remove('on');
+      return;
+    }
+    bar.fill.style.transform = 'scaleX(1)';
+    bar.el.setAttribute('aria-valuenow', '100');
+    bar.note.textContent = 'Loading data \u00b7 100%';
+    bar.hideTimer = setTimeout(function () {
+      if (bar.shown) return;                          // a new load started meanwhile
+      bar.el.classList.remove('on'); bar.note.classList.remove('on');
+      setTimeout(function () { if (!bar.shown && bar.fill) { bar.fill.style.transition = 'none'; bar.fill.style.transform = 'scaleX(0)'; void bar.fill.offsetWidth; bar.fill.style.transition = ''; } }, 300);
+    }, 250);
+  }
+
+  function progressStart() {
+    var job = { v: STAGES.connecting[0], stage: 'connecting', exact: false, total: 0 };
+    bar.jobs.push(job);
+    if (!bar.shown && !bar.showTimer) bar.showTimer = setTimeout(barShow, SHOW_DELAY_MS);
+    function to(stage) {
+      if (job.stage === 'done') return;
+      job.stage = stage; job.exact = false;
+      job.v = Math.max(job.v, STAGES[stage][0]);
+      barPaint();
+    }
+    return {
+      requesting:  function () { to('requesting'); },
+      downloading: function (total) { to('downloading'); job.total = total > 0 ? total : 0; },
+      bytes: function (got) {
+        if (!job.total || job.stage !== 'downloading') return;   // unknown size: keep easing instead
+        var r = STAGES.downloading;
+        job.exact = true;
+        job.v = Math.max(job.v, r[0] + (r[1] - r[0]) * Math.min(1, got / job.total));
+        barPaint();
+      },
+      preparing: function () { to('preparing'); },
+      done: function (failed) {
+        if (job.stage === 'done') return;
+        job.stage = 'done'; job.v = 1; job.failed = !!failed;
+        if (bar.jobs.every(function (j) { return j.stage === 'done'; })) {
+          barFinish(bar.jobs.some(function (j) { return j.failed; }));
+        } else barPaint();
+      }
+    };
+  }
+
   /* --- public load (with in-memory + sessionStorage cache + single-flight) --- */
   function load(file, opts) {
     opts = opts || {};
@@ -367,18 +572,19 @@
     //   - no cache   -> a normal full fetch.
     // Cheap: the Firebase token is usually already cached and a 304 carries no
     // body, so the ~1.4 MB download happens only when the data actually changed.
+    var track = (opts.progress === false) ? null : progressStart();
     var p = ssGet(file).then(function (cached) {
       var cachedEtag = cached ? ssGetVer(file) : null;
       return getToken(false)
-        .then(function (token) { return doFetch(file, token, cachedEtag); })
-        .then(function (resp)  { return handle(file, resp, false); })
+        .then(function (token) { if (track) track.requesting(); return doFetch(file, token, cachedEtag); })
+        .then(function (resp)  { return handle(file, resp, false, track); })
         .then(function (result) {
           if (result && result.notModified) {                 // server confirms cache is current
             if (cached) { mem[file] = cached; return cached; }
             // 304 with no body to fall back on (shouldn't happen) -> force a clean refetch
             return getToken(false)
               .then(function (t) { return doFetch(file, t, null); })
-              .then(function (r) { return handle(file, r, true); })
+              .then(function (r) { return handle(file, r, true, track); })
               .then(function (res2) {
                 mem[file] = res2.data; ssSet(file, res2.data);
                 if (res2.etag) ssSetVer(file, res2.etag); else ssClearVer(file);
@@ -409,9 +615,10 @@
     // Opt out with CTData.load('data', { renderError: false }) for admin tools
     // that want their own handling.
     var cleaned = p.then(
-      function (v) { delete load._inflight[file]; return v; },
+      function (v) { delete load._inflight[file]; if (track) track.done(); return v; },
       function (e) {
         delete load._inflight[file];
+        if (track) track.done(true);
         if (opts.renderError !== false) {
           try { renderError(e, opts); } catch (_) { /* never let the panel mask the error */ }
         }
