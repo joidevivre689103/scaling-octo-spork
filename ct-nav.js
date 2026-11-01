@@ -489,9 +489,101 @@
     });
   }
 
+  // ── Wide tables on a phone (IJ, 2026-11-01) ─────────────────────────────
+  // Any data table wider than its sideways-scrolling box gets:
+  //  • its leading column(s) pinned while you scroll sideways: the name
+  //    column, plus a rank column in front of it if there is one, so the
+  //    name never leaves the screen. Tables that already pin a column
+  //    (compare.html) are left as they are.
+  //  • in portrait on a phone, a one-line hint above it to swipe or turn
+  //    the phone sideways. Gone in landscape and on tables that fit.
+  // Re-checked whenever a table re-renders (sort, filter, load), so pages
+  // need no changes. Layout only: no data, no reading of the numbers.
+  var WIDE_CSS = [
+    'table.ct-pin > * > tr > :first-child,table.ct-pin2 > * > tr > :nth-child(2){position:sticky;z-index:1;background:var(--ct-pin-bg,#fff)}',
+    'table.ct-pin > * > tr > :first-child{left:0}',
+    'table.ct-pin2 > * > tr > :nth-child(2){left:var(--ct-pin-l2,0px)}',
+    'table.ct-pin:not(.ct-pin2) > * > tr > :first-child,table.ct-pin2 > * > tr > :nth-child(2){box-shadow:6px 0 6px -6px rgba(0,0,0,.22)}',
+    'table.ct-pin > thead > tr > :first-child,table.ct-pin2 > thead > tr > :nth-child(2){z-index:2;background:var(--ct-pin-head,var(--ct-pin-bg,#fff))}',
+    '.ct-wide-hint{display:none;align-items:center;gap:6px;margin:0 0 6px;font-family:Inter,system-ui,sans-serif;font-size:12px;color:var(--text3,#7a7a74)}',
+    '@media (orientation:portrait) and (max-width:760px){.ct-wide-hint.on{display:flex}}'
+  ].join('\n');
+  var RANK_LABEL = /^(#|no\.?|rank|pos\.?|)$/i;
+
+  function scrollBox(t) {
+    for (var a = t.parentElement; a && a !== document.body; a = a.parentElement) {
+      var o = getComputedStyle(a).overflowX;
+      if (o === 'auto' || o === 'scroll') return a;
+    }
+    return null;
+  }
+  function solidBg(el) {
+    for (var a = el; a; a = a.parentElement) {
+      var c = getComputedStyle(a).backgroundColor;
+      if (c && c !== 'transparent' && !/rgba\(.*,\s*0\)$/.test(c)) return c;
+    }
+    return '#fff';
+  }
+  function fitWideTables() {
+    var tables = document.querySelectorAll('table');
+    for (var i = 0; i < tables.length; i++) {
+      var t = tables[i], box = scrollBox(t);
+      if (!box) continue;
+      var wide = t.scrollWidth > box.clientWidth + 2;
+      var hint = box.previousElementSibling && box.previousElementSibling.classList &&
+                 box.previousElementSibling.classList.contains('ct-wide-hint') ? box.previousElementSibling : null;
+      if (wide && !hint) {
+        hint = document.createElement('div');
+        hint.className = 'ct-wide-hint';
+        hint.setAttribute('aria-hidden', 'true');
+        hint.textContent = '\u2194 Swipe the table sideways, or turn your phone for every column';
+        box.parentNode.insertBefore(hint, box);
+      }
+      if (hint) hint.classList.toggle('on', wide);
+      // Pinning: skip tables whose first column the page already pins to the
+      // LEFT (compare.html). A header cell that is only sticky to the top
+      // (batting.html's column headers) doesn't count.
+      var first = t.querySelector('tbody tr > :first-child') || t.querySelector('tr > :first-child');
+      if (!first) continue;
+      var fcs = getComputedStyle(first);
+      if (!t.classList.contains('ct-pin') && fcs.position === 'sticky' && fcs.left !== 'auto') continue;
+      if (!wide) { t.classList.remove('ct-pin', 'ct-pin2'); continue; }
+      var head = t.querySelector('thead tr') || t.querySelector('tr');
+      var cells = head ? head.children : [];
+      var rankFirst = cells.length > 2 && RANK_LABEL.test((cells[0].textContent || '').trim());
+      t.style.setProperty('--ct-pin-bg', solidBg(t));
+      // The header row often has its own shade: match it (measured on a
+      // header cell that isn't pinned, so our own background isn't read back).
+      var hc = t.querySelector('thead tr > :nth-child(3)') || t.querySelector('thead tr > :last-child');
+      if (hc) t.style.setProperty('--ct-pin-head', solidBg(hc));
+      t.classList.add('ct-pin');
+      t.classList.toggle('ct-pin2', rankFirst);
+      if (rankFirst) t.style.setProperty('--ct-pin-l2', cells[0].getBoundingClientRect().width + 'px');
+    }
+  }
+  function watchWideTables() {
+    var st = document.createElement('style');
+    st.id = 'ct-wide-tables';
+    st.textContent = WIDE_CSS;
+    document.head.appendChild(st);
+    var timer = null;
+    var run = function () { clearTimeout(timer); timer = setTimeout(fitWideTables, 120); };
+    new MutationObserver(function (list) {
+      // Ignore our own hint insertions; react to tables being (re)built.
+      for (var k = 0; k < list.length; k++) {
+        var n = list[k].target;
+        if (!(n.classList && n.classList.contains('ct-wide-hint'))) { run(); return; }
+      }
+    }).observe(document.body, { childList: true, subtree: true });
+    window.addEventListener('resize', run);
+    window.addEventListener('orientationchange', run);
+    run();
+  }
+
   function init() {
     ensureFonts();
     injectCss();
+    try { watchWideTables(); } catch (e) { /* layout aid only */ }
     var mastheads = document.querySelectorAll('[data-ct-nav="masthead"]');
     var primaries = document.querySelectorAll('[data-ct-nav="primary"]');
     var footers   = document.querySelectorAll('[data-ct-nav="footer"]');
