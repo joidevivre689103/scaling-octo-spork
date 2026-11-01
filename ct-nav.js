@@ -103,7 +103,7 @@
     '.ct-masthead .ct-masthead-logo a{text-decoration:none;color:#1a1917}',
     // Explicit font-style+font-weight overrides: some pages set italic/400 on this span.
     '.ct-masthead .ct-masthead-logo span{color:#8b0000;font-style:normal;font-weight:700}',
-    '.ct-masthead .ct-masthead-logo span.ct-grass{color:#2d6a2e}',
+    '.ct-masthead .ct-masthead-logo span.ct-grass{color:#4f8a2b}',
     // Tagline: italic serif, sentence case, sits tight under the name.
     '.ct-masthead .ct-masthead-tagline{font-family:\'Playfair Display\',serif;font-style:italic;font-weight:400;font-size:clamp(15px,2.4vw,19px);letter-spacing:0;text-transform:none;color:#4a453e;margin-top:4px}',
     // Descriptor: small spaced caps, the edition line.
