@@ -1306,6 +1306,9 @@ function buildStateParams(){
   if(f.teamCapts.length) q.set('tc', f.teamCapts.join(','));
   if(f.oppCapts.length) q.set('oc', f.oppCapts.join(','));
   if(selectedPhases.length) q.set('ph', selectedPhases.map(x => x.val).join(','));
+  // Results tab (2026-11-01), so a link can open on Bowling, Batting or All
+  // Stats. Only with Both stats shown: Batting/Bowling-only force their tab.
+  if(st === 'both' && currentCmpTab && currentCmpTab !== 'overview') q.set('tab', currentCmpTab);
   return q;
 }
 
@@ -1416,6 +1419,10 @@ function loadFromURL(){
     if(partnershipMode){ if(hasEnoughPartnerships()) renderPartnerships(); }
     else if(cohortMode){ if(hasEnoughCohorts()) renderCohorts(); }
     else if(hasEnough()) render();
+    // ?tab= opens a results tab (e.g. the home page's Anderson v Warne -> Bowling).
+    const tb = params.get('tab');
+    const tbBtn = tb && ['overview','batting','bowling','all'].includes(tb) && document.getElementById('tab-' + tb);
+    if(tbBtn && !tbBtn.classList.contains('hidden-tab')) switchTab(tb, tbBtn);
     urlRestoring = false;
     syncURL();
   }, 100);
@@ -2293,7 +2300,9 @@ function buildTable(stats, cols, options = {}) {
   return `<div class="tbl-wrap"><table class="cmp-table"><thead><tr>${hdr}</tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 
+let currentCmpTab = 'overview';   // kept in the address as ?tab= (2026-11-01)
 function switchTab(tab,btn){
+  currentCmpTab = tab;
   document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
   document.querySelectorAll('.tc').forEach(t=>t.classList.remove('on'));
   btn.classList.add('on');
