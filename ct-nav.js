@@ -78,9 +78,10 @@
   var BRAND_NAME = 'The Grass Bank';
   var TAGLINE = 'where every number has a heartbeat';
   var DESCRIPTOR = 'A Journal of Cricket';
-  // Two-tone name, carried over from the Cricket Times masthead: ink, with the
-  // last word in crimson (the span is styled by .ct-masthead-logo span).
-  var BRAND_HTML = 'The Grass <span>Bank</span>';
+  // Three-tone name: ink "The", turf-green "Grass" (2026-11-01, IJ: evokes the
+  // grass of the grounds), crimson "Bank" (styled by .ct-masthead-logo span;
+  // .ct-grass outranks it). The footer keeps the whole name white.
+  var BRAND_HTML = 'The <span class="ct-grass">Grass</span> <span>Bank</span>';
 
   // Firestore project for CMS-driven tagline override. See applyTaglineOverride().
   var FIRESTORE_PROJECT = 'hitwicket-cba02';
@@ -102,6 +103,7 @@
     '.ct-masthead .ct-masthead-logo a{text-decoration:none;color:#1a1917}',
     // Explicit font-style+font-weight overrides: some pages set italic/400 on this span.
     '.ct-masthead .ct-masthead-logo span{color:#8b0000;font-style:normal;font-weight:700}',
+    '.ct-masthead .ct-masthead-logo span.ct-grass{color:#2d6a2e}',
     // Tagline: italic serif, sentence case, sits tight under the name.
     '.ct-masthead .ct-masthead-tagline{font-family:\'Playfair Display\',serif;font-style:italic;font-weight:400;font-size:clamp(15px,2.4vw,19px);letter-spacing:0;text-transform:none;color:#4a453e;margin-top:4px}',
     // Descriptor: small spaced caps, the edition line.
