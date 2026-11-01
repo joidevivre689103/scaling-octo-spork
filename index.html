@@ -1820,7 +1820,12 @@ function articleTime(a) {
 // feed's: a Test shows until its fifth day has passed, as "Under way" from its
 // first day. Dated Tests first, then month-only ones if fewer than three.
 // Returns true if anything was shown.
-function renderComingUp(list) {
+// 2026-10-31 (IJ): Up next knows start dates, not results, so a Test that has
+// started is never called "Under way" (it may already be over): it reads
+// "Started 27 Oct" until its five days pass. Once State of play is on for
+// readers (config/scoresModule.public), started Tests leave Up next altogether;
+// the live-scores cards carry them.
+function renderComingUp(list, sopOn) {
   const ul = document.getElementById('comingUpList');
   if (!ul) return [];
   ul.textContent = '';
@@ -1836,9 +1841,10 @@ function renderComingUp(list) {
       const start = new Date(y, m - 1, dd);
       const lastDay = new Date(start.getTime() + 4 * DAY);
       if (today > lastDay) continue;                     // its five days have passed
-      const live = today >= start;
-      rows.push({ u, when: live ? 'Under way · started ' + fmt(start, { day: 'numeric', month: 'short' })
-                                : 'Starts ' + fmt(start, { weekday: 'short', day: 'numeric', month: 'short' }), live });
+      const started = today >= start;
+      if (started && sopOn) continue;                    // the live-scores cards have it
+      rows.push({ u, when: started ? 'Started ' + fmt(start, { day: 'numeric', month: 'short' })
+                                   : 'Starts ' + fmt(start, { weekday: 'short', day: 'numeric', month: 'short' }), live: false });
     } else if (u.month) {
       const [y, m] = u.month.split('-').map(Number);
       if (new Date(y, m, 0) < today) continue;            // that month is over
@@ -1869,19 +1875,33 @@ function renderComingUp(list) {
 // Milestone watch: players from the sides in the Tests under Coming up (dated
 // ones only) who are near a milestone, closest first, each with the Test it
 // could come in. Falls back to the general list when none are. Up to four.
+// 2026-10-31 (IJ): milestones come from the archive, which learns a Test's
+// result only when Cricsheet adds it, days later. So while a side has a Test
+// that has started but isn't in the archive yet, its players' milestones are
+// left out (they may already have happened), and a milestone is tied only to a
+// Test that hasn't started.
 function renderMilestones(d, next) {
   const ul = document.getElementById('milestoneList');
   if (!ul) return false;
   ul.textContent = '';
+  const now = new Date();
+  const todayIso = [now.getFullYear(), String(now.getMonth() + 1).padStart(2, '0'), String(now.getDate()).padStart(2, '0')].join('-');
+  const pending = new Set();
+  (d.upcoming || []).forEach(u => {
+    if (u && u.start && u.start <= todayIso) { pending.add(u.host); pending.add(u.visitor); }
+  });
+  const teamOf = {};
+  (d.watch || []).forEach(m => { if (m && m.name && m.team) teamOf[m.name] = m.team; });
+  const settled = m => m && m.text && !pending.has(m.team || teamOf[m.name]);
   const nextFor = {};
-  (next || []).filter(u => u.start).forEach(u => {
+  (next || []).filter(u => u.start && u.start > todayIso).forEach(u => {
     const city = (u.city || '').split(' (')[0];
     if (!nextFor[u.host]) nextFor[u.host] = 'v ' + u.visitor + (city ? ', ' + city : '');
     if (!nextFor[u.visitor]) nextFor[u.visitor] = 'v ' + u.host + (city ? ', ' + city : '');
   });
-  let ms = (d.watch || []).filter(m => m && m.text && nextFor[m.team]).slice(0, 4);
+  let ms = (d.watch || []).filter(m => settled(m) && nextFor[m.team]).slice(0, 4);
   const tied = ms.length > 0;
-  if (!tied) ms = (d.milestones || []).filter(m => m && m.text).slice(0, 4);
+  if (!tied) ms = (d.milestones || []).filter(settled).slice(0, 4);
   ms.forEach(m => {
     const li = document.createElement('li');
     const a = document.createElement('a');
@@ -1977,7 +1997,13 @@ async function refreshFeedRow() {
       document.getElementById('latestTest').hidden = false;
       shown++;
     }
-    const next = renderComingUp(d.upcoming || []);
+    let sopOn = false;
+    try {
+      const { getDoc, doc } = await import('https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js');
+      const cfg = await getDoc(doc(window._fsDb, 'config', 'scoresModule'));
+      sopOn = cfg.exists() && cfg.data().public === true;
+    } catch (e) { /* switch unreadable: treat as off */ }
+    const next = renderComingUp(d.upcoming || [], sopOn);
     if (next.length) shown++;
     if (renderMilestones(d, next)) shown++;
     refreshFeedRow();
