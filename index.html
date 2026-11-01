@@ -1093,9 +1093,9 @@ body.articles-loading .analysis-section{ visibility:hidden; }
        and the tie between the last two 2026-10-28, IJ). All from liveScores/home
        (home-feed.yml, rebuilt after every data build). Three columns on the same
        grid as On this day; each column hides if empty.
-       * Coming up: the next three Tests, each checked against the READER's date
-         (a Test whose five days have passed drops off even if the feed hasn't
-         rebuilt) — renderComingUp().
+       * Coming up: the next three Tests that haven't started, checked against
+         the READER's date (a Test drops off on its first day even if the feed
+         hasn't rebuilt) — renderComingUp().
        * Milestone watch: the players from the sides in those Tests who are near a
          milestone, each with the Test it could come in; the general list when
          none are — renderMilestones().
@@ -1817,21 +1817,17 @@ function articleTime(a) {
   return isNaN(t) ? 0 : t;
 }
 // Coming up: the next three Tests, judged by the READER's own date, not the
-// feed's: a Test shows until its fifth day has passed, as "Under way" from its
-// first day. Dated Tests first, then month-only ones if fewer than three.
-// Returns true if anything was shown.
-// 2026-10-31 (IJ): Up next knows start dates, not results, so a Test that has
-// started is never called "Under way" (it may already be over): it reads
-// "Started 27 Oct" until its five days pass. Once State of play is on for
-// readers (config/scoresModule.public), started Tests leave Up next altogether;
-// the live-scores cards carry them.
-function renderComingUp(list, sopOn) {
+// feed's: a Test shows only until its first day. Dated Tests first, then
+// month-only ones if fewer than three.
+// 2026-10-31 (IJ): once a Test's start date has passed it leaves Up next,
+// finished or not; Up next knows start dates, not results.
+// Returns the Tests shown.
+function renderComingUp(list) {
   const ul = document.getElementById('comingUpList');
   if (!ul) return [];
   ul.textContent = '';
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const DAY = 86400000;
   const fmt = (d, o) => d.toLocaleDateString('en-GB', o);
   const rows = [];
   for (const u of list) {
@@ -1839,12 +1835,8 @@ function renderComingUp(list, sopOn) {
     if (u.start) {
       const [y, m, dd] = u.start.split('-').map(Number);
       const start = new Date(y, m - 1, dd);
-      const lastDay = new Date(start.getTime() + 4 * DAY);
-      if (today > lastDay) continue;                     // its five days have passed
-      const started = today >= start;
-      if (started && sopOn) continue;                    // the live-scores cards have it
-      rows.push({ u, when: started ? 'Started ' + fmt(start, { day: 'numeric', month: 'short' })
-                                   : 'Starts ' + fmt(start, { weekday: 'short', day: 'numeric', month: 'short' }), live: false });
+      if (today >= start) continue;                      // started: no longer "next"
+      rows.push({ u, when: 'Starts ' + fmt(start, { weekday: 'short', day: 'numeric', month: 'short' }), live: false });
     } else if (u.month) {
       const [y, m] = u.month.split('-').map(Number);
       if (new Date(y, m, 0) < today) continue;            // that month is over
@@ -1997,13 +1989,7 @@ async function refreshFeedRow() {
       document.getElementById('latestTest').hidden = false;
       shown++;
     }
-    let sopOn = false;
-    try {
-      const { getDoc, doc } = await import('https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js');
-      const cfg = await getDoc(doc(window._fsDb, 'config', 'scoresModule'));
-      sopOn = cfg.exists() && cfg.data().public === true;
-    } catch (e) { /* switch unreadable: treat as off */ }
-    const next = renderComingUp(d.upcoming || [], sopOn);
+    const next = renderComingUp(d.upcoming || []);
     if (next.length) shown++;
     if (renderMilestones(d, next)) shown++;
     refreshFeedRow();
