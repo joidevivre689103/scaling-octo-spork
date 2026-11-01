@@ -1336,7 +1336,8 @@ function syncGroups() {
   }
 }
 
-// Set defaults
+// Placeholder until the data arrives. Once it does, applyLatestDefault()
+// swaps in the two teams from the most recent Test (2026-11-01).
 ms1.set(['AUS']);
 ms2.set(['ENG']);
 
@@ -2372,6 +2373,28 @@ function buildH2HFromData(D) {
   return h;
 }
 
+// Default view (2026-11-01): open on the two teams from the most recent Test,
+// so page one of Match History starts with that result (the table is already
+// newest first). The host goes in Group 1; a neutral Test keeps the dataset's
+// order. Readers can change either side as before. Test numbers run in date
+// order, so the highest number is the latest. Leaves AUS v ENG in place if no
+// Test between two of the twelve countries is found.
+function applyLatestDefault(D) {
+  let best = -1, pair = null;
+  Object.keys(D.M).forEach(k => {
+    const t = parseInt(k, 10);
+    if (!(t > best)) return;
+    const m = D.M[k];
+    const c1 = FULLNAME_TO_CODE[D.T[m[2]]], c2 = FULLNAME_TO_CODE[D.T[m[3]]];
+    if (!c1 || !c2 || c1 === c2) return;   // ICC World XI / unmapped
+    best = t;
+    pair = (VENUE_COUNTRY[D.C[m[0]]] === c2) ? [c2, c1] : [c1, c2];
+  });
+  if (!pair) return;
+  ms1.set([pair[0]]);
+  ms2.set([pair[1]]);
+}
+
 // Load pipeline data at startup and build the H2H table from it.
 (async function initH2HFromPipeline() {
   try {
@@ -2381,6 +2404,7 @@ function buildH2HFromData(D) {
     buildVenuePickers(D);
     const tt = document.getElementById('totalTests');
     if (tt) tt.textContent = Object.keys(D.M).length.toLocaleString('en-US');
+    applyLatestDefault(D);   // a ?g1= / ?g2= in the address still wins (attachH2HUrlState)
     updateResults();
     attachH2HUrlState();
     // WhatsApp · X · Copy, as on the Yorker (2026-10-27).
@@ -2440,7 +2464,11 @@ function attachH2HUrlState() {
     apply: () => renderTable(),
     extra: {
       get: cur,
-      defaults: cur(),
+      // The countries are never treated as "the default": that pair now moves
+      // with each new Test, so a shared link must name its teams or it would
+      // open on whatever was played last. g1/g2 therefore always sit in the
+      // address; the other pickers stay omitted while untouched.
+      defaults: Object.assign(cur(), { g1: '', g2: '' }),
       set: q => {
         // Countries first: updateResults() resets the filters for a new pairing.
         if ('g1' in q) setSide(ms1, q.g1);
