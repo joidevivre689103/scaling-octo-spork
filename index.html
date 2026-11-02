@@ -2260,13 +2260,31 @@ window.lsCard = (function () {
     // ?scores=preview: an admin checks the admin-only preview document before
     // the go-live switch. Wait for the sign-in so the read carries the admin's
     // token; anyone else is refused by the rules and simply sees nothing.
-    const preview = new URLSearchParams(location.search).get('scores') === 'preview';
+    // The admin dropdown (IJ, 2026-11-02) remembers the choice on this device,
+    // so the preview also works in the home-screen app, which has no address
+    // bar. ?scores=preview / ?scores=live still work and set it too.
+    const qs = new URLSearchParams(location.search).get('scores');
+    try {
+      if (qs === 'preview') localStorage.setItem('tgb-scores-preview', '1');
+      if (qs === 'live') localStorage.removeItem('tgb-scores-preview');
+    } catch (e) { /* private mode: the address still works */ }
+    let stored = null;
+    try { stored = localStorage.getItem('tgb-scores-preview'); } catch (e) { /* fine */ }
+    const preview = qs === 'preview' || (qs !== 'live' && stored === '1');
     if (preview) {
       const { getAuth, onAuthStateChanged } = await import('https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js');
       const { getApp } = await import('https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js');
       await new Promise(res => { const off = onAuthStateChanged(getAuth(getApp()), () => { off(); res(); }); });
     }
-    const snap = await getDoc(doc(window._fsDb, preview ? 'scoresPreview' : 'liveScores', 'current'));
+    let snap;
+    try {
+      snap = await getDoc(doc(window._fsDb, preview ? 'scoresPreview' : 'liveScores', 'current'));
+    } catch (e) {
+      // Preview refused (not an admin on this device): forget it, show live.
+      if (!preview) throw e;
+      try { localStorage.removeItem('tgb-scores-preview'); } catch (_) { /* fine */ }
+      snap = await getDoc(doc(window._fsDb, 'liveScores', 'current'));
+    }
     if (!snap.exists()) return;
     const data = snap.data() || {};
     // Never show readers stale scores (IJ, 2026-10-31): if the last good fetch
@@ -3205,4 +3223,59 @@ watchSubscriber();
   }
 })();
 </script>
-</html>
+</html><!-- Admin-only scores preview switch (IJ, 2026-11-02). Shown only to an
+     admin; readers never see it. Switches State of play between what readers
+     see (liveScores/current) and the admin preview (scoresPreview/current),
+     for testing scores providers before the go-live switch. -->
+<style>
+.admin-scores{position:fixed;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:900;display:flex;align-items:center;gap:8px;
+  padding:6px 8px 6px 12px;border-radius:20px;border:1px solid var(--border,#d8d4cc);background:var(--surface,#fff);box-shadow:0 2px 10px rgba(0,0,0,.12);
+  font-family:'Inter',sans-serif;font-size:12px;color:var(--text2,#4a4a46)}
+.admin-scores b{font-weight:700;letter-spacing:.04em;text-transform:uppercase;font-size:10px;color:var(--text3,#7a7a74)}
+.admin-scores select{font:inherit;font-size:13px;border:1px solid var(--border,#d8d4cc);border-radius:14px;padding:4px 8px;background:transparent;color:inherit}
+.admin-scores.on{background:#8b0000;border-color:#8b0000;color:#fff}
+.admin-scores.on b{color:rgba(255,255,255,.8)}
+.admin-scores.on select{border-color:rgba(255,255,255,.5);color:#fff}
+.admin-scores.on select option{color:#1a1a18}
+</style>
+<script type="module">
+(async function adminScoresSwitch() {
+  try {
+    const ff = window.CTFeatureFlags;
+    if (!ff) return;
+    const app = await ff.firebaseReady;
+    const { getAuth, onAuthStateChanged } = await import('https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js');
+    const { getFirestore } = await import('https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js');
+    onAuthStateChanged(getAuth(app), async user => {
+      const old = document.getElementById('adminScores');
+      if (old) old.remove();
+      if (!user || !user.email) return;
+      const role = await ff.getUserRole(window._fsDb || getFirestore(app), user.email, user);
+      if (role !== 'admin' && role !== 'superadmin') return;
+      let on = false;
+      try { on = localStorage.getItem('tgb-scores-preview') === '1'; } catch (e) { /* fine */ }
+      if (new URLSearchParams(location.search).get('scores') === 'preview') on = true;
+      const box = document.createElement('div');
+      box.id = 'adminScores';
+      box.className = 'admin-scores' + (on ? ' on' : '');
+      box.innerHTML = '<b>Admin · Scores</b>';
+      const sel = document.createElement('select');
+      sel.setAttribute('aria-label', 'State of play source');
+      sel.innerHTML = '<option value="live">Live: what readers see</option><option value="preview">Preview: testing</option>';
+      sel.value = on ? 'preview' : 'live';
+      sel.addEventListener('change', () => {
+        try {
+          if (sel.value === 'preview') localStorage.setItem('tgb-scores-preview', '1');
+          else localStorage.removeItem('tgb-scores-preview');
+        } catch (e) { /* fine */ }
+        const u = new URL(location.href);
+        if (u.searchParams.has('scores')) { u.searchParams.delete('scores'); location.replace(u.pathname + u.search + u.hash); }
+        else location.reload();
+      });
+      box.appendChild(sel);
+      document.body.appendChild(box);
+    });
+  } catch (e) { console.warn('[admin-scores] not shown:', e && e.message); }
+})();
+</script>
+
