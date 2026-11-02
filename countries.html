@@ -1412,6 +1412,22 @@ function fillImpactDropdown(sel) {
     sel.appendChild(g);
     return g;
   }
+  // AT LEAST vs EXACTLY (IJ, 2026-11-02). Where the scope could hold more
+  // than c, a count comes twice: "At least two" (count "2+") and "Exactly
+  // two" (count "=2"), so two centuries can be set against three without
+  // the three-century matches counting in both. Where c is already the most
+  // the scope can hold, there is one plain option (count "2"), which means
+  // the same either way.
+  // `prefix` builds the start of the value, `rest(cnt)` the label after the
+  // number word, e.g. " 100+ scores in the match".
+  function addCounts(g, c, max, prefix, suffix, rest) {
+    if (c < max) {
+      addOpt(g, `${prefix}${c}+${suffix}`, `At least ${num(c).toLowerCase()}${rest(c)}`);
+      addOpt(g, `${prefix}=${c}${suffix}`, `Exactly ${num(c).toLowerCase()}${rest(c)}`);
+    } else {
+      addOpt(g, `${prefix}${c}${suffix}`, `${num(c)}${rest(c)}`);
+    }
+  }
 
   // ─── Batting ────────────────────────────────────────────────
   // For each threshold band, emit count × scope options under an optgroup.
@@ -1429,9 +1445,8 @@ function fillImpactDropdown(sel) {
     const g = addGroup(batSel, 'Batting · ' + band.title);
     for (let c = 1; c <= band.maxCount; c++) {
       scopes.forEach(scope => {
-        const val = `bat|${band.min}|${band.max}|${c}|${scope}`;
-        const label = `${num(c)} ${band.short} score${c > 1 ? 's' : ''} in ${scopeLabel(scope)}`;
-        addOpt(g, val, label);
+        addCounts(g, c, band.maxCount, `bat|${band.min}|${band.max}|`, `|${scope}`,
+          n => ` ${band.short} score${n > 1 ? 's' : ''} in ${scopeLabel(scope)}`);
       });
     }
   });
@@ -1459,9 +1474,9 @@ function fillImpactDropdown(sel) {
     for (let c = 1; c <= (band.matchMaxCount || band.maxCount); c++) {
       scopes.forEach(scope => {
         if (c > band.maxCount && scope !== 'any') return;
-        const val = `bow|i|${band.min}|${band.max}|${c}|${scope}`;
-        const label = `${num(c)} ${band.short} haul${c > 1 ? 's' : ''} in ${scopeLabel(scope)}`;
-        addOpt(g, val, label);
+        const max = scope === 'any' ? (band.matchMaxCount || band.maxCount) : band.maxCount;
+        addCounts(g, c, max, `bow|i|${band.min}|${band.max}|`, `|${scope}`,
+          n => ` ${band.short} haul${n > 1 ? 's' : ''} in ${scopeLabel(scope)}`);
       });
     }
   });
@@ -1475,9 +1490,9 @@ function fillImpactDropdown(sel) {
   bowMatch.forEach(band => {
     const g = addGroup(bowSel, 'Bowling · ' + band.title);
     for (let c = 1; c <= band.maxCount; c++) {
-      const val = `bow|m|${band.min}|${band.max}|${c}|any`;  // match-level is always whole match
-      const label = `${num(c)} ${band.short} haul${c > 1 ? 's' : ''} in the match`;
-      addOpt(g, val, label);
+      // match-level is always whole match
+      addCounts(g, c, band.maxCount, `bow|m|${band.min}|${band.max}|`, `|any`,
+        n => ` ${band.short} haul${n > 1 ? 's' : ''} in the match`);
     }
   });
 }
@@ -2618,8 +2633,14 @@ function buildTeamInningsLookup(D) {
   return __teamBatInnings;
 }
 
-// Parse a dropdown value like "bat|100|+|2|1st" or "bow|i|5|5|1|any" or "bow|m|8|+|2|any"
-// Returns {kind, unit, min, max, count, scope, label, short} or null if invalid.
+// Parse a dropdown value like "bat|100|+|2+|1st" or "bow|i|5|5|=1|any" or "bow|m|8|+|2|any"
+// Returns {kind, unit, min, max, count, countMode, scope} or null if invalid.
+// The count is "2" (plain), "2+" (at least) or "=2" (exactly); see addCounts.
+function parseCount(cs) {
+  const exact = cs.startsWith('=');
+  const atLeast = cs.endsWith('+');
+  return { count: parseInt(cs.replace(/[=+]/g, ''), 10), countMode: exact ? 'exact' : atLeast ? 'atleast' : 'plain' };
+}
 function parseImpactValue(val) {
   if (!val) return null;
   const parts = val.split('|');
@@ -2628,16 +2649,14 @@ function parseImpactValue(val) {
     const [_, minS, maxS, countS, scope] = parts;
     const min = parseInt(minS, 10);
     const max = maxS === '+' ? Infinity : parseInt(maxS, 10);
-    const count = parseInt(countS, 10);
-    return { kind:'bat', unit:'-', min, max, count, scope };
+    return { kind:'bat', unit:'-', min, max, ...parseCount(countS), scope };
   }
   if (parts[0] === 'bow') {
     if (parts.length !== 6) return null;
     const [_, unit, minS, maxS, countS, scope] = parts;
     const min = parseInt(minS, 10);
     const max = maxS === '+' ? Infinity : parseInt(maxS, 10);
-    const count = parseInt(countS, 10);
-    return { kind:'bow', unit, min, max, count, scope };
+    return { kind:'bow', unit, min, max, ...parseCount(countS), scope };
   }
   return null;
 }
@@ -2647,12 +2666,17 @@ function labelForQuery(q) {
   const bandRuns = (min, max) => max === Infinity ? `${min}+` : `${min}–${max}`;
   const bandWkts = (min, max) => max === Infinity ? `${min}+` : `${min}`;   // exact-N shows just "N"
   const scopeLbl = q.scope === 'any' ? 'the match' : q.scope === '1st' ? '1st innings' : '2nd innings';
-  const num = n => ['','One','Two','Three','Four','Five'][n] || String(n);
+  const numW = n => ['','One','Two','Three','Four','Five'][n] || String(n);
+  // "At least two" / "Exactly two" / "Two" (see addCounts); short form
+  // "2+×100+", "=2×100+", "2×100+".
+  const num = n => q.countMode === 'exact' ? 'Exactly ' + numW(n).toLowerCase()
+                 : q.countMode === 'atleast' ? 'At least ' + numW(n).toLowerCase() : numW(n);
+  const cShort = q.countMode === 'exact' ? `=${q.count}` : q.countMode === 'atleast' ? `${q.count}+` : `${q.count}`;
 
   if (q.kind === 'bat') {
     const band = bandRuns(q.min, q.max);
     return {
-      short: `${q.count}×${band}`,
+      short: `${cShort}×${band}`,
       section: `${num(q.count)} ${band} score${q.count>1?'s':''} in ${scopeLbl}`,
       full: `${num(q.count)} ${band} score${q.count>1?'s':''} in ${scopeLbl}`,
     };
@@ -2662,13 +2686,13 @@ function labelForQuery(q) {
   const exact = q.max !== Infinity ? ' exact' : '';
   if (q.unit === 'i') {
     return {
-      short: `${q.count}×${w}WI${exact}`,
+      short: `${cShort}×${w}WI${exact}`,
       section: `${num(q.count)} ${w}${exact} wkt inns haul${q.count>1?'s':''} in ${scopeLbl}`,
       full: `${num(q.count)} ${w}${exact}-wkt innings haul${q.count>1?'s':''} in ${scopeLbl}`,
     };
   }
   return {
-    short: `${q.count}×${w}WM${exact}`,
+    short: `${cShort}×${w}WM${exact}`,
     section: `${num(q.count)} ${w}${exact} wkt match haul${q.count>1?'s':''}`,
     full: `${num(q.count)} ${w}${exact}-wkt match haul${q.count>1?'s':''}`,
   };
@@ -2769,7 +2793,7 @@ function collectMilestoneQuery(D, q) {
     // innings AND 1 century in the 2nd innings, OR 2 in one innings, OR any combo
     // summing to ≥2.
     aggByTestCountry.forEach((total, ak) => {
-      if (total < q.count) return;
+      if (total < q.count || (q.countMode === 'exact' && total !== q.count)) return;
       const [testS, code] = ak.split('-');
       const test = parseInt(testS, 10);
       recordQualify(test, code);
@@ -2797,7 +2821,7 @@ function collectMilestoneQuery(D, q) {
       aggByTestCountry.set(ak, (aggByTestCountry.get(ak) || 0) + cnt);
     });
     aggByTestCountry.forEach((total, ak) => {
-      if (total < q.count) return;
+      if (total < q.count || (q.countMode === 'exact' && total !== q.count)) return;
       const [testS, code] = ak.split('-');
       const test = parseInt(testS, 10);
       recordQualify(test, code);
@@ -2827,7 +2851,7 @@ function collectMilestoneQuery(D, q) {
       qualifiersPerCountry.set(ak, (qualifiersPerCountry.get(ak) || 0) + 1);
     });
     qualifiersPerCountry.forEach((n, ak) => {
-      if (n < q.count) return;
+      if (n < q.count || (q.countMode === 'exact' && n !== q.count)) return;
       const [testS, code] = ak.split('-');
       const test = parseInt(testS, 10);
       recordQualify(test, code);
