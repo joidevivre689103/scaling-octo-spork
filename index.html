@@ -236,10 +236,26 @@ body{
    from liveScores/onThisDay). Desktop: both groups on one row. Narrower:
    one group under the other. Phones: each group a sideways-scrolling row.
    A group with nothing to show is hidden; the strip is hidden if both are.
-   ?scores=preview shows the admin-only State of play preview (admins only). */
+   ?scores=preview shows the admin-only State of play preview (admins only).
+   ALWAYS FULL (IJ, 2026-11-02): six places on the row. State of play takes
+   up to three when On this day can fill the rest, and more when it can't;
+   On this day fills what State of play leaves. Each group carries --n, its
+   number of cards, and grows in proportion to it, so every card on the row
+   is the same width whatever the split (lsCard.balance). */
 .live-strip{ padding:22px 0 24px; border-bottom:1px solid var(--border); display:grid; grid-template-columns:minmax(0,1fr); gap:26px 32px; }
 .live-strip[hidden], .live-strip [hidden]{ display:none !important; }
-.live-strip.has-both{ grid-template-columns:repeat(2,minmax(0,1fr)); }
+.live-strip.has-both{ display:flex; align-items:stretch; }
+/* Flex basis = the gaps inside the group, grow = its cards: the space left
+   over is shared out per card, so a card is the same width in both groups. */
+.live-strip.has-both > .ls-group{ flex:var(--n,3) 1 calc((var(--n,3) - 1) * 12px); }
+/* A group of one or two cards is too narrow for its heading on one line:
+   the title stays, the tag and time go under it, and the rule drops.
+   lsCard.equalize gives both headings the same height so the cards line up. */
+@media (min-width:1101px){
+  .ls-group.is-narrow .ls-head{ flex-wrap:wrap; row-gap:6px; }
+  .ls-group.is-narrow .ls-rule{ display:none; }
+  .ls-group.is-narrow .ls-head .ls-title{ flex-basis:100%; }
+}
 .ls-group{ min-width:0; display:flex; flex-direction:column; }
 .ls-head{ display:flex; align-items:baseline; gap:12px; margin-bottom:12px; }
 .ls-title, .ls-title.otd-title{ font-family:'Playfair Display',serif; font-size:21px; font-weight:700; letter-spacing:-0.01em; margin:0; white-space:nowrap; }
@@ -248,7 +264,7 @@ body{
 .ls-more{ align-self:flex-start; margin-top:10px; font-family:'Inter',sans-serif; font-size:12px; letter-spacing:0.04em; color:var(--accent); text-decoration:none; }
 .ls-more:hover{ color:var(--accent-hover); text-decoration:underline; }
 .sop-preview-tag{ font-family:'Inter',sans-serif; font-size:9.5px; letter-spacing:0.12em; text-transform:uppercase; color:#fff; background:var(--accent); padding:3px 6px; border-radius:2px; white-space:nowrap; }
-.ls-cards{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; align-items:start; }
+.ls-cards{ display:grid; grid-template-columns:repeat(var(--n,3),minmax(0,1fr)); gap:12px; align-items:start; }
 /* Format colour (IJ, 2026-10-31): a 4px top border and the tag. Crimson for
    Tests (the red ball), navy for ODIs, green for T20s; neutral if unknown. */
 .lc{ --fmt:var(--border2); background:var(--surface); border:1px solid var(--border); border-top:4px solid var(--fmt); border-radius:4px; padding:11px 14px 13px; display:flex; flex-direction:column; gap:5px; min-width:0; }
@@ -301,13 +317,19 @@ body{
 .lc-note p{ margin:6px 0 0; font-size:13px; line-height:1.5; color:var(--text); }
 .lc-note span{ display:block; margin-top:4px; font-family:'Inter',sans-serif; font-size:9.5px; letter-spacing:0.12em; text-transform:uppercase; color:var(--text3); }
 @media (max-width:1100px){
-  .live-strip.has-both{ grid-template-columns:minmax(0,1fr); }
+  /* One group under the other, three cards a row. Filling only helps when
+     the groups share a row, so a stacked group shows its first three. */
+  .live-strip.has-both{ display:grid; grid-template-columns:minmax(0,1fr); }
+  .ls-cards{ grid-template-columns:repeat(3,minmax(0,1fr)); }
+}
+@media (min-width:701px) and (max-width:1100px){
+  .live-strip.has-both .ls-cards > .lc:nth-child(n+4){ display:none; }
 }
 @media (max-width:700px){
   .ls-cards{ display:flex; overflow-x:auto; scroll-snap-type:x mandatory; scroll-padding-inline:16px; gap:10px; margin:0 -16px; padding:0 16px 4px; scrollbar-width:none; }
   .ls-cards::-webkit-scrollbar{ display:none; }
   .lc{ flex:0 0 78%; scroll-snap-align:start; }
-  .ls-cards > .lc:only-child{ flex-basis:100%; }
+  .ls-cards > .lc:only-child, .ls-group.is-single .lc{ flex-basis:100%; }
 }
 /* WTC race strip (2026-10-27): the top of the WTC table, from the public
    liveScores/wtc document; the full table is on /wtc.html (free). Arithmetic
@@ -1050,12 +1072,14 @@ body.articles-loading .analysis-section{ visibility:hidden; }
 <!-- MAIN -->
 <main class="main">
 
-  <!-- STATE OF PLAY + ON THIS DAY — card strip (IJ, 2026-10-31). Up to three
-       current-match cards (loadStateOfPlay, from liveScores/current and the
-       published notes in matchNotes) and up to three archive cards
+  <!-- STATE OF PLAY + ON THIS DAY — card strip (IJ, 2026-10-31). Six places
+       (2026-11-02), shared between current-match cards (loadStateOfPlay, from
+       liveScores/current and the published notes in matchNotes) and archive
+       cards
        (loadOnThisDay, from liveScores/onThisDay: Tests that finished on this
-       date first, then Tests that were in progress on it). Each group hides
-       itself when empty; the whole strip stays hidden if both are. -->
+       date first, then Tests that were in progress on it). lsCard.balance
+       shares the places out; a group with no cards is hidden, and the whole
+       strip if both are. -->
   <section class="live-strip" id="liveStrip" hidden aria-label="State of play and On this day">
     <div class="ls-group" id="sopGroup" hidden>
       <div class="ls-head">
@@ -2116,6 +2140,14 @@ window.lsCard = (function () {
   // card sets the height for all six. Re-measured when a group appears, when
   // a note opens or closes, when the web fonts arrive and on resize.
   const equalize = () => {
+    // Headings first: side by side, both as tall as the taller one.
+    const heads = [...document.querySelectorAll('#liveStrip .ls-head')];
+    heads.forEach(h => { h.style.minHeight = ''; });
+    const strip = document.getElementById('liveStrip');
+    if (strip && getComputedStyle(strip).display === 'flex') {
+      const hh = Math.max(0, ...heads.map(h => h.offsetHeight));
+      if (hh) heads.forEach(h => { h.style.minHeight = hh + 'px'; });
+    }
     const cards = [...document.querySelectorAll('#liveStrip .lc')];
     cards.forEach(c => { c.style.height = ''; });
     const h = Math.max(0, ...cards.map(c => c.offsetHeight));
@@ -2125,16 +2157,43 @@ window.lsCard = (function () {
   window.addEventListener('resize', () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(equalize, 120); });
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(equalize);
   document.addEventListener('toggle', e => { if (e.target.closest && e.target.closest('#liveStrip')) equalize(); }, true);
-  // Show a group once it has cards; the strip shows when either group does.
-  const show = (groupId) => {
-    document.getElementById(groupId).hidden = false;
+  // ALWAYS FULL (IJ, 2026-11-02). Each loader draws up to six cards and
+  // calls done() when it has finished, whether it drew any or not. Once both
+  // have (or after 6 s, so a slow sign-in can't hold the strip back), the six
+  // places are shared out: State of play keeps up to three if On this day can
+  // fill the rest, and takes more when On this day is short; On this day
+  // fills what is left. Cards past a group's share are hidden, not removed,
+  // and the split is redone if a loader finishes late.
+  const SLOTS = 6;
+  const finished = new Set();
+  const balance = () => {
     const strip = document.getElementById('liveStrip');
-    strip.hidden = false;
-    strip.classList.toggle('has-both',
-      !document.getElementById('sopGroup').hidden && !document.getElementById('otdGroup').hidden);
+    const sopBox = document.getElementById('sopCards');
+    const otdBox = document.getElementById('otdCards');
+    const s = sopBox.children.length, o = otdBox.children.length;
+    const sopN = Math.min(s, SLOTS - Math.min(o, 3));
+    const otdN = Math.min(o, SLOTS - sopN);
+    [['sopGroup', sopBox, sopN], ['otdGroup', otdBox, otdN]].forEach(([id, box, n]) => {
+      [...box.children].forEach((c, i) => { c.hidden = i >= n; });
+      const g = document.getElementById(id);
+      g.hidden = n === 0;
+      g.style.setProperty('--n', String(Math.max(n, 1)));
+      g.classList.toggle('is-single', n === 1);
+      g.classList.toggle('is-narrow', n > 0 && n <= 2 && sopN > 0 && otdN > 0);
+    });
+    // "More from the archive" opens the Tests actually on show.
+    const tests = [...otdBox.children].filter(c => !c.hidden).map(c => c.dataset.test).filter(Boolean);
+    if (tests.length) document.getElementById('otdMore').href = '/countries.html?otd=' + tests.join(',') + '#onthisday';
+    strip.classList.toggle('has-both', sopN > 0 && otdN > 0);
+    strip.hidden = !(sopN || otdN);
     equalize();
   };
-  return { el, show, equalize };
+  const done = (groupId) => {
+    finished.add(groupId);
+    if (finished.size >= 2) balance();
+  };
+  setTimeout(() => { if (finished.size < 2) balance(); }, 6000);
+  return { el, done, equalize };
 })();
 
 (async function loadOnThisDay() {
@@ -2148,15 +2207,17 @@ window.lsCard = (function () {
     const now = new Date();
     const key = String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
     // Already ordered by the build: Tests that finished on this date first,
-    // then Tests that were in progress on it. Three at most.
-    const entries = ((snap.data().days || {})[key] || []).slice(0, 3)
-      .filter(e => e && e.year && e.scoreline);
+    // then Tests that were in progress on it, then the next best (up to six
+    // since 2026-11-02). lsCard.balance decides how many are shown.
+    const entries = ((snap.data().days || {})[key] || [])
+      .filter(e => e && e.year && e.scoreline).slice(0, 6);
     if (!entries.length) return;
-    const { el, show } = window.lsCard;
+    const { el } = window.lsCard;
     const box = document.getElementById('otdCards');
     entries.forEach(e => {
       const inProgress = e.state === 'inprogress';
       const card = el('article', 'lc fmt-test');
+      if (parseInt(e.test, 10) > 0) card.dataset.test = String(parseInt(e.test, 10));
       const top = el('div', 'lc-top');
       top.appendChild(el('span', 'lc-year', String(e.year)));
       if (e.day) top.appendChild(el('span', 'lc-tag', inProgress ? 'Day ' + e.day + ' · in progress' : 'Day ' + e.day + ' · final day'));
@@ -2237,17 +2298,15 @@ window.lsCard = (function () {
       card.appendChild(foot);
       box.appendChild(card);
     });
-    // "More from the archive" opens these Tests' full scorecards on the
-    // countries page (paid; signed-out readers meet its gate).
-    const tests = entries.map(e => parseInt(e.test, 10)).filter(n => n > 0);
-    if (tests.length) {
-      document.getElementById('otdMore').href = '/countries.html?otd=' + tests.join(',') + '#onthisday';
-    }
+    // "More from the archive" opens the shown Tests' full scorecards on the
+    // countries page (paid; signed-out readers meet its gate). Set by
+    // lsCard.balance, which knows which cards are on show.
     document.getElementById('otdDate').textContent =
       now.toLocaleDateString('en-GB', { day: 'numeric', month: 'long' });
-    show('otdGroup');
   } catch (err) {
     console.warn('[on-this-day] not shown:', err && err.message);
+  } finally {
+    window.lsCard.done('otdGroup');
   }
 })();
 
@@ -2297,7 +2356,7 @@ window.lsCard = (function () {
     const all = Array.isArray(data.matches) ? data.matches : [];
     if (!all.length) return;
 
-    // Three cards (IJ, 2026-10-31). Tests first. Then ODIs and T20Is between
+    // Order (IJ, 2026-10-31; up to six since 2026-11-02). Tests first. Then ODIs and T20Is between
     // two of the top twelve, a Test about to start, internationals with one
     // top side, any other international, and franchise cricket last.
     // m.top (0–2) comes from fetchScores; worked out here if it is missing.
@@ -2323,7 +2382,7 @@ window.lsCard = (function () {
     const matches = all.map((m, i) => ({ m, i })).sort((a, b) => rank(a.m) - rank(b.m)
       || (a.m.tier === 'test' && b.m.tier === 'test' ? dayNum(b.m) - dayNum(a.m) || teamsKey(a.m).localeCompare(teamsKey(b.m)) : 0)
       || a.i - b.i)
-      .slice(0, 3).map(x => x.m);
+      .slice(0, 6).map(x => x.m);   // up to six; lsCard.balance decides how many show (2026-11-02)
 
     // Published notes for the cards shown (franchise cards carry none).
     const notes = {};
@@ -2334,7 +2393,7 @@ window.lsCard = (function () {
       } catch (e) { /* a missing note is normal */ }
     }));
 
-    const { el, show } = window.lsCard;
+    const { el } = window.lsCard;
     const fig = i => (i.wickets === 10 || i.wickets == null) ? String(i.runs) : i.runs + '/' + i.wickets;
     // Next day's start for a Test at stumps (IJ, 2026-10-31), in the reader's
     // own time zone. Day N+1 = day 1's start time + N days (assumes no rest
@@ -2617,9 +2676,10 @@ window.lsCard = (function () {
       u.style.color = 'var(--accent)';
     }
     if (preview) document.getElementById('sopPreviewTag').hidden = false;
-    show('sopGroup');
   } catch (err) {
     console.warn('[state-of-play] not shown:', err && err.message);
+  } finally {
+    window.lsCard.done('sopGroup');
   }
 })();
 
