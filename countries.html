@@ -964,15 +964,15 @@ body.sc-open{overflow:hidden}
           </div>
         </div>
         <div class="sel-group">
-          <label>Batting Impact</label>
-          <select id="filterBatImpact" onchange="renderImpact()" class="team-select">
+          <label>Milestone 1</label>
+          <select id="filterBatImpact" onchange="renderImpact()" class="team-select" aria-label="Milestone 1 (batting or bowling)">
             <option value="">— None —</option>
             <!-- Options populated by buildImpactDropdowns() -->
           </select>
         </div>
         <div class="sel-group">
-          <label>Bowling Impact</label>
-          <select id="filterBowImpact" onchange="renderImpact()" class="team-select">
+          <label>Milestone 2</label>
+          <select id="filterBowImpact" onchange="renderImpact()" class="team-select" aria-label="Milestone 2 (batting or bowling)">
             <option value="">— None —</option>
             <!-- Options populated by buildImpactDropdowns() -->
           </select>
@@ -987,7 +987,7 @@ body.sc-open{overflow:hidden}
 
   <!-- Impact description -->
   <div style="font-size:13px;color:var(--text2);max-width:720px;margin-bottom:20px;line-height:1.6">
-    How often does an individual milestone translate into a team win? Pick a batting <em>or</em> bowling milestone &mdash; options cover counts (one, two&hellip; per match or innings), bands (100+ vs exactly 100&ndash;199, 5+ WI vs exactly 5 WI) and innings scope &mdash; to see win rates for every country. Pick <em>both</em> to compare side-by-side with a delta showing which milestone is more decisive for each country.
+    How often does an individual milestone translate into a team win? Pick a batting or bowling milestone &mdash; options cover counts (one, two&hellip; per match or innings), bands (100+ vs exactly 100&ndash;199, 5+ WI vs exactly 5 WI) and innings scope &mdash; to see win rates for every country. Pick a <em>second</em> milestone, batting or bowling, to compare side-by-side (two centuries against three, say) with a delta showing which is more decisive for each country.
   </div>
 
   <div id="impactLoading" class="impact-loading" style="display:none">
@@ -1380,17 +1380,25 @@ msI.set(TEAMS.slice());  // default: all countries
 //        10+ or exact 10 per match    = 1..2 (2×10 = 20 = max)
 //        11..20 (any form) per match  = 1
 // ─────────────────────────────────────────────────────────────
+// BOTH DROPDOWNS CARRY EVERY OPTION (IJ, 2026-11-02). The two selects keep
+// their old ids (filterBatImpact, filterBowImpact) but are now Milestone 1
+// and Milestone 2: either can be batting or bowling, so two centuries can be
+// compared with three, or a 5-wicket haul with two.
+// MATCH COUNTS (same day): "in the match" can carry more than one innings
+// can. Centuries go to five in every scope (Australia made five in one
+// innings at Kingston in 1955). 5-wicket hauls go to three in the match
+// (two in one innings at most, since 2×5 = 10).
 function buildImpactDropdowns() {
-  const batSel = document.getElementById('filterBatImpact');
-  const bowSel = document.getElementById('filterBowImpact');
+  ['filterBatImpact', 'filterBowImpact'].forEach(id => fillImpactDropdown(document.getElementById(id)));
+}
+function fillImpactDropdown(sel) {
+  const batSel = sel, bowSel = sel;
 
   // Clear all options except the "— None —" placeholder
-  [batSel, bowSel].forEach(sel => {
-    while (sel.options.length > 1) sel.remove(1);
-  });
+  while (sel.options.length > 1) sel.remove(1);
 
   const scopeLabel = s => s === 'any' ? 'the match' : s === '1st' ? '1st innings' : '2nd innings';
-  const num = n => ['','One','Two','Three','Four'][n] || String(n);
+  const num = n => ['','One','Two','Three','Four','Five'][n] || String(n);
 
   function addOpt(parent, value, label) {
     const o = document.createElement('option');
@@ -1404,12 +1412,28 @@ function buildImpactDropdowns() {
     sel.appendChild(g);
     return g;
   }
+  // AT LEAST vs EXACTLY (IJ, 2026-11-02). Where the scope could hold more
+  // than c, a count comes twice: "At least two" (count "2+") and "Exactly
+  // two" (count "=2"), so two centuries can be set against three without
+  // the three-century matches counting in both. Where c is already the most
+  // the scope can hold, there is one plain option (count "2"), which means
+  // the same either way.
+  // `prefix` builds the start of the value, `rest(cnt)` the label after the
+  // number word, e.g. " 100+ scores in the match".
+  function addCounts(g, c, max, prefix, suffix, rest) {
+    if (c < max) {
+      addOpt(g, `${prefix}${c}+${suffix}`, `At least ${num(c).toLowerCase()}${rest(c)}`);
+      addOpt(g, `${prefix}=${c}${suffix}`, `Exactly ${num(c).toLowerCase()}${rest(c)}`);
+    } else {
+      addOpt(g, `${prefix}${c}${suffix}`, `${num(c)}${rest(c)}`);
+    }
+  }
 
   // ─── Batting ────────────────────────────────────────────────
   // For each threshold band, emit count × scope options under an optgroup.
   const batBands = [
-    { min:100, max:'+', maxCount:4, title:'Scores of 100+ (any century)',    short:'100+' },
-    { min:100, max:199, maxCount:4, title:'Scores of exactly 100–199',        short:'100–199' },
+    { min:100, max:'+', maxCount:5, title:'Scores of 100+ (any century)',    short:'100+' },
+    { min:100, max:199, maxCount:5, title:'Scores of exactly 100–199',        short:'100–199' },
     { min:200, max:'+', maxCount:2, title:'Scores of 200+ (any double)',      short:'200+' },
     { min:200, max:299, maxCount:2, title:'Scores of exactly 200–299',        short:'200–299' },
     { min:300, max:'+', maxCount:1, title:'Scores of 300+ (any triple)',      short:'300+' },
@@ -1418,12 +1442,11 @@ function buildImpactDropdowns() {
   ];
   const scopes = ['any', '1st', '2nd'];
   batBands.forEach(band => {
-    const g = addGroup(batSel, band.title);
+    const g = addGroup(batSel, 'Batting · ' + band.title);
     for (let c = 1; c <= band.maxCount; c++) {
       scopes.forEach(scope => {
-        const val = `bat|${band.min}|${band.max}|${c}|${scope}`;
-        const label = `${num(c)} ${band.short} score${c > 1 ? 's' : ''} in ${scopeLabel(scope)}`;
-        addOpt(g, val, label);
+        addCounts(g, c, band.maxCount, `bat|${band.min}|${band.max}|`, `|${scope}`,
+          n => ` ${band.short} score${n > 1 ? 's' : ''} in ${scopeLabel(scope)}`);
       });
     }
   });
@@ -1433,8 +1456,8 @@ function buildImpactDropdowns() {
   const bowInn = [
     { min:4, max:'+', maxCount:2, title:'4+ wickets in an innings',   short:'4+ WI' },
     { min:4, max:4,   maxCount:2, title:'Exactly 4 wickets in an innings', short:'4-WI exact' },
-    { min:5, max:'+', maxCount:2, title:'5+ wickets in an innings',   short:'5+ WI' },
-    { min:5, max:5,   maxCount:2, title:'Exactly 5 wickets in an innings', short:'5-WI exact' },
+    { min:5, max:'+', maxCount:2, matchMaxCount:3, title:'5+ wickets in an innings',   short:'5+ WI' },
+    { min:5, max:5,   maxCount:2, matchMaxCount:3, title:'Exactly 5 wickets in an innings', short:'5-WI exact' },
     { min:6, max:'+', maxCount:1, title:'6+ wickets in an innings',   short:'6+ WI' },
     { min:6, max:6,   maxCount:1, title:'Exactly 6 wickets in an innings', short:'6-WI exact' },
     { min:7, max:'+', maxCount:1, title:'7+ wickets in an innings',   short:'7+ WI' },
@@ -1446,12 +1469,14 @@ function buildImpactDropdowns() {
     { min:10,max:10,  maxCount:1, title:'All 10 wickets in an innings', short:'10-WI exact' },
   ];
   bowInn.forEach(band => {
-    const g = addGroup(bowSel, band.title);
-    for (let c = 1; c <= band.maxCount; c++) {
+    const g = addGroup(bowSel, 'Bowling · ' + band.title);
+    // One innings holds at most maxCount; the whole match may hold more.
+    for (let c = 1; c <= (band.matchMaxCount || band.maxCount); c++) {
       scopes.forEach(scope => {
-        const val = `bow|i|${band.min}|${band.max}|${c}|${scope}`;
-        const label = `${num(c)} ${band.short} haul${c > 1 ? 's' : ''} in ${scopeLabel(scope)}`;
-        addOpt(g, val, label);
+        if (c > band.maxCount && scope !== 'any') return;
+        const max = scope === 'any' ? (band.matchMaxCount || band.maxCount) : band.maxCount;
+        addCounts(g, c, max, `bow|i|${band.min}|${band.max}|`, `|${scope}`,
+          n => ` ${band.short} haul${n > 1 ? 's' : ''} in ${scopeLabel(scope)}`);
       });
     }
   });
@@ -1463,11 +1488,11 @@ function buildImpactDropdowns() {
     bowMatch.push({ min:n, max:n, maxCount, title:`Exactly ${n} wickets in the match`, short:`${n}-WM exact` });
   }
   bowMatch.forEach(band => {
-    const g = addGroup(bowSel, band.title);
+    const g = addGroup(bowSel, 'Bowling · ' + band.title);
     for (let c = 1; c <= band.maxCount; c++) {
-      const val = `bow|m|${band.min}|${band.max}|${c}|any`;  // match-level is always whole match
-      const label = `${num(c)} ${band.short} haul${c > 1 ? 's' : ''} in the match`;
-      addOpt(g, val, label);
+      // match-level is always whole match
+      addCounts(g, c, band.maxCount, `bow|m|${band.min}|${band.max}|`, `|any`,
+        n => ` ${band.short} haul${n > 1 ? 's' : ''} in the match`);
     }
   });
 }
@@ -2608,8 +2633,14 @@ function buildTeamInningsLookup(D) {
   return __teamBatInnings;
 }
 
-// Parse a dropdown value like "bat|100|+|2|1st" or "bow|i|5|5|1|any" or "bow|m|8|+|2|any"
-// Returns {kind, unit, min, max, count, scope, label, short} or null if invalid.
+// Parse a dropdown value like "bat|100|+|2+|1st" or "bow|i|5|5|=1|any" or "bow|m|8|+|2|any"
+// Returns {kind, unit, min, max, count, countMode, scope} or null if invalid.
+// The count is "2" (plain), "2+" (at least) or "=2" (exactly); see addCounts.
+function parseCount(cs) {
+  const exact = cs.startsWith('=');
+  const atLeast = cs.endsWith('+');
+  return { count: parseInt(cs.replace(/[=+]/g, ''), 10), countMode: exact ? 'exact' : atLeast ? 'atleast' : 'plain' };
+}
 function parseImpactValue(val) {
   if (!val) return null;
   const parts = val.split('|');
@@ -2618,16 +2649,14 @@ function parseImpactValue(val) {
     const [_, minS, maxS, countS, scope] = parts;
     const min = parseInt(minS, 10);
     const max = maxS === '+' ? Infinity : parseInt(maxS, 10);
-    const count = parseInt(countS, 10);
-    return { kind:'bat', unit:'-', min, max, count, scope };
+    return { kind:'bat', unit:'-', min, max, ...parseCount(countS), scope };
   }
   if (parts[0] === 'bow') {
     if (parts.length !== 6) return null;
     const [_, unit, minS, maxS, countS, scope] = parts;
     const min = parseInt(minS, 10);
     const max = maxS === '+' ? Infinity : parseInt(maxS, 10);
-    const count = parseInt(countS, 10);
-    return { kind:'bow', unit, min, max, count, scope };
+    return { kind:'bow', unit, min, max, ...parseCount(countS), scope };
   }
   return null;
 }
@@ -2637,12 +2666,17 @@ function labelForQuery(q) {
   const bandRuns = (min, max) => max === Infinity ? `${min}+` : `${min}–${max}`;
   const bandWkts = (min, max) => max === Infinity ? `${min}+` : `${min}`;   // exact-N shows just "N"
   const scopeLbl = q.scope === 'any' ? 'the match' : q.scope === '1st' ? '1st innings' : '2nd innings';
-  const num = n => ['','One','Two','Three','Four'][n] || String(n);
+  const numW = n => ['','One','Two','Three','Four','Five'][n] || String(n);
+  // "At least two" / "Exactly two" / "Two" (see addCounts); short form
+  // "2+×100+", "=2×100+", "2×100+".
+  const num = n => q.countMode === 'exact' ? 'Exactly ' + numW(n).toLowerCase()
+                 : q.countMode === 'atleast' ? 'At least ' + numW(n).toLowerCase() : numW(n);
+  const cShort = q.countMode === 'exact' ? `=${q.count}` : q.countMode === 'atleast' ? `${q.count}+` : `${q.count}`;
 
   if (q.kind === 'bat') {
     const band = bandRuns(q.min, q.max);
     return {
-      short: `${q.count}×${band}`,
+      short: `${cShort}×${band}`,
       section: `${num(q.count)} ${band} score${q.count>1?'s':''} in ${scopeLbl}`,
       full: `${num(q.count)} ${band} score${q.count>1?'s':''} in ${scopeLbl}`,
     };
@@ -2652,13 +2686,13 @@ function labelForQuery(q) {
   const exact = q.max !== Infinity ? ' exact' : '';
   if (q.unit === 'i') {
     return {
-      short: `${q.count}×${w}WI${exact}`,
+      short: `${cShort}×${w}WI${exact}`,
       section: `${num(q.count)} ${w}${exact} wkt inns haul${q.count>1?'s':''} in ${scopeLbl}`,
       full: `${num(q.count)} ${w}${exact}-wkt innings haul${q.count>1?'s':''} in ${scopeLbl}`,
     };
   }
   return {
-    short: `${q.count}×${w}WM${exact}`,
+    short: `${cShort}×${w}WM${exact}`,
     section: `${num(q.count)} ${w}${exact} wkt match haul${q.count>1?'s':''}`,
     full: `${num(q.count)} ${w}${exact}-wkt match haul${q.count>1?'s':''}`,
   };
@@ -2759,7 +2793,7 @@ function collectMilestoneQuery(D, q) {
     // innings AND 1 century in the 2nd innings, OR 2 in one innings, OR any combo
     // summing to ≥2.
     aggByTestCountry.forEach((total, ak) => {
-      if (total < q.count) return;
+      if (total < q.count || (q.countMode === 'exact' && total !== q.count)) return;
       const [testS, code] = ak.split('-');
       const test = parseInt(testS, 10);
       recordQualify(test, code);
@@ -2787,7 +2821,7 @@ function collectMilestoneQuery(D, q) {
       aggByTestCountry.set(ak, (aggByTestCountry.get(ak) || 0) + cnt);
     });
     aggByTestCountry.forEach((total, ak) => {
-      if (total < q.count) return;
+      if (total < q.count || (q.countMode === 'exact' && total !== q.count)) return;
       const [testS, code] = ak.split('-');
       const test = parseInt(testS, 10);
       recordQualify(test, code);
@@ -2817,7 +2851,7 @@ function collectMilestoneQuery(D, q) {
       qualifiersPerCountry.set(ak, (qualifiersPerCountry.get(ak) || 0) + 1);
     });
     qualifiersPerCountry.forEach((n, ak) => {
-      if (n < q.count) return;
+      if (n < q.count || (q.countMode === 'exact' && n !== q.count)) return;
       const [testS, code] = ak.split('-');
       const test = parseInt(testS, 10);
       recordQualify(test, code);
@@ -2992,9 +3026,12 @@ async function renderImpact() {
   }
 
   // ─── Render both queries side-by-side (dual-milestone path) ────
+  // Milestone 1 on the left, Milestone 2 on the right; either can be batting
+  // or bowling (2026-11-02). The variable names keep the old Bat/Bow order.
   function renderMerged(qBat, sBat, qBow, sBow) {
     const lBat = labelForQuery(qBat);
     const lBow = labelForQuery(qBow);
+    const kindName = q => q.kind === 'bat' ? 'Batting' : 'Bowling';
     let s = '';
     s += `<div style="font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text3);margin-bottom:12px">
       Combined Impact · ${lBat.full} &nbsp;vs&nbsp; ${lBow.full} · ${countryLabel}
@@ -3002,7 +3039,7 @@ async function renderImpact() {
 
     // Two aggregate cards side-by-side on desktop, stacking on mobile
     s += '<div class="impact-stats impact-stats-dual">';
-    [ [qBat, sBat, 'Batting', lBat], [qBow, sBow, 'Bowling', lBow] ].forEach(([q, st, kind, ql]) => {
+    [ [qBat, sBat, kindName(qBat), lBat], [qBow, sBow, kindName(qBow), lBow] ].forEach(([q, st, kind, ql]) => {
       const { aggW, aggL, aggD, aggTotal } = st;
       if (aggTotal === 0) {
         s += `<div class="impact-card"><div class="ic-label">${kind} · ${ql.short}</div>
@@ -3058,14 +3095,14 @@ async function renderImpact() {
     };
 
     s += `<div style="margin-top:18px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3);margin-bottom:8px">
-      Per-country comparison · Δ = Batting win% − Bowling win%
+      Per-country comparison · Δ = ${kindName(qBat)} ${lBat.short} win% − ${kindName(qBow)} ${lBow.short} win%
     </div>`;
     s += `<div class="impact-table-scroll"><table class="impact-table impact-table-merged">
       <thead>
         <tr>
           <th rowspan="2" style="vertical-align:bottom">Country</th>
-          <th colspan="3" class="center" style="border-bottom:1px solid var(--border)">Batting · ${lBat.short}</th>
-          <th colspan="3" class="center" style="border-bottom:1px solid var(--border)">Bowling · ${lBow.short}</th>
+          <th colspan="3" class="center" style="border-bottom:1px solid var(--border)">${kindName(qBat)} · ${lBat.short}</th>
+          <th colspan="3" class="center" style="border-bottom:1px solid var(--border)">${kindName(qBow)} · ${lBow.short}</th>
           <th rowspan="2" class="right" style="vertical-align:bottom">Δ Win%</th>
         </tr>
         <tr>
@@ -3121,8 +3158,8 @@ async function renderImpact() {
 // 2 user-selected filters must be active before Export enables. Filters that
 // count toward the threshold:
 //   1. Country selector (any countries picked)
-//   2. Batting Impact milestone selected
-//   3. Bowling Impact milestone selected
+//   2. Milestone 1 selected (batting or bowling)
+//   3. Milestone 2 selected (batting or bowling)
 // So the bare minimum is country + one milestone (the natural minimum to
 // produce results anyway).
 let __impactExportState = null;
@@ -3218,8 +3255,12 @@ function buildImpactExportModel(){
     sheets.push({
       name: 'Comparison',
       role: 'extra',
-      headers: ['Country', 'Bat matches', 'Bat W', 'Bat L', 'Bat D', 'Bat win %',
-                'Bowl matches', 'Bowl W', 'Bowl L', 'Bowl D', 'Bowl win %', 'Delta (bat - bowl)'],
+      // Either milestone can be batting or bowling (2026-11-02): name each one.
+      headers: (() => {
+        const n1 = labelForQuery(queries[0]).short, n2 = labelForQuery(queries[1]).short;
+        return ['Country', n1 + ' matches', n1 + ' W', n1 + ' L', n1 + ' D', n1 + ' win %',
+                n2 + ' matches', n2 + ' W', n2 + ' L', n2 + ' D', n2 + ' win %', 'Delta (' + n1 + ' - ' + n2 + ')'];
+      })(),
       rows: rows.map(r => [
         TEAM_NAMES[r.code] || r.code,
         r.b ? r.b.total : '', r.b ? r.b.W : '', r.b ? r.b.L : '', r.b ? r.b.D : '', r.bp === null ? '' : r.bp,
