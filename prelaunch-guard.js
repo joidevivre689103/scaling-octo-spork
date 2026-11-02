@@ -82,17 +82,55 @@
    On allowlisted pages, nav is hidden (consistent with original guard).
 
    ─── OWNER BYPASS ─────────────────────────────────────────────────
-   Visit any page once with ?preview=<OWNER_BYPASS_SECRET>.
+   Visit any page once with ?preview=<owner preview code>.
    Saved to localStorage, sticky thereafter on that browser/device.
-   To revoke: change OWNER_BYPASS_SECRET below and redeploy.
+
+   [2026-11-02] THE CODE ITSELF IS NO LONGER IN THIS FILE. Until today the
+   plaintext code sat in a constant here — and this file is served to every
+   visitor AND lives in the public repo, so anyone reading the source had a
+   ready-made bypass. Now only its SHA-256 hash is stored (OWNER_BYPASS_HASH);
+   the guard hashes whatever ?preview= value arrives and compares hashes. The
+   hash cannot be turned back into the code. The old code is dead: it stays in
+   git history, which is why the code was rotated rather than just moved.
+   Keep the code itself OUTSIDE both repos.
+
+   To rotate: pick a new random code (20+ characters), compute its SHA-256
+   hex (any online SHA-256 tool, or in a browser console:
+     [...new Uint8Array(await crypto.subtle.digest('SHA-256',
+       new TextEncoder().encode('NEWCODE')))]
+       .map(b => b.toString(16).padStart(2,'0')).join('')
+   ), paste the hex into OWNER_BYPASS_HASH and redeploy. Every browser
+   holding the old code drops back to the normal tier check.
+
+   Honest limit: this guard runs in the reader's browser, so anyone willing
+   to edit JavaScript in DevTools can skip it with or without a code. It hides
+   the pre-launch site from ordinary visitors; the real protection for paid
+   data is server-side (serveDerivedData re-checks every request).
 
    ─── ASYNC NOTE ───────────────────────────────────────────────────
    Tier checking requires Firebase Auth + Firestore reads. While that
-   resolves, the page is hidden via injected CSS. If the check takes
-   longer than ASYNC_TIMEOUT_MS, we fail CLOSED (redirect) — exposing
-   content during a slow check is worse than a brief redirect. The
-   owner-bypass URL works regardless of Firestore reachability and is
-   the proper escape hatch if Firestore is down.
+   resolves, the page is hidden via injected CSS.
+
+   [2026-11-02] SLOW CHECKS NO LONGER LOOK LIKE A "NO". Before today a
+   check that ran past ASYNC_TIMEOUT_MS, or whose config read failed (which
+   getSiteMinimumTier reports as 'closed'), sent the visitor to comingsoon —
+   so a signed-in superadmin on a phone opening the site cold was bounced,
+   signed in again, and was bounced again. Now:
+     1. An UNCERTAIN result (timeout, error, or a 'closed' reading) gets ONE
+        retry with RETRY_TIMEOUT_MS. The SDK files are cached by then, so
+        the retry is much faster. The first attempt keeps running too —
+        whichever gives a firm answer first wins.
+     2. Uncertain results are NEVER written to the session cache. Only firm
+        answers are.
+     3. If both attempts stay uncertain and we know someone is signed in,
+        the page shows a small "taking longer than usual — Try again" note
+        instead of redirecting. Content stays hidden; nobody is bounced.
+        Signed-out or unknown visitors still go to comingsoon, as before.
+   Side effect to know about: a failed config read and a deliberate
+   minimumTier = 'closed' look identical to this file, so if 'closed' is ever
+   set on purpose, signed-in non-owners see the "Try again" note rather than
+   comingsoon. Content stays hidden either way.
+   The owner-bypass URL still works regardless of Firestore reachability.
 
    Allowlisted pages (yorker.html, coming-soon, etc.)
    short-circuit synchronously BEFORE any async work, so they render
@@ -126,12 +164,15 @@
   const PRELAUNCH_FORCE_OPEN = false;
   // ──────────────────────────────────────────────────────────────────
 
-  // Owner bypass secret — preserved from v1.
-  const OWNER_BYPASS_SECRET = '8n50brmcd1mei2oq';
+  // Owner bypass — SHA-256 of the owner preview code. NOT the code itself;
+  // see "OWNER BYPASS" in the header. Rotated 2026-11-02 (the previous
+  // plaintext code was public and no longer works).
+  const OWNER_BYPASS_HASH = '3de25b36401a354546b49d64b77a3ea7787811c29093d439e532927c7e34b5b9';
   const OWNER_FLAG_KEY = 'ct_owner_preview';
 
-  // How long to wait for the async tier check before failing CLOSED
-  // (redirecting to comingsoon.html — see finalize()).
+  // How long the FIRST attempt at the tier check gets before it is treated
+  // as uncertain and retried (see the [2026-11-02] ASYNC NOTE in the header).
+  // Before 2026-11-02 running past this failed CLOSED straight to comingsoon.
   //
   // [2026-08-12] 3000 → 8000. TWO reasons, and the comment this replaces was
   // wrong on both counts: it said "failing open (revealing the page anyway)",
@@ -160,6 +201,11 @@
   // properly, as feature-flags.js now does — is a deliberate trade against a
   // known deletion date, not a pattern to copy.
   const ASYNC_TIMEOUT_MS = 8000;
+
+  // [2026-11-02] Budget for the single retry. Shorter than the first, because
+  // the SDK files are cached by then and Firebase is already initialised; the
+  // first attempt is still allowed to finish during this window.
+  const RETRY_TIMEOUT_MS = 6000;
 
   // Cache the access verdict for this session so we don't re-query
   // Firestore on every page navigation. Cleared automatically when the
@@ -211,18 +257,26 @@
   if (PRELAUNCH_FORCE_OPEN) return;
 
   // ─── 2. OWNER BYPASS (synchronous, sticky) ────────────────────────
+  // [2026-11-02] Compares SHA-256 hashes, never the code itself. Stays
+  // synchronous (sha256Hex below is a plain-JS implementation, not the async
+  // crypto.subtle) so the bypass still decides before anything renders.
+  // localStorage keeps the code the owner typed, and it is re-hashed on every
+  // load — so a browser holding a rotated-out code simply stops bypassing.
+  function isOwnerCode(v) {
+    return typeof v === 'string' && v.length > 0 && sha256Hex(v) === OWNER_BYPASS_HASH;
+  }
   let previewParam;
   try {
     const urlParams = new URLSearchParams(window.location.search);
     previewParam = urlParams.get('preview');
-    if (previewParam === OWNER_BYPASS_SECRET) {
-      window.localStorage.setItem(OWNER_FLAG_KEY, OWNER_BYPASS_SECRET);
+    if (isOwnerCode(previewParam)) {
+      window.localStorage.setItem(OWNER_FLAG_KEY, previewParam);
     }
-    if (window.localStorage.getItem(OWNER_FLAG_KEY) === OWNER_BYPASS_SECRET) {
+    if (isOwnerCode(window.localStorage.getItem(OWNER_FLAG_KEY))) {
       return;
     }
   } catch (e) {
-    if (typeof previewParam !== 'undefined' && previewParam === OWNER_BYPASS_SECRET) {
+    if (isOwnerCode(previewParam)) {
       return;
     }
   }
@@ -251,26 +305,90 @@
     return;
   }
 
-  const timeoutHandle = setTimeout(() => {
-    console.warn('[prelaunch-guard] tier check timed out; failing closed');
-    // Fail closed: an access gate that exposes content during slow Firestore
-    // is worse than one that briefly redirects. The owner-bypass URL is the
-    // proper escape hatch when Firestore is unavailable.
-    finalize(false);
+  // [2026-11-02] Two attempts, firm answers only. performTierCheck resolves
+  // to 'allow', 'deny' (firm) or 'unknown' (timed out, threw, or read the
+  // tier as 'closed', which is also what a failed config read looks like).
+  // Both attempts report into settle(); the first FIRM answer wins, whichever
+  // attempt it comes from. See the ASYNC NOTE in the header.
+  //
+  // signedInSeen is set the moment either attempt sees a signed-in user, so
+  // that a check which then stalls on Firestore can still tell "someone is
+  // signed in" from "nobody is".
+  let settled = false;
+  let signedInSeen = false;
+  let retryStarted = false;
+  let firstTimer = null;
+  let retryTimer = null;
+
+  // source is 'first' or 'retry'. A firm answer from either wins. An
+  // uncertain answer from the FIRST attempt starts the retry (once); a late
+  // uncertain answer from it after that is ignored, so it can't cut the
+  // retry short. An uncertain answer from the RETRY ends the wait.
+  function settle(verdict, source) {
+    if (settled) return;
+    if (verdict === 'allow' || verdict === 'deny') {
+      settled = true;
+      clearTimeout(firstTimer);
+      clearTimeout(retryTimer);
+      writeSessionCache(verdict === 'allow');
+      finalize(verdict === 'allow');
+      return;
+    }
+    if (source === 'first') {
+      if (!retryStarted) startRetry();
+      return;
+    }
+    giveUp();
+  }
+
+  function runAttempt(label) {
+    return performTierCheck()
+      .then((v) => {
+        console.log('[guard-debug] ' + label + ' attempt →', v);
+        return v;
+      })
+      .catch((e) => {
+        console.warn('[prelaunch-guard] ' + label + ' tier check failed:', e?.message || e);
+        return 'unknown';
+      });
+  }
+
+  function startRetry() {
+    retryStarted = true;
+    clearTimeout(firstTimer);
+    console.warn('[prelaunch-guard] tier check uncertain; retrying once');
+    retryTimer = setTimeout(() => {
+      console.warn('[prelaunch-guard] retry timed out');
+      settle('unknown', 'retry');
+    }, RETRY_TIMEOUT_MS);
+    runAttempt('retry').then((v) => settle(v, 'retry'));
+  }
+
+  function giveUp() {
+    if (settled) return;
+    settled = true;
+    clearTimeout(firstTimer);
+    clearTimeout(retryTimer);
+    if (signedInSeen) {
+      // A signed-in reader is never sent to comingsoon just because the check
+      // was slow. Content stays hidden; they get a "Try again" note.
+      console.warn('[prelaunch-guard] still uncertain for a signed-in user — showing retry note, not redirecting');
+      showSlowNote();
+    } else {
+      // Nobody signed in (or auth itself never answered): same as before.
+      console.warn('[prelaunch-guard] still uncertain, no signed-in user seen — failing closed');
+      finalize(false);
+    }
+  }
+
+  firstTimer = setTimeout(() => {
+    console.warn('[prelaunch-guard] first tier check timed out');
+    settle('unknown', 'first');
   }, ASYNC_TIMEOUT_MS);
 
-  performTierCheck()
-    .then((allowed) => {
-      clearTimeout(timeoutHandle);
-      writeSessionCache(allowed);
-      finalize(allowed);
-    })
-    .catch((e) => {
-      clearTimeout(timeoutHandle);
-      console.warn('[prelaunch-guard] tier check failed:', e?.message || e);
-      // On hard error, fail closed — redirect rather than expose content.
-      finalize(false);
-    });
+  // The first attempt keeps running after a timeout starts the retry — a late
+  // FIRM answer from it is still accepted.
+  runAttempt('first').then((v) => settle(v, 'first'));
 
   // ────────────────────────────────────────────────────────────────────
   //                             helpers
@@ -287,7 +405,10 @@
   }
 
   /**
-   * Resolve to true if the visitor passes the tier gate.
+   * Resolve to 'allow' or 'deny' (FIRM answers, safe to cache) or 'unknown'
+   * (could not get a trustworthy answer — retried once, never cached).
+   * [2026-11-02] Was a plain true/false, which made "the check broke" and
+   * "this person may not enter" look identical.
    *
    * Firebase ownership: as of 2026-05-29 (item 7.5 / TODO #13),
    * feature-flags.js owns Firebase init. This guard awaits
@@ -316,8 +437,8 @@
    */
   async function performTierCheck() {
     if (!window.CTFeatureFlags) {
-      console.warn('[prelaunch-guard] CTFeatureFlags missing — failing closed');
-      return false;
+      console.warn('[prelaunch-guard] CTFeatureFlags missing');
+      return 'unknown';
     }
 
     // Wait for feature-flags.js to finish Firebase init. Owns init since
@@ -327,7 +448,7 @@
       await window.CTFeatureFlags.firebaseReady;
     } catch (e) {
       console.warn('[prelaunch-guard] Firebase init (in feature-flags.js) failed:', e?.message || e);
-      return false;
+      return 'unknown';
     }
 
     let getApp, getAuth, onAuthStateChanged, getFirestore;
@@ -337,19 +458,19 @@
       ({ getFirestore } = await import('https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js'));
     } catch (e) {
       console.warn('[prelaunch-guard] failed to load Firebase modular SDK:', e?.message || e);
-      return false;
+      return 'unknown';
     }
 
     // feature-flags.js has already called initializeApp() above. getApp()
     // returns the default app it created. If this throws, something is
     // very wrong (feature-flags.js's init silently failed despite
-    // firebaseReady resolving) — fail closed.
+    // firebaseReady resolving) — uncertain, not a firm deny.
     let app;
     try {
       app = getApp();
     } catch (e) {
       console.warn('[prelaunch-guard] getApp() failed after firebaseReady:', e?.message || e);
-      return false;
+      return 'unknown';
     }
 
     const auth = getAuth(app);
@@ -362,6 +483,11 @@
     console.log('[guard-debug] onAuthStateChanged resolved.',
       'user:', user ? user.email : 'null',
       'uid:', user ? user.uid : 'null');
+
+    // [2026-11-02] Remember that a signed-in user exists, so that if the
+    // Firestore reads below then stall, the give-up path shows a retry note
+    // instead of bouncing them to comingsoon.
+    if (user) signedInSeen = true;
 
     // Force the SDK to fetch a valid ID token before making any Firestore
     // requests. onAuthStateChanged resolves with the user record, but the
@@ -385,15 +511,19 @@
 
     if (minimumTier === 'public') {
       console.log('[guard-debug] minimumTier=public → allow.');
-      return true;
+      return 'allow';
     }
     if (minimumTier === 'closed') {
-      console.log('[guard-debug] minimumTier=closed → deny.');
-      return false;
+      // [2026-11-02] getSiteMinimumTier ALSO returns 'closed' when the config
+      // read fails, so 'closed' cannot be trusted as a firm answer. Treat it as
+      // uncertain: it is still a deny in the end (after one retry), just never
+      // cached and never a bounce for a signed-in reader.
+      console.log('[guard-debug] minimumTier=closed (configured, or config read failed) → uncertain.');
+      return 'unknown';
     }
     if (!user || !user.email) {
       console.log('[guard-debug] No authenticated user → deny.');
-      return false;
+      return 'deny';
     }
 
     const emailKey = user.email.toLowerCase().replace(/[.@]/g, '_');
@@ -401,9 +531,9 @@
 
     // Resolve role and paid status in parallel. Both reads target Firestore
     // and either both succeed or both fail in the same auth-state way, so
-    // parallelizing buys ~one round-trip of latency. Promise.all rejects
-    // on the first error, which falls through to the catch in finalize()
-    // and fails closed — same defensive default as pre-(h).
+    // parallelizing buys ~one round-trip of latency. Both helpers swallow
+    // their own errors (role → 'none', paid → false); anything that still
+    // throws is caught by runAttempt and treated as uncertain.
     //
     // Architecture note (2026-05-18, item h): pre-(h) this was a single
     // getUserRole() read, and paid status was inferred from role==='priority'.
@@ -423,7 +553,7 @@
     const hasAccess = window.CTFeatureFlags.hasPaidAccess(role, isPaid || role === 'paidSubscriber', minimumTier);
     console.log('[guard-debug] hasPaidAccess(', role, ',', isPaid, ',', minimumTier, ') →', hasAccess);
 
-    return hasAccess;
+    return hasAccess ? 'allow' : 'deny';
   }
 
   function readSessionCache() {
@@ -458,6 +588,90 @@
   function removeHideStyle() {
     const el = document.getElementById(HIDE_STYLE_ID);
     if (el && el.parentNode) el.parentNode.removeChild(el);
+  }
+
+  // [2026-11-02] Shown instead of a redirect when a signed-in reader's check
+  // could not finish (see giveUp). The page itself stays hidden — only this
+  // note is made visible (a visible child of a visibility:hidden body shows).
+  // Kept deliberately short, in the site's palette, no external fonts.
+  function showSlowNote() {
+    function mount() {
+      if (document.getElementById('ct-guard-slow')) return;
+      const box = document.createElement('div');
+      box.id = 'ct-guard-slow';
+      box.setAttribute('role', 'alert');
+      box.style.cssText =
+        'visibility:visible;position:fixed;inset:0;display:flex;align-items:center;' +
+        'justify-content:center;padding:16px;background:#fbf8f1;z-index:2147483647;' +
+        'font-family:Georgia,"Times New Roman",serif;color:#1a1208;text-align:center;';
+      box.innerHTML =
+        '<div style="max-width:340px">' +
+          '<p style="font-size:18px;line-height:1.5;margin:0 0 20px">' +
+            'This page is taking longer than usual to load.' +
+          '</p>' +
+          '<button type="button" style="font:inherit;font-size:16px;padding:10px 22px;' +
+            'background:#8b1a1a;color:#fbf8f1;border:0;border-radius:4px;cursor:pointer">' +
+            'Try again</button>' +
+        '</div>';
+      box.querySelector('button').addEventListener('click', () => window.location.reload());
+      document.body.appendChild(box);
+    }
+    if (document.body) mount();
+    else document.addEventListener('DOMContentLoaded', mount);
+  }
+
+  // [2026-11-02] Synchronous SHA-256 → lowercase hex, for the owner bypass.
+  // Plain JS so the bypass decision stays synchronous (crypto.subtle is async).
+  // Standard FIPS 180-4; input is UTF-8 encoded first. Checked against Node's
+  // crypto on empty, short, multi-block and non-ASCII inputs before shipping.
+  function sha256Hex(str) {
+    const K = [
+      0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
+      0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+      0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+      0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+      0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
+      0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+      0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+      0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
+    ];
+    const bytes = unescape(encodeURIComponent(str));   // UTF-8 as a byte string
+    const len = bytes.length;
+    const words = new Array(((len + 9 + 63) >> 6) << 4).fill(0);
+    for (let i = 0; i < len; i++) words[i >> 2] |= (bytes.charCodeAt(i) & 0xff) << (24 - (i % 4) * 8);
+    words[len >> 2] |= 0x80 << (24 - (len % 4) * 8);
+    words[words.length - 1] = len * 8;   // bit length (codes are short; high word stays 0)
+    let h0 = 0x6a09e667, h1 = 0xbb67ae85, h2 = 0x3c6ef372, h3 = 0xa54ff53a;
+    let h4 = 0x510e527f, h5 = 0x9b05688c, h6 = 0x1f83d9ab, h7 = 0x5be0cd19;
+    const w = new Array(64);
+    const rotr = (x, n) => (x >>> n) | (x << (32 - n));
+    for (let j = 0; j < words.length; j += 16) {
+      for (let t = 0; t < 64; t++) {
+        if (t < 16) {
+          w[t] = words[j + t] | 0;
+        } else {
+          const s0 = rotr(w[t - 15], 7) ^ rotr(w[t - 15], 18) ^ (w[t - 15] >>> 3);
+          const s1 = rotr(w[t - 2], 17) ^ rotr(w[t - 2], 19) ^ (w[t - 2] >>> 10);
+          w[t] = (w[t - 16] + s0 + w[t - 7] + s1) | 0;
+        }
+      }
+      let a = h0, b = h1, c = h2, d = h3, e = h4, f = h5, g = h6, h = h7;
+      for (let t = 0; t < 64; t++) {
+        const S1 = rotr(e, 6) ^ rotr(e, 11) ^ rotr(e, 25);
+        const ch = (e & f) ^ (~e & g);
+        const t1 = (h + S1 + ch + K[t] + w[t]) | 0;
+        const S0 = rotr(a, 2) ^ rotr(a, 13) ^ rotr(a, 22);
+        const maj = (a & b) ^ (a & c) ^ (b & c);
+        const t2 = (S0 + maj) | 0;
+        h = g; g = f; f = e; e = (d + t1) | 0;
+        d = c; c = b; b = a; a = (t1 + t2) | 0;
+      }
+      h0 = (h0 + a) | 0; h1 = (h1 + b) | 0; h2 = (h2 + c) | 0; h3 = (h3 + d) | 0;
+      h4 = (h4 + e) | 0; h5 = (h5 + f) | 0; h6 = (h6 + g) | 0; h7 = (h7 + h) | 0;
+    }
+    return [h0, h1, h2, h3, h4, h5, h6, h7]
+      .map((x) => ('00000000' + (x >>> 0).toString(16)).slice(-8))
+      .join('');
   }
 
   function injectNavHide() {
