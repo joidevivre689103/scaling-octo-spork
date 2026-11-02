@@ -384,14 +384,13 @@ body{
 .snippets-title:not(.az-w)::first-letter, .section-title:not(.az-w)::first-letter, #statsPromo-title:not(.az-w)::first-letter,
 .stat-card-title:not(.az-w)::first-letter, .sim-feature-title:not(.az-w)::first-letter, .home-card-title:not(.az-w)::first-letter,
 .ct-nl__heading:not(.az-w)::first-letter, .wtc-pointer-kicker:not(.az-w)::first-letter, .wtc-strip-title:not(.az-w)::first-letter,
-.wtc-cloche-kicker:not(.az-w)::first-letter, .hero-category:not(.az-w)::first-letter{
+.hero-category:not(.az-w)::first-letter{
   /* antique gold, deeper than --gold so it reads on white and cream (~5:1) */
   color:#8A6508;
   font-size:1.15em;
 }
 /* Small capital labels get a bigger, heavier first letter, like a drop cap. */
-.col-header:not(.az-w)::first-letter, .hero-category:not(.az-w)::first-letter, .wtc-pointer-kicker:not(.az-w)::first-letter,
-.wtc-cloche-kicker:not(.az-w)::first-letter{ font-size:1.4em; font-weight:800; }
+.col-header:not(.az-w)::first-letter, .hero-category:not(.az-w)::first-letter, .wtc-pointer-kicker:not(.az-w)::first-letter{ font-size:1.4em; font-weight:800; }
 /* In the two nav bars the letters are small capitals, so the first one is a
    touch larger and heavier, like a drop cap. */
 .ct-nav-bar .ct-nav-link:not(.az-w)::first-letter,
@@ -405,7 +404,7 @@ body{
    text is unchanged for scripts and screen readers. */
 .az-l{ display:inline-block; position:relative; color:#8A6508; font-size:1.15em; line-height:1;
   transform-style:preserve-3d; transition:transform .45s cubic-bezier(.3,.7,.3,1.25); cursor:default; }
-.col-header .az-l, .hero-category .az-l, .wtc-pointer-kicker .az-l, .wtc-cloche-kicker .az-l,
+.col-header .az-l, .hero-category .az-l, .wtc-pointer-kicker .az-l,
 .ct-nav-bar .ct-nav-link .az-l, #pageNav .nav-link .az-l{ font-size:1.4em; font-weight:800; }
 .az-f{ display:inline-block; backface-visibility:hidden; -webkit-backface-visibility:hidden; transform-origin:50% 100%; }
 .az-l::after{ content:attr(data-n); position:absolute; left:50%; top:50%;
@@ -1010,10 +1009,10 @@ body.articles-loading .analysis-section{ visibility:hidden; }
              Features · Googlies · Inside every Test since 1877 (members: In good
              company) · Joins the archive · Latest · Latest News · Milestone watch · Most Read ·
              Never miss a dispatch · On this day · Player Compare · Points of View ·
-             Quiz of the month · Run machines · The table: hot & ready · Up next ·
-             Viewpoints · World Test Championship · XI v XI · Zooters to bouncers ·
-             Zoom in: the race to Lord's (the last card, so the page ends on Z;
-             2026-11-02, IJ). The T comes from the WTC card's kicker above it.
+             Quiz of the month · Run machines · Tweakers to tearaways · Up next ·
+             Viewpoints · World Test Championship · XI v XI ·
+             Zoom in: the race to Lord's (2026-11-02, IJ: the last card, so the
+             page ends on Z; the bowling card, once Zooters to bouncers, gives the T).
      Latest News, Features, Points of View and Most Read are written by
      loadArticles(). Milestone watch always shows; Up next hides only when
      there is nothing to list. Repeated letters are fine. -->
@@ -1249,7 +1248,7 @@ body.articles-loading .analysis-section{ visibility:hidden; }
       </div>
       <div class="stat-card" data-card="bowling">
         <div class="stat-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5"/><path d="M10.3 2.7c1.7 6 1.7 12.6 0 18.6"/><path d="M13.7 2.7c1.7 6 1.7 12.6 0 18.6"/></svg></div>
-        <h3 class="stat-card-title">Zooters to bouncers</h3>
+        <h3 class="stat-card-title">Tweakers to tearaways</h3>
         <p class="stat-card-desc">All-time bowling leaders: wickets, averages and strike rates</p>
         <dl class="stat-card-facts" hidden></dl>
         <a class="stat-card-q" href="compare.html?p1=2364&amp;p2=1862&amp;st=bowling">Anderson or Warne: who took more Test wickets?</a>
@@ -1366,7 +1365,7 @@ body.articles-loading .analysis-section{ visibility:hidden; }
        the WTC page also has paid sections. -->
   <section class="wtc-strip wtc-cloche" id="wtcStrip" hidden aria-labelledby="wtc-strip-title">
     <header class="wtc-cloche-head">
-      <span class="wtc-cloche-kicker">The table: hot &amp; ready</span>
+      <span class="wtc-cloche-kicker">Hot &amp; ready</span>
       <h2 class="wtc-strip-title" id="wtc-strip-title">Zoom in: the race to Lord&rsquo;s</h2>
       <p class="wtc-cloche-sub">The World Test Championship table, roasted fresh whenever a result comes in. The top two go to Lord&rsquo;s.</p>
     </header>
@@ -3118,7 +3117,7 @@ watchSubscriber();
   'use strict';
   var SEL = '.ct-nav-bar .ct-nav-link, #pageNav .nav-link, .otd-title, .feed-title, .sidebar-title, .col-header,' +
     '.snippets-title, .section-title, #statsPromo-title, .stat-card-title, .sim-feature-title, .home-card-title,' +
-    '.ct-nl__heading, .wtc-pointer-kicker, .wtc-cloche-kicker, .wtc-strip-title, .hero-category';
+    '.ct-nl__heading, .wtc-pointer-kicker, .wtc-strip-title, .hero-category';
   // Tests No. 1 to 26 by start year (checked against the published list, 2026-10-30).
   var T = [null,['MCG',1877],['MCG',1877],['MCG',1879],['The Oval',1880],['MCG',1881],['SCG',1882],
     ['SCG',1882],['MCG',1882],['The Oval',1882],['MCG',1882],['MCG',1883],['SCG',1883],['SCG',1883],
