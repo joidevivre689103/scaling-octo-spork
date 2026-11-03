@@ -759,6 +759,17 @@ body{
 .analysis-card-author{ font-family:'Inter',sans-serif; font-size:12px; font-weight:600; color:var(--text); }
 .analysis-card-author span{ color:var(--text3); font-weight:400; }
 @media(max-width:900px){ .analysis-grid{ grid-template-columns:1fr; gap:20px; } }
+/* Behind the Scenes card (IJ, 2026-11-02): fills whatever space the article
+   sections leave — a column in the row, or the rest of the Analysis row. */
+.bts-card{ background:var(--surface2,#F5F0EA); border:1px solid var(--border); border-radius:6px; padding:24px 22px;
+  display:flex; flex-direction:column; gap:10px; }
+.analysis-grid > .bts-card{ grid-column:span var(--span,1); justify-content:center; }
+@media(max-width:900px){ .analysis-grid > .bts-card{ grid-column:auto; } }
+.bts-kicker{ font-family:'Inter',sans-serif; font-size:10px; font-weight:700; letter-spacing:1.2px; text-transform:uppercase; color:var(--gold); margin:0; }
+.bts-title{ font-family:'Playfair Display',serif; font-size:22px; line-height:1.25; margin:0; color:var(--text); }
+.bts-text{ font-size:15px; line-height:1.55; color:var(--text2); margin:0; }
+.bts-link{ font-family:'Inter',sans-serif; font-size:13px; font-weight:600; color:var(--accent); text-decoration:none; margin-top:4px; }
+.bts-link:hover{ text-decoration:underline; }
 
 /* ═══ ARTICLES LOADING / EMPTY / ERROR INDICATOR ═══
    Visible by default below the (now-empty) hero section. Hides itself
@@ -1761,6 +1772,20 @@ function renderListenStrip(v) {
     const COL_MAX = 5, ANALYSIS_MAX = 3;
     const analysisArticles = notHero(analysisCat).slice(0, ANALYSIS_MAX);
 
+    // BEHIND THE SCENES fills what is still empty (IJ, 2026-11-02): the next
+    // column in the row, or the rest of the Analysis row below. One card.
+    const btsCard = (span) => `
+      <div class="bts-card"${span ? ` style="--span:${span}"` : ''}>
+        <p class="bts-kicker">Editor's notebook · Subscribers</p>
+        <h4 class="bts-title">Behind the Scenes</h4>
+        <p class="bts-text">Field notes, half-thoughts and drafts from the workshop.</p>
+        <a class="bts-link" href="/bts.html">Step inside →</a>
+      </div>`;
+
+    // DEEP ANALYSIS SLIDES UP (IJ, 2026-11-02): when the row above has room
+    // (a category column dropped out), Analysis joins it as a column instead
+    // of sitting below as a part-filled grid, so no space is left empty.
+    let analysisInRow = false;
     const contentCols = document.querySelectorAll('.content-col');
     if (contentCols.length >= 3) {
       const grid = contentCols[0].parentElement;
@@ -1771,17 +1796,33 @@ function renderListenStrip(v) {
         if (list.length) { renderColumn(col, title, list.slice(0, COL_MAX)); shown++; }
         else col.remove();
       });
+      if (grid && shown < 3 && analysisArticles.length) {
+        const col = document.createElement('div');
+        col.className = 'content-col';
+        grid.appendChild(col);
+        renderColumn(col, 'Deep Analysis', analysisArticles);
+        shown++;
+        analysisInRow = true;
+      }
+      if (grid && shown > 0 && shown < 3) {
+        const col = document.createElement('div');
+        col.className = 'content-col';
+        col.innerHTML = `<h3 class="col-header">Behind the Scenes</h3>${btsCard(0)}`;
+        grid.appendChild(col);
+        shown++;
+      }
       if (grid) {
+        grid.style.display = shown ? '' : 'none';
         grid.style.setProperty('--cols', String(Math.max(shown, 1)));
-        if (!shown) grid.style.display = 'none';
       }
     }
 
     const analysisGrid     = document.querySelector('.analysis-grid');
     // No Analysis in the window: the whole section stays out, menu link included.
     const analysisSection  = document.getElementById('analysis');
-    if (analysisSection && !analysisArticles.length) analysisSection.style.display = 'none';
-    if (analysisGrid && analysisArticles.length > 0) {
+    // It is also left out when Analysis has moved up into the row above.
+    if (analysisSection && (!analysisArticles.length || analysisInRow)) analysisSection.style.display = 'none';
+    if (analysisGrid && analysisArticles.length > 0 && !analysisInRow) {
       const colors = ['linear-gradient(135deg,#2a4048,#1a3038)','linear-gradient(135deg,#483828,#382818)','linear-gradient(135deg,#384838,#283828)'];
       analysisGrid.innerHTML = analysisArticles.slice(0, 3).map((a, i) => `
         <article class="analysis-card">
@@ -1797,7 +1838,9 @@ function renderListenStrip(v) {
               ${a.audioEnabled !== false && a.summaryAudioUrl ? `<button class="audio-listen-btn" data-audio="true" data-article-id="${a.id}" data-summary-audio-url="${escapeHTML(a.summaryAudioUrl)}" onclick="toggleArticleAudio(this)"><svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg> Listen<sup class="audio-ai-tag" title="AI-narrated summary">AI</sup></button>` : ''}
             </div>
           </div>
-        </article>`).join('');
+        </article>`).join('')
+        // One or two Analysis cards leave room in the row: BTS takes the rest.
+        + (analysisArticles.length < 3 ? btsCard(3 - Math.min(analysisArticles.length, 3)) : '');
     }
 
     // All sections populated — reveal them and hide the loading indicator.
