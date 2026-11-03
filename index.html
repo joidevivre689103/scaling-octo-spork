@@ -1761,6 +1761,10 @@ function renderListenStrip(v) {
     const COL_MAX = 5, ANALYSIS_MAX = 3;
     const analysisArticles = notHero(analysisCat).slice(0, ANALYSIS_MAX);
 
+    // DEEP ANALYSIS SLIDES UP (IJ, 2026-11-02): when the row above has room
+    // (a category column dropped out), Analysis joins it as a column instead
+    // of sitting below as a part-filled grid, so no space is left empty.
+    let analysisInRow = false;
     const contentCols = document.querySelectorAll('.content-col');
     if (contentCols.length >= 3) {
       const grid = contentCols[0].parentElement;
@@ -1771,17 +1775,26 @@ function renderListenStrip(v) {
         if (list.length) { renderColumn(col, title, list.slice(0, COL_MAX)); shown++; }
         else col.remove();
       });
+      if (grid && shown < 3 && analysisArticles.length) {
+        const col = document.createElement('div');
+        col.className = 'content-col';
+        grid.appendChild(col);
+        renderColumn(col, 'Deep Analysis', analysisArticles);
+        shown++;
+        analysisInRow = true;
+      }
       if (grid) {
+        grid.style.display = shown ? '' : 'none';
         grid.style.setProperty('--cols', String(Math.max(shown, 1)));
-        if (!shown) grid.style.display = 'none';
       }
     }
 
     const analysisGrid     = document.querySelector('.analysis-grid');
     // No Analysis in the window: the whole section stays out, menu link included.
     const analysisSection  = document.getElementById('analysis');
-    if (analysisSection && !analysisArticles.length) analysisSection.style.display = 'none';
-    if (analysisGrid && analysisArticles.length > 0) {
+    // It is also left out when Analysis has moved up into the row above.
+    if (analysisSection && (!analysisArticles.length || analysisInRow)) analysisSection.style.display = 'none';
+    if (analysisGrid && analysisArticles.length > 0 && !analysisInRow) {
       const colors = ['linear-gradient(135deg,#2a4048,#1a3038)','linear-gradient(135deg,#483828,#382818)','linear-gradient(135deg,#384838,#283828)'];
       analysisGrid.innerHTML = analysisArticles.slice(0, 3).map((a, i) => `
         <article class="analysis-card">
