@@ -858,6 +858,30 @@ function buildBowlInnings(){
   });
 }
 
+/* BOWLING INNINGS, WPI, WPM (2026-11-02). D.P's 'innings' is BATTING innings,
+   so a bowler's innings bowled are counted here from the innings index
+   (p.bowlInns), and Min Innings and the export read that. WPI = wickets per
+   innings bowled; WPM = wickets per Test played (IJ). Rebuilt rows
+   (slicedPlayers) set the same three fields from their own innings. */
+function rateFields(wkts,bowlInns,tests){
+  return {
+    bowlWPI: bowlInns>0 ? wkts/bowlInns : null,
+    bowlWPM: tests>0&&wkts!=null ? wkts/tests : null
+  };
+}
+function applyBowlInnings(){
+  // Innings and wickets both from the scorecards, so WPI never divides one
+  // source's wickets by another's innings; WPM keeps the career Wkts and
+  // Tests the table shows.
+  const n=new Map(), w=new Map();
+  BOWL_INNS.forEach(r=>{ n.set(r.pid,(n.get(r.pid)||0)+1); w.set(r.pid,(w.get(r.pid)||0)+r.wkts); });
+  ALL_PLAYERS.forEach(p=>{
+    p.bowlInns=n.get(p.id)||0;
+    p.bowlWPI=p.bowlInns>0 ? (w.get(p.id)||0)/p.bowlInns : null;
+    p.bowlWPM=rateFields(p.wkts||0,0,p.tests||0).bowlWPM;
+  });
+}
+
 function buildBazballSet(){
   BAZ_SETS={bazball:new Set(),bazballvs:new Set(),bazballall:new Set()};
   const tests=new Set(), allTests=new Set();
@@ -969,7 +993,7 @@ function slicedPlayers(f){
       const playedSet=played.get(p.id);
       out.push(Object.assign({},p,{
         tests: Math.max(a.tests.size, playedSet?playedSet.size:0),
-        bowlTests:a.tests.size, innings:a.inns,
+        bowlTests:a.tests.size, bowlInns:a.inns,
         overs:+(Math.floor(a.balls/6)+(a.balls%6)/10).toFixed(1),
         maidens:a.mdns, bowlRuns:a.runs, wkts:a.wkts,
         bowlAvg: a.wkts>0 ? a.runs/a.wkts : 0,
@@ -978,6 +1002,7 @@ function slicedPlayers(f){
         fiveWkts:a.five, fourWI:a.four, tenWkts:ten, twoX4WI:x4, twoX5WI:x5,
         bestBowl: a.bestW>0 ? a.bestW+'/'+a.bestR : '—',
         fromYear:a.from, toYear:a.to, mom:null, _sliced:true,
+        ...rateFields(a.wkts, a.inns, Math.max(a.tests.size, playedSet?playedSet.size:0)),
         _eraLabel: eraKey ? (ERA_LABEL[eraKey]||eraKey) : null
       }));
     });
@@ -992,7 +1017,7 @@ function slicedPlayers(f){
 function dedupeIdenticalEraRows(rows){
   const seen=new Set();
   return rows.filter(r=>{
-    const sig=[r.id,r.tests,r.innings,r.wkts,r.bowlRuns,r.overs,r.maidens].join('|');
+    const sig=[r.id,r.tests,r.bowlInns,r.wkts,r.bowlRuns,r.overs,r.maidens].join('|');
     if(seen.has(sig)) return false;
     seen.add(sig);
     return true;
@@ -1046,7 +1071,7 @@ function aggregateEligible(f){
     if(!bowlTypeMatch(p,f.bowlType)) return;
     if((p.wkts||0)<f.minWkts) return;
     if(f.minTests&&(p.tests||0)<f.minTests) return;
-    if(f.minInns&&(p.innings||0)<f.minInns) return;
+    if(f.minInns&&(p.bowlInns||0)<f.minInns) return;
     if(f.maxAvg&&(p.bowlAvg||999)>f.maxAvg) return;
     if(f.maxSR&&(p.bowlSR||999)>f.maxSR) return;
     if(f.maxEcon&&(p.econ||999)>f.maxEcon) return;
@@ -1202,7 +1227,7 @@ function applyFilters(){
     if(!bowlTypeMatch(p,f.bowlType)) return false;
     if((p.wkts||0)<f.minWkts) return false;
     if(f.minTests && (p.tests||0)<f.minTests) return false;
-    if(f.minInns && (p.innings||0)<f.minInns) return false;
+    if(f.minInns && (p.bowlInns||0)<f.minInns) return false;
     if(f.maxAvg && (p.bowlAvg||999)>f.maxAvg) return false;
     if(f.maxSR && (p.bowlSR||999)>f.maxSR) return false;
     if(f.maxEcon && (p.econ||999)>f.maxEcon) return false;
@@ -1284,6 +1309,8 @@ const SR_TIP='Overs are converted at six balls per over. Test cricket also used 
 const MDN_TIP='Maidens are gap-filled from scorecard data for some older matches and may be '+
               'incomplete in early eras.';
 
+const WPI_TIP='Wickets per innings bowled.';
+const WPM_TIP='Wickets per Test played.';
 const TAB_COLS={
   wickets:[
     {label:'#',key:'_rank',nosort:true},
@@ -1298,6 +1325,8 @@ const TAB_COLS={
     {label:'Avg',key:'bowlAvg',dec:2,lower:true},
     {label:'Econ',key:'econ',dec:2,lower:true},
     {label:'S/R',key:'bowlSR',dec:1,lower:true,tip:SR_TIP},
+    {label:'WPI',key:'bowlWPI',dec:2,tip:WPI_TIP},
+    {label:'WPM',key:'bowlWPM',dec:2,tip:WPM_TIP},
     {label:'Best',key:'bestBowl',nosort:true},
     {label:'4WI',key:'fourWI'},
     {label:'2X4WI',key:'twoX4WI'},
@@ -1316,6 +1345,8 @@ const TAB_COLS={
     {label:'Avg',key:'bowlAvg',dec:2,lower:true},
     {label:'Econ',key:'econ',dec:2,lower:true},
     {label:'S/R',key:'bowlSR',dec:1,lower:true,tip:SR_TIP},
+    {label:'WPI',key:'bowlWPI',dec:2,tip:WPI_TIP},
+    {label:'WPM',key:'bowlWPM',dec:2,tip:WPM_TIP},
     {label:'Runs',key:'bowlRuns'},
     {label:'Overs',key:'overs',dec:1},
     {label:'Best',key:'bestBowl',nosort:true},
@@ -1344,6 +1375,8 @@ const TAB_COLS={
     {label:'Tests',key:'tests'},
     {label:'Wkts',key:'wkts'},
     {label:'S/R',key:'bowlSR',dec:1,lower:true,tip:SR_TIP},
+    {label:'WPI',key:'bowlWPI',dec:2,tip:WPI_TIP},
+    {label:'WPM',key:'bowlWPM',dec:2,tip:WPM_TIP},
     {label:'Avg',key:'bowlAvg',dec:2,lower:true},
     {label:'Econ',key:'econ',dec:2,lower:true},
     {label:'Overs',key:'overs',dec:1},
@@ -1788,7 +1821,8 @@ function renderTable(){
    (and Show) let through, not just the page on screen. Counts are summed;
    Avg, Econ and SR come from the totals (runs over wickets, runs per six
    balls, balls per wicket); Best is the best figures among the rows; the
-   span runs from the earliest year to the latest. Tests is left blank: added
+   span runs from the earliest year to the latest; WPI and WPM are the average
+   of the rows' own figures. Tests is left blank: added
    across bowlers it would count one Test once for every bowler in it. */
 function totalsRowHTML(cols){
   const rows=filtered;
@@ -1814,6 +1848,12 @@ function totalsRowHTML(cols){
     twoX4WI:sum('twoX4WI'), twoX5WI:sum('twoX5WI'), mom:sum('mom'),
     bestBowl: best?`${best.wkts}/${best.runs}`:''
   };
+  // WPI and WPM: the average of the bowlers' own figures (IJ, 2026-11-02),
+  // over the rows that have one.
+  ['bowlWPI','bowlWPM'].forEach(k=>{
+    const xs=rows.map(p=>p[k]).filter(x=>x!=null&&isFinite(x));
+    v[k]=xs.length?(xs.reduce((a,x)=>a+x,0)/xs.length).toFixed(2):'';
+  });
   return '<tr>'+cols.map(c=>{
     if(c.key==='fullName') return `<td class="name-cell">Total \u00b7 ${rows.length.toLocaleString()} ${who}</td>`;
     if(c.key==='_rank'||c.key==='country'||c.key==='_bowlType'||c.key==='_eraLabel'||c.key==='tests') return '<td></td>';
@@ -1854,7 +1894,7 @@ const EXPORT_COLS=[
   {label:'From',      fn:p=>p.fromYear||''},
   {label:'To',        fn:p=>p.toYear||''},
   {label:'Tests',     fn:p=>p.tests??''},
-  {label:'Innings',   fn:p=>p.innings??''},
+  {label:'Innings',   fn:p=>p.bowlInns??''},
   {label:'Overs',     fn:p=>p.overs!=null?Number(p.overs).toFixed(1):''},
   {label:'Maidens',   fn:p=>p.maidens??''},
   {label:'Runs',      fn:p=>p.bowlRuns??''},
@@ -1862,6 +1902,8 @@ const EXPORT_COLS=[
   {label:'Average',   fn:p=>p.bowlAvg!=null?Number(p.bowlAvg).toFixed(2):''},
   {label:'Economy',   fn:p=>p.econ!=null?Number(p.econ).toFixed(2):''},
   {label:'Strike Rate',fn:p=>p.bowlSR!=null?Number(p.bowlSR).toFixed(1):''},
+  {label:'Wkts per Innings',fn:p=>p.bowlWPI!=null?Number(p.bowlWPI).toFixed(2):''},
+  {label:'Wkts per Test',fn:p=>p.bowlWPM!=null?Number(p.bowlWPM).toFixed(2):''},
   {label:'Best Innings',fn:p=>p.bestBowl||''},
   {label:'4WI',         fn:p=>p.fourWI??''},
   {label:'2X4WI',       fn:p=>p.twoX4WI??''},
@@ -1948,6 +1990,7 @@ CTExport.init({ build: buildExportModel, minFilters: 2 });
   compute4WI();
   resolveBazball();
   buildBowlInnings();
+  applyBowlInnings();
   buildBazballSet();
   populateCountryDropdown();
   populateCityGround();
