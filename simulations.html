@@ -542,7 +542,7 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
         <button class="picker-close" id="whatIfFindBtn">Find Matches</button>
       </div>
       <div class="hp-info" id="whatIfStatus">
-        <strong>How it works:</strong> Find a historical Test, start from the actual XIs and venue, then swap a player or two to see how the result might have changed.
+        <strong>How it works:</strong> Find a historical Test, start from the actual XIs and venue, then change a player to see how the result might have changed. Players are rated as they stood before that Test.
       </div>
     </div>
 
@@ -1150,7 +1150,8 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
         // Prevent same player twice on same side
         const already=MS.xi[t.side].findIndex((x,i)=>x&&x.id===p.id&&i!==t.slotIdx);
         if(already>=0){ toast(`${p.name} already at #${already+1}`,true); return; }
-        MS.xi[t.side][t.slotIdx]=p;
+        const onReplay=(t.side==="H"||t.side==="V")&&MS.currentHistMatch;
+        MS.xi[t.side][t.slotIdx]=onReplay?asOfPlayer(p,MS.currentHistMatch.tid):p;
         renderXI(t.side);
         closePicker();
         updateRunButtons();
@@ -1345,6 +1346,19 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
       updateRunButtons();
     }
 
+    // Why a replay showed strength only (2026-11-03): the server says which
+    // replay setting applied and how many changes it allows (simRules rule 4).
+    function replayNote(rp){
+      const dflt="Win chances aren\u2019t shown for two current sides.";
+      if(!rp) return dflt;
+      if(rp.mode==="in-progress") return "Win chances aren\u2019t shown while this series is still being played.";
+      if(rp.mode==="strict"&&rp.changes>rp.maxChanges.total)
+        return "These sides could meet again within a year, so this replay allows one change in total. Undo a change to see win chances.";
+      if(rp.mode==="clear"&&rp.maxChanges)
+        return "This replay allows up to "+rp.maxChanges.perSide+" changes a side, "+rp.maxChanges.total+" in total. Undo a change to see win chances.";
+      return dflt;
+    }
+
     // Like-for-like edges: each side's batting against the other's batting,
     // bowling against bowling, and the two together. Named for the side ahead.
     const edgeText=v=>Math.abs(v)<0.005?"Even":(v>0?labels.A:labels.B)+" +"+Math.abs(v).toFixed(2);
@@ -1367,8 +1381,7 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
       probCard.style.display="none";
       seriesCard.style.display="none";
       strengthCard.style.display="block";
-      document.getElementById("strengthNote").textContent=
-        "Win chances aren\u2019t shown for two current sides.";
+      document.getElementById("strengthNote").textContent=replayNote(r.replay);
       document.getElementById("strALbl").textContent=labels.A;
       document.getElementById("strBLbl").textContent=labels.B;
       document.getElementById("strABat").textContent=r.A.team_bat.toFixed(2);
@@ -1505,11 +1518,12 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
       const tid=parseInt(q.get("tid"),10);
       if(!tid) return;
       await ensureData();
-      loadHistoricalMatch(tid);
+      await loadHistoricalMatch(tid);
       setAll();                                        // the match rebuilt the bat-first list
     }
+    const asOfTid=f==="w"&&MS.currentHistMatch?MS.currentHistMatch.tid:null;
     const xi=k=>(q.get(k)||"").split(",").slice(0,11)
-      .map(x=>x===""?null:(SimEngine.getPlayer(parseInt(x,10))||null));
+      .map(x=>{ if(x==="") return null; const pl=SimEngine.getPlayer(parseInt(x,10))||null; return asOfTid&&pl?asOfPlayer(pl,asOfTid):pl; });
     const A=xi("a"), B=xi("b");
     if(A.some(Boolean)) MS.xi[s1]=A.concat(Array(11).fill(null)).slice(0,11);
     if(B.some(Boolean)) MS.xi[s2]=B.concat(Array(11).fill(null)).slice(0,11);
@@ -1627,7 +1641,32 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
     return best;
   }
 
-  function loadHistoricalMatch(tid){
+  // As-of ratings (2026-11-03): a replay rates each player from the Tests he
+  // had played BEFORE the replayed one, the same file simulateMatch uses, so
+  // the numbers on the page match the result. Rows: [after_tid, bat, bow,
+  // bat_sr, bow_sr]; the last row with after_tid < tid applies. No row = no
+  // earlier Test = unrated. If the file can't load, career ratings are shown
+  // and the server decides the same way it would without it.
+  async function loadAsOf(){
+    if(MS.asof!==undefined) return MS.asof;
+    try{ MS.asof=await CTData.load('ratings_asof',{renderError:false}); }
+    catch(e){ console.warn('as-of ratings unavailable',e); MS.asof=null; }
+    return MS.asof;
+  }
+  function asOfPlayer(p,tid){
+    if(!p||!MS.asof||!MS.asof.players) return p;
+    const st=SimEngine._state(); const sr=((st.model&&st.model.rating_variant)||"base")==="sr";
+    let row=null;
+    for(const r of (MS.asof.players[String(p.id)]||[])){ if(r[0]<tid) row=r; else break; }
+    const q=Object.assign({},p);
+    q.bat_rating=row?(sr&&row[3]!=null?row[3]:row[1]):null;
+    q.bow_rating=row?(sr&&row[4]!=null?row[4]:row[2]):null;
+    q.asOf=true;
+    return q;
+  }
+
+  async function loadHistoricalMatch(tid){
+    await loadAsOf();
     const D=MS.data;
     const m=D.M[String(tid)];
     if(!m){ toast("Match not found",true); return; }
@@ -1643,7 +1682,7 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
       const pl=plyById[pid]; if(!pl) continue;
       if(pl[3]===t1Name||pl[3]===t2Name){ seen[pl[3]].push(pid); seenSet.add(pid); }
     }
-    const mapToRating=pid=>SimEngine.getPlayer(pid);
+    const mapToRating=pid=>asOfPlayer(SimEngine.getPlayer(pid),tid);
     MS.xi.H=seen[t1Name].slice(0,11).map(mapToRating);
     MS.xi.V=seen[t2Name].slice(0,11).map(mapToRating);
     while(MS.xi.H.length<11) MS.xi.H.push(null);
@@ -1666,7 +1705,8 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
     const actualBox=document.getElementById("whatIfActualBox");
     const winnerStr=(m[4]===-1)?"<strong>Match drawn</strong>":"<strong>"+T[m[4]]+" won</strong>";
     const batFirstStr=batFirstTeam?"<strong>"+batFirstTeam+"</strong> batted first":"bat-first unknown";
-    actualBox.innerHTML=`Actual outcome: ${winnerStr} at ${G[m[1]]||"(unknown venue)"} · ${batFirstStr}. Swap any player above to see how the match probability shifts.`;
+    const asOfStr=MS.asof?" Players are rated as they stood before this Test.":"";
+    actualBox.innerHTML=`Actual outcome: ${winnerStr} at ${G[m[1]]||"(unknown venue)"} · ${batFirstStr}. Change a player above to see how the match probability shifts.${asOfStr}`;
     document.getElementById("whatIfSimArea").scrollIntoView({behavior:"smooth",block:"start"});
   }
 
