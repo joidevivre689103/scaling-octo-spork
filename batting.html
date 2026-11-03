@@ -430,7 +430,10 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-he
             <option value="25">Top 25</option>
             <option value="50">Top 50</option>
             <option value="100">Top 100</option>
+            <option value="custom">Custom…</option>
           </select>
+          <input class="fp-input" type="number" id="fTopN" min="1" max="9999" step="1" placeholder="How many? e.g. 37"
+                 style="display:none;margin-top:6px" oninput="applyFilters()" aria-label="How many to show">
         </div>
         <div class="fp-group" data-dim="1">
           <label>Search player</label>
@@ -1520,7 +1523,15 @@ function applyFilters() {
    table, cards and export use. The aggregate view (one row per era) has no
    ranking, so it is left alone. */
 let pool = [];
-function topN() { const el = document.getElementById('fTop'); return el ? (+el.value || 0) : 0; }
+/* Show → Custom (IJ, 2026-11-02): any number typed in the box beside it. */
+function topN() {
+  const el = document.getElementById('fTop');
+  if (!el) return 0;
+  const box = document.getElementById('fTopN');
+  if (box) box.style.display = el.value === 'custom' ? '' : 'none';
+  if (el.value === 'custom') { const n = Math.floor(+(box && box.value) || 0); return n > 0 ? n : 0; }
+  return +el.value || 0;
+}
 
 function sortFiltered() {
   const cmp = (a, b) => {
@@ -1905,7 +1916,7 @@ function renderTags() {
     const posLabels = {'1-3':'Top order','4-5':'Middle order','6-7':'Lower middle','8-11':'Tail'};
     f.pos.forEach(k => tags.push(`<span class="fp-tag" onclick="document.querySelector('#msPos-drop input[value=\\'${k}\\']').checked=false;applyFilters()">${posLabels[k]||k} ${x}</span>`));
   }
-  if (!aggregateMode && topN()) tags.push(`<span class="fp-tag" onclick="document.getElementById('fTop').value='0';applyFilters()">Top ${topN()} ${x}</span>`);
+  if (!aggregateMode && topN()) tags.push(`<span class="fp-tag" onclick="document.getElementById('fTop').value='0';document.getElementById('fTopN').value='';applyFilters()">Top ${topN()} ${x}</span>`);
   if (f.tests)  tags.push(`<span class="fp-tag" onclick="document.getElementById('fTests').value='0';applyFilters()">Tests ≥${f.tests} ${x}</span>`);
   if (f.inns)   tags.push(`<span class="fp-tag" onclick="document.getElementById('fInns').value='0';applyFilters()">Inns ≥${f.inns} ${x}</span>`);
   if (f.runs)   tags.push(`<span class="fp-tag" onclick="document.getElementById('fRuns').value='0';applyFilters()">Runs ≥${f.runs.toLocaleString()} ${x}</span>`);
@@ -1940,6 +1951,7 @@ function resetFilters() {
   document.getElementById('fAvg').value = '0';
   document.getElementById('fSR').value = '0';
   document.getElementById('fTop').value = '0';
+  document.getElementById('fTopN').value = '';
   document.getElementById('fSearch').value = '';
   document.querySelectorAll('#msOpp-drop input').forEach(c => c.checked = false);
   document.querySelectorAll('#msCity-drop input[type="checkbox"]').forEach(c => c.checked = false);
