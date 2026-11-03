@@ -181,6 +181,9 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-he
 .rec-table thead th.sorted-asc::after{content:' ▲';font-size:8px}
 .rec-table thead th.sorted-desc::after{content:' ▼';font-size:8px}
 .rec-table tbody td{padding:9px 8px;border-bottom:1px solid var(--surface2);vertical-align:middle}
+/* Totals row (2026-11-02): everything the filters let through, on every page. */
+.rec-table tfoot td{padding:10px 8px;border-top:2px solid var(--border);background:var(--surface2);font-weight:700;vertical-align:middle;--ct-pin-bg:var(--surface2)}
+.rec-table tfoot td.num, .rec-table tfoot td.num-center{font-variant-numeric:tabular-nums}
 .rec-table tbody tr:hover{background:var(--accent-dim)}
 .rec-table tbody tr:nth-child(even){background:rgba(0,0,0,0.015)}
 .rec-table .rank{color:var(--text3);font-family:var(--font-mono);font-size:11px;width:32px}
@@ -457,6 +460,7 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-he
     <table class="rec-table" id="recTable">
       <thead id="tHead"></thead>
       <tbody id="tBody"></tbody>
+      <tfoot id="tFoot"></tfoot>
     </table>
   </div>
 
@@ -1637,6 +1641,8 @@ function getColsRaw() {
    Render
    ────────────────────────────────────────────────────────────────────────── */
 function render() {
+  const foot = document.getElementById('tFoot');
+  if (foot) foot.innerHTML = '';
   if (aggregateMode) { renderAggregate(); return; }
   const cols = getCols();
 
@@ -1674,7 +1680,48 @@ function render() {
     }).join('') + '</tr>';
   }).join('');
 
+  if (foot) foot.innerHTML = totalsRowHTML(cols);
   renderPag();
+}
+
+/* TOTALS (IJ, 2026-11-02). One row under the table for everything the filters
+   (and Show) let through, not just the page on screen. Counts are summed;
+   Avg is total runs over total dismissals; SR is runs over balls from the
+   rows that show an SR (the same rule as each row); HS is the highest; From
+   and To the span. Tests is left blank: added across players it would count
+   one Test once for every player in it. */
+function totalsRowHTML(cols) {
+  const rows = filtered;
+  if (!rows.length) return '';
+  const sum = k => rows.reduce((a, p) => a + (+p[k] || 0), 0);
+  const runs = sum('runs'), inns = sum('inns'), no = sum('no');
+  const outs = inns - no;
+  let b = 0, br = 0;
+  rows.forEach(p => {
+    const shown = p._sliced ? (p.balls && p.balls >= MIN_BALLS_FOR_SR) : p.srShown;
+    if (shown && p.balls > 0 && p.sr > 0) { b += p.balls; br += p.sr * p.balls / 100; }
+  });
+  const avg = outs > 0 ? runs / outs : 0;
+  const sr = b > 0 ? (br / b) * 100 : 0;
+  const yrs = k => rows.map(p => +p[k]).filter(y => y > 0);
+  const who = eraSplit() ? 'rows' : (rows.length === 1 ? 'player' : 'players');
+  const v = {
+    name: `Total · ${rows.length.toLocaleString()} ${who}`,
+    from: yrs('from').length ? Math.min(...yrs('from')) : '',
+    to: yrs('to').length ? Math.max(...yrs('to')) : '',
+    inns: inns.toLocaleString(), no: no.toLocaleString(), runs: runs.toLocaleString(),
+    hs: Math.max(0, ...rows.map(p => parseInt(p.hs, 10) || 0)) || '',
+    avg: avg ? avg.toFixed(2) : '—',
+    balls: b ? b.toLocaleString() : '', sr: sr ? sr.toFixed(2) : '',
+    avgSR: sr && avg ? (avg + sr).toFixed(2) : '',
+    hundreds: sum('hundreds'), doubles: sum('doubles'), twoX100: sum('twoX100'),
+    fifties: sum('fifties'), mom: sum('mom'),
+  };
+  return '<tr>' + cols.map(c => {
+    const cls = c.cls.replace(' highlight', '');
+    if (c.key === 'name') return `<td class="${cls}">${v.name}</td>`;
+    return `<td class="${cls}">${v[c.key] ?? ''}</td>`;
+  }).join('') + '</tr>';
 }
 
 /* ──────────────────────────────────────────────────────────────────────────
