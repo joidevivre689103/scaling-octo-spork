@@ -38,11 +38,12 @@
 /* ── Reset & Variables ── */
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
-  --bg:#FAF7F2;--surface:#fff;--surface2:#F5F0EA;--surface3:#EDE8E0;
-  --text:#1a1e26;--text2:#555;--text3:#888;
-  --accent:#8B2500;--accent-dim:rgba(139,37,0,0.08);--accent-light:rgba(139,37,0,0.15);
-  --border:#e0dcd5;--border2:#ccc;
-  --gold:#B8860B;--green:#2E7D32;--blue:#1565C0;
+  /* Same colours as bowling.html (IJ, 2026-11-02: one look for both). */
+  --bg:#faf6ef;--surface:#fff;--surface2:#f5f0e8;--surface3:#ede7da;
+  --text:#1a1612;--text2:#4a4238;--text3:#7a7268;--text4:#9a9288;
+  --accent:#8b1a1a;--accent-dim:rgba(139,26,26,0.08);--accent-light:rgba(139,26,26,0.15);
+  --border:#ddd5c8;--border2:#ccc3b3;
+  --gold:#B8860B;--green:#2d6a2e;--blue:#2a5b8c;
   --font-display:'Playfair Display',Georgia,serif;
   --font-body:'Source Serif 4','Georgia',serif;
   --font-mono:'JetBrains Mono',monospace;
@@ -174,10 +175,11 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-he
 .rec-table thead th:nth-child(2),.rec-table tbody td:nth-child(2){padding-left:12px}
 .rec-table thead th:last-child,.rec-table tbody td:last-child{padding-right:14px}
 .data-footnote{font-size:12px;line-height:1.5;color:var(--text3);margin:14px 2px 0}
-.tbl-wrap{overflow-x:auto;background:var(--surface);border:1px solid var(--border);border-top:none;border-radius:0 0 var(--radius) var(--radius)}
+.tbl-wrap{overflow-x:auto}
 .rec-table{width:100%;border-collapse:collapse;font-size:13px}
-.rec-table thead th{padding:9px 8px;text-align:left;font-size:9.5px;text-transform:uppercase;letter-spacing:0.8px;color:var(--text3);border-bottom:1px solid var(--border);cursor:pointer;white-space:nowrap;user-select:none;background:var(--surface2);position:sticky;top:0}
-.rec-table thead th:hover{color:var(--accent)}
+.rec-table thead th{padding:9px 8px;text-align:left;font-size:9.5px;text-transform:uppercase;letter-spacing:0.8px;color:var(--text4);font-weight:600;border-bottom:2px solid var(--border);cursor:pointer;white-space:nowrap;user-select:none;background:var(--bg);position:sticky;top:0}
+.rec-table thead th:hover{color:var(--text2)}
+.rec-table thead th.sorted-asc::after,.rec-table thead th.sorted-desc::after{color:var(--accent)}
 .rec-table thead th.sorted-asc::after{content:' ▲';font-size:8px}
 .rec-table thead th.sorted-desc::after{content:' ▼';font-size:8px}
 .rec-table tbody td{padding:9px 8px;border-bottom:1px solid var(--surface2);vertical-align:middle}
@@ -185,14 +187,14 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-he
 .rec-table tfoot td{padding:10px 8px;border-top:2px solid var(--border);background:var(--surface2);font-weight:700;vertical-align:middle;--ct-pin-bg:var(--surface2)}
 .rec-table tfoot td.num, .rec-table tfoot td.num-center{font-variant-numeric:tabular-nums}
 .rec-table tbody tr:hover{background:var(--accent-dim)}
-.rec-table tbody tr:nth-child(even){background:rgba(0,0,0,0.015)}
 .rec-table .rank{color:var(--text3);font-family:var(--font-mono);font-size:11px;width:32px}
 .rec-table .player-name{font-weight:600;white-space:nowrap}
-.rec-table .country{color:var(--text2);font-size:12px}
+.rec-table .country{color:var(--text3);font-size:12px}
 .rec-table .num{font-family:var(--font-mono);font-size:12.5px;text-align:right}
 .rec-table .num-center{font-family:var(--font-mono);font-size:12.5px;text-align:center}
 .rec-table .hs-star{color:var(--gold);font-size:10px;vertical-align:super}
-.highlight{background:var(--accent-dim) !important}
+/* The best figure in each column, as on bowling.html — not a tinted column. */
+.rec-table td.lead{color:var(--accent);font-weight:700}
 
 /* ── Badge ── */
 .badge{display:inline-block;padding:2px 8px;font-size:10px;font-weight:600;border-radius:10px;letter-spacing:0.5px;text-transform:uppercase}
@@ -858,14 +860,19 @@ function haFor(pid, m) {
   return 'away';
 }
 
+const TRI_TIP = 'Triple centuries \u2014 innings of 300 or more (Lara\u2019s 400 included).';
 const DBL_TIP = 'Double centuries \u2014 innings of 200 or more. Triple hundreds and the one score of 400 are counted here too, so this is \u201creached 200\u201d rather than \u201cscored 200\u2013299\u201d.';
 
 /* Career double-hundred counts, taken from the deduped innings index so the
    definition matches the sliced and aggregate views exactly. */
 function applyDoubles() {
   const c = new Map();
-  BAT_INNS.forEach(r => { if (r.runs >= 200) c.set(r.pid, (c.get(r.pid) || 0) + 1); });
-  PLAYERS.forEach(p => { p.doubles = c.get(p.id) || 0; });
+  const t = new Map();   // triple hundreds (300+), IJ 2026-11-02
+  BAT_INNS.forEach(r => {
+    if (r.runs >= 200) c.set(r.pid, (c.get(r.pid) || 0) + 1);
+    if (r.runs >= 300) t.set(r.pid, (t.get(r.pid) || 0) + 1);
+  });
+  PLAYERS.forEach(p => { p.doubles = c.get(p.id) || 0; p.triples = t.get(p.id) || 0; });
 }
 
 
@@ -1265,13 +1272,14 @@ function slicedPlayers(f) {
       let a = acc.get(r.pid);
       if (!a) {
         a = { tests: new Set(), inns: 0, no: 0, runs: 0, balls: 0, ballsRuns: 0,
-              hs: 0, fifties: 0, hundreds: 0, doubles: 0, from: 9999, to: 0, perMatch: new Map() };
+              hs: 0, fifties: 0, hundreds: 0, doubles: 0, triples: 0, from: 9999, to: 0, perMatch: new Map() };
         acc.set(r.pid, a);
       }
       a.tests.add(r.mid); a.inns++; a.no += r.no; a.runs += r.runs;
       if (r.balls > 0) { a.balls += r.balls; a.ballsRuns += r.runs; }
       if (r.runs > a.hs) a.hs = r.runs;
       if (r.runs >= 200) a.doubles++;
+      if (r.runs >= 300) a.triples++;
       if (r.runs >= 100) { a.hundreds++; a.perMatch.set(r.mid, (a.perMatch.get(r.mid) || 0) + 1); }
       else if (r.runs >= 50) a.fifties++;
       if (r.year < a.from) a.from = r.year;
@@ -1290,7 +1298,7 @@ function slicedPlayers(f) {
         tests: Math.max(a.tests.size, playedSet ? playedSet.size : 0),
         inns: a.inns, no: a.no, runs: a.runs,
         balls: a.balls, ballsRuns: a.ballsRuns, ballsInns: 0,
-        hs: a.hs, fifties: a.fifties, hundreds: a.hundreds, doubles: a.doubles, twoX100: twoX,
+        hs: a.hs, fifties: a.fifties, hundreds: a.hundreds, doubles: a.doubles, triples: a.triples, twoX100: twoX,
         from: a.from, to: a.to,
         avg: avgV,
         sr: srV,
@@ -1341,7 +1349,7 @@ const MIN_BALLS_FOR_SR = 20;
 
 function aggregateInnings(list, label) {
   const players = new Set(), tests = new Set();
-  let inns = 0, no = 0, runs = 0, balls = 0, fifties = 0, hundreds = 0, doubles = 0, hs = 0, hsPid = null;
+  let inns = 0, no = 0, runs = 0, balls = 0, fifties = 0, hundreds = 0, doubles = 0, triples = 0, hs = 0, hsPid = null;
   let ballsRuns = 0, ballsInns = 0, modernInns = 0;
   list.forEach(r => {
     players.add(r.pid); tests.add(r.mid);
@@ -1349,6 +1357,7 @@ function aggregateInnings(list, label) {
     if (r.year >= BALLS_FROM_YEAR) modernInns++;
     if (r.balls > 0) { balls += r.balls; ballsRuns += r.runs; ballsInns++; }
     if (r.runs >= 200) doubles++;
+    if (r.runs >= 300) triples++;
     if (r.runs >= 100) hundreds++; else if (r.runs >= 50) fifties++;
     if (r.runs > hs) { hs = r.runs; hsPid = r.pid; }
   });
@@ -1363,7 +1372,7 @@ function aggregateInnings(list, label) {
     sr: srV,
     avgSR: srV ? avgV + srV : 0,             // blank wherever SR is blank
     hs, hsName: hsPid !== null ? (PID_NAME[hsPid] || '') : '',
-    fifties, hundreds, doubles
+    fifties, hundreds, doubles, triples
   };
 }
 
@@ -1381,6 +1390,7 @@ function milestoneMatch(p, m) {
   if (!m) return true;
   if (m === 100) return (p.hundreds || 0) >= 1;
   if (m === 200) return (p.doubles || 0) >= 1;
+  if (m === 300) return (p.triples || 0) >= 1;
   return (p.hs || 0) >= m;
 }
 
@@ -1626,6 +1636,7 @@ function getColsRaw() {
       { key:'avgSR',      label:'Avg+SR',  cls:'num', tip:AVGSR_TIP },
       { key:'hundreds',   label:'100s',    cls:'num' },
       { key:'doubles',    label:'200s',    cls:'num', tip:DBL_TIP },
+      { key:'triples',    label:'300s',    cls:'num', tip:TRI_TIP },
       { key:'twoX100',    label:'2X100S',  cls:'num-center' },
       { key:'fifties',    label:'50s',     cls:'num' }
     ];
@@ -1656,6 +1667,7 @@ function getColsRaw() {
       { key:'hs',         label:'HS',      cls:'num' },
       { key:'hundreds',   label:'100s',    cls:'num highlight' },
       { key:'doubles',    label:'200s',    cls:'num', tip:DBL_TIP },
+      { key:'triples',    label:'300s',    cls:'num', tip:TRI_TIP },
       { key:'twoX100',    label:'2X100S',  cls:'num-center' },
       { key:'fifties',    label:'50s',     cls:'num' },
       { key:'avg',        label:'Avg',     cls:'num' }
@@ -1691,6 +1703,13 @@ function render() {
   const start = (page - 1) * PER_PAGE;
   const slice = filtered.slice(start, start + PER_PAGE);
   const tbody = document.getElementById('tBody');
+  // Best figure in each number column across everything shown (bowling's rule).
+  const leads = {};
+  cols.forEach(c => {
+    if (!/\bnum/.test(c.cls) || ['_rank', 'from', 'to', 'avgPos'].includes(c.key)) return;
+    const vals = filtered.map(p => p[c.key]).filter(v => typeof v === 'number' && v > 0);
+    if (vals.length) leads[c.key] = Math.max(...vals);
+  });
   tbody.innerHTML = slice.map((p, i) => {
     return '<tr>' + cols.map(c => {
       if (c.key === '_rank') return `<td class="${c.cls}">${start + i + 1}</td>`;
@@ -1707,9 +1726,9 @@ function render() {
       }
       if (c.key === 'avg') val = (typeof val === 'number' && val > 0) ? val.toFixed(2) : '—';
       if (c.key === 'runs' && typeof val === 'number') val = val.toLocaleString();
-      if (val === 0 && (c.key === 'hundreds' || c.key === 'doubles' || c.key === 'twoX100' || c.key === 'fifties' || c.key === 'mom')) val = '0';
-      const hl = c.cls.includes('highlight') ? ' highlight' : '';
-      return `<td class="${c.cls}${hl}">${val ?? '—'}</td>`;
+      if (val === 0 && (c.key === 'hundreds' || c.key === 'doubles' || c.key === 'triples' || c.key === 'twoX100' || c.key === 'fifties' || c.key === 'mom')) val = '0';
+      const lead = leads[c.key] != null && p[c.key] === leads[c.key] ? ' lead' : '';
+      return `<td class="${c.cls.replace(' highlight', '')}${lead}">${val ?? '—'}</td>`;
     }).join('') + '</tr>';
   }).join('');
 
@@ -1747,7 +1766,7 @@ function totalsRowHTML(cols) {
     avg: avg ? avg.toFixed(2) : '—',
     balls: b ? b.toLocaleString() : '', sr: sr ? sr.toFixed(2) : '',
     avgSR: sr && avg ? (avg + sr).toFixed(2) : '',
-    hundreds: sum('hundreds'), doubles: sum('doubles'), twoX100: sum('twoX100'),
+    hundreds: sum('hundreds'), doubles: sum('doubles'), triples: sum('triples'), twoX100: sum('twoX100'),
     fifties: sum('fifties'), mom: sum('mom'),
   };
   return '<tr>' + cols.map(c => {
@@ -1863,8 +1882,7 @@ function renderAggregate() {
       const credit = r.hsName ? `<span style="display:block;font-size:10px;color:var(--text3);font-weight:400">${r.hsName}</span>` : '';
       return `<td class="${c.cls}">${v || '—'}${credit}</td>`;
     }
-    const hl = c.cls.includes('highlight') ? ' highlight' : '';
-    return `<td class="${c.cls}${hl}">${typeof v === 'number' ? v.toLocaleString() : (v ?? '—')}</td>`;
+    return `<td class="${c.cls.replace(' highlight', '')}">${typeof v === 'number' ? v.toLocaleString() : (v ?? '—')}</td>`;
   };
 
   let html = rows.map(r => '<tr>' + AGG_COLS.map(c => cell(r, c)).join('') + '</tr>').join('');
@@ -2006,6 +2024,7 @@ const AGG_EXPORT_COLS = [
   { label:'HS',          fn:r => r.hs || '' },
   { label:'HS By',       fn:r => r.hsName || '' },
   { label:'200s',        fn:r => r.doubles },
+  { label:'300s',        fn:r => r.triples },
   { label:'100s',        fn:r => r.hundreds },
   { label:'50s',         fn:r => r.fifties }
 ];
@@ -2026,6 +2045,7 @@ const PLAYER_EXPORT_COLS = [
   { label:'Strike Rate', fn:p => p.sr    ? Number(p.sr).toFixed(2) : '' },
   { label:'Avg+SR',      fn:p => p.avgSR ? Number(p.avgSR).toFixed(2) : '' },
   { label:'200s',        fn:p => p.doubles ?? '' },
+  { label:'300s',        fn:p => p.triples ?? '' },
   { label:'100s',        fn:p => p.hundreds ?? '' },
   { label:'2x100s',      fn:p => p.twoX100 ?? '' },
   { label:'50s',         fn:p => p.fifties ?? '' },
