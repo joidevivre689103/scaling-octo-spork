@@ -394,6 +394,16 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-he
           </select>
         </div>
         <div class="fp-group" data-dim="1">
+          <label>Milestone</label>
+          <select class="fp-select" id="fMilestone" onchange="applyFilters()" title="Players with at least one score of this size">
+            <option value="">Any</option>
+            <option value="100">100s</option>
+            <option value="200">200s</option>
+            <option value="300">300s</option>
+            <option value="400">400s</option>
+          </select>
+        </div>
+        <div class="fp-group" data-dim="1">
           <label>Min Average</label>
           <select class="fp-select" id="fAvg" onchange="applyFilters()">
             <option value="0">No minimum</option>
@@ -1365,6 +1375,15 @@ const BAZ_FLAG = { bazball: 'baz', bazballvs: 'bazVs', bazballall: 'bazAll' };
    home/away, city, ground, opponent — are properties of the innings. */
 let _aggPred = () => true;
 
+/* Milestone (IJ, 2026-11-02): at least one score of 100 / 200 / 300 / 400,
+   in the figures on show (so with Opponents picked, one against them). */
+function milestoneMatch(p, m) {
+  if (!m) return true;
+  if (m === 100) return (p.hundreds || 0) >= 1;
+  if (m === 200) return (p.doubles || 0) >= 1;
+  return (p.hs || 0) >= m;
+}
+
 function aggregateEligible(f) {
   const s = new Set();
   PLAYERS.forEach(p => {
@@ -1375,6 +1394,7 @@ function aggregateEligible(f) {
     if (f.runs  && p.runs  < f.runs)  return;
     if (f.avg   && p.avg   < f.avg)   return;
     if (f.sr    && p.sr    < f.sr)    return;
+    if (!milestoneMatch(p, f.milestone)) return;
     if (f.search) {
       const q = f.search;
       if (!p.name.toLowerCase().includes(q) &&
@@ -1453,6 +1473,7 @@ function getFilters() {
     runs:     +document.getElementById('fRuns').value,
     avg:      +document.getElementById('fAvg').value,
     sr:       +document.getElementById('fSR').value,
+    milestone: +document.getElementById('fMilestone').value || 0,
     opponents: getMSValues('msOpp'),
     search:   document.getElementById('fSearch').value.trim().toLowerCase()
   };
@@ -1497,6 +1518,7 @@ function applyFilters() {
     if (f.runs  && p.runs  < f.runs)  return false;
     if (f.avg   && p.avg   < f.avg)   return false;
     if (f.sr    && p.sr    < f.sr)    return false;
+    if (!milestoneMatch(p, f.milestone)) return false;
     if (f.search) {
       const q = f.search;
       if (!p.name.toLowerCase().includes(q) && !p.fullName.toLowerCase().includes(q) && !p.country.toLowerCase().includes(q)) return false;
@@ -1921,6 +1943,7 @@ function renderTags() {
   if (f.inns)   tags.push(`<span class="fp-tag" onclick="document.getElementById('fInns').value='0';applyFilters()">Inns ≥${f.inns} ${x}</span>`);
   if (f.runs)   tags.push(`<span class="fp-tag" onclick="document.getElementById('fRuns').value='0';applyFilters()">Runs ≥${f.runs.toLocaleString()} ${x}</span>`);
   if (f.avg)    tags.push(`<span class="fp-tag" onclick="document.getElementById('fAvg').value='0';applyFilters()">Avg ≥${f.avg} ${x}</span>`);
+  if (f.milestone) tags.push(`<span class="fp-tag" onclick="document.getElementById('fMilestone').value='';applyFilters()">${f.milestone}s ${x}</span>`);
   if (f.sr)     tags.push(`<span class="fp-tag" onclick="document.getElementById('fSR').value='0';applyFilters()">SR ≥${f.sr} ${x}</span>`);
   f.opponents.forEach(o => {
     tags.push(`<span class="fp-tag" onclick="document.querySelector('#msOpp-drop input[value=\\'${o}\\']').checked=false;applyFilters()">vs ${o} ${x}</span>`);
@@ -1950,6 +1973,7 @@ function resetFilters() {
   document.getElementById('fRuns').value = '0';
   document.getElementById('fAvg').value = '0';
   document.getElementById('fSR').value = '0';
+  document.getElementById('fMilestone').value = '';
   document.getElementById('fTop').value = '0';
   document.getElementById('fTopN').value = '';
   document.getElementById('fSearch').value = '';

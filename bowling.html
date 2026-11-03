@@ -383,6 +383,16 @@ td.num.highlight{color:var(--accent);font-weight:700}
           </select>
         </div>
         <div class="fg" data-dim="1">
+          <label>Milestone</label>
+          <select id="fMilestone" onchange="applyFilters()" title="Bowlers with at least one haul of this size">
+            <option value="">Any</option>
+            <option value="4wi">4 WI</option>
+            <option value="5wi">5 WI</option>
+            <option value="8wm">8 WM</option>
+            <option value="10wm">10 WM</option>
+          </select>
+        </div>
+        <div class="fg" data-dim="1">
           <label>Max Average</label>
           <select id="fMaxAvg" onchange="applyFilters()">
             <option value="0">No limit</option>
@@ -541,15 +551,18 @@ function compute4WI(){
   // 2x5WI: matches where both innings had 5+ wickets (always also a 10WM, but distinct stat)
   const twoX4WICount={};
   const twoX5WICount={};
+  const eightWMCount={};   // matches with 8+ wickets (Milestone filter)
   Object.entries(matchInns).forEach(([key,innsArr])=>{
     const pid=key.split('_')[0];
     if(innsArr.filter(w=>w>=4).length>=2) twoX4WICount[pid]=(twoX4WICount[pid]||0)+1;
     if(innsArr.filter(w=>w>=5).length>=2) twoX5WICount[pid]=(twoX5WICount[pid]||0)+1;
+    if(innsArr.reduce((t,w)=>t+w,0)>=8) eightWMCount[pid]=(eightWMCount[pid]||0)+1;
   });
   ALL_PLAYERS.forEach(p=>{
     p.fourWI=fourWICount[p.id]||0;
     p.twoX4WI=twoX4WICount[p.id]||0;
     p.twoX5WI=twoX5WICount[p.id]||0;
+    p.eightWM=eightWMCount[p.id]||0;
   });
 }
 
@@ -988,8 +1001,8 @@ function slicedPlayers(f){
     ALL_PLAYERS.forEach(p=>{
       const a=acc.get(p.id);
       if(!a||!a.inns) return;
-      let ten=0,x4=0,x5=0;
-      a.perMatch.forEach(v=>{ if(v.w>=10) ten++; if(v.i4>=2) x4++; if(v.i5>=2) x5++; });
+      let ten=0,eight=0,x4=0,x5=0;
+      a.perMatch.forEach(v=>{ if(v.w>=10) ten++; if(v.w>=8) eight++; if(v.i4>=2) x4++; if(v.i5>=2) x5++; });
       const playedSet=played.get(p.id);
       out.push(Object.assign({},p,{
         tests: Math.max(a.tests.size, playedSet?playedSet.size:0),
@@ -999,7 +1012,7 @@ function slicedPlayers(f){
         bowlAvg: a.wkts>0 ? a.runs/a.wkts : 0,
         econ:    a.balls>0 ? a.runs/(a.balls/6) : 0,
         bowlSR:  a.wkts>0 ? a.balls/a.wkts : 0,
-        fiveWkts:a.five, fourWI:a.four, tenWkts:ten, twoX4WI:x4, twoX5WI:x5,
+        fiveWkts:a.five, fourWI:a.four, tenWkts:ten, eightWM:eight, twoX4WI:x4, twoX5WI:x5,
         bestBowl: a.bestW>0 ? a.bestW+'/'+a.bestR : '—',
         fromYear:a.from, toYear:a.to, mom:null, _sliced:true,
         ...rateFields(a.wkts, a.inns, Math.max(a.tests.size, playedSet?playedSet.size:0)),
@@ -1063,6 +1076,19 @@ const BAZ_FLAG={bazball:'baz',bazballvs:'bazVs',bazballall:'bazAll'};
    venue ones are properties of the innings itself. */
 let _aggPred=()=>true;
 
+/* Milestone (IJ, 2026-11-02): at least one 4-wicket innings, 5-wicket
+   innings, 8-wicket match or 10-wicket match, in the figures on show (so
+   with Opponents picked, one against them). */
+const MILESTONE_LABEL={'4wi':'4 WI','5wi':'5 WI','8wm':'8 WM','10wm':'10 WM'};
+function milestoneMatch(p,m){
+  if(!m) return true;
+  if(m==='4wi') return (p.fourWI||0)>=1;
+  if(m==='5wi') return (p.fiveWkts||0)>=1;
+  if(m==='8wm') return (p.eightWM||0)>=1;
+  if(m==='10wm') return (p.tenWkts||0)>=1;
+  return true;
+}
+
 function aggregateEligible(f){
   const s=new Set();
   ALL_PLAYERS.forEach(p=>{
@@ -1075,6 +1101,7 @@ function aggregateEligible(f){
     if(f.maxAvg&&(p.bowlAvg||999)>f.maxAvg) return;
     if(f.maxSR&&(p.bowlSR||999)>f.maxSR) return;
     if(f.maxEcon&&(p.econ||999)>f.maxEcon) return;
+    if(!milestoneMatch(p,f.milestone)) return;
     if(f.search&&!(p.fullName||p.name||'').toLowerCase().includes(f.search)
                &&!(p.country||'').toLowerCase().includes(f.search)) return;
     s.add(p.id);
@@ -1127,6 +1154,7 @@ function getFilters(){
     maxAvg:parseFloat(document.getElementById('fMaxAvg').value)||0,
     maxSR:parseFloat(document.getElementById('fMaxSR').value)||0,
     maxEcon:parseFloat(document.getElementById('fMaxEcon').value)||0,
+    milestone:document.getElementById('fMilestone').value,
     search:document.getElementById('fSearch').value.trim().toLowerCase(),
   }
 }
@@ -1231,6 +1259,7 @@ function applyFilters(){
     if(f.maxAvg && (p.bowlAvg||999)>f.maxAvg) return false;
     if(f.maxSR && (p.bowlSR||999)>f.maxSR) return false;
     if(f.maxEcon && (p.econ||999)>f.maxEcon) return false;
+    if(!milestoneMatch(p,f.milestone)) return false;
     if(f.search && !(p.fullName||p.name||'').toLowerCase().includes(f.search) && !(p.country||'').toLowerCase().includes(f.search)) return false;
     // Opponents: the figures are already his against the picked sides
     // (slicedPlayers), so nothing more to check here (2026-11-02).
@@ -1254,6 +1283,7 @@ function resetFilters(){
   document.getElementById('fMaxAvg').value='0';
   document.getElementById('fMaxSR').value='0';
   document.getElementById('fMaxEcon').value='0';
+  document.getElementById('fMilestone').value='';
   document.getElementById('fSearch').value='';
   document.querySelectorAll('#msCity-drop input[type="checkbox"], #msGround-drop input[type="checkbox"]').forEach(c=>c.checked=false);
   document.querySelectorAll('#msCity-drop .ms-search input, #msGround-drop .ms-search input').forEach(i=>{ i.value=''; });
@@ -1582,6 +1612,7 @@ function renderTags(){
   if(f.maxAvg) tags.push([`Max Avg: ${f.maxAvg}`,'fMaxAvg']);
   if(f.maxSR) tags.push([`Max SR: ${f.maxSR}`,'fMaxSR']);
   if(f.maxEcon) tags.push([`Max Econ: ${f.maxEcon}`,'fMaxEcon']);
+  if(f.milestone) tags.push([MILESTONE_LABEL[f.milestone]||f.milestone,'fMilestone']);
   f.opponents.forEach(o=>tags.push([`vs ${o}`,'opp_'+o]));
   if(!aggregateMode&&topN()) tags.push([`Top ${topN()}`,'fTop']);
   if(f.search) tags.push([`Search: "${f.search}"`,'fSearch']);
