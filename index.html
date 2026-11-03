@@ -1706,7 +1706,11 @@ function renderListenStrip(v) {
     }
 
     _resolveArticlesFresh(articles.some(a => Date.now() - articleTime(a) < FRESH_ARTICLE_DAYS * 864e5));
-    const heroArticle      = articles.find(a => a.placement === 'hero');
+    // Main story (IJ, 2026-11-02): the article set to Hero placement; if there
+    // is none, the latest article from any category, so the slot is never
+    // left empty. Either way it is not shown again in its column below.
+    const heroArticle      = articles.find(a => a.placement === 'hero')
+                          || articles.slice().sort((x, y) => articleTime(y) - articleTime(x))[0];
     const newsCat          = articles.filter(a => a.category === 'news');
     const featuresCat      = articles.filter(a => a.category === 'features');
     const opinionCat       = articles.filter(a => a.category === 'opinion');
