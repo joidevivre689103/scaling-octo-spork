@@ -181,6 +181,9 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-he
 .rec-table thead th.sorted-asc::after{content:' ▲';font-size:8px}
 .rec-table thead th.sorted-desc::after{content:' ▼';font-size:8px}
 .rec-table tbody td{padding:9px 8px;border-bottom:1px solid var(--surface2);vertical-align:middle}
+/* Totals row (2026-11-02): everything the filters let through, on every page. */
+.rec-table tfoot td{padding:10px 8px;border-top:2px solid var(--border);background:var(--surface2);font-weight:700;vertical-align:middle;--ct-pin-bg:var(--surface2)}
+.rec-table tfoot td.num, .rec-table tfoot td.num-center{font-variant-numeric:tabular-nums}
 .rec-table tbody tr:hover{background:var(--accent-dim)}
 .rec-table tbody tr:nth-child(even){background:rgba(0,0,0,0.015)}
 .rec-table .rank{color:var(--text3);font-family:var(--font-mono);font-size:11px;width:32px}
@@ -419,7 +422,17 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-he
             <div class="ms-drop" id="msOpp-drop"></div>
           </div>
         </div>
-        <div class="fp-group" data-dim="1" style="grid-column:span 2">
+        <div class="fp-group" data-dim="1">
+          <label>Show</label>
+          <select class="fp-select" id="fTop" onchange="applyFilters()">
+            <option value="0">All</option>
+            <option value="10">Top 10</option>
+            <option value="25">Top 25</option>
+            <option value="50">Top 50</option>
+            <option value="100">Top 100</option>
+          </select>
+        </div>
+        <div class="fp-group" data-dim="1">
           <label>Search player</label>
           <input class="fp-input" id="fSearch" placeholder="Name or country…" oninput="applyFilters()">
         </div>
@@ -447,6 +460,7 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-he
     <table class="rec-table" id="recTable">
       <thead id="tHead"></thead>
       <tbody id="tBody"></tbody>
+      <tfoot id="tFoot"></tfoot>
     </table>
   </div>
 
@@ -1471,7 +1485,7 @@ function applyFilters() {
   aggRows = null;
   // Sliced figures when era / home-away is active, career figures otherwise
   const base = sliced ? slicedPlayers(f) : PLAYERS;
-  filtered = base.filter(p => {
+  pool = base.filter(p => {
     if (f.countries.length && !f.countries.includes(p.country)) return false;
     if (!sliced && !eraMatch(p, f.eras)) return false;
     if (!posMatch(p, f.pos)) return false;
@@ -1499,14 +1513,27 @@ function applyFilters() {
 /* ──────────────────────────────────────────────────────────────────────────
    Sort
    ────────────────────────────────────────────────────────────────────────── */
+/* TOP N (IJ, 2026-11-02). The Show filter keeps the first N of the table in
+   its current order, so it follows the tab and any column sort: Top 10 on
+   Runs is the ten highest run-scorers, on Average the ten best averages.
+   `pool` is everything the other filters let through; `filtered` is what the
+   table, cards and export use. The aggregate view (one row per era) has no
+   ranking, so it is left alone. */
+let pool = [];
+function topN() { const el = document.getElementById('fTop'); return el ? (+el.value || 0) : 0; }
+
 function sortFiltered() {
-  filtered.sort((a, b) => {
+  const cmp = (a, b) => {
     let av, bv;
     av = a[sortKey] ?? 0;
     bv = b[sortKey] ?? 0;
     if (typeof av === 'string') return sortDir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av);
     return sortDir === 'asc' ? av - bv : bv - av;
-  });
+  };
+  if (aggregateMode) { filtered.sort(cmp); return; }
+  pool.sort(cmp);
+  const n = topN();
+  filtered = n ? pool.slice(0, n) : pool;
 }
 
 function toggleSort(key) {
@@ -1614,6 +1641,8 @@ function getColsRaw() {
    Render
    ────────────────────────────────────────────────────────────────────────── */
 function render() {
+  const foot = document.getElementById('tFoot');
+  if (foot) foot.innerHTML = '';
   if (aggregateMode) { renderAggregate(); return; }
   const cols = getCols();
 
@@ -1651,7 +1680,48 @@ function render() {
     }).join('') + '</tr>';
   }).join('');
 
+  if (foot) foot.innerHTML = totalsRowHTML(cols);
   renderPag();
+}
+
+/* TOTALS (IJ, 2026-11-02). One row under the table for everything the filters
+   (and Show) let through, not just the page on screen. Counts are summed;
+   Avg is total runs over total dismissals; SR is runs over balls from the
+   rows that show an SR (the same rule as each row); HS is the highest; From
+   and To the span. Tests is left blank: added across players it would count
+   one Test once for every player in it. */
+function totalsRowHTML(cols) {
+  const rows = filtered;
+  if (!rows.length) return '';
+  const sum = k => rows.reduce((a, p) => a + (+p[k] || 0), 0);
+  const runs = sum('runs'), inns = sum('inns'), no = sum('no');
+  const outs = inns - no;
+  let b = 0, br = 0;
+  rows.forEach(p => {
+    const shown = p._sliced ? (p.balls && p.balls >= MIN_BALLS_FOR_SR) : p.srShown;
+    if (shown && p.balls > 0 && p.sr > 0) { b += p.balls; br += p.sr * p.balls / 100; }
+  });
+  const avg = outs > 0 ? runs / outs : 0;
+  const sr = b > 0 ? (br / b) * 100 : 0;
+  const yrs = k => rows.map(p => +p[k]).filter(y => y > 0);
+  const who = eraSplit() ? 'rows' : (rows.length === 1 ? 'player' : 'players');
+  const v = {
+    name: `Total · ${rows.length.toLocaleString()} ${who}`,
+    from: yrs('from').length ? Math.min(...yrs('from')) : '',
+    to: yrs('to').length ? Math.max(...yrs('to')) : '',
+    inns: inns.toLocaleString(), no: no.toLocaleString(), runs: runs.toLocaleString(),
+    hs: Math.max(0, ...rows.map(p => parseInt(p.hs, 10) || 0)) || '',
+    avg: avg ? avg.toFixed(2) : '—',
+    balls: b ? b.toLocaleString() : '', sr: sr ? sr.toFixed(2) : '',
+    avgSR: sr && avg ? (avg + sr).toFixed(2) : '',
+    hundreds: sum('hundreds'), doubles: sum('doubles'), twoX100: sum('twoX100'),
+    fifties: sum('fifties'), mom: sum('mom'),
+  };
+  return '<tr>' + cols.map(c => {
+    const cls = c.cls.replace(' highlight', '');
+    if (c.key === 'name') return `<td class="${cls}">${v.name}</td>`;
+    return `<td class="${cls}">${v[c.key] ?? ''}</td>`;
+  }).join('') + '</tr>';
 }
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -1835,6 +1905,7 @@ function renderTags() {
     const posLabels = {'1-3':'Top order','4-5':'Middle order','6-7':'Lower middle','8-11':'Tail'};
     f.pos.forEach(k => tags.push(`<span class="fp-tag" onclick="document.querySelector('#msPos-drop input[value=\\'${k}\\']').checked=false;applyFilters()">${posLabels[k]||k} ${x}</span>`));
   }
+  if (!aggregateMode && topN()) tags.push(`<span class="fp-tag" onclick="document.getElementById('fTop').value='0';applyFilters()">Top ${topN()} ${x}</span>`);
   if (f.tests)  tags.push(`<span class="fp-tag" onclick="document.getElementById('fTests').value='0';applyFilters()">Tests ≥${f.tests} ${x}</span>`);
   if (f.inns)   tags.push(`<span class="fp-tag" onclick="document.getElementById('fInns').value='0';applyFilters()">Inns ≥${f.inns} ${x}</span>`);
   if (f.runs)   tags.push(`<span class="fp-tag" onclick="document.getElementById('fRuns').value='0';applyFilters()">Runs ≥${f.runs.toLocaleString()} ${x}</span>`);
@@ -1868,6 +1939,7 @@ function resetFilters() {
   document.getElementById('fRuns').value = '0';
   document.getElementById('fAvg').value = '0';
   document.getElementById('fSR').value = '0';
+  document.getElementById('fTop').value = '0';
   document.getElementById('fSearch').value = '';
   document.querySelectorAll('#msOpp-drop input').forEach(c => c.checked = false);
   document.querySelectorAll('#msCity-drop input[type="checkbox"]').forEach(c => c.checked = false);

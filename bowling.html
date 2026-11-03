@@ -145,6 +145,9 @@ body{font-family:'Source Serif 4',Georgia,serif;background:var(--bg);color:var(-
 .rec-table thead th.sort-desc::after{content:'▼'}
 .rec-table thead th:first-child{width:32px;cursor:default}
 .rec-table tbody td{padding:9px 12px;border-bottom:1px solid var(--surface2);vertical-align:middle}
+/* Totals row (2026-11-02): everything the filters let through, on every page. */
+.rec-table tfoot td{padding:10px 12px;border-top:2px solid var(--border);background:var(--surface2);font-weight:700;vertical-align:middle;--ct-pin-bg:var(--surface2)}
+.rec-table tfoot td.num{text-align:right;font-variant-numeric:tabular-nums}
 .rec-table tbody tr:hover{background:var(--accent-dim)}
 .rec-table tbody tr:last-child td{border-bottom:none}
 td.name-cell{font-weight:600;color:var(--text1);white-space:nowrap}
@@ -423,6 +426,16 @@ td.num.highlight{color:var(--accent);font-weight:700}
           </div>
         </div>
         <div class="fg" data-dim="1">
+          <label>Show</label>
+          <select id="fTop" onchange="applyFilters()">
+            <option value="0">All</option>
+            <option value="10">Top 10</option>
+            <option value="25">Top 25</option>
+            <option value="50">Top 50</option>
+            <option value="100">Top 100</option>
+          </select>
+        </div>
+        <div class="fg" data-dim="1">
           <label>Search Player</label>
           <input type="text" id="fSearch" placeholder="Name or country…" oninput="applyFilters()">
         </div>
@@ -456,6 +469,7 @@ td.num.highlight{color:var(--accent);font-weight:700}
     <table class="rec-table">
       <thead id="tHead"></thead>
       <tbody id="tBody"></tbody>
+      <tfoot id="tFoot"></tfoot>
     </table>
   </div>
 
@@ -1178,7 +1192,7 @@ function applyFilters(){
 
   aggRows=null;
   const base = sliced ? slicedPlayers(f) : ALL_PLAYERS;
-  filtered=base.filter(p=>{
+  pool=base.filter(p=>{
     if((p.wkts||0)<1 && f.minWkts>=1) return false; // must have bowled
     if(f.countries.length && !f.countries.includes(p.country)) return false;
     if(!sliced && !eraMatch(p,f.eras)) return false;
@@ -1207,6 +1221,7 @@ function resetFilters(){
   document.getElementById('fMinWkts').value='1';
   document.getElementById('fMinTests').value='0';
   document.getElementById('fMinInns').value='0';
+  document.getElementById('fTop').value='0';
   document.getElementById('fMaxAvg').value='0';
   document.getElementById('fMaxSR').value='0';
   document.getElementById('fMaxEcon').value='0';
@@ -1218,14 +1233,27 @@ function resetFilters(){
 }
 
 /* ── Sort ── */
+/* TOP N (IJ, 2026-11-02). The Show filter keeps the first N of the table in
+   its current order, so it follows the tab and any column sort: Top 10 on
+   Runs is the ten highest run-scorers, on Average the ten best averages.
+   `pool` is everything the other filters let through; `filtered` is what the
+   table, cards and export use. The aggregate view (one row per era) has no
+   ranking, so it is left alone. */
+let pool=[];
+function topN(){ const el=document.getElementById('fTop'); return el?(+el.value||0):0; }
+
 function sortData(){
-  filtered.sort((a,b)=>{
+  const cmp=(a,b)=>{
     let av=a[currentSort],bv=b[currentSort];
     if(av==null) av=currentDir==='desc'?-Infinity:Infinity;
     if(bv==null) bv=currentDir==='desc'?-Infinity:Infinity;
     if(typeof av==='string'&&typeof bv==='string') return currentDir==='desc'?bv.localeCompare(av):av.localeCompare(bv);
     return currentDir==='desc'?bv-av:av-bv;
-  });
+  };
+  if(aggregateMode){ filtered.sort(cmp); return; }
+  pool.sort(cmp);
+  const n=topN();
+  filtered=n?pool.slice(0,n):pool;
 }
 
 function sortBy(key){
@@ -1510,6 +1538,7 @@ function renderTags(){
   if(f.maxSR) tags.push([`Max SR: ${f.maxSR}`,'fMaxSR']);
   if(f.maxEcon) tags.push([`Max Econ: ${f.maxEcon}`,'fMaxEcon']);
   f.opponents.forEach(o=>tags.push([`vs ${o}`,'opp_'+o]));
+  if(!aggregateMode&&topN()) tags.push([`Top ${topN()}`,'fTop']);
   if(f.search) tags.push([`Search: "${f.search}"`,'fSearch']);
 
   const bar=document.getElementById('tagBar');
@@ -1546,6 +1575,7 @@ function clearTag(id){
   if(id==='fMinWkts') el.value='1';
   else if(id==='fMinTests') el.value='0';
   else if(id==='fMinInns') el.value='0';
+  else if(id==='fTop') el.value='0';
   else if(id==='fMaxAvg') el.value='0';
   else if(id==='fMaxSR') el.value='0';
   else if(id==='fMaxEcon') el.value='0';
@@ -1661,6 +1691,8 @@ function renderAggregate(){
 }
 
 function renderTable(){
+  const foot=document.getElementById('tFoot');
+  if(foot) foot.innerHTML='';
   if(aggregateMode){ renderAggregate(); return; }
   // MoM has no per-innings source, so it can't be sliced
   let cols=sliced ? TAB_COLS[currentTab].filter(c=>c.key!=='mom') : TAB_COLS[currentTab];
@@ -1720,6 +1752,7 @@ function renderTable(){
       return `<td class="num${isBest?' highlight':''}">${formatted}</td>`;
     }).join('')+'</tr>';
   }).join('');
+  if(foot) foot.innerHTML=totalsRowHTML(cols);
 
   // Pagination
   const total=filtered.length;
@@ -1737,6 +1770,44 @@ function renderTable(){
   }
   btns+=`<button class="pag-btn" onclick="goPage(${currentPage+1})" ${currentPage>=pages?'disabled':''}>Next ›</button>`;
   document.getElementById('pagBtns').innerHTML=btns;
+}
+
+/* TOTALS (IJ, 2026-11-02). One row under the table for everything the filters
+   (and Show) let through, not just the page on screen. Counts are summed;
+   Avg, Econ and SR come from the totals (runs over wickets, runs per six
+   balls, balls per wicket); Best is the best figures among the rows; the
+   span runs from the earliest year to the latest. Tests is left blank: added
+   across bowlers it would count one Test once for every bowler in it. */
+function totalsRowHTML(cols){
+  const rows=filtered;
+  if(!rows.length) return '';
+  const sum=k=>rows.reduce((a,p)=>a+(+p[k]||0),0);
+  const balls=rows.reduce((a,p)=>a+oversToBalls(+p.overs||0),0);
+  const wk=sum('wkts'), rn=sum('bowlRuns');
+  let best=null;
+  rows.forEach(p=>{
+    if(!p.bestBowl||p.bestBowl==='—') return;
+    const b=parseBowl(p.bestBowl);
+    if(!b.wkts) return;
+    if(!best||b.wkts>best.wkts||(b.wkts===best.wkts&&b.runs<best.runs)) best=b;
+  });
+  const from=rows.map(p=>+p.fromYear).filter(y=>y>0), to=rows.map(p=>+p.toYear).filter(y=>y>0);
+  const who=eraSplit()?'rows':(rows.length===1?'bowler':'bowlers');
+  const v={
+    _span: from.length&&to.length ? `${Math.min(...from)}–${Math.max(...to)}` : '',
+    overs: balls?fmtOvers(balls):'', maidens:sum('maidens').toLocaleString(),
+    bowlRuns:rn.toLocaleString(), wkts:wk.toLocaleString(),
+    bowlAvg: wk?(rn/wk).toFixed(2):'—', econ: balls?(rn/(balls/6)).toFixed(2):'—', bowlSR: wk?(balls/wk).toFixed(1):'—',
+    fiveWkts:sum('fiveWkts'), fourWI:sum('fourWI'), tenWkts:sum('tenWkts'),
+    twoX4WI:sum('twoX4WI'), twoX5WI:sum('twoX5WI'), mom:sum('mom'),
+    bestBowl: best?`${best.wkts}/${best.runs}`:''
+  };
+  return '<tr>'+cols.map(c=>{
+    if(c.key==='fullName') return `<td class="name-cell">Total \u00b7 ${rows.length.toLocaleString()} ${who}</td>`;
+    if(c.key==='_rank'||c.key==='country'||c.key==='_bowlType'||c.key==='_eraLabel'||c.key==='tests') return '<td></td>';
+    if(c.key==='_span') return `<td style="font-size:12px;color:var(--text3)">${v._span}</td>`;
+    return `<td class="num">${v[c.key]??''}</td>`;
+  }).join('')+'</tr>';
 }
 
 function goPage(pg){
