@@ -1345,6 +1345,7 @@ const SR_TIP='Overs are converted at six balls per over. Test cricket also used 
 const MDN_TIP='Maidens are gap-filled from scorecard data for some older matches and may be '+
               'incomplete in early eras.';
 
+const TENWI_TIP='All ten wickets in an innings.';
 const WPI_TIP='Wickets per innings bowled.';
 const WPM_TIP='Wickets per Test played.';
 const TAB_COLS={
@@ -1368,6 +1369,7 @@ const TAB_COLS={
     {label:'2X4WI',key:'twoX4WI'},
     {label:'5w',key:'fiveWkts'},
     {label:'2X5w',key:'twoX5WI'},
+    {label:'10WI',key:'tenWI',tip:TENWI_TIP},
     {label:'10w',key:'tenWkts'},
     {label:'MoM',key:'mom'},
   ],
@@ -1430,6 +1432,7 @@ const TAB_COLS={
     {label:'2X4WI',key:'twoX4WI'},
     {label:'5w',key:'fiveWkts'},
     {label:'2X5w',key:'twoX5WI'},
+    {label:'10WI',key:'tenWI',tip:TENWI_TIP},
     {label:'10w',key:'tenWkts'},
     {label:'Best',key:'bestBowl',nosort:true},
     {label:'Avg',key:'bowlAvg',dec:2,lower:true},
@@ -1447,6 +1450,7 @@ const TAB_COLS={
     {label:'2X4WI',key:'twoX4WI'},
     {label:'5w',key:'fiveWkts'},
     {label:'2X5w',key:'twoX5WI'},
+    {label:'10WI',key:'tenWI',tip:TENWI_TIP},
     {label:'10w',key:'tenWkts'},
     {label:'Best',key:'bestBowl',nosort:true},
     {label:'Avg',key:'bowlAvg',dec:2,lower:true},
@@ -1595,7 +1599,10 @@ function renderSummary(){
 /* Parse bowling figures string like "10/53" or "10-53" */
 function parseBowl(str){
   if(!str) return {wkts:0,runs:999};
-  const parts=String(str).split(/[\/\-]/);
+  const s=String(str).trim();
+  const ovr=/^[\d.]+-(\d+)-(\d+)$/.exec(s);            // overs-runs-wickets
+  if(ovr) return {wkts:+ovr[2], runs:+ovr[1]};
+  const parts=s.split(/[\/\-]/);                         // wickets/runs
   return {wkts:parseInt(parts[0])||0, runs:parseInt(parts[1])||999};
 }
 
@@ -1881,7 +1888,7 @@ function totalsRowHTML(cols){
     overs: balls?fmtOvers(balls):'', maidens:sum('maidens').toLocaleString(),
     bowlRuns:rn.toLocaleString(), wkts:wk.toLocaleString(),
     bowlAvg: wk?(rn/wk).toFixed(2):'—', econ: balls?(rn/(balls/6)).toFixed(2):'—', bowlSR: wk?(balls/wk).toFixed(1):'—',
-    fiveWkts:sum('fiveWkts'), fourWI:sum('fourWI'), tenWkts:sum('tenWkts'),
+    fiveWkts:sum('fiveWkts'), fourWI:sum('fourWI'), tenWkts:sum('tenWkts'), tenWI:sum('tenWI'),
     twoX4WI:sum('twoX4WI'), twoX5WI:sum('twoX5WI'), mom:sum('mom'),
     bestBowl: best?`${best.wkts}/${best.runs}`:''
   };
@@ -1946,6 +1953,7 @@ const EXPORT_COLS=[
   {label:'2X4WI',       fn:p=>p.twoX4WI??''},
   {label:'5-Wicket Hauls',fn:p=>p.fiveWkts??''},
   {label:'2X5WI',       fn:p=>p.twoX5WI??''},
+  {label:'All 10 in an Innings',fn:p=>p.tenWI??''},
   {label:'10-Wicket Hauls',fn:p=>p.tenWkts??''},
   {label:'Man of Match',fn:p=>p.mom??''},
   {label:'Batting Avg',fn:p=>p.batAvg!=null?Number(p.batAvg).toFixed(2):''},
@@ -2023,6 +2031,13 @@ CTExport.init({ build: buildExportModel, minFilters: 2 });
   }
   showWithheldNote();
   ALL_PLAYERS = D.P.map(decodePlayer);
+  // Career best comes as overs-runs-wickets ("26.3-74-10"); show it, and
+  // compare it, the usual way, as wickets/runs ("10/74"), like the
+  // era/venue figures (IJ, 2026-11-02: the Total row read 51/53 for 10/53).
+  ALL_PLAYERS.forEach(p=>{
+    const m=/^\s*[\d.]+-(\d+)-(\d+)\s*$/.exec(p.bestBowl||'');
+    if(m) p.bestBowl=`${+m[2]}/${+m[1]}`;
+  });
   buildPidLookups();
   compute4WI();
   resolveBazball();
