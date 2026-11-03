@@ -438,7 +438,9 @@ body{
   height:auto;
   display:block;
   border-radius:4px;
-  max-width:none;
+  /* Fit the column (IJ, 2026-11-02): a wide chart used to run off the screen
+     and scroll sideways. Click still opens it full size (lightbox). */
+  max-width:100%;
   cursor:zoom-in;
 }
 .article-body .img-scroll-wrap{
