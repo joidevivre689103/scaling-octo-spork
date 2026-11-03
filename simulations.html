@@ -13,6 +13,7 @@
 <script src="/prelaunch-guard.js"></script>
 <script src="/ct-appcheck.js"></script>
 <script src="/ct-data-loader.js"></script><!-- Phase 3 §3: gated derived-data loader -->
+<script src="/ct-urlstate.js"></script><!-- share a simulation (2026-11-02) -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -1439,6 +1440,83 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
     document.getElementById("resultsTitle").textContent=labels.A+" vs "+labels.B;
     document.getElementById("resultsSection").classList.add("visible");
     document.getElementById("resultsSection").scrollIntoView({behavior:"smooth",block:"start"});
+    try{ history.replaceState(null,"",simLink(sideA,opts)); mountSimShare(); }
+    catch(e){ console.warn("[sim-link] not written:",e&&e.message); }
+  }
+
+  // ── SHARE A SIMULATION (IJ, 2026-11-02) ─────────────────────────────────
+  // Once a run finishes, the address carries that simulation: the flow
+  // (sim=t|x|w), both XIs as player ids in batting order (a, b; an empty slot
+  // is blank), the pickers and settings it was run with, and for a replay the
+  // Test (tid). Opening the link rebuilds the same XIs and settings and runs
+  // them again — a run is repeatable (the series uses a fixed seed), so the
+  // reader sees the same numbers. That run counts toward the reader's own
+  // hourly/daily limit like any other.
+  const LINK_FLOW={A:"t",X:"x",H:"w"};
+  const FLOW_FROM_LINK={t:"team-vs-team",x:"cross-era",w:"what-if"};
+  const LINK_SIDES={t:["A","B"],x:["X","Y"],w:["H","V"]};
+  const LINK_SEL={
+    t:{ta:'.team-select[data-side="A"]',ea:'.era-select[data-side="A"]',tb:'.team-select[data-side="B"]',
+       eb:'.era-select[data-side="B"]',v:'#venueSelect',bf:'#batFirstSelect',sl:'#seriesLen',it:'#mcIters'},
+    x:{pa:'.preset-select[data-side="X"]',pb:'.preset-select[data-side="Y"]',v:'#venueSelect2',
+       bf:'#batFirstSelect2',sl:'#seriesLen2'},
+    w:{wa:'#whatIfTeamA',wb:'#whatIfTeamB',wy:'#whatIfYear',bf:'#batFirstSelect3'}
+  };
+  function simLink(sideA,opts){
+    const f=LINK_FLOW[sideA]; const [s1,s2]=LINK_SIDES[f];
+    const q=new URLSearchParams();
+    q.set("sim",f);
+    Object.entries(LINK_SEL[f]).forEach(([k,css])=>{
+      const el=document.querySelector(css);
+      if(el && el.value!=="") q.set(k,el.value);
+    });
+    q.set("a",MS.xi[s1].map(p=>p?p.id:"").join(","));
+    q.set("b",MS.xi[s2].map(p=>p?p.id:"").join(","));
+    if(f==="w" && opts && opts.tid!=null) q.set("tid",String(opts.tid));
+    return location.pathname+"?"+q.toString().replace(/%2C/g,",")+location.hash;
+  }
+  function mountSimShare(){
+    if(!window.CTUrlState) return;
+    const host=document.querySelector("#resultsSection .results-head");
+    CTUrlState.mountShareRow(host,{
+      inline:true, label:"Share this simulation",
+      url:()=>location.href,
+      text:()=>document.getElementById("resultsTitle").textContent+": who wins? \u00b7 The Grass Bank"
+    });
+  }
+  async function restoreFromLink(){
+    const q=new URLSearchParams(location.search);
+    const f=q.get("sim");
+    if(!LINK_SIDES[f]) return;
+    const [s1,s2]=LINK_SIDES[f];
+    const tab=document.querySelector('.flow-tab[data-flow="'+FLOW_FROM_LINK[f]+'"]');
+    if(tab) tab.click();
+    // Pickers and settings as linked. No change events: those would rebuild
+    // the XIs from the pickers, and the XIs come from the link.
+    const setAll=()=>Object.entries(LINK_SEL[f]).forEach(([k,css])=>{
+      const el=document.querySelector(css);
+      if(!el || !q.has(k)) return;
+      const v=q.get(k);
+      if(el.tagName!=="SELECT" || Array.prototype.some.call(el.options,o=>o.value===v)) el.value=v;
+    });
+    setAll();
+    if(f==="t") MS.eraUserTouched={A:true,B:true};   // keep the linked eras apart
+    if(f==="w"){
+      const tid=parseInt(q.get("tid"),10);
+      if(!tid) return;
+      await ensureData();
+      loadHistoricalMatch(tid);
+      setAll();                                        // the match rebuilt the bat-first list
+    }
+    const xi=k=>(q.get(k)||"").split(",").slice(0,11)
+      .map(x=>x===""?null:(SimEngine.getPlayer(parseInt(x,10))||null));
+    const A=xi("a"), B=xi("b");
+    if(A.some(Boolean)) MS.xi[s1]=A.concat(Array(11).fill(null)).slice(0,11);
+    if(B.some(Boolean)) MS.xi[s2]=B.concat(Array(11).fill(null)).slice(0,11);
+    renderXI(s1); renderXI(s2); updateRunButtons();
+    const btn=document.getElementById(f==="t"?"runBtn":f==="x"?"runBtn2":"runBtn3");
+    if(btn && !btn.disabled) btn.click();
+    else toast("Some players in this link are no longer in the ratings — pick them again to run it.",true);
   }
 
   // ── Flow 1 run
@@ -1640,6 +1718,8 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
         if(el && g) el.textContent='Ratings updated '+g;
       }catch(e){/* non-fatal */}
       document.getElementById("dataLoadingOverlay").style.display="none";
+      // A shared simulation in the address: rebuild it and run it (2026-11-02).
+      restoreFromLink().catch(e=>console.warn("[sim-link] could not restore:",e&&e.message));
     }catch(e){
       console.error(e);
       // (1c): one message for every data failure across the site. Rendered INTO
