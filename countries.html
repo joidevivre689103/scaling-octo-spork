@@ -2449,6 +2449,18 @@ function applyLatestDefault(D) {
     if (window.CTUrlState) CTUrlState.mountShareRow(document.querySelector('.page-head'), {
       inline: true,
       text: () => {
+        // On the Impact tab with a milestone picked, the message names the
+        // milestones instead (2026-11-02).
+        const impOn = document.getElementById('tab-impact');
+        if (impOn && impOn.classList.contains('active')) {
+          const qs = ['filterBatImpact', 'filterBowImpact']
+            .map(id => parseImpactValue((document.getElementById(id) || {}).value)).filter(Boolean);
+          if (qs.length) {
+            const names = qs.map(q => labelForQuery(q).full);
+            return `Impact Analysis: ${names.join(' vs ')}. ` +
+              (qs.length === 2 ? 'Which wins more Tests?' : 'How often does it win the Test?') + ' · The Grass Bank';
+          }
+        }
         const side = ms => ms.isAll() ? 'All countries' : (ms.get().map(c => TEAM_NAMES[c] || c).join(', ') || 'All countries');
         // Headline record + a question (2026-10-27). The record is the whole
         // head-to-head, so it is only quoted when no venue/era filter narrows
@@ -2487,11 +2499,21 @@ function applyLatestDefault(D) {
 function attachH2HUrlState() {
   if (!window.CTUrlState) return;
   const side = ms => ms.isAll() ? 'all' : ms.get().join(',');
+  // Impact Analysis (2026-11-02): its two milestones and its countries ride in
+  // the same address, so each analysis has its own link (with #impact, which
+  // the tab already keeps). 'all' = every country, the picker's default.
+  const impSel = id => (document.getElementById(id) || {}).value || '';
   const cur = () => ({
     g1: side(ms1), g2: side(ms2),
     ven: msVenue.get().join(','), era: msEra.get().join(','),
     city: msCity ? msCity.get().join('|') : '', gnd: msGround ? msGround.get().join('|') : '',
+    im1: impSel('filterBatImpact'), im2: impSel('filterBowImpact'),
+    imc: msI.isAll() ? 'all' : msI.get().join(','),
   });
+  const setImpSel = (id, v) => {
+    const el = document.getElementById(id);
+    if (el && Array.prototype.some.call(el.options, o => o.value === v)) el.value = v;
+  };
   const setSide = (ms, v) => {
     if (v === 'all') ms.setAllExcept([]);
     else ms.set(String(v).split(',').filter(c => TEAMS.includes(c)));
@@ -2516,6 +2538,10 @@ function attachH2HUrlState() {
         if ('era' in q) msEra.set(q.era.split(',').filter(Boolean));
         if ('city' in q && msCity) msCity.set(q.city.split('|').filter(Boolean));
         if ('gnd' in q && msGround) msGround.set(q.gnd.split('|').filter(Boolean));
+        if ('im1' in q) setImpSel('filterBatImpact', q.im1);
+        if ('im2' in q) setImpSel('filterBowImpact', q.im2);
+        if ('imc' in q) msI.set(q.imc === 'all' ? TEAMS.slice() : q.imc.split(',').filter(c => TEAMS.includes(c)));
+        if ('im1' in q || 'im2' in q || 'imc' in q) renderImpact();
       },
     },
   });
