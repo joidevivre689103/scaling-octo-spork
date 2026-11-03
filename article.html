@@ -452,6 +452,18 @@ body{
   padding:4px;
 }
 
+/* Link under a picture to the analysis it shows (IJ, 2026-11-02). */
+.article-body .img-analysis-link{
+  display:inline-block;margin:-16px 0 24px;
+  font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;
+}
+.img-lightbox-link{
+  position:absolute;bottom:20px;left:50%;transform:translateX(-50%);
+  background:#fff;color:#111;text-decoration:none;
+  font:600 14px 'DM Sans',sans-serif;padding:9px 16px;border-radius:999px;
+  box-shadow:0 4px 16px rgba(0,0,0,0.35);
+}
+
 /* ─── IMAGE LIGHTBOX ─── */
 .img-lightbox{
   position:fixed;inset:0;z-index:9999;
@@ -1624,6 +1636,29 @@ window.seekAudio = seekAudio;
 // ═══════════════════════════════════════════════════════════════════════════
 // HELPERS
 // ═══════════════════════════════════════════════════════════════════════════
+// Our own stats pages (not another article) count as an analysis link.
+function isAnalysisHref(href) {
+  try {
+    const u = new URL(href, location.href);
+    const ours = u.origin === location.origin || /(^|\.)thegrassbank\.com$/.test(u.hostname);
+    return ours && /\.html$/.test(u.pathname) && !/\/(article|index)\.html$/.test(u.pathname);
+  } catch (e) { return false; }
+}
+// The last analysis link before `node`, looking only at the block the picture
+// sits in and the two blocks above it, so a picture never picks up a link
+// from much further up the article (or the link of an earlier picture).
+function analysisLinkAbove(root, node) {
+  let block = node;
+  while (block.parentNode && block.parentNode !== root) block = block.parentNode;
+  for (let b = block, n = 0; b && n < 3; b = b.previousElementSibling, n++) {
+    if (b !== block && (b.matches('img, .img-scroll-wrap') || b.querySelector('img'))) break;   // stop at an earlier picture
+    const links = [...(b.tagName === 'A' ? [b] : b.querySelectorAll('a[href]'))]
+      .filter(a => (b !== block || (a.compareDocumentPosition(node) & Node.DOCUMENT_POSITION_FOLLOWING)) && isAnalysisHref(a.getAttribute('href')));
+    if (links.length) return links[links.length - 1].getAttribute('href');
+  }
+  return '';
+}
+
 function renderArticleBody(article) {
   // Prefer rich HTML (preserves images from docx import)
   if (article.contentHtml && article.contentHtml.trim()) {
@@ -1638,6 +1673,18 @@ function renderArticleBody(article) {
       wrap.className = 'img-scroll-wrap';
       img.parentNode.insertBefore(wrap, img);
       wrap.appendChild(img);
+      // A picture of an analysis links to it (IJ, 2026-11-02): the address the
+      // picture was taken from (data-shot-href, set when the CMS adds it), else
+      // the nearest analysis link in the text just above. Nothing found → plain.
+      const href = img.getAttribute('data-shot-href') || analysisLinkAbove(div, wrap);
+      if (href) {
+        img.setAttribute('data-analysis-href', href);
+        const a = document.createElement('a');
+        a.className = 'img-analysis-link';
+        a.href = href;
+        a.textContent = 'Open this analysis →';
+        wrap.parentNode.insertBefore(a, wrap.nextSibling);
+      }
     });
     return div.innerHTML;
   }
@@ -1783,11 +1830,18 @@ function showCopyToast() {
 /* ─── IMAGE LIGHTBOX ─── */
 (function(){
   let overlay = null;
-  function openLightbox(src){
+  function openLightbox(src, href){
     if(overlay) overlay.remove();
     overlay = document.createElement('div');
     overlay.className = 'img-lightbox';
     overlay.innerHTML = `<button class="img-lightbox-close" aria-label="Close">&times;</button><img src="${src}" alt="Expanded view">`;
+    if (href) {
+      const a = document.createElement('a');
+      a.className = 'img-lightbox-link';
+      a.href = href;
+      a.textContent = 'Open this analysis →';
+      overlay.appendChild(a);
+    }
     document.body.appendChild(overlay);
     requestAnimationFrame(()=> overlay.classList.add('active'));
     overlay.addEventListener('click', function(e){
@@ -1806,7 +1860,7 @@ function showCopyToast() {
   function onKey(e){ if(e.key==='Escape') closeLightbox(); }
   document.addEventListener('click', function(e){
     const img = e.target.closest('.article-body img');
-    if(img) openLightbox(img.src);
+    if(img) openLightbox(img.src, img.getAttribute('data-analysis-href'));
   });
 })();
 </script>
