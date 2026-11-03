@@ -1644,8 +1644,8 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
   // As-of ratings (2026-11-03): a replay rates each player only from Tests
   // that had FINISHED before the replayed one began — the same file and the
   // same walk as simulateMatch (simRules.asOfPlayer), so the numbers on the
-  // page match the result. Rows: [after_tid, complete_by, bat, bow, bat_sr,
-  // bow_sr]; keep the last row with after_tid < tid and complete_by < the
+  // page match the result. Rows: [after_tid, bat, bow, bat_sr, bow_sr,
+  // complete_by]; keep the last row with after_tid < tid and complete_by < the
   // Test's first day. No row = unrated. If the file can't load, career
   // ratings are shown and the server decides as it would without it.
   async function loadAsOf(){
@@ -1661,12 +1661,13 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
     let row=null;
     for(const r of (MS.asof.players[String(p.id)]||[])){
       if(r[0]>=tid) break;
-      if(start!=null&&r[1]!=null&&r[1]>=start) break;
+      const done=r.length>5?r[5]:null;
+      if(start!=null&&done!=null&&done>=start) break;
       row=r;
     }
     const q=Object.assign({},p);
-    q.bat_rating=row?(sr&&row[4]!=null?row[4]:row[2]):null;
-    q.bow_rating=row?(sr&&row[5]!=null?row[5]:row[3]):null;
+    q.bat_rating=row?(sr&&row[3]!=null?row[3]:row[1]):null;
+    q.bow_rating=row?(sr&&row[4]!=null?row[4]:row[2]):null;
     q.asOf=true;
     return q;
   }
