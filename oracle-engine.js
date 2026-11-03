@@ -357,7 +357,7 @@ function applyEditionBranding() {
   // a WhatsApp forward of this page shows the title and description baked in
   // at load time (OG meta tags don't update from JS for social crawlers, but
   // they do reflect correctly when a real human clicks through).
-  document.title = `Yorker — ${editionLine} | The Grass Bank`;
+  document.title = `Yorker — ${editionLine} | The Grass Bank™`;
   const metaDesc = document.querySelector('meta[name="description"]');
   if (metaDesc) metaDesc.setAttribute('content',
     `Yorker · ${editionLine}. ${questions.length} questions on ${TEST_YEARS} years of Test cricket.`);
@@ -816,8 +816,8 @@ function renderScore(score) {
   const launchSuffix = currentEdition?.month ? ` Launching ${currentEdition.month}.` : ' Launching June 2026.';
   const CTA = 'Reckon you can do better?';
   const shareLine = IS_POST_LAUNCH
-    ? `I scored ${score}/${total} on Yorker, The Grass Bank's Test quiz — ${editionTag}. "${band.title}". ${CTA}`
-    : `I scored ${score}/${total} on Yorker, The Grass Bank's Test quiz — ${editionTag}. "${band.title}". ${CTA}${launchSuffix}`;
+    ? `I scored ${score}/${total} on Yorker, The Grass Bank™'s Test quiz — ${editionTag}. "${band.title}". ${CTA}`
+    : `I scored ${score}/${total} on Yorker, The Grass Bank™'s Test quiz — ${editionTag}. "${band.title}". ${CTA}${launchSuffix}`;
   // Share URL depends on the mode: /yorker.html for the current-mode page,
   // /yorker/{id}/ for a pinned-edition page. This keeps shares from a
   // permanent URL pointing at that permanent URL, not the rotating current.

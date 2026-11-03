@@ -138,7 +138,7 @@
 
   function share(title) {
     sync();
-    var url = location.href, name = 'The Grass Bank — ' + (title || document.title);
+    var url = location.href, name = 'The Grass Bank™ — ' + (title || document.title);
     if (navigator.share) {
       navigator.share({ title: name, url: url }).catch(function () {});
       return;
@@ -189,7 +189,7 @@
     });
     // Ends on a question so the recipient has a reason to tap (2026-10-27).
     return 'Test ' + (title || '').toLowerCase() + (parts.length ? ' — ' + parts.join(', ') : '') +
-      ". Who's top of the list?" + ' · The Grass Bank';
+      ". Who's top of the list?" + ' · The Grass Bank™';
   }
 
   function mountShareRow(host, o) {

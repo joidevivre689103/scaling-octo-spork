@@ -77,7 +77,7 @@
   var COPY = {
     // [2026-10-20] Wording rule: 'subscribe'/'subscription' means the PAID tier
     // only; the newsletter is 'the Dispatch', which readers 'sign up' for.
-    kicker:  'The Grass Bank Dispatch \u00b7 Free newsletter',
+    kicker:  'The Grass Bank™ Dispatch \u00b7 Free newsletter',
     heading: 'Get new analysis in your inbox',
     dek:     'Summaries of our latest stories and statistical deep dives, ' +
              'sent when new pieces are published.',

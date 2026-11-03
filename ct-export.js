@@ -46,7 +46,7 @@
    which is exactly the per-uid record this project decided in August 2026 not
    to keep. Neither is reachable from here without new code. */
 const BRAND = {
-  owner:  'The Grass Bank',
+  owner:  'The Grass Bank™',
   site:   'thegrassbank.com',
   terms:  'Personal and internal use only. Not for redistribution, republication or resale without written permission.',
   attribution: 'none',       // 'none' | 'subscriber'
@@ -61,7 +61,7 @@ const STAMP  = () => new Date().toLocaleDateString('en-GB', { day:'numeric', mon
    does NOT do: it never reads the signed-in user. Nothing about the reader
    reaches the file. */
 function attributionLabel() {
-  return BRAND.attribution === 'subscriber' ? 'a Grass Bank subscriber' : null;
+  return BRAND.attribution === 'subscriber' ? 'a Grass Bank™ subscriber' : null;
 }
 /* Shorter form, for the watermark, where the sentence would not fit. */
 function attributionMark() {

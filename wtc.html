@@ -15,7 +15,7 @@
 <script src="/ct-data-loader.js"></script>
 <script src="/ct-urlstate.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-<title>WTC Race — The Grass Bank</title>
+<title>WTC Race — The Grass Bank™</title>
 <!-- World Test Championship (2026-10-27; arithmetic only since 2026-10-30 —
      no match model, no simulation, no chances). FREE page: the table, each
      team's best possible finish, who is through or out, and the series left
@@ -527,10 +527,10 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
     if (picked) {
       var r = PUB.table.find(function (x) { return x.team === picked; });
       if (r) return r.team + ' are on ' + pc(r.pct) + ' in the World Test Championship' +
-        (r.best != null ? ', best possible finish ' + pc(r.best) : '') + '. What do they need? · The Grass Bank';
+        (r.best != null ? ', best possible finish ' + pc(r.best) : '') + '. What do they need? · The Grass Bank™';
     }
     return 'The race to the WTC final: ' + PUB.table.slice(0, 3).map(function (r) { return r.team + ' ' + pc(r.pct); }).join(', ') +
-      '. Who takes the last place? · The Grass Bank';
+      '. Who takes the last place? · The Grass Bank™';
   }
 
   // ── Paid part ───────────────────────────────────────────────────────────

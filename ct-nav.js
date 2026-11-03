@@ -75,13 +75,13 @@
   // lines, each with one job: the NAME (large, Playfair), the TAGLINE directly
   // under it in italics so "where" reads straight off the name, and the
   // DESCRIPTOR in small spaced caps like a newspaper's edition line.
-  var BRAND_NAME = 'The Grass Bank';
+  var BRAND_NAME = 'The Grass Bank™';
   var TAGLINE = 'where every number has a heartbeat';
   var DESCRIPTOR = 'A Journal of Cricket';
   // Three-tone name: ink "The", turf-green "Grass" (2026-11-01, IJ: evokes the
   // grass of the grounds), crimson "Bank" (styled by .ct-masthead-logo span;
   // .ct-grass outranks it). The footer keeps the whole name white.
-  var BRAND_HTML = 'The <span class="ct-grass">Grass</span> <span>Bank</span>';
+  var BRAND_HTML = 'The <span class="ct-grass">Grass</span> <span>Bank</span><sup class="gb-tm" style="font-size:.4em;font-weight:400;line-height:0;letter-spacing:0;margin-left:.06em">&trade;</sup>';
 
   // Firestore project for CMS-driven tagline override. See applyTaglineOverride().
   var FIRESTORE_PROJECT = 'hitwicket-cba02';
