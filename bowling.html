@@ -388,6 +388,7 @@ td.num.highlight{color:var(--accent);font-weight:700}
             <option value="">Any</option>
             <option value="4wi">4 WI</option>
             <option value="5wi">5 WI</option>
+            <option value="10wi">10 WI</option>
             <option value="8wm">8 WM</option>
             <option value="10wm">10 WM</option>
           </select>
@@ -538,6 +539,7 @@ function compute4WI(){
   // Build per-player, per-match innings wicket counts
   const matchInns={}; // key: pid_mid -> [wkts per innings]
   const fourWICount={}; // pid -> count of innings with 4+ wkts
+  const tenWICount={};  // pid -> innings with all ten wickets
   D.S.forEach(s=>{
     const pid=s[1], mid=s[0], wkts=s[9]||0;
     const key=pid+'_'+mid;
@@ -546,6 +548,7 @@ function compute4WI(){
     if(wkts>=4){
       fourWICount[pid]=(fourWICount[pid]||0)+1;
     }
+    if(wkts>=10) tenWICount[pid]=(tenWICount[pid]||0)+1;
   });
   // 2x4WI: matches where both innings had 4+ wickets
   // 2x5WI: matches where both innings had 5+ wickets (always also a 10WM, but distinct stat)
@@ -563,6 +566,7 @@ function compute4WI(){
     p.twoX4WI=twoX4WICount[p.id]||0;
     p.twoX5WI=twoX5WICount[p.id]||0;
     p.eightWM=eightWMCount[p.id]||0;
+    p.tenWI=tenWICount[p.id]||0;
   });
 }
 
@@ -991,6 +995,7 @@ function slicedPlayers(f){
       a.runs+=r.runs; a.wkts+=r.wkts;
       if(r.wkts>=5) a.five++;
       if(r.wkts>=4) a.four++;
+      if(r.wkts>=10) a.tenI=(a.tenI||0)+1;
       if(r.wkts>a.bestW||(r.wkts===a.bestW&&r.runs<a.bestR)){ a.bestW=r.wkts; a.bestR=r.runs; }
       if(r.year<a.from) a.from=r.year;
       if(r.year>a.to) a.to=r.year;
@@ -1012,7 +1017,7 @@ function slicedPlayers(f){
         bowlAvg: a.wkts>0 ? a.runs/a.wkts : 0,
         econ:    a.balls>0 ? a.runs/(a.balls/6) : 0,
         bowlSR:  a.wkts>0 ? a.balls/a.wkts : 0,
-        fiveWkts:a.five, fourWI:a.four, tenWkts:ten, eightWM:eight, twoX4WI:x4, twoX5WI:x5,
+        fiveWkts:a.five, fourWI:a.four, tenWkts:ten, eightWM:eight, tenWI:a.tenI||0, twoX4WI:x4, twoX5WI:x5,
         bestBowl: a.bestW>0 ? a.bestW+'/'+a.bestR : '—',
         fromYear:a.from, toYear:a.to, mom:null, _sliced:true,
         ...rateFields(a.wkts, a.inns, Math.max(a.tests.size, playedSet?playedSet.size:0)),
@@ -1077,13 +1082,14 @@ const BAZ_FLAG={bazball:'baz',bazballvs:'bazVs',bazballall:'bazAll'};
 let _aggPred=()=>true;
 
 /* Milestone (IJ, 2026-11-02): at least one 4-wicket innings, 5-wicket
-   innings, 8-wicket match or 10-wicket match, in the figures on show (so
+   innings, all-ten innings, 8-wicket match or 10-wicket match, in the figures on show (so
    with Opponents picked, one against them). */
-const MILESTONE_LABEL={'4wi':'4 WI','5wi':'5 WI','8wm':'8 WM','10wm':'10 WM'};
+const MILESTONE_LABEL={'4wi':'4 WI','5wi':'5 WI','10wi':'10 WI','8wm':'8 WM','10wm':'10 WM'};
 function milestoneMatch(p,m){
   if(!m) return true;
   if(m==='4wi') return (p.fourWI||0)>=1;
   if(m==='5wi') return (p.fiveWkts||0)>=1;
+  if(m==='10wi') return (p.tenWI||0)>=1;   // all ten in an innings (IJ, 2026-11-02)
   if(m==='8wm') return (p.eightWM||0)>=1;
   if(m==='10wm') return (p.tenWkts||0)>=1;
   return true;
