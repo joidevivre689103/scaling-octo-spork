@@ -332,9 +332,35 @@ td.num.highlight{color:var(--accent);font-weight:700}
           </select>
         </div>
         <div class="fg" data-dim="1">
+          <label>Min Tests</label>
+          <select id="fMinTests" onchange="applyFilters()">
+            <option value="0">No minimum</option>
+            <option value="25">25+</option>
+            <option value="50">50+</option>
+            <option value="75">75+</option>
+            <option value="100">100+</option>
+            <option value="125">125+</option>
+            <option value="150">150+</option>
+            <option value="175">175+</option>
+          </select>
+        </div>
+        <div class="fg" data-dim="1">
+          <label>Min Innings</label>
+          <select id="fMinInns" onchange="applyFilters()">
+            <option value="0">No minimum</option>
+            <option value="20">20+</option>
+            <option value="40">40+</option>
+            <option value="50">50+</option>
+            <option value="80">80+</option>
+            <option value="100">100+</option>
+            <option value="150">150+</option>
+            <option value="200">200+</option>
+          </select>
+        </div>
+        <div class="fg" data-dim="1">
           <label>Min Wickets</label>
           <select id="fMinWkts" onchange="applyFilters()">
-            <option value="1">Any</option>
+            <option value="1">No minimum</option>
             <option value="50">50+</option>
             <option value="75">75+</option>
             <option value="100">100+</option>
@@ -351,19 +377,6 @@ td.num.highlight{color:var(--accent);font-weight:700}
             <option value="600">600+</option>
             <option value="650">650+</option>
             <option value="700">700+</option>
-          </select>
-        </div>
-        <div class="fg" data-dim="1">
-          <label>Min Tests</label>
-          <select id="fMinTests" onchange="applyFilters()">
-            <option value="0">Any</option>
-            <option value="25">25+</option>
-            <option value="50">50+</option>
-            <option value="75">75+</option>
-            <option value="100">100+</option>
-            <option value="125">125+</option>
-            <option value="150">150+</option>
-            <option value="175">175+</option>
           </select>
         </div>
         <div class="fg" data-dim="1">
@@ -403,8 +416,15 @@ td.num.highlight{color:var(--accent);font-weight:700}
           </select>
         </div>
         <div class="fg" data-dim="1">
-          <label>Search</label>
-          <input type="text" id="fSearch" placeholder="Player name..." oninput="applyFilters()">
+          <label>Opponents</label>
+          <div class="ms-wrap" id="msOpp">
+            <button class="ms-btn" type="button" onclick="toggleMS('msOpp')">All Opponents</button>
+            <div class="ms-drop" id="msOpp-drop"></div>
+          </div>
+        </div>
+        <div class="fg" data-dim="1">
+          <label>Search Player</label>
+          <input type="text" id="fSearch" placeholder="Name or country…" oninput="applyFilters()">
         </div>
               <div class="fp-note" id="fpNote" style="display:none"></div>
 </div>
@@ -546,12 +566,15 @@ let filtered=[];
 /* ── Populate country dropdown ── */
 function populateCountryDropdown(){
   const countries=[...new Set(ALL_PLAYERS.map(p=>p.country))].filter(Boolean).sort();
-  const drop=document.getElementById('msCountry-drop');
-  countries.forEach(c=>{
-    const d=document.createElement('div');
-    d.className='ms-opt';
-    d.innerHTML=`<input type="checkbox" value="${c}" onchange="applyFilters()"><span>${c}</span>`;
-    drop.appendChild(d);
+  // Country and Opponents carry the same list, as on the batting page.
+  ['msCountry-drop','msOpp-drop'].forEach(id=>{
+    const drop=document.getElementById(id);
+    countries.forEach(c=>{
+      const d=document.createElement('div');
+      d.className='ms-opt';
+      d.innerHTML=`<input type="checkbox" value="${c}" onchange="applyFilters()"><span>${c}</span>`;
+      drop.appendChild(d);
+    });
   });
 }
 
@@ -578,9 +601,9 @@ function syncPanelOverflow(){
 function getMSValues(id){
   return [...document.querySelectorAll(`#${id}-drop input[type="checkbox"]:checked`)].map(c=>c.value);
 }
-const MS_EMPTY={msEra:'All Eras',msCountry:'All Countries',msCity:'All Cities',msGround:'All Grounds'};
+const MS_EMPTY={msEra:'All Eras',msCountry:'All Countries',msCity:'All Cities',msGround:'All Grounds',msOpp:'All Opponents'};
 /* Lists long enough that spelling every tick out would overrun the button. */
-const MS_MANY={msCity:'cities',msGround:'grounds',msCountry:'countries'};
+const MS_MANY={msCity:'cities',msGround:'grounds',msCountry:'countries',msOpp:'opponents'};
 function updateMSLabel(id){
   const checks=[...document.querySelectorAll(`#${id}-drop input[type="checkbox"]:checked`)];
   const btn=document.querySelector(`#${id} .ms-btn`);
@@ -736,6 +759,33 @@ function oversToBalls(o){
 function ballsToOvers(b){ return Math.floor(b/6)+(b%6)/10; }
 function fmtOvers(b){ return b>0 ? (Math.floor(b/6)+'.'+(b%6)) : '0'; }
 
+/* Teams in each match, from the countries of the players who appear in it
+   (2026-11-02, mirroring batting.html's buildMatchTeams), so every innings can
+   carry the side it was bowled against. */
+let MATCH_TEAMS=new Map();   // matchId → [countryA, countryB]
+function buildMatchTeams(){
+  MATCH_TEAMS=new Map();
+  if(!D.S) return;
+  const byMatch=new Map();
+  for(const s of D.S){
+    const mid=s[0],pid=s[1];
+    if(!mid||!pid) continue;
+    let set=byMatch.get(mid);
+    if(!set){ set=new Set(); byMatch.set(mid,set); }
+    if(set.size>=2) continue;
+    const c=PID_COUNTRY[pid];
+    if(c) set.add(c);
+  }
+  byMatch.forEach((set,mid)=>{ if(set.size===2) MATCH_TEAMS.set(mid,[...set]); });
+}
+function oppFor(pid,mid){
+  const t=MATCH_TEAMS.get(mid); if(!t) return '';
+  const c=PID_COUNTRY[pid]; if(!c) return '';
+  return t[0]===c ? t[1] : (t[1]===c ? t[0] : '');
+}
+/* Sides each player has played against, for the player-table Opponents filter. */
+let PLAYER_OPPS=new Map();   // pid → Set<country>
+
 /* Which era / venue / Bazball buckets one (player, match) pairing falls into. */
 function bucketsFor(pid,mid,m){
   const inWindow=!!(BAZBALL&&mid>=BAZBALL.fromTest&&mid<=BAZBALL.toTest);
@@ -744,6 +794,7 @@ function bucketsFor(pid,mid,m){
   return {
     era:eraKeyForYear(m[7]), year:m[7], ha:haFor(pid,m),
     city:(D.C&&D.C[m[0]])||'', ground:(D.G&&D.G[m[1]])||'',
+    opp:oppFor(pid,mid),
     //   baz    — England's own bowlers in England's Tests
     //   bazVs  — their opponents in those same Tests
     //   bazAll — every Test played anywhere in the window
@@ -754,7 +805,9 @@ function bucketsFor(pid,mid,m){
 function buildBowlInnings(){
   BOWL_INNS=[];
   APPEAR=[];
+  PLAYER_OPPS=new Map();
   if(!D.S||!D.M) return;
+  buildMatchTeams();
   const best=new Map();                      // pid_mid_slot → row with most overs
   const played=new Set();
   for(const s of D.S){
@@ -768,7 +821,12 @@ function buildBowlInnings(){
     const pkey=pid+'_'+mid;
     if(!played.has(pkey)){
       played.add(pkey);
-      APPEAR.push(Object.assign({pid,mid},bucketsFor(pid,mid,m)));
+      const a=Object.assign({pid,mid},bucketsFor(pid,mid,m));
+      APPEAR.push(a);
+      if(a.opp){
+        if(!PLAYER_OPPS.has(pid)) PLAYER_OPPS.set(pid,new Set());
+        PLAYER_OPPS.get(pid).add(a.opp);
+      }
     }
 
     if(slot==null||slot<1||slot>4) continue;
@@ -975,6 +1033,7 @@ function aggregateEligible(f){
     if(!bowlTypeMatch(p,f.bowlType)) return;
     if((p.wkts||0)<f.minWkts) return;
     if(f.minTests&&(p.tests||0)<f.minTests) return;
+    if(f.minInns&&(p.innings||0)<f.minInns) return;
     if(f.maxAvg&&(p.bowlAvg||999)>f.maxAvg) return;
     if(f.maxSR&&(p.bowlSR||999)>f.maxSR) return;
     if(f.maxEcon&&(p.econ||999)>f.maxEcon) return;
@@ -985,10 +1044,14 @@ function aggregateEligible(f){
   return s;
 }
 
+/* In the player table Opponents is a career question — has he played against
+   all of these sides (as on batting.html). The aggregate has only innings,
+   so there it counts the innings bowled against a picked side. */
 function buildAggPred(f){
   const eligible=aggregateEligible(f);
   const vOk=venuePred(f);
-  return r=>eligible.has(r.pid)&&vOk(r);
+  const oppOk=f.opponents.length ? (r=>f.opponents.includes(r.opp)) : (()=>true);
+  return r=>eligible.has(r.pid)&&vOk(r)&&oppOk(r);
 }
 function inningsForEra(key){
   const flag=BAZ_FLAG[key];
@@ -1023,6 +1086,8 @@ function getFilters(){
     bowlType:document.getElementById('fBowlType').value,
     minWkts:+document.getElementById('fMinWkts').value||0,
     minTests:+document.getElementById('fMinTests').value||0,
+    minInns:+document.getElementById('fMinInns').value||0,
+    opponents:getMSValues('msOpp'),
     maxAvg:parseFloat(document.getElementById('fMaxAvg').value)||0,
     maxSR:parseFloat(document.getElementById('fMaxSR').value)||0,
     maxEcon:parseFloat(document.getElementById('fMaxEcon').value)||0,
@@ -1094,6 +1159,7 @@ function syncModeUI(f){
 let sliced=false;   // figures rebuilt from the innings index
 
 function applyFilters(){
+  updateMSLabel('msOpp');
   updateMSLabel('msEra');
   updateMSLabel('msCountry');
   updateMSLabel('msCity');
@@ -1125,10 +1191,17 @@ function applyFilters(){
     if(!bowlTypeMatch(p,f.bowlType)) return false;
     if((p.wkts||0)<f.minWkts) return false;
     if(f.minTests && (p.tests||0)<f.minTests) return false;
+    if(f.minInns && (p.innings||0)<f.minInns) return false;
     if(f.maxAvg && (p.bowlAvg||999)>f.maxAvg) return false;
     if(f.maxSR && (p.bowlSR||999)>f.maxSR) return false;
     if(f.maxEcon && (p.econ||999)>f.maxEcon) return false;
     if(f.search && !(p.fullName||p.name||'').toLowerCase().includes(f.search) && !(p.country||'').toLowerCase().includes(f.search)) return false;
+    if(f.opponents.length){
+      // Not a bowler from a picked side, and has played against every one of them.
+      if(f.opponents.includes(p.country)) return false;
+      const opps=PLAYER_OPPS.get(p.id);
+      if(!opps||!f.opponents.every(o=>opps.has(o))) return false;
+    }
     return true;
   });
   sortData();
@@ -1139,10 +1212,11 @@ function applyFilters(){
 function resetFilters(){
   document.getElementById('fMode').value='players';
   document.querySelectorAll('#msEra-drop input').forEach(c=>{ if(!c.disabled) c.checked=false; });
-  document.querySelectorAll('#msCountry-drop input').forEach(c=>c.checked=false);
+  document.querySelectorAll('#msCountry-drop input, #msOpp-drop input').forEach(c=>c.checked=false);
   ['fBowlType','fHA'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('fMinWkts').value='1';
   document.getElementById('fMinTests').value='0';
+  document.getElementById('fMinInns').value='0';
   document.getElementById('fMaxAvg').value='0';
   document.getElementById('fMaxSR').value='0';
   document.getElementById('fMaxEcon').value='0';
@@ -1441,9 +1515,11 @@ function renderTags(){
   if(f.bowlType) tags.push([`Type: ${f.bowlType.charAt(0).toUpperCase()+f.bowlType.slice(1)}`,'fBowlType']);
   if(f.minWkts>1) tags.push([`Min Wkts: ${f.minWkts}`,'fMinWkts']);
   if(f.minTests) tags.push([`Min Tests: ${f.minTests}`,'fMinTests']);
+  if(f.minInns) tags.push([`Min Inns: ${f.minInns}`,'fMinInns']);
   if(f.maxAvg) tags.push([`Max Avg: ${f.maxAvg}`,'fMaxAvg']);
   if(f.maxSR) tags.push([`Max SR: ${f.maxSR}`,'fMaxSR']);
   if(f.maxEcon) tags.push([`Max Econ: ${f.maxEcon}`,'fMaxEcon']);
+  f.opponents.forEach(o=>tags.push([`vs ${o}`,'opp_'+o]));
   if(f.search) tags.push([`Search: "${f.search}"`,'fSearch']);
 
   const bar=document.getElementById('tagBar');
@@ -1464,6 +1540,11 @@ function clearTag(id){
     if(box) box.checked=false;
     applyFilters(); return;
   }
+  if(id.startsWith('opp_')){
+    const box=document.querySelector(`#msOpp-drop input[value="${id.slice(4)}"]`);
+    if(box) box.checked=false;
+    applyFilters(); return;
+  }
   if(id.startsWith('city_')){ clearMSIndex('msCity',id.slice(5)); return; }
   if(id.startsWith('grnd_')){ clearMSIndex('msGround',id.slice(5)); return; }
   if(id.startsWith('era_')){
@@ -1474,6 +1555,7 @@ function clearTag(id){
   const el=document.getElementById(id);
   if(id==='fMinWkts') el.value='1';
   else if(id==='fMinTests') el.value='0';
+  else if(id==='fMinInns') el.value='0';
   else if(id==='fMaxAvg') el.value='0';
   else if(id==='fMaxSR') el.value='0';
   else if(id==='fMaxEcon') el.value='0';
@@ -1731,10 +1813,15 @@ const EXPORT_COLS=[
 function exportCaption(f){
   const out=[];
   if(aggregateMode) out.push('All bowlers');
-  if(f.country) out.push(f.country);
-  if(f.era)     out.push(f.era==='pre1900'?'Pre-1900':f.era+'s');
+  // Countries and eras are lists since the multi-selects (fixed 2026-11-02:
+  // this read f.country / f.era, which no longer exist).
+  if(f.countries.length) out.push(f.countries.join(', '));
+  if(f.eras.length)      out.push(f.eras.map(e=>ERA_LABEL[e]||e).join(', '));
   if(f.bowlType)out.push(f.bowlType.charAt(0).toUpperCase()+f.bowlType.slice(1));
+  if(f.minTests) out.push('Tests \u2265'+f.minTests);
+  if(f.minInns)  out.push('Inns \u2265'+f.minInns);
   if(f.minWkts>1) out.push('Wkts \u2265'+f.minWkts);
+  if(f.opponents.length) out.push('vs '+f.opponents.join(', '));
   return out.length?out.join(' \u00b7 '):'No filters applied';
 }
 
@@ -1756,8 +1843,9 @@ function buildExportModel(){
   }
 
   const parts=['Bowling'];
-  if(f.country) parts.push(f.country);
-  if(f.era) parts.push(f.era==='pre1900'?'Pre1900':f.era+'s');
+  if(f.countries.length===1) parts.push(f.countries[0]);
+  if(f.eras.length===1) parts.push((ERA_LABEL[f.eras[0]]||f.eras[0]).replace(/[^A-Za-z0-9]/g,''));
+  if(f.opponents.length===1) parts.push('vs'+f.opponents[0].replace(/\s+/g,''));
   if(f.bowlType) parts.push(f.bowlType.charAt(0).toUpperCase()+f.bowlType.slice(1));
   if(f.minWkts>1) parts.push(f.minWkts+'+W');
 
