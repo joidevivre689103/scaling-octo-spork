@@ -682,7 +682,8 @@ body{
 /* ═══ CONTENT GRID ═══ */
 .content-grid{
   display:grid;
-  grid-template-columns:1fr 1fr 1fr;
+  /* --cols: how many columns have articles (2026-11-02; empty ones are removed). */
+  grid-template-columns:repeat(var(--cols,3),1fr);
   gap:0;
   padding:32px 0;
   border-bottom:1px solid var(--border);
@@ -1710,7 +1711,6 @@ function renderListenStrip(v) {
     const featuresCat      = articles.filter(a => a.category === 'features');
     const opinionCat       = articles.filter(a => a.category === 'opinion');
     const analysisCat      = articles.filter(a => a.category === 'analysis');
-    const featuredArticles = articles.filter(a => a.placement === 'featured');
 
     if (heroArticle) {
       const heroMain = document.querySelector('.hero-main');
@@ -1745,15 +1745,38 @@ function renderListenStrip(v) {
           </div>`).join('');
     }
 
+    // ONE PLACE PER ARTICLE, ONLY ITS OWN CATEGORY (IJ, 2026-11-02). Each
+    // column shows its own category and nothing else; a category with
+    // nothing in the homepage window is not shown at all (the column is
+    // removed and the rest share the row), and the same goes for Analysis.
+    // An article also never repeats: the hero is not shown again in its
+    // column. (Before, empty columns borrowed other categories' articles, so
+    // a piece could appear twice.) Most Read is a ranking list and is
+    // unchanged.
+    const notHero = list => list.filter(a => a !== heroArticle);
+    const COL_MAX = 5, ANALYSIS_MAX = 3;
+    const analysisArticles = notHero(analysisCat).slice(0, ANALYSIS_MAX);
+
     const contentCols = document.querySelectorAll('.content-col');
     if (contentCols.length >= 3) {
-      renderColumn(contentCols[0], 'Latest News',  newsCat.length     > 0 ? newsCat     : articles);
-      renderColumn(contentCols[1], 'Features',     featuresCat.length > 0 ? featuresCat : featuredArticles);
-      renderColumn(contentCols[2], 'Points of View', opinionCat.length  > 0 ? opinionCat  : articles.slice(-3));
+      const grid = contentCols[0].parentElement;
+      let shown = 0;
+      [[contentCols[0], 'Latest News', notHero(newsCat)],
+       [contentCols[1], 'Features', notHero(featuresCat)],
+       [contentCols[2], 'Points of View', notHero(opinionCat)]].forEach(([col, title, list]) => {
+        if (list.length) { renderColumn(col, title, list.slice(0, COL_MAX)); shown++; }
+        else col.remove();
+      });
+      if (grid) {
+        grid.style.setProperty('--cols', String(Math.max(shown, 1)));
+        if (!shown) grid.style.display = 'none';
+      }
     }
 
     const analysisGrid     = document.querySelector('.analysis-grid');
-    const analysisArticles = analysisCat.length > 0 ? analysisCat : articles.filter(a => a.readTime >= 10);
+    // No Analysis in the window: the whole section stays out, menu link included.
+    const analysisSection  = document.getElementById('analysis');
+    if (analysisSection && !analysisArticles.length) analysisSection.style.display = 'none';
     if (analysisGrid && analysisArticles.length > 0) {
       const colors = ['linear-gradient(135deg,#2a4048,#1a3038)','linear-gradient(135deg,#483828,#382818)','linear-gradient(135deg,#384838,#283828)'];
       analysisGrid.innerHTML = analysisArticles.slice(0, 3).map((a, i) => `
