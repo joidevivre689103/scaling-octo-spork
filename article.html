@@ -173,43 +173,28 @@ body{
   max-width:820px;
   margin:0 auto;
 }
+.article-layout{flex-direction:column;align-items:stretch}
+.article-layout-main{width:100%}
+/* Comments (IJ, 2026-11-03): at the end of the article, closed until the
+   reader asks for them, so the article has the full width. */
+.comments-toggle-wrap{max-width:820px;width:100%;margin:0 auto;padding:8px 24px 0;box-sizing:border-box;text-align:center}
+.comments-toggle{
+  display:inline-flex; align-items:center; gap:8px;
+  padding:10px 18px; border-radius:999px;
+  border:1px solid var(--border); background:var(--surface, #fff);
+  color:var(--text); font:600 14px 'Inter',sans-serif; cursor:pointer;
+}
+.comments-toggle:hover{border-color:var(--accent); color:var(--accent)}
+.comments-toggle svg{width:17px; height:17px; fill:none; stroke:currentColor; stroke-width:2}
 .article-layout-sidebar{
-  width:380px;
-  flex-shrink:0;
-  position:sticky;
-  top:52px; /* below sticky nav */
-  max-height:calc(100vh - 60px);
-  overflow-y:auto;
-  border-left:1px solid var(--border);
-  scrollbar-width:thin;
-  scrollbar-color:var(--border2) transparent;
+  display:none;
+  width:100%;
+  max-width:820px;
+  margin:0 auto;
+  border-top:1px solid var(--border);
+  box-sizing:border-box;
 }
-.article-layout-sidebar::-webkit-scrollbar{width:5px}
-.article-layout-sidebar::-webkit-scrollbar-track{background:transparent}
-.article-layout-sidebar::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
-.article-layout-sidebar::-webkit-scrollbar-thumb:hover{background:var(--text3)}
-
-@media(max-width:1100px){
-  .article-layout{
-    flex-direction:column;
-    align-items:stretch;
-  }
-  .article-layout-main{
-    max-width:820px;
-    width:100%;
-    margin:0 auto;
-  }
-  .article-layout-sidebar{
-    width:100%;
-    max-width:820px;
-    margin:0 auto;
-    position:static;
-    max-height:none;
-    overflow-y:visible;
-    border-left:none;
-    border-top:1px solid var(--border);
-  }
-}
+.article-layout-sidebar.open{display:block}
 
 .article-page{
   max-width:820px;
@@ -1248,8 +1233,34 @@ body{
   <div class="article-layout-main">
     <div id="articleContainer"></div>
   </div>
-  <aside class="article-layout-sidebar" id="commentsRoot"></aside>
+  <div class="comments-toggle-wrap">
+    <button class="comments-toggle" id="commentsToggle" type="button" aria-controls="commentsRoot" aria-expanded="false">
+      <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <span id="commentsToggleLabel">Show comments</span> <span id="commentsToggleCount"></span>
+    </button>
+  </div>
+  <aside class="article-layout-sidebar" id="commentsRoot" aria-label="Reader comments"></aside>
 </div>
+<script>
+/* Comments at the end of the article, closed until asked for (IJ,
+   2026-11-03). Open straight away when the address points at them (back
+   from signing in to comment). */
+(function () {
+  const panel = document.getElementById('commentsRoot');
+  const btn = document.getElementById('commentsToggle');
+  const lab = document.getElementById('commentsToggleLabel');
+  if (!panel || !btn) return;
+  function setOpen(on, scroll) {
+    panel.classList.toggle('open', on);
+    btn.setAttribute('aria-expanded', on ? 'true' : 'false');
+    lab.textContent = on ? 'Hide comments' : 'Show comments';
+    if (on && scroll) panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  window.CTComments = { open: () => setOpen(true, true), close: () => setOpen(false) };
+  btn.addEventListener('click', () => setOpen(!panel.classList.contains('open'), true));
+  if (/^#(commentsRoot|comment)/.test(location.hash)) setOpen(true, false);
+})();
+</script>
 
 <!-- ═══════════════════════════════════════════════════════════════════════════
      FOOTER
@@ -1335,6 +1346,8 @@ window._articleLoadComplete = (async function() {
       // Hide the comments sidebar entirely
       const cs = document.getElementById('commentsRoot');
       if (cs) cs.style.display = 'none';
+      const ct = document.getElementById('commentsToggle');
+      if (ct) ct.style.display = 'none';
       // Signal to the comments module (which loads on a setTimeout) that it
       // should skip its Firestore query and not render anything.
       window._articleWithdrawn = true;
@@ -2175,6 +2188,8 @@ function renderComments() {
 
   html += '</div>';
   root.innerHTML = html;
+  const tc = document.getElementById('commentsToggleCount');
+  if (tc) tc.textContent = count ? '(' + count + ')' : '';
 
   // Wire form events — only when the composer rendered (signed-in + allowed)
   if (!isClosed && currentUser && canPost) {
