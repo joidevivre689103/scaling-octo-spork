@@ -1859,7 +1859,9 @@ function showCopyToast() {
   function onKey(e){ if(e.key==='Escape') closeLightbox(); }
   document.addEventListener('click', function(e){
     const img = e.target.closest('.article-body img');
-    if(img) openLightbox(img.src, img.getAttribute('data-analysis-href'));
+    // A picture of a long table shows only the columns that matter in the
+    // article; the enlarged view shows the whole table (data-full).
+    if(img) openLightbox(img.getAttribute('data-full') || img.src, img.getAttribute('data-analysis-href'));
   });
 })();
 </script>
