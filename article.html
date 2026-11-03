@@ -452,11 +452,7 @@ body{
   padding:4px;
 }
 
-/* Link under a picture to the analysis it shows (IJ, 2026-11-02). */
-.article-body .img-analysis-link{
-  display:inline-block;margin:-16px 0 24px;
-  font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;
-}
+/* Link to the analysis a picture shows, in the enlarged view (IJ, 2026-11-02). */
 .img-lightbox-link{
   position:absolute;bottom:20px;left:50%;transform:translateX(-50%);
   background:#fff;color:#111;text-decoration:none;
@@ -1673,18 +1669,19 @@ function renderArticleBody(article) {
       wrap.className = 'img-scroll-wrap';
       img.parentNode.insertBefore(wrap, img);
       wrap.appendChild(img);
-      // A picture of an analysis links to it (IJ, 2026-11-02): the address the
-      // picture was taken from (data-shot-href, set when the CMS adds it), else
-      // the nearest analysis link in the text just above. Nothing found → plain.
+      // A picture of an analysis knows its link (IJ, 2026-11-02): the address
+      // it was taken from (data-shot-href, set when the CMS adds it), else the
+      // nearest analysis link in the text just above. The text already links
+      // there, so the only extra link is in the enlarged view.
       const href = img.getAttribute('data-shot-href') || analysisLinkAbove(div, wrap);
-      if (href) {
-        img.setAttribute('data-analysis-href', href);
-        const a = document.createElement('a');
-        a.className = 'img-analysis-link';
-        a.href = href;
-        a.textContent = 'Open this analysis →';
-        wrap.parentNode.insertBefore(a, wrap.nextSibling);
-      }
+      if (href) img.setAttribute('data-analysis-href', href);
+    });
+    // Links in an article open in a new tab, so the reader keeps their place
+    // (IJ, 2026-11-02). Links to a spot on the same page stay put.
+    div.querySelectorAll('a[href]').forEach(a => {
+      if ((a.getAttribute('href') || '').startsWith('#')) return;
+      a.setAttribute('target', '_blank');
+      a.setAttribute('rel', 'noopener');
     });
     return div.innerHTML;
   }
@@ -1839,6 +1836,8 @@ function showCopyToast() {
       const a = document.createElement('a');
       a.className = 'img-lightbox-link';
       a.href = href;
+      a.target = '_blank';
+      a.rel = 'noopener';
       a.textContent = 'Open this analysis →';
       overlay.appendChild(a);
     }
