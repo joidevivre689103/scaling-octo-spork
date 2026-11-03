@@ -1641,12 +1641,13 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
     return best;
   }
 
-  // As-of ratings (2026-11-03): a replay rates each player from the Tests he
-  // had played BEFORE the replayed one, the same file simulateMatch uses, so
-  // the numbers on the page match the result. Rows: [after_tid, bat, bow,
-  // bat_sr, bow_sr]; the last row with after_tid < tid applies. No row = no
-  // earlier Test = unrated. If the file can't load, career ratings are shown
-  // and the server decides the same way it would without it.
+  // As-of ratings (2026-11-03): a replay rates each player only from Tests
+  // that had FINISHED before the replayed one began — the same file and the
+  // same walk as simulateMatch (simRules.asOfPlayer), so the numbers on the
+  // page match the result. Rows: [after_tid, bat, bow, bat_sr, bow_sr,
+  // complete_by]; keep the last row with after_tid < tid and complete_by < the
+  // Test's first day. No row = unrated. If the file can't load, career
+  // ratings are shown and the server decides as it would without it.
   async function loadAsOf(){
     if(MS.asof!==undefined) return MS.asof;
     try{ MS.asof=await CTData.load('ratings_asof',{renderError:false}); }
@@ -1656,8 +1657,14 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
   function asOfPlayer(p,tid){
     if(!p||!MS.asof||!MS.asof.players) return p;
     const st=SimEngine._state(); const sr=((st.model&&st.model.rating_variant)||"base")==="sr";
+    const start=MS.asof.starts?MS.asof.starts[String(tid)]:undefined;
     let row=null;
-    for(const r of (MS.asof.players[String(p.id)]||[])){ if(r[0]<tid) row=r; else break; }
+    for(const r of (MS.asof.players[String(p.id)]||[])){
+      if(r[0]>=tid) break;
+      const done=r.length>5?r[5]:null;
+      if(start!=null&&done!=null&&done>=start) break;
+      row=r;
+    }
     const q=Object.assign({},p);
     q.bat_rating=row?(sr&&row[3]!=null?row[3]:row[1]):null;
     q.bow_rating=row?(sr&&row[4]!=null?row[4]:row[2]):null;
