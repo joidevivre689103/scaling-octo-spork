@@ -861,6 +861,7 @@ function haFor(pid, m) {
   return 'away';
 }
 
+const SHARE_TIP = 'Share of the team total: on average, how much of his side\u2019s innings total each of his centuries made (100 out of 300 = 33.3%). The team total includes extras.';
 const TRI_TIP = 'Triple centuries \u2014 innings of 300 or more (Lara\u2019s 400 included).';
 const DBL_TIP = 'Double centuries \u2014 innings of 200 or more. Triple hundreds and the one score of 400 are counted here too, so this is \u201creached 200\u201d rather than \u201cscored 200\u2013299\u201d.';
 
@@ -869,11 +870,17 @@ const DBL_TIP = 'Double centuries \u2014 innings of 200 or more. Triple hundreds
 function applyDoubles() {
   const c = new Map();
   const t = new Map();   // triple hundreds (300+), IJ 2026-11-02
+  const sh = new Map();  // centuries' share of the team total: [sum of shares, count]
   BAT_INNS.forEach(r => {
     if (r.runs >= 200) c.set(r.pid, (c.get(r.pid) || 0) + 1);
     if (r.runs >= 300) t.set(r.pid, (t.get(r.pid) || 0) + 1);
+    if (r.runs >= 100 && r.teamTotal) { const v = sh.get(r.pid) || [0, 0]; v[0] += r.runs / r.teamTotal; v[1]++; sh.set(r.pid, v); }
   });
-  PLAYERS.forEach(p => { p.doubles = c.get(p.id) || 0; p.triples = t.get(p.id) || 0; });
+  PLAYERS.forEach(p => {
+    p.doubles = c.get(p.id) || 0; p.triples = t.get(p.id) || 0;
+    const v = sh.get(p.id) || [0, 0];
+    p.cShareSum = v[0]; p.cShareN = v[1]; p.cShare = v[1] ? 100 * v[0] / v[1] : null;
+  });
 }
 
 
@@ -1024,8 +1031,10 @@ function buildBatInnings() {
     const key = pkey + '_' + slot;
     if (seen.has(key)) continue;
     seen.add(key);
+    const tt = m[16 + slot];   // the team's total in this innings (m[17..20])
     BAT_INNS.push(Object.assign({ pid, mid, runs, no: notOut ? 1 : 0,
-      balls: typeof s[5] === 'number' ? s[5] : 0 }, bucketsFor(pid, mid, m)));
+      balls: typeof s[5] === 'number' ? s[5] : 0,
+      teamTotal: typeof tt === 'number' && tt >= runs && tt > 0 ? tt : 0 }, bucketsFor(pid, mid, m)));
   }
 }
 
@@ -1273,7 +1282,7 @@ function slicedPlayers(f) {
       let a = acc.get(r.pid);
       if (!a) {
         a = { tests: new Set(), inns: 0, no: 0, runs: 0, balls: 0, ballsRuns: 0,
-              hs: 0, fifties: 0, hundreds: 0, doubles: 0, triples: 0, from: 9999, to: 0, perMatch: new Map() };
+              hs: 0, fifties: 0, hundreds: 0, doubles: 0, triples: 0, shareSum: 0, shareN: 0, from: 9999, to: 0, perMatch: new Map() };
         acc.set(r.pid, a);
       }
       a.tests.add(r.mid); a.inns++; a.no += r.no; a.runs += r.runs;
@@ -1281,6 +1290,7 @@ function slicedPlayers(f) {
       if (r.runs > a.hs) a.hs = r.runs;
       if (r.runs >= 200) a.doubles++;
       if (r.runs >= 300) a.triples++;
+      if (r.runs >= 100 && r.teamTotal) { a.shareSum += r.runs / r.teamTotal; a.shareN++; }
       if (r.runs >= 100) { a.hundreds++; a.perMatch.set(r.mid, (a.perMatch.get(r.mid) || 0) + 1); }
       else if (r.runs >= 50) a.fifties++;
       if (r.year < a.from) a.from = r.year;
@@ -1300,6 +1310,7 @@ function slicedPlayers(f) {
         inns: a.inns, no: a.no, runs: a.runs,
         balls: a.balls, ballsRuns: a.ballsRuns, ballsInns: 0,
         hs: a.hs, fifties: a.fifties, hundreds: a.hundreds, doubles: a.doubles, triples: a.triples, twoX100: twoX,
+        cShareSum: a.shareSum, cShareN: a.shareN, cShare: a.shareN ? 100 * a.shareSum / a.shareN : null,
         from: a.from, to: a.to,
         avg: avgV,
         sr: srV,
@@ -1351,6 +1362,7 @@ const MIN_BALLS_FOR_SR = 20;
 function aggregateInnings(list, label) {
   const players = new Set(), tests = new Set();
   let inns = 0, no = 0, runs = 0, balls = 0, fifties = 0, hundreds = 0, doubles = 0, triples = 0, hs = 0, hsPid = null;
+  let shareSum = 0, shareN = 0;
   let ballsRuns = 0, ballsInns = 0, modernInns = 0;
   list.forEach(r => {
     players.add(r.pid); tests.add(r.mid);
@@ -1359,6 +1371,7 @@ function aggregateInnings(list, label) {
     if (r.balls > 0) { balls += r.balls; ballsRuns += r.runs; ballsInns++; }
     if (r.runs >= 200) doubles++;
     if (r.runs >= 300) triples++;
+    if (r.runs >= 100 && r.teamTotal) { shareSum += r.runs / r.teamTotal; shareN++; }
     if (r.runs >= 100) hundreds++; else if (r.runs >= 50) fifties++;
     if (r.runs > hs) { hs = r.runs; hsPid = r.pid; }
   });
@@ -1373,7 +1386,8 @@ function aggregateInnings(list, label) {
     sr: srV,
     avgSR: srV ? avgV + srV : 0,             // blank wherever SR is blank
     hs, hsName: hsPid !== null ? (PID_NAME[hsPid] || '') : '',
-    fifties, hundreds, doubles, triples
+    fifties, hundreds, doubles, triples,
+    cShare: shareN ? (100 * shareSum / shareN).toFixed(1) + '%' : '—'
   };
 }
 
@@ -1667,6 +1681,7 @@ function getColsRaw() {
       { key:'runs',       label:'Runs',    cls:'num' },
       { key:'hs',         label:'HS',      cls:'num' },
       { key:'hundreds',   label:'100s',    cls:'num highlight' },
+      { key:'cShare',     label:'100s Share', cls:'num', tip:SHARE_TIP },
       { key:'doubles',    label:'200s',    cls:'num', tip:DBL_TIP },
       { key:'triples',    label:'300s',    cls:'num', tip:TRI_TIP },
       { key:'twoX100',    label:'2X100S',  cls:'num-center' },
@@ -1726,6 +1741,7 @@ function render() {
         return `<td class="${c.cls}">${(c.key === 'sr' ? (p.sr || 0) : (p.avgSR || 0)).toFixed(2)}</td>`;
       }
       if (c.key === 'avg') val = (typeof val === 'number' && val > 0) ? val.toFixed(2) : '—';
+      if (c.key === 'cShare') val = typeof val === 'number' ? val.toFixed(1) + '%' : '—';
       if (c.key === 'runs' && typeof val === 'number') val = val.toLocaleString();
       if (val === 0 && (c.key === 'hundreds' || c.key === 'doubles' || c.key === 'triples' || c.key === 'twoX100' || c.key === 'fifties' || c.key === 'mom')) val = '0';
       const lead = leads[c.key] != null && p[c.key] === leads[c.key] ? ' lead' : '';
@@ -1769,6 +1785,8 @@ function totalsRowHTML(cols) {
     avgSR: sr && avg ? (avg + sr).toFixed(2) : '',
     hundreds: sum('hundreds'), doubles: sum('doubles'), triples: sum('triples'), twoX100: sum('twoX100'),
     fifties: sum('fifties'), mom: sum('mom'),
+    // Every century counts once: the average share over all of them.
+    cShare: sum('cShareN') ? (100 * sum('cShareSum') / sum('cShareN')).toFixed(1) + '%' : '—',
   };
   return '<tr>' + cols.map(c => {
     const cls = c.cls.replace(' highlight', '');
@@ -1812,6 +1830,7 @@ const AGG_COLS = [
   { key:'hs',       label:'HS',      cls:'num' },
   { key:'doubles',  label:'200s',    cls:'num', tip: DBL_TIP },
   { key:'hundreds', label:'100s',    cls:'num' },
+  { key:'cShare',   label:'100s Share', cls:'num', tip: SHARE_TIP },
   { key:'fifties',  label:'50s',     cls:'num' }
 ];
 
@@ -2026,6 +2045,7 @@ const AGG_EXPORT_COLS = [
   { label:'HS By',       fn:r => r.hsName || '' },
   { label:'200s',        fn:r => r.doubles },
   { label:'300s',        fn:r => r.triples },
+  { label:'100s Share of Team Total', fn:r => r.cShare },
   { label:'100s',        fn:r => r.hundreds },
   { label:'50s',         fn:r => r.fifties }
 ];
@@ -2047,6 +2067,7 @@ const PLAYER_EXPORT_COLS = [
   { label:'Avg+SR',      fn:p => p.avgSR ? Number(p.avgSR).toFixed(2) : '' },
   { label:'200s',        fn:p => p.doubles ?? '' },
   { label:'300s',        fn:p => p.triples ?? '' },
+  { label:'100s Share of Team Total %', fn:p => typeof p.cShare === 'number' ? +p.cShare.toFixed(1) : '' },
   { label:'100s',        fn:p => p.hundreds ?? '' },
   { label:'2x100s',      fn:p => p.twoX100 ?? '' },
   { label:'50s',         fn:p => p.fifties ?? '' },
