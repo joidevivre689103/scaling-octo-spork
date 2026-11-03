@@ -783,8 +783,6 @@ function oppFor(pid,mid){
   const c=PID_COUNTRY[pid]; if(!c) return '';
   return t[0]===c ? t[1] : (t[1]===c ? t[0] : '');
 }
-/* Sides each player has played against, for the player-table Opponents filter. */
-let PLAYER_OPPS=new Map();   // pid → Set<country>
 
 /* Which era / venue / Bazball buckets one (player, match) pairing falls into. */
 function bucketsFor(pid,mid,m){
@@ -805,7 +803,6 @@ function bucketsFor(pid,mid,m){
 function buildBowlInnings(){
   BOWL_INNS=[];
   APPEAR=[];
-  PLAYER_OPPS=new Map();
   if(!D.S||!D.M) return;
   buildMatchTeams();
   const best=new Map();                      // pid_mid_slot → row with most overs
@@ -821,12 +818,7 @@ function buildBowlInnings(){
     const pkey=pid+'_'+mid;
     if(!played.has(pkey)){
       played.add(pkey);
-      const a=Object.assign({pid,mid},bucketsFor(pid,mid,m));
-      APPEAR.push(a);
-      if(a.opp){
-        if(!PLAYER_OPPS.has(pid)) PLAYER_OPPS.set(pid,new Set());
-        PLAYER_OPPS.get(pid).add(a.opp);
-      }
+      APPEAR.push(Object.assign({pid,mid},bucketsFor(pid,mid,m)));
     }
 
     if(slot==null||slot<1||slot>4) continue;
@@ -888,16 +880,19 @@ function buildBazballSet(){
 }
 
 /* ──────────────────────────────────────────────────────────────────────────
-   Innings-level filters (era, home/away) can't be honoured against D.P career
+   Innings-level filters (era, home/away, city, ground, opponent) can't be honoured against D.P career
    totals, so when either is active each bowler's figures are rebuilt from the
    matching innings. MoM has no per-innings source and is hidden while sliced.
    ────────────────────────────────────────────────────────────────────────── */
 /* Venue constraints that apply per innings: home/away, city, ground. */
+/* ...and, since 2026-11-02, opponent: figures against the picked sides (any of
+   them), in the bowler table as well as the aggregate. */
 function venuePred(f){
   const haOk  = f.ha ? (r=>r.ha===f.ha) : (()=>true);
   const cityOk= (f.cities&&f.cities.length)   ? (r=>f.cities.includes(r.city))    : (()=>true);
   const grOk  = (f.grounds&&f.grounds.length) ? (r=>f.grounds.includes(r.ground)) : (()=>true);
-  return r=>haOk(r)&&cityOk(r)&&grOk(r);
+  const oppOk = (f.opponents&&f.opponents.length) ? (r=>f.opponents.includes(r.opp)) : (()=>true);
+  return r=>haOk(r)&&cityOk(r)&&grOk(r)&&oppOk(r);
 }
 
 function inningsPredicate(f){
@@ -910,7 +905,8 @@ function inningsPredicate(f){
 }
 function isSliced(f){
   return !!((f.eras&&f.eras.length)||f.ha||
-            (f.cities&&f.cities.length)||(f.grounds&&f.grounds.length));
+            (f.cities&&f.cities.length)||(f.grounds&&f.grounds.length)||
+            (f.opponents&&f.opponents.length));
 }
 
 function slicedPlayers(f){
@@ -1044,14 +1040,12 @@ function aggregateEligible(f){
   return s;
 }
 
-/* In the player table Opponents is a career question — has he played against
-   all of these sides (as on batting.html). The aggregate has only innings,
-   so there it counts the innings bowled against a picked side. */
+/* Opponent is a per-innings constraint inside venuePred, here as in the
+   bowler table: only the innings bowled against a picked side count. */
 function buildAggPred(f){
   const eligible=aggregateEligible(f);
   const vOk=venuePred(f);
-  const oppOk=f.opponents.length ? (r=>f.opponents.includes(r.opp)) : (()=>true);
-  return r=>eligible.has(r.pid)&&vOk(r)&&oppOk(r);
+  return r=>eligible.has(r.pid)&&vOk(r);
 }
 function inningsForEra(key){
   const flag=BAZ_FLAG[key];
@@ -1196,12 +1190,8 @@ function applyFilters(){
     if(f.maxSR && (p.bowlSR||999)>f.maxSR) return false;
     if(f.maxEcon && (p.econ||999)>f.maxEcon) return false;
     if(f.search && !(p.fullName||p.name||'').toLowerCase().includes(f.search) && !(p.country||'').toLowerCase().includes(f.search)) return false;
-    if(f.opponents.length){
-      // Not a bowler from a picked side, and has played against every one of them.
-      if(f.opponents.includes(p.country)) return false;
-      const opps=PLAYER_OPPS.get(p.id);
-      if(!opps||!f.opponents.every(o=>opps.has(o))) return false;
-    }
+    // Opponents: the figures are already his against the picked sides
+    // (slicedPlayers), so nothing more to check here (2026-11-02).
     return true;
   });
   sortData();

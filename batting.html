@@ -559,63 +559,6 @@ function buildTwoX100() {
 
 
 /* ──────────────────────────────────────────────────────────────────────────
-   Build per-player opponent lookup from D.S + D.P
-   playerOpponents: Map<playerId, Set<countryName>>
-   Derives match teams from the countries of players who batted,
-   rather than relying on D.M team indices which are inconsistent.
-   ────────────────────────────────────────────────────────────────────────── */
-const playerOpponents = new Map();
-
-function buildOpponentLookup() {
-  if (!D.S || !D.P) return;
-
-  // 1. Build fast playerId → country lookup
-  const playerCountry = new Map();
-  D.P.forEach(p => { if (p[IDX.ID] && p[IDX.COUNTRY]) playerCountry.set(p[IDX.ID], p[IDX.COUNTRY]); });
-
-  // 2. Group D.S entries by matchId and collect player IDs per match
-  const matchPlayers = new Map(); // matchId → Set<playerId>
-  for (const entry of D.S) {
-    const mid = entry[0];
-    const pid = entry[1];
-    if (!mid || !pid) continue;
-    if (!matchPlayers.has(mid)) matchPlayers.set(mid, new Set());
-    matchPlayers.get(mid).add(pid);
-  }
-
-  // 3. For each match, find the two team countries from the players
-  const matchTeams = new Map(); // matchId → [country1, country2]
-  for (const [mid, pids] of matchPlayers) {
-    const countries = new Set();
-    for (const pid of pids) {
-      const c = playerCountry.get(pid);
-      if (c) countries.add(c);
-      if (countries.size >= 2) break; // only need two teams
-    }
-    if (countries.size === 2) matchTeams.set(mid, [...countries]);
-  }
-
-  // 4. For each scorecard entry, determine opponent
-  for (const entry of D.S) {
-    const mid = entry[0];
-    const pid = entry[1];
-    if (!mid || !pid) continue;
-
-    const teams = matchTeams.get(mid);
-    if (!teams) continue;
-
-    const pCountry = playerCountry.get(pid);
-    if (!pCountry) continue;
-
-    const opponent = (pCountry === teams[0]) ? teams[1] : (pCountry === teams[1]) ? teams[0] : null;
-    if (!opponent) continue;
-
-    if (!playerOpponents.has(pid)) playerOpponents.set(pid, new Set());
-    playerOpponents.get(pid).add(opponent);
-  }
-}
-
-/* ──────────────────────────────────────────────────────────────────────────
    State
    ────────────────────────────────────────────────────────────────────────── */
 let currentTab   = 'runs';
@@ -970,8 +913,7 @@ let BAT_INNS = [];
 let APPEAR = [];   // one entry per (player, match) — matches PLAYED, not batted
 
 /* Teams in each match, derived from the countries of the players who appear
-   in it rather than from D.M's team indices — same reasoning as
-   buildOpponentLookup, which this mirrors. Built before the innings index so
+   in it rather than from D.M's team indices, which are inconsistent. Built before the innings index so
    every innings can carry the opponent it was played against. */
 let MATCH_TEAMS = new Map();   // matchId → [countryA, countryB]
 
@@ -1237,18 +1179,22 @@ function buildBazballSet() {
 }
 
 /* ──────────────────────────────────────────────────────────────────────────
-   Innings-level filters (era, home/away) can't be honoured against D.P career
+   Innings-level filters (era, home/away, city, ground, opponent) can't be honoured against D.P career
    totals — filtering to "Home" and then printing a career aggregate would be
    plainly wrong. When either is active, each player's figures are rebuilt from
    the matching innings instead. MoM and %Ct/Inn have no per-innings source, so
    those two columns are hidden while a slice is in force.
    ────────────────────────────────────────────────────────────────────────── */
 /* Venue constraints that apply per innings: home/away, city, ground. */
+/* Per-innings constraints: home/away, city, ground and, since 2026-11-02,
+   opponent — figures against the picked sides (any of them), in the player
+   table as well as the aggregate. */
 function venuePred(f) {
   const haOk   = f.ha ? (r => r.ha === f.ha) : (() => true);
   const cityOk = (f.cities  && f.cities.length)  ? (r => f.cities.includes(r.city))    : (() => true);
   const grOk   = (f.grounds && f.grounds.length) ? (r => f.grounds.includes(r.ground)) : (() => true);
-  return r => haOk(r) && cityOk(r) && grOk(r);
+  const oppOk  = (f.opponents && f.opponents.length) ? (r => f.opponents.includes(r.opp)) : (() => true);
+  return r => haOk(r) && cityOk(r) && grOk(r) && oppOk(r);
 }
 
 function inningsPredicate(f) {
@@ -1262,7 +1208,8 @@ function inningsPredicate(f) {
 
 function isSliced(f) {
   return !!((f.eras && f.eras.length) || f.ha ||
-            (f.cities && f.cities.length) || (f.grounds && f.grounds.length));
+            (f.cities && f.cities.length) || (f.grounds && f.grounds.length) ||
+            (f.opponents && f.opponents.length));
 }
 
 function slicedPlayers(f) {
@@ -1422,14 +1369,12 @@ function aggregateEligible(f) {
   return s;
 }
 
-/* In the player table the opponent filter is a career question — has he faced
-   all of these sides. The aggregate has no careers in it, only innings, so it
-   reads per innings instead: count the innings played against a picked side. */
+/* Opponent is a per-innings constraint inside venuePred, here as in the
+   player table: only the innings played against a picked side count. */
 function buildAggPred(f) {
   const eligible = aggregateEligible(f);
   const vOk = venuePred(f);
-  const oppOk = f.opponents.length ? (r => f.opponents.includes(r.opp)) : (() => true);
-  return r => eligible.has(r.pid) && vOk(r) && oppOk(r);
+  return r => eligible.has(r.pid) && vOk(r);
 }
 function inningsForEra(key) {
   const flag = BAZ_FLAG[key];
@@ -1539,14 +1484,8 @@ function applyFilters() {
       const q = f.search;
       if (!p.name.toLowerCase().includes(q) && !p.fullName.toLowerCase().includes(q) && !p.country.toLowerCase().includes(q)) return false;
     }
-    if (f.opponents.length > 0) {
-      // Exclude players from the selected opponent countries
-      if (f.opponents.includes(p.country)) return false;
-      const opps = playerOpponents.get(p.id);
-      if (!opps) return false;
-      // Player must have faced ALL selected opponents
-      if (!f.opponents.every(o => opps.has(o))) return false;
-    }
+    // Opponents: the figures are already his against the picked sides
+    // (slicedPlayers), so nothing more to check here (2026-11-02).
     return true;
   });
 
@@ -2071,7 +2010,6 @@ CTExport.init({ build: buildExportModel, minFilters: 2 });
   applyDoubles();
   buildBazballSet();
   applyInningsDerivedSR();
-  buildOpponentLookup();
   populateCountries();
   populateCityGround();
   applyFilters();
