@@ -177,7 +177,7 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-he
 .data-footnote{font-size:12px;line-height:1.5;color:var(--text3);margin:14px 2px 0}
 .tbl-wrap{overflow-x:auto}
 .rec-table{width:100%;border-collapse:collapse;font-size:13px}
-.rec-table thead th{padding:9px 8px;text-align:left;font-family:var(--font-body);font-size:10px;text-transform:uppercase;letter-spacing:0.7px;color:var(--text4);font-weight:600;border-bottom:2px solid var(--border);cursor:pointer;white-space:nowrap;user-select:none;background:var(--bg);position:sticky;top:0}
+.rec-table thead th{padding:9px 8px;text-align:left;font-family:var(--font-body);font-size:10px;text-transform:uppercase;letter-spacing:0.7px;color:var(--text2);font-weight:600;border-bottom:2px solid var(--border);cursor:pointer;white-space:nowrap;user-select:none;background:var(--bg);position:sticky;top:0}
 .rec-table thead th:hover{color:var(--text2)}
 .rec-table thead th.sorted-asc::after,.rec-table thead th.sorted-desc::after{color:var(--accent)}
 .rec-table thead th.sorted-asc::after{content:' ▲';font-size:8px}
@@ -865,6 +865,9 @@ function haFor(pid, m) {
   return 'away';
 }
 
+const TR_TIP = 'All the runs the team made in the innings where these centuries were made (extras included). Runs \u00f7 Team Runs is the share of the whole.';
+const TT_TIP = 'The team\u2019s average innings total in the innings where these centuries were made (extras included).';
+const AVGC_TIP = 'The average century in this group.';
 const HALF_TIP = 'Centuries that made half the team\u2019s innings total or more (and what share of all the centuries that is).';
 const SHARE_TIP = 'Share of the team total: on average, how much of his side\u2019s innings total each of his centuries made (100 out of 300 = 33.3%). The team total includes extras.';
 const TRI_TIP = 'Triple centuries \u2014 innings of 300 or more (Lara\u2019s 400 included).';
@@ -1367,7 +1370,7 @@ const MIN_BALLS_FOR_SR = 20;
 function aggregateInnings(list, label) {
   const players = new Set(), tests = new Set();
   let inns = 0, no = 0, runs = 0, balls = 0, fifties = 0, hundreds = 0, doubles = 0, triples = 0, hs = 0, hsPid = null;
-  let shareSum = 0, shareN = 0, half = 0;
+  let shareSum = 0, shareN = 0, half = 0, ttSum = 0;
   let ballsRuns = 0, ballsInns = 0, modernInns = 0;
   list.forEach(r => {
     players.add(r.pid); tests.add(r.mid);
@@ -1376,7 +1379,7 @@ function aggregateInnings(list, label) {
     if (r.balls > 0) { balls += r.balls; ballsRuns += r.runs; ballsInns++; }
     if (r.runs >= 200) doubles++;
     if (r.runs >= 300) triples++;
-    if (r.runs >= 100 && r.teamTotal) { shareSum += r.runs / r.teamTotal; shareN++; if (r.runs * 2 >= r.teamTotal) half++; }
+    if (r.runs >= 100 && r.teamTotal) { shareSum += r.runs / r.teamTotal; shareN++; ttSum += r.teamTotal; if (r.runs * 2 >= r.teamTotal) half++; }
     if (r.runs >= 100) hundreds++; else if (r.runs >= 50) fifties++;
     if (r.runs > hs) { hs = r.runs; hsPid = r.pid; }
   });
@@ -1393,7 +1396,11 @@ function aggregateInnings(list, label) {
     hs, hsName: hsPid !== null ? (PID_NAME[hsPid] || '') : '',
     fifties, hundreds, doubles, triples,
     cShare: shareN ? (100 * shareSum / shareN).toFixed(1) + '%' : '—',
-    half: shareN ? `${half.toLocaleString()} (${(100 * half / shareN).toFixed(1)}%)` : '—'
+    half: shareN ? `${half.toLocaleString()} (${(100 * half / shareN).toFixed(1)}%)` : '—',
+    // The team's average innings total in the innings where these centuries were made.
+    teamTotal: shareN ? Math.round(ttSum / shareN) : null,
+    teamRuns: shareN ? ttSum : null,
+    avgCentury: shareN ? Math.round(runs / Math.max(1, hundreds)) : null
   };
 }
 
@@ -1861,6 +1868,9 @@ const CENT_COLS = [
   { key:'hundreds', label:'Centuries', cls:'num' },
   { key:'players',  label:'Players', cls:'num' },
   { key:'runs',     label:'Runs',    cls:'num' },
+  { key:'teamRuns', label:'Team Runs', cls:'num', tip: TR_TIP },
+  { key:'avgCentury', label:'Avg Score', cls:'num', tip: AVGC_TIP },
+  { key:'teamTotal', label:'Avg Team Total', cls:'num', tip: TT_TIP },
   { key:'hs',       label:'HS',      cls:'num' },
   { key:'cShare',   label:'100s Share', cls:'num', tip: SHARE_TIP },
   { key:'half',     label:'Half+',   cls:'num', tip: HALF_TIP }
@@ -2092,6 +2102,9 @@ const CENT_EXPORT_COLS = [
   { label:'Centuries',   fn:r => r.hundreds },
   { label:'Players',     fn:r => r.players },
   { label:'Runs',        fn:r => r.runs },
+  { label:'Team Runs',   fn:r => r.teamRuns ?? '' },
+  { label:'Average Century', fn:r => r.avgCentury ?? '' },
+  { label:'Average Team Total', fn:r => r.teamTotal ?? '' },
   { label:'HS',          fn:r => r.hs || '' },
   { label:'HS By',       fn:r => r.hsName || '' },
   { label:'Share of Team Total', fn:r => r.cShare },
