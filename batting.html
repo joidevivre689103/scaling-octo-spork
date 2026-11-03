@@ -865,6 +865,7 @@ function haFor(pid, m) {
   return 'away';
 }
 
+const TR_TIP = 'All the runs the team made in the innings where these centuries were made (extras included). Runs \u00f7 Team Runs is the share of the whole.';
 const TT_TIP = 'The team\u2019s average innings total in the innings where these centuries were made (extras included).';
 const AVGC_TIP = 'The average century in this group.';
 const HALF_TIP = 'Centuries that made half the team\u2019s innings total or more (and what share of all the centuries that is).';
@@ -1398,6 +1399,7 @@ function aggregateInnings(list, label) {
     half: shareN ? `${half.toLocaleString()} (${(100 * half / shareN).toFixed(1)}%)` : '—',
     // The team's average innings total in the innings where these centuries were made.
     teamTotal: shareN ? Math.round(ttSum / shareN) : null,
+    teamRuns: shareN ? ttSum : null,
     avgCentury: shareN ? Math.round(runs / Math.max(1, hundreds)) : null
   };
 }
@@ -1866,6 +1868,7 @@ const CENT_COLS = [
   { key:'hundreds', label:'Centuries', cls:'num' },
   { key:'players',  label:'Players', cls:'num' },
   { key:'runs',     label:'Runs',    cls:'num' },
+  { key:'teamRuns', label:'Team Runs', cls:'num', tip: TR_TIP },
   { key:'avgCentury', label:'Avg Score', cls:'num', tip: AVGC_TIP },
   { key:'teamTotal', label:'Avg Team Total', cls:'num', tip: TT_TIP },
   { key:'hs',       label:'HS',      cls:'num' },
@@ -2099,6 +2102,7 @@ const CENT_EXPORT_COLS = [
   { label:'Centuries',   fn:r => r.hundreds },
   { label:'Players',     fn:r => r.players },
   { label:'Runs',        fn:r => r.runs },
+  { label:'Team Runs',   fn:r => r.teamRuns ?? '' },
   { label:'Average Century', fn:r => r.avgCentury ?? '' },
   { label:'Average Team Total', fn:r => r.teamTotal ?? '' },
   { label:'HS',          fn:r => r.hs || '' },
