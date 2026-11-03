@@ -147,7 +147,7 @@
     } else {
       var a = document.createElement('a');
       a.textContent = 'Sign in';
-      a.href = '/login.html?returnUrl=' + encodeURIComponent(location.pathname + location.search);
+      a.href = '/login.html?returnUrl=' + encodeURIComponent(location.pathname + location.search + location.hash);
       el.appendChild(a);
     }
   }
