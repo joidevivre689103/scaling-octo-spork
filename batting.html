@@ -296,6 +296,7 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-he
           <select class="fp-select" id="fMode" onchange="applyFilters()">
             <option value="players">Individual players</option>
             <option value="all">All players (aggregate)</option>
+            <option value="centuries">All centuries, by size</option>
           </select>
         </div>
         <div class="fp-group" data-dim="1">
@@ -594,6 +595,7 @@ function buildTwoX100() {
 let currentTab   = 'runs';
 let filtered     = [];
 let aggregateMode = false;   // "All players" — one aggregate row per era
+let centuryMode = false;     // "All centuries, by size" — one row per size band (IJ, 2026-11-02)
 let aggRows       = null;    // rows for that view
 let sliced        = false;   // figures rebuilt from the innings index
 
@@ -611,7 +613,9 @@ function syncModeUI(f) {
   if (tabBar) tabBar.classList.toggle('dim', aggregateMode);
   const note = document.getElementById('fpNote');  if (note) {
     let txt = '';
-    if (aggregateMode) {
+    if (centuryMode) {
+      txt = 'Every Test century, grouped by size: how many, and on average how much of the team\u2019s innings total each made. Every other filter narrows which centuries are counted (several eras count together).';
+    } else if (aggregateMode) {
       txt = f.eras.length
         ? 'Aggregate of every Test innings played in the selected era(s), one row each. Every other filter narrows which innings are counted.'
         : 'Aggregate of every Test innings ever played. Pick one or more eras for a row each; every other filter narrows which innings are counted.';
@@ -861,6 +865,7 @@ function haFor(pid, m) {
   return 'away';
 }
 
+const HALF_TIP = 'Centuries that made half the team\u2019s innings total or more (and what share of all the centuries that is).';
 const SHARE_TIP = 'Share of the team total: on average, how much of his side\u2019s innings total each of his centuries made (100 out of 300 = 33.3%). The team total includes extras.';
 const TRI_TIP = 'Triple centuries \u2014 innings of 300 or more (Lara\u2019s 400 included).';
 const DBL_TIP = 'Double centuries \u2014 innings of 200 or more. Triple hundreds and the one score of 400 are counted here too, so this is \u201creached 200\u201d rather than \u201cscored 200\u2013299\u201d.';
@@ -1362,7 +1367,7 @@ const MIN_BALLS_FOR_SR = 20;
 function aggregateInnings(list, label) {
   const players = new Set(), tests = new Set();
   let inns = 0, no = 0, runs = 0, balls = 0, fifties = 0, hundreds = 0, doubles = 0, triples = 0, hs = 0, hsPid = null;
-  let shareSum = 0, shareN = 0;
+  let shareSum = 0, shareN = 0, half = 0;
   let ballsRuns = 0, ballsInns = 0, modernInns = 0;
   list.forEach(r => {
     players.add(r.pid); tests.add(r.mid);
@@ -1371,7 +1376,7 @@ function aggregateInnings(list, label) {
     if (r.balls > 0) { balls += r.balls; ballsRuns += r.runs; ballsInns++; }
     if (r.runs >= 200) doubles++;
     if (r.runs >= 300) triples++;
-    if (r.runs >= 100 && r.teamTotal) { shareSum += r.runs / r.teamTotal; shareN++; }
+    if (r.runs >= 100 && r.teamTotal) { shareSum += r.runs / r.teamTotal; shareN++; if (r.runs * 2 >= r.teamTotal) half++; }
     if (r.runs >= 100) hundreds++; else if (r.runs >= 50) fifties++;
     if (r.runs > hs) { hs = r.runs; hsPid = r.pid; }
   });
@@ -1387,7 +1392,8 @@ function aggregateInnings(list, label) {
     avgSR: srV ? avgV + srV : 0,             // blank wherever SR is blank
     hs, hsName: hsPid !== null ? (PID_NAME[hsPid] || '') : '',
     fifties, hundreds, doubles, triples,
-    cShare: shareN ? (100 * shareSum / shareN).toFixed(1) + '%' : '—'
+    cShare: shareN ? (100 * shareSum / shareN).toFixed(1) + '%' : '—',
+    half: shareN ? `${half.toLocaleString()} (${(100 * half / shareN).toFixed(1)}%)` : '—'
   };
 }
 
@@ -1445,7 +1451,21 @@ function inningsForEra(key) {
 }
 
 /* One row per selected era, or a single all-time row when none are picked. */
+/* Century sizes for the "All centuries, by size" view. */
+const CENTURY_BANDS = [['100\u2013149', 100, 150], ['150\u2013199', 150, 200], ['200\u2013299', 200, 300], ['300+', 300, Infinity]];
+function centuryInnings(eras) {
+  const pool = eras.length ? (() => {
+    const seen = new Set(), u = [];
+    eras.forEach(e => inningsForEra(e).forEach(r => { if (!seen.has(r)) { seen.add(r); u.push(r); } }));
+    return u;
+  })() : BAT_INNS.filter(_aggPred);
+  return pool.filter(r => r.runs >= 100);
+}
 function buildAggregateRows(eras) {
+  if (centuryMode) {
+    const cents = centuryInnings(eras);
+    return CENTURY_BANDS.map(([label, lo, hi]) => aggregateInnings(cents.filter(r => r.runs >= lo && r.runs < hi), label));
+  }
   if (!eras.length) return [aggregateInnings(BAT_INNS.filter(_aggPred), 'All Players')];
   return eras
     .slice()
@@ -1512,7 +1532,8 @@ function applyFilters() {
   updateMSLabel('msCity');
   updateMSLabel('msGround');
   const f = getFilters();
-  aggregateMode = (f.mode === 'all');
+  aggregateMode = (f.mode === 'all' || f.mode === 'centuries');
+  centuryMode = (f.mode === 'centuries');
   sliced = !aggregateMode && isSliced(f);
   syncModeUI(f);
 
@@ -1816,7 +1837,7 @@ const AVGSR_TIP = 'Batting average plus strike rate, added together \u2014 a rou
               'so the total is a ranking device rather than a rate of anything. It is left blank ' +
               'wherever strike rate is blank, since there is nothing to add to the average.';
 
-const AGG_COLS = [
+const AGG_COLS_ERA = [
   { key:'label',    label:'Era',     cls:'player-name' },
   { key:'players',  label:'Players', cls:'num' },
   { key:'tests',    label:'Tests',   cls:'num' },
@@ -1831,7 +1852,18 @@ const AGG_COLS = [
   { key:'doubles',  label:'200s',    cls:'num', tip: DBL_TIP },
   { key:'hundreds', label:'100s',    cls:'num' },
   { key:'cShare',   label:'100s Share', cls:'num', tip: SHARE_TIP },
+  { key:'half',     label:'Half+',   cls:'num', tip: HALF_TIP },
   { key:'fifties',  label:'50s',     cls:'num' }
+];
+/* "All centuries, by size": one row per size band. */
+const CENT_COLS = [
+  { key:'label',    label:'Century', cls:'player-name' },
+  { key:'hundreds', label:'Centuries', cls:'num' },
+  { key:'players',  label:'Players', cls:'num' },
+  { key:'runs',     label:'Runs',    cls:'num' },
+  { key:'hs',       label:'HS',      cls:'num' },
+  { key:'cShare',   label:'100s Share', cls:'num', tip: SHARE_TIP },
+  { key:'half',     label:'Half+',   cls:'num', tip: HALF_TIP }
 ];
 
 /* Header label, with a hover tooltip when the column carries a caveat. */
@@ -1880,6 +1912,7 @@ function thLabel(c){
 
 function renderAggregate() {
   const rows = aggRows || [];
+  const AGG_COLS = centuryMode ? CENT_COLS : AGG_COLS_ERA;
   document.getElementById('tHead').innerHTML =
     '<tr>' + AGG_COLS.map(c => `<th class="${c.cls}">${thLabel(c)}</th>`).join('') + '</tr>';
 
@@ -1907,8 +1940,11 @@ function renderAggregate() {
 
   let html = rows.map(r => '<tr>' + AGG_COLS.map(c => cell(r, c)).join('') + '</tr>').join('');
 
-  // Combined line when more than one era is on show
-  if (rows.length > 1) {
+  // Combined line: every century, when split by size; else all eras on show
+  if (centuryMode) {
+    const t = aggregateInnings(centuryInnings(getMSValues('msEra')), 'All centuries');
+    html += '<tr style="font-weight:700;border-top:2px solid var(--border)">' + AGG_COLS.map(c => cell(t, c)).join('') + '</tr>';
+  } else if (rows.length > 1) {
     const t = buildCombinedRow(getMSValues('msEra'));
     t.players = null;
     html += '<tr style="font-weight:700;border-top:2px solid var(--border)">' +
@@ -1961,7 +1997,7 @@ function renderTags() {
   const tags = [];
   const x = '<svg viewBox="0 0 24 24" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
 
-  if (aggregateMode) tags.push(`<span class="fp-tag" onclick="document.getElementById('fMode').value='players';applyFilters()">All players ${x}</span>`);
+  if (aggregateMode) tags.push(`<span class="fp-tag" onclick="document.getElementById('fMode').value='players';applyFilters()">${centuryMode ? 'All centuries, by size' : 'All players'} ${x}</span>`);
   f.eras.forEach(e => {
     tags.push(`<span class="fp-tag" onclick="document.querySelector('#msEra-drop input[value=\\'${e}\\']').checked=false;applyFilters()">${ERA_LABEL[e] || e} ${x}</span>`);
   });
@@ -2046,8 +2082,20 @@ const AGG_EXPORT_COLS = [
   { label:'200s',        fn:r => r.doubles },
   { label:'300s',        fn:r => r.triples },
   { label:'100s Share of Team Total', fn:r => r.cShare },
+  { label:'Centuries Half+ of Team Total', fn:r => r.half },
   { label:'100s',        fn:r => r.hundreds },
   { label:'50s',         fn:r => r.fifties }
+];
+
+const CENT_EXPORT_COLS = [
+  { label:'Century',     fn:r => r.label },
+  { label:'Centuries',   fn:r => r.hundreds },
+  { label:'Players',     fn:r => r.players },
+  { label:'Runs',        fn:r => r.runs },
+  { label:'HS',          fn:r => r.hs || '' },
+  { label:'HS By',       fn:r => r.hsName || '' },
+  { label:'Share of Team Total', fn:r => r.cShare },
+  { label:'Half+ of Team Total', fn:r => r.half }
 ];
 
 const PLAYER_EXPORT_COLS = [
@@ -2081,7 +2129,7 @@ const PLAYER_EXPORT_COLS = [
 function describeFilters() {
   const f = getFilters();
   const out = [];
-  if (aggregateMode) out.push('All players');
+  if (aggregateMode) out.push(centuryMode ? 'All centuries, by size' : 'All players');
   f.eras.forEach(e => out.push(ERA_LABEL[e] || e));
   f.countries.forEach(c => out.push(c));
   if (f.ha) out.push(f.ha[0].toUpperCase() + f.ha.slice(1));
@@ -2107,6 +2155,18 @@ function buildExportModel() {
   const caption = filters.length ? filters.join(' \u00b7 ') : 'No filters applied';
 
   // All Players view — the aggregate rows, not the player list
+  if (centuryMode) {
+    const all = [...(aggRows || []), aggregateInnings(centuryInnings(f.eras), 'All centuries')];
+    return {
+      title: 'Batting \u2014 All Centuries by Size',
+      caption,
+      unit: 'rows',
+      sheetName: 'Centuries by Size',
+      base: 'cricket-times-batting-centuries-by-size',
+      headers: CENT_EXPORT_COLS.map(c => c.label),
+      rows: all.map(r => CENT_EXPORT_COLS.map(c => c.fn(r)))
+    };
+  }
   if (aggregateMode) {
     const rows = (aggRows || []).map(r => AGG_EXPORT_COLS.map(c => c.fn(r)));
     if (!rows.length) return null;
