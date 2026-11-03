@@ -693,6 +693,7 @@ body{
 }
 .content-col:first-child{ padding-left:0; }
 .content-col:last-child{ border-right:none; padding-right:0; }
+.col-empty{ font-size:14px; color:var(--text3); margin:12px 0 0; }
 .col-header{
   font-family:'Inter',sans-serif;
   font-size:10px;
@@ -1745,15 +1746,42 @@ function renderListenStrip(v) {
           </div>`).join('');
     }
 
+    // ONE PLACE PER ARTICLE (IJ, 2026-11-02). An article appears once among the
+    // hero, the three columns and Analysis. Each section takes its own
+    // category first; a section with none of its own then borrows from what
+    // no other section has shown (before, Latest News borrowed EVERY article
+    // and Points of View the oldest three, so a piece could sit in two
+    // columns at once). Most Read is a ranking list and is left alone.
+    const used = new Set(heroArticle ? [heroArticle] : []);
+    const COL_MAX = 5, ANALYSIS_MAX = 3;
+    const take = (list, n) => {
+      const out = list.filter(a => !used.has(a)).slice(0, n);
+      out.forEach(a => used.add(a));
+      return out;
+    };
+    const colNews = take(newsCat, COL_MAX);
+    const colFeatures = take(featuresCat, COL_MAX);
+    const colOpinion = take(opinionCat, COL_MAX);
+    let analysisArticles = take(analysisCat, ANALYSIS_MAX);
+    // Borrowing, newest first, in the old order of preference.
+    const fillNews = colNews.length ? colNews : take(articles, COL_MAX);
+    let fillFeatures = colFeatures;
+    if (!fillFeatures.length) fillFeatures = take(featuredArticles, COL_MAX);   // 'featured' placement first
+    if (!fillFeatures.length) fillFeatures = take(articles, COL_MAX);
+    const fillOpinion = colOpinion.length ? colOpinion : take(articles, COL_MAX);
+    if (!analysisArticles.length) analysisArticles = take(articles.filter(a => a.readTime >= 10), ANALYSIS_MAX);
+
     const contentCols = document.querySelectorAll('.content-col');
     if (contentCols.length >= 3) {
-      renderColumn(contentCols[0], 'Latest News',  newsCat.length     > 0 ? newsCat     : articles);
-      renderColumn(contentCols[1], 'Features',     featuresCat.length > 0 ? featuresCat : featuredArticles);
-      renderColumn(contentCols[2], 'Points of View', opinionCat.length  > 0 ? opinionCat  : articles.slice(-3));
+      [[contentCols[0], 'Latest News', fillNews],
+       [contentCols[1], 'Features', fillFeatures],
+       [contentCols[2], 'Points of View', fillOpinion]].forEach(([col, title, list]) => {
+        if (list.length) renderColumn(col, title, list);
+        else col.innerHTML = `<h3 class="col-header">${escapeHTML(title)}</h3><p class="col-empty">Nothing new here yet.</p>`;
+      });
     }
 
     const analysisGrid     = document.querySelector('.analysis-grid');
-    const analysisArticles = analysisCat.length > 0 ? analysisCat : articles.filter(a => a.readTime >= 10);
     if (analysisGrid && analysisArticles.length > 0) {
       const colors = ['linear-gradient(135deg,#2a4048,#1a3038)','linear-gradient(135deg,#483828,#382818)','linear-gradient(135deg,#384838,#283828)'];
       analysisGrid.innerHTML = analysisArticles.slice(0, 3).map((a, i) => `
