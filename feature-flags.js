@@ -289,7 +289,9 @@
     // said `return`; login.html is the shipped consumer, so the bootstrap
     // aligns to it (correct the canonical spec, not this). location.search is
     // included so a deep link to a gated page keeps its query through login.
-    if (!email) return '/login.html?returnUrl=' + encodeURIComponent(location.pathname + location.search);
+    // location.hash too (2026-11-02): a deep link's tab (#impact on
+    // countries.html) used to be lost on the way through login.
+    if (!email) return '/login.html?returnUrl=' + encodeURIComponent(location.pathname + location.search + location.hash);
 
     // Signed in but not entitled:
     //   - paid page (incl. paid+beta): subscribing grants access → subscribe.
@@ -500,7 +502,7 @@
         return reveal();
       }
       noteBounce();
-      return redirect('/login.html?returnUrl=' + encodeURIComponent(location.pathname + location.search));
+      return redirect('/login.html?returnUrl=' + encodeURIComponent(location.pathname + location.search + location.hash));
     }
 
     // Real verdict → reveal or redirect.

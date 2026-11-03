@@ -2541,7 +2541,12 @@ function attachH2HUrlState() {
         if ('im1' in q) setImpSel('filterBatImpact', q.im1);
         if ('im2' in q) setImpSel('filterBowImpact', q.im2);
         if ('imc' in q) msI.set(q.imc === 'all' ? TEAMS.slice() : q.imc.split(',').filter(c => TEAMS.includes(c)));
-        if ('im1' in q || 'im2' in q || 'imc' in q) renderImpact();
+        if ('im1' in q || 'im2' in q || 'imc' in q) {
+          // A link with Impact choices opens on the Impact tab, even if its
+          // #impact was lost on the way (2026-11-02).
+          if (!document.getElementById('tab-impact').classList.contains('active')) showTab('impact', true);
+          renderImpact();
+        }
       },
     },
   });
