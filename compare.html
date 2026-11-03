@@ -17,7 +17,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<title>Compare - The Grass Bank</title>
+<title>Compare - The Grass Bank™</title>
 <!-- Link previews and search snippet (rename item 4 / (9), 2026-10-21) -->
 <meta name="description" content="Compare Test cricketers side by side — players, pairs, whole XIs and partnerships.">
 <meta property="og:type" content="website">
@@ -3505,7 +3505,7 @@ function compareShareText(){
   const nm = p => p.fullName || p.name;
   const surname = p => { const n = (p.name || nm(p)).trim().split(/\s+/); return n[n.length - 1]; };
   const list = a => a.length < 2 ? (a[0] || '') : a.slice(0, -1).join(', ') + ' and ' + a[a.length - 1];
-  const brand = ' · The Grass Bank';
+  const brand = ' · The Grass Bank™';
   const t = document.getElementById('fRecordType').value;
   try {
     if (t === 'against') {
@@ -3774,7 +3774,7 @@ function exportToExcel(){
 
   // Main sheet builder
   function buildSheet(ws, statsArr, sheetTitle, fStr, incBat, incBowl, incField){
-    XLSX.utils.sheet_add_aoa(ws, [['The Grass Bank — Test Cricket Comparison'],['View: '+sheetTitle+' | '+fStr],[]], {origin:'A1'});
+    XLSX.utils.sheet_add_aoa(ws, [['The Grass Bank™ — Test Cricket Comparison'],['View: '+sheetTitle+' | '+fStr],[]], {origin:'A1'});
     let r = 4;
     if(incBat)  r = writeSection(ws, incBowl||incField?'BATTING':null, batHdr,  statsArr, batRow,  r, batCW);
     if(incBowl) r = writeSection(ws, incBat ||incField?'BOWLING':null, bowlHdr, statsArr, bowlRow, r, bowlCW);

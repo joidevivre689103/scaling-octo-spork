@@ -736,7 +736,7 @@
     if (kind === 'access') {
       return {
         title: 'We couldn\u2019t confirm your access',
-        body:  'This data is part of a Grass Bank subscription. Try again \u2014 if it keeps happening, check that your subscription is active.',
+        body:  'This data is part of a Grass Bank™ subscription. Try again \u2014 if it keeps happening, check that your subscription is active.',
         link:  { href: opts.subscribeUrl || '/subscribe.html', label: 'Check my subscription', primary: false },
         retry: true
       };

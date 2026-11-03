@@ -16,7 +16,7 @@
 <script src="/ct-urlstate.js"></script><!-- filters kept in the address (2026-10-27) --><!-- Phase 3 §3: gated derived-data loader -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Country Results — The Grass Bank</title>
+<title>Country Results — The Grass Bank™</title>
 <!-- Link previews and search snippet (rename item 4 / (9), 2026-10-21) -->
 <meta name="description" content="Head-to-head Test records between every pair of nations since 1877.">
 <meta property="og:type" content="website">
@@ -2458,7 +2458,7 @@ function applyLatestDefault(D) {
           if (qs.length) {
             const names = qs.map(q => labelForQuery(q).full);
             return `Impact Analysis: ${names.join(' vs ')}. ` +
-              (qs.length === 2 ? 'Which wins more Tests?' : 'How often does it win the Test?') + ' · The Grass Bank';
+              (qs.length === 2 ? 'Which wins more Tests?' : 'How often does it win the Test?') + ' · The Grass Bank™';
           }
         }
         const side = ms => ms.isAll() ? 'All countries' : (ms.get().map(c => TEAM_NAMES[c] || c).join(', ') || 'All countries');
@@ -2466,7 +2466,7 @@ function applyLatestDefault(D) {
         // head-to-head, so it is only quoted when no venue/era filter narrows
         // the table to something else.
         const a = ms1.isAll() ? [] : ms1.get(), b = ms2.isAll() ? [] : ms2.get();
-        const brand = ' · The Grass Bank';
+        const brand = ' · The Grass Bank™';
         const head = `${side(ms1)} v ${side(ms2)}`;
         const q = new URLSearchParams(location.search);
         const narrowed = ['ven', 'era', 'city', 'gnd'].some(k => q.get(k));
@@ -3668,7 +3668,7 @@ updateResults();
 function shareCountries(e) {
   const btn = e.currentTarget;
   const url = window.location.href;
-  const title = 'The Grass Bank — Country vs Country';
+  const title = 'The Grass Bank™ — Country vs Country';
 
   if (navigator.share) {
     navigator.share({ title, url }).catch(() => {});

@@ -14,7 +14,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<title>Article — The Grass Bank</title>
+<title>Article — The Grass Bank™</title>
 <!-- Link previews and search snippet (rename item 4 / (9), 2026-10-21) -->
 <meta name="description" content="Writing on Test cricket from The Grass Bank.">
 <meta property="og:type" content="website">
@@ -516,11 +516,20 @@ body{
   color:var(--accent);
 }
 
-/* ─── RELATED ARTICLES ─── */
-.related-section{
+/* ─── END OF ARTICLE: OTHER STORIES + NEWSLETTER (IJ, 2026-11-03) ─── */
+/* One row: the stories list on the left, the Dispatch signup on the right.
+   Stacks on narrow screens. With no other stories, the signup sits alone. */
+.article-end{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  gap:48px;
+  align-items:start;
   margin-top:48px;
 }
-.related-title{
+.article-end--solo{grid-template-columns:minmax(0,1fr)}
+.article-end .ct-newsletter,
+.article-end .ct-nl{margin:0}
+.other-stories-title{
   font-family:'Inter',sans-serif;
   font-size:10px;
   font-weight:700;
@@ -529,58 +538,48 @@ body{
   color:var(--text3);
   padding-bottom:12px;
   border-bottom:2px solid var(--accent);
-  margin-bottom:24px;
+  margin-bottom:4px;
 }
-.related-grid{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:24px;
-}
-.related-card{
+.other-stories-list{list-style:none;margin:0;padding:0}
+.other-stories-list li{border-bottom:1px solid var(--border)}
+.other-story{
+  display:block;
+  padding:16px 0;
   text-decoration:none;
   color:inherit;
-  transition:transform 0.2s;
 }
-.related-card:hover{
-  transform:translateY(-3px);
-}
-.related-card-image{
-  width:100%;
-  aspect-ratio:16/10;
-  border-radius:4px;
-  margin-bottom:12px;
-  background:var(--surface3);
-}
-.related-card-category{
+.other-story-category{
+  display:block;
   font-family:'Inter',sans-serif;
   font-size:10px;
   font-weight:700;
   letter-spacing:1px;
   text-transform:uppercase;
   color:var(--gold);
-  margin-bottom:6px;
+  margin-bottom:4px;
 }
-.related-card-headline{
+.other-story-headline{
+  display:block;
   font-family:'Playfair Display',serif;
-  font-size:16px;
+  font-size:18px;
   font-weight:600;
-  line-height:1.35;
-  margin-bottom:6px;
+  line-height:1.3;
+  margin-bottom:4px;
+  transition:color 0.15s;
 }
-.related-card:hover .related-card-headline{
-  color:var(--accent);
-}
-.related-card-meta{
+.other-story:hover .other-story-headline,
+.other-story:focus-visible .other-story-headline{color:var(--accent)}
+.other-story-meta{
+  display:block;
   font-family:'Inter',sans-serif;
   font-size:11px;
   color:var(--text3);
 }
+@media(max-width:900px){
+  .article-end{grid-template-columns:minmax(0,1fr);gap:32px}
+}
 
 @media(max-width:700px){
-  .related-grid{
-    grid-template-columns:1fr;
-    gap:20px;
-  }
   .article-meta{
     flex-direction:column;
     align-items:flex-start;
@@ -1336,7 +1335,7 @@ window._articleLoadComplete = (async function() {
     const article = { firestoreId: articleDoc.id, ...articleDoc.data() };
 
     // Set page title
-    document.title = `${article.headline} — The Grass Bank`;
+    document.title = `${article.headline} — The Grass Bank™`;
 
     // ── Withdrawn articles short-circuit ────────────────────────────────────
     // If an article has been withdrawn, we still resolve its URL (so links
@@ -1356,20 +1355,30 @@ window._articleLoadComplete = (async function() {
       return;
     }
 
-    // ── Fetch up to 3 related articles (same category, published) ──────────
-    const relatedQuery = query(
-      collection(db, 'articles'),
-      where('category', '==', article.category),
-      where('status',   '==', 'published'),
-      orderBy('date', 'desc'),
-      limit(4)                       // fetch 4, drop self below
-    );
-    const relatedSnap = await getDocs(relatedQuery);
-    const related = relatedSnap.docs
-      .map(d => ({ id: d.id, ...d.data() }))
-      .filter(a => String(a.id) !== String(articleId))
-      .filter(a => a.withdrawn !== true)
-      .slice(0, 3);
+    // ── Other Stories (IJ, 2026-11-03) ────────────────────────────────────
+    // Up to 4 other published stories. Not personalised — we don't track what
+    // a reader has read, so the list is the same for everyone: same category
+    // first, newest first, then the newest from any category to fill. Audio-
+    // only voice notes and withdrawn pieces are left out. Its own try/catch:
+    // if this query fails, the article still renders, just without the list.
+    let related = [];
+    try {
+      const relatedSnap = await getDocs(query(
+        collection(db, 'articles'),
+        where('status', '==', 'published'),
+        orderBy('date', 'desc'),
+        limit(16)
+      ));
+      const pool = relatedSnap.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .filter(a => String(a.id) !== String(articleId))
+        .filter(a => a.withdrawn !== true && !a.audioOnly && a.headline);
+      const same  = pool.filter(a => a.category === article.category);
+      const other = pool.filter(a => a.category !== article.category);
+      related = same.concat(other).slice(0, 4);
+    } catch (e) {
+      console.warn('Other Stories unavailable:', e);
+    }
 
     // ── Render ─────────────────────────────────────────────────────────────
     renderArticle(container, article, related);
@@ -1394,28 +1403,21 @@ function renderArticle(container, article, related) {
   const formattedDate  = formatDate(article.date);
   const bodyHTML       = renderArticleBody(article);
 
-  const gradients = [
-    'linear-gradient(135deg,#2a4048,#1a3038)',
-    'linear-gradient(135deg,#483828,#382818)',
-    'linear-gradient(135deg,#384838,#283828)',
-    'linear-gradient(135deg,#3a4a5a,#2a3a48)',
-    'linear-gradient(135deg,#504a40,#403a30)'
-  ];
-
+  // Other Stories — shares the end-of-article row with the newsletter.
   const relatedHTML = related.length > 0 ? `
-    <div class="related-section">
-      <h3 class="related-title">More from The Grass Bank</h3>
-      <div class="related-grid">
-        ${related.map((r, i) => `
-          <a href="article.html?id=${r.id}" class="related-card">
-            <div class="related-card-image" style="background:${gradients[i % gradients.length]};"></div>
-            <div class="related-card-category">${esc(r.category ? r.category.charAt(0).toUpperCase() + r.category.slice(1) : '')}</div>
-            <div class="related-card-headline">${esc(r.headline)}</div>
-            <div class="related-card-meta">${esc(r.author)} • ${r.readTime} min read</div>
-          </a>
-        `).join('')}
-      </div>
-    </div>` : '';
+    <section class="other-stories" aria-labelledby="otherStoriesTitle">
+      <h3 class="other-stories-title" id="otherStoriesTitle">Other Stories</h3>
+      <ol class="other-stories-list">
+        ${related.map(r => `
+          <li>
+            <a href="article.html?id=${encodeURIComponent(r.id)}" class="other-story">
+              ${r.category ? `<span class="other-story-category">${esc(r.category.charAt(0).toUpperCase() + r.category.slice(1))}</span>` : ''}
+              <span class="other-story-headline">${esc(r.headline)}</span>
+              <span class="other-story-meta">${esc(r.author || '')}${r.readTime ? ` · ${esc(String(r.readTime))} min read` : ''}</span>
+            </a>
+          </li>`).join('')}
+      </ol>
+    </section>` : '';
 
   const tagMap = {
     news:     ['Breaking News','Test Cricket','Match Report'],
@@ -1449,7 +1451,7 @@ function renderArticle(container, article, related) {
             <div class="author-avatar">${esc(authorInitials)}</div>
             <div class="author-info">
               <span class="author-name">${esc(article.author)}</span>
-              <span class="author-role">The Grass Bank ${esc(categoryLabel)}</span>
+              <span class="author-role">The Grass Bank™ ${esc(categoryLabel)}</span>
             </div>
           </div>
           <div class="meta-separator"></div>
@@ -1517,10 +1519,12 @@ function renderArticle(container, article, related) {
         <div class="article-tags">
           ${tags.map(t => `<a href="stories.html" class="article-tag">${esc(t)}</a>`).join('')}
         </div>
-        ${relatedHTML}
       </div>
 
-      <div class="ct-newsletter" data-ct-source="article" data-ct-variant="compact"></div>
+      <div class="article-end${relatedHTML ? '' : ' article-end--solo'}">
+        ${relatedHTML}
+        <div class="ct-newsletter" data-ct-source="article" data-ct-variant="compact"></div>
+      </div>
 
     </main>`;
 
@@ -1714,12 +1718,12 @@ function renderArticleBody(article) {
     <p class="first-paragraph">${esc(summary)}</p>
     <p>This story is developing. Full coverage and in-depth analysis will be published shortly
        as more details become available from our correspondents on the ground.</p>
-    <p>The Grass Bank is committed to delivering comprehensive reporting on every aspect of
+    <p>The Grass Bank™ is committed to delivering comprehensive reporting on every aspect of
        Test cricket. Our editorial team works around the clock to bring you the most accurate
        and insightful coverage of the game's oldest and most revered format.</p>
     <blockquote>Test cricket remains the ultimate examination of skill, temperament,
        and endurance — the truest test of a cricketer's mettle.</blockquote>
-    <p>Check back soon for the complete story. In the meantime, explore our related coverage
+    <p>Check back soon for the complete story. In the meantime, explore the other stories
        below for more context on this developing story.</p>`;
 }
 
@@ -1728,7 +1732,7 @@ function showNotFound(container) {
     <div class="article-not-found">
       <h2>Article Not Found</h2>
       <p>The article you're looking for may have been removed, or the link may be outdated.</p>
-      <a href="stories.html">← Back to The Grass Bank</a>
+      <a href="stories.html">← Back to The Grass Bank™</a>
     </div>`;
 }
 
@@ -1767,8 +1771,8 @@ function renderWithdrawn(container, article) {
           </svg>
         </div>
         <h2>This article was withdrawn</h2>
-        <p>The Grass Bank preserves the URL so links from elsewhere on the web don't break, but the original content is no longer published here.</p>
-        <a href="stories.html" class="withdrawn-back-link">← Back to The Grass Bank</a>
+        <p>The Grass Bank™ preserves the URL so links from elsewhere on the web don't break, but the original content is no longer published here.</p>
+        <a href="stories.html" class="withdrawn-back-link">← Back to The Grass Bank™</a>
       </div>
     </main>`;
 }
@@ -2139,7 +2143,7 @@ function renderComments() {
     html += '  <textarea id="commentText" placeholder="Write your comment…" maxlength="2000"></textarea>';
     html += '  <label class="comment-disclaimer">';
     html += '    <input type="checkbox" id="commentDisclaimer">';
-    html += '    <span class="comment-disclaimer-text">I agree that The Grass Bank reserves the right to delete my comment(s) if deemed inappropriate, irrelevant, offensive, or for any other reason whatsoever.</span>';
+    html += '    <span class="comment-disclaimer-text">I agree that The Grass Bank™ reserves the right to delete my comment(s) if deemed inappropriate, irrelevant, offensive, or for any other reason whatsoever.</span>';
     html += '  </label>';
     html += '  <div class="comment-form-footer">';
     html += '    <span class="comment-word-count" id="commentWordCount">0 / ' + MAX_WORDS + ' words</span>';
