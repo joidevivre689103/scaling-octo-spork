@@ -177,7 +177,7 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-he
 .data-footnote{font-size:12px;line-height:1.5;color:var(--text3);margin:14px 2px 0}
 .tbl-wrap{overflow-x:auto}
 .rec-table{width:100%;border-collapse:collapse;font-size:13px}
-.rec-table thead th{padding:9px 8px;text-align:left;font-size:9.5px;text-transform:uppercase;letter-spacing:0.8px;color:var(--text4);font-weight:600;border-bottom:2px solid var(--border);cursor:pointer;white-space:nowrap;user-select:none;background:var(--bg);position:sticky;top:0}
+.rec-table thead th{padding:9px 8px;text-align:left;font-family:var(--font-body);font-size:10px;text-transform:uppercase;letter-spacing:0.7px;color:var(--text4);font-weight:600;border-bottom:2px solid var(--border);cursor:pointer;white-space:nowrap;user-select:none;background:var(--bg);position:sticky;top:0}
 .rec-table thead th:hover{color:var(--text2)}
 .rec-table thead th.sorted-asc::after,.rec-table thead th.sorted-desc::after{color:var(--accent)}
 .rec-table thead th.sorted-asc::after{content:' ▲';font-size:8px}
@@ -187,11 +187,12 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-he
 .rec-table tfoot td{padding:10px 8px;border-top:2px solid var(--border);background:var(--surface2);font-weight:700;vertical-align:middle;--ct-pin-bg:var(--surface2)}
 .rec-table tfoot td.num, .rec-table tfoot td.num-center{font-variant-numeric:tabular-nums}
 .rec-table tbody tr:hover{background:var(--accent-dim)}
-.rec-table .rank{color:var(--text3);font-family:var(--font-mono);font-size:11px;width:32px}
+.rec-table .rank{color:var(--text3);font-family:var(--font-body);font-variant-numeric:tabular-nums;width:32px}
 .rec-table td.player-name{font-weight:600;white-space:nowrap}
 .rec-table td.country{color:var(--text3);font-size:12px}
-.rec-table .num{font-family:var(--font-mono);font-size:12.5px;text-align:right}
-.rec-table .num-center{font-family:var(--font-mono);font-size:12.5px;text-align:center}
+/* Numbers in the same serif as bowling.html (IJ, 2026-11-02), lined up with tabular figures. */
+.rec-table .num{font-family:var(--font-body);font-variant-numeric:tabular-nums;text-align:right}
+.rec-table .num-center{font-family:var(--font-body);font-variant-numeric:tabular-nums;text-align:center}
 .rec-table .hs-star{color:var(--gold);font-size:10px;vertical-align:super}
 /* The best figure in each column, as on bowling.html — not a tinted column. */
 .rec-table td.lead{color:var(--accent);font-weight:700}
