@@ -385,8 +385,13 @@ body.sc-open{overflow:hidden}
    We apply the separator to tbody data cells only; the header group titles
    (colspan=3) naturally visually separate Batting/Bowling because they sit
    above their own columns with different background. */
-.impact-table-merged tbody td:nth-child(5){border-left:2px solid var(--border)}
-.impact-table-merged tbody td:nth-child(8){border-left:2px solid var(--border);padding-left:16px}
+.impact-table-merged tbody td:nth-child(6), .impact-table-merged tfoot td:nth-child(6){border-left:2px solid var(--border)}
+.impact-table-merged tbody td:nth-child(10), .impact-table-merged tfoot td:nth-child(10){border-left:2px solid var(--border);padding-left:16px}
+/* Totals row (2026-11-02): the same figures as the aggregate cards, at the foot
+   of the table for comparison. */
+.impact-table tfoot td{padding:12px;border-top:2px solid var(--border);background:var(--surface2);font-weight:700;color:var(--text)}
+.impact-table tfoot td.right{text-align:right;font-variant-numeric:tabular-nums}
+.impact-table-merged tfoot td{padding:10px}
 .impact-table-merged{font-size:12px}
 .impact-table-merged th{padding:8px 10px}
 .impact-table-merged td{padding:10px}
@@ -2698,6 +2703,16 @@ function labelForQuery(q) {
   };
 }
 
+// What a milestone counts, for the count column (2026-11-02): "100+ scores",
+// "5+ WI hauls", "10+ WM hauls". The number is every such performance by the
+// country in its qualifying matches, e.g. all the centuries, not the matches.
+function countLabelForQuery(q) {
+  if (q.kind === 'bat') return (q.max === Infinity ? `${q.min}+` : `${q.min}–${q.max}`) + ' scores';
+  const w = q.max === Infinity ? `${q.min}+` : `${q.min}`;
+  const exact = q.max !== Infinity ? ' exact' : '';
+  return `${w}${exact} ${q.unit === 'i' ? 'WI' : 'WM'} hauls`;
+}
+
 // ─────────────────────────────────────────────────────────────
 // Collect per-match qualifying instances for a parsed query.
 // ─────────────────────────────────────────────────────────────
@@ -2933,19 +2948,24 @@ async function renderImpact() {
   // Each match/country pair contributes exactly one record (the match either
   // qualifies under the query or doesn't — no per-performance subdivision).
   function analyseQuery(q) {
-    const { qualifyingTests } = collectMilestoneQuery(D, q);
+    const { qualifyingTests, perfCount } = collectMilestoneQuery(D, q);
     const perCountry = new Map();
-    let aggW=0, aggL=0, aggD=0;
+    let aggW=0, aggL=0, aggD=0, aggN=0;
 
     qualifyingTests.forEach((testSet, code) => {
       if (!countrySet.has(code)) return;
-      if (!perCountry.has(code)) perCountry.set(code, { W:0, L:0, D:0, total:0 });
+      if (!perCountry.has(code)) perCountry.set(code, { W:0, L:0, D:0, total:0, n:0 });
       const rec = perCountry.get(code);
       testSet.forEach(test => {
         const info = __matchInfo.get(test);
         if (!info) return;
         const r = resultFor(code, info);
         if (!r) return;
+        // n: the performances themselves (all the centuries, say), counted in
+        // the same matches as W–L–D.
+        const perf = (perfCount.get(test) && perfCount.get(test).get(code)) || 0;
+        rec.n += perf;
+        aggN += perf;
         rec[r]++;
         rec.total++;
         if (r === 'W') aggW++;
@@ -2953,7 +2973,7 @@ async function renderImpact() {
         else aggD++;
       });
     });
-    return { perCountry, aggW, aggL, aggD, aggTotal: aggW+aggL+aggD };
+    return { perCountry, aggW, aggL, aggD, aggN, aggTotal: aggW+aggL+aggD };
   }
 
   // ─── Render one query (single-milestone path) ──────────────────
@@ -2961,8 +2981,9 @@ async function renderImpact() {
   // (Ladder is gone — the 'count' dimension is baked into the query itself
   // via the new dropdown, so there's no natural 1+/2+/3+ breakdown to show.)
   function renderSingleQuery(q, qi, stats) {
-    const { perCountry, aggW, aggL, aggD, aggTotal } = stats;
+    const { perCountry, aggW, aggL, aggD, aggN, aggTotal } = stats;
     const ql = labelForQuery(q);
+    const cl = countLabelForQuery(q);
     let s = `<div${qi > 0 ? ' style="margin-top:24px;padding-top:24px;border-top:1px solid var(--border)"' : ''}>`;
     s += `<div style="font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text3);margin-bottom:12px">
       ${q.kind === 'bat' ? 'Batting' : 'Bowling'} Impact · ${ql.full} · ${countryLabel}
@@ -2975,7 +2996,7 @@ async function renderImpact() {
 
     s += `<div class="impact-stats">
       <div class="impact-card ic-aggregate">
-        <div class="ic-label">Aggregate · ${aggTotal} qualifying match${aggTotal === 1 ? '' : 'es'}</div>
+        <div class="ic-label">Aggregate · ${aggTotal} qualifying match${aggTotal === 1 ? '' : 'es'} · ${aggN} ${cl}</div>
         <div class="ic-headline">${fmt(aggW, aggTotal)} won</div>
         <div class="ic-break">
           <span class="ic-w">W ${aggW} (${fmt(aggW, aggTotal)})</span>
@@ -2993,7 +3014,7 @@ async function renderImpact() {
     // Per-country table (only when 2+ countries)
     if (countrySet.size > 1 && perCountry.size > 0) {
       const flat = Array.from(perCountry.entries()).map(([code, rec]) => ({
-        code, W:rec.W, L:rec.L, D:rec.D, total:rec.total,
+        code, W:rec.W, L:rec.L, D:rec.D, total:rec.total, n:rec.n,
       }));
       flat.sort((a, b) => b.total - a.total);
 
@@ -3001,6 +3022,7 @@ async function renderImpact() {
         <thead><tr>
           <th>Country</th>
           <th class="right">Qualifying</th>
+          <th class="right">${cl}</th>
           <th class="right">W – L – D</th>
           <th class="right">Win %</th>
         </tr></thead><tbody>`;
@@ -3010,6 +3032,7 @@ async function renderImpact() {
         s += `<tr>
           <td class="it-country">${TEAM_NAMES[r.code] || r.code} <span class="it-mini">(${r.code})</span></td>
           <td class="right">${r.total}</td>
+          <td class="right">${r.n}</td>
           <td class="right">
             <span style="color:var(--green);font-weight:600">${r.W}</span> –
             <span style="color:var(--red);font-weight:600">${r.L}</span> –
@@ -3018,7 +3041,15 @@ async function renderImpact() {
           <td class="right"><span class="it-winpct ${cls}">${fmt(r.W, r.total)}</span></td>
         </tr>`;
       });
-      s += '</tbody></table>';
+      s += '</tbody>';
+      // Totals (2026-11-02), the same as the aggregate card.
+      s += `<tfoot><tr>
+          <td>Total</td>
+          <td class="right">${aggTotal}</td>
+          <td class="right">${aggN}</td>
+          <td class="right">${aggW} – ${aggL} – ${aggD}</td>
+          <td class="right">${fmt(aggW, aggTotal)}</td>
+        </tr></tfoot></table>`;
     }
 
     s += '</div>';
@@ -3031,6 +3062,7 @@ async function renderImpact() {
   function renderMerged(qBat, sBat, qBow, sBow) {
     const lBat = labelForQuery(qBat);
     const lBow = labelForQuery(qBow);
+    const cBat = countLabelForQuery(qBat), cBow = countLabelForQuery(qBow);
     const kindName = q => q.kind === 'bat' ? 'Batting' : 'Bowling';
     let s = '';
     s += `<div style="font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text3);margin-bottom:12px">
@@ -3040,14 +3072,15 @@ async function renderImpact() {
     // Two aggregate cards side-by-side on desktop, stacking on mobile
     s += '<div class="impact-stats impact-stats-dual">';
     [ [qBat, sBat, kindName(qBat), lBat], [qBow, sBow, kindName(qBow), lBow] ].forEach(([q, st, kind, ql]) => {
-      const { aggW, aggL, aggD, aggTotal } = st;
+      const { aggW, aggL, aggD, aggN, aggTotal } = st;
+      const cl = countLabelForQuery(q);
       if (aggTotal === 0) {
         s += `<div class="impact-card"><div class="ic-label">${kind} · ${ql.short}</div>
           <div class="impact-empty" style="padding:12px 0">No qualifying matches</div></div>`;
         return;
       }
       s += `<div class="impact-card ic-aggregate">
-        <div class="ic-label">${kind} · ${ql.short} · ${aggTotal} match${aggTotal === 1 ? '' : 'es'}</div>
+        <div class="ic-label">${kind} · ${ql.short} · ${aggTotal} match${aggTotal === 1 ? '' : 'es'} · ${aggN} ${cl}</div>
         <div class="ic-headline">${fmt(aggW, aggTotal)} won</div>
         <div class="ic-break">
           <span class="ic-w">W ${aggW}</span>
@@ -3101,15 +3134,17 @@ async function renderImpact() {
       <thead>
         <tr>
           <th rowspan="2" style="vertical-align:bottom">Country</th>
-          <th colspan="3" class="center" style="border-bottom:1px solid var(--border)">${kindName(qBat)} · ${lBat.short}</th>
-          <th colspan="3" class="center" style="border-bottom:1px solid var(--border)">${kindName(qBow)} · ${lBow.short}</th>
+          <th colspan="4" class="center" style="border-bottom:1px solid var(--border)">${kindName(qBat)} · ${lBat.short}</th>
+          <th colspan="4" class="center" style="border-bottom:1px solid var(--border)">${kindName(qBow)} · ${lBow.short}</th>
           <th rowspan="2" class="right" style="vertical-align:bottom">Δ Win%</th>
         </tr>
         <tr>
           <th class="right">Matches</th>
+          <th class="right">${cBat}</th>
           <th class="right">W–L–D</th>
           <th class="right">Win %</th>
           <th class="right">Matches</th>
+          <th class="right">${cBow}</th>
           <th class="right">W–L–D</th>
           <th class="right">Win %</th>
         </tr>
@@ -3119,15 +3154,32 @@ async function renderImpact() {
       s += `<tr>
         <td class="it-country">${TEAM_NAMES[r.code] || r.code} <span class="it-mini">(${r.code})</span></td>
         <td class="right">${r.bat ? r.bat.total : '<span style="color:var(--text3)">—</span>'}</td>
+        <td class="right">${r.bat ? r.bat.n : '<span style="color:var(--text3)">—</span>'}</td>
         <td class="right">${wldCell(r.bat)}</td>
         <td class="right">${pctCell(r.bWp)}</td>
         <td class="right">${r.bow ? r.bow.total : '<span style="color:var(--text3)">—</span>'}</td>
+        <td class="right">${r.bow ? r.bow.n : '<span style="color:var(--text3)">—</span>'}</td>
         <td class="right">${wldCell(r.bow)}</td>
         <td class="right">${pctCell(r.wWp)}</td>
         <td class="right">${deltaCell(r.delta)}</td>
       </tr>`;
     });
-    s += '</tbody></table></div>';
+    s += '</tbody>';
+    // Totals (2026-11-02): the aggregate cards' figures, and the delta between them.
+    const tW = st => st.aggTotal ? (st.aggW / st.aggTotal) * 100 : null;
+    const tb = tW(sBat), tw = tW(sBow);
+    s += `<tfoot><tr>
+        <td>Total</td>
+        <td class="right">${sBat.aggTotal}</td>
+        <td class="right">${sBat.aggN}</td>
+        <td class="right">${sBat.aggW} – ${sBat.aggL} – ${sBat.aggD}</td>
+        <td class="right">${tb === null ? '—' : tb.toFixed(1) + '%'}</td>
+        <td class="right">${sBow.aggTotal}</td>
+        <td class="right">${sBow.aggN}</td>
+        <td class="right">${sBow.aggW} – ${sBow.aggL} – ${sBow.aggD}</td>
+        <td class="right">${tw === null ? '—' : tw.toFixed(1) + '%'}</td>
+        <td class="right">${deltaCell(tb !== null && tw !== null ? tb - tw : null)}</td>
+      </tr></tfoot></table></div>`;
     return s;
   }
 
@@ -3217,7 +3269,7 @@ function buildImpactExportModel(){
   });
 
   const sheets = [{ name:'Summary', role:'summary', rows: summaryRows, cols:[{wch:40},{wch:52}] }];
-  const perCountryHeaders = ['Country', 'Code', 'Qualifying matches', 'Won', 'Lost', 'Drawn', 'Win %'];
+  const perCountryHeaders = q => ['Country', 'Code', 'Qualifying matches', countLabelForQuery(q), 'Won', 'Lost', 'Drawn', 'Win %'];
 
   queries.forEach((q, i) => {
     const st = results[i] || {};
@@ -3228,16 +3280,16 @@ function buildImpactExportModel(){
                     headers: ['Result'], rows: [['No qualifying matches for the selected countries.']] });
       return;
     }
-    const body = rows.map(r => [TEAM_NAMES[r.code] || r.code, r.code, r.total, r.W, r.L, r.D, pctOf(r.W, r.total)]);
+    const body = rows.map(r => [TEAM_NAMES[r.code] || r.code, r.code, r.total, r.n, r.W, r.L, r.D, pctOf(r.W, r.total)]);
     if (rows.length > 1) {
-      body.push(['All selected', '', st.aggTotal, st.aggW, st.aggL, st.aggD, pctOf(st.aggW, st.aggTotal)]);
+      body.push(['Total', '', st.aggTotal, st.aggN, st.aggW, st.aggL, st.aggD, pctOf(st.aggW, st.aggTotal)]);
     }
     sheets.push({
       name: name,
       role: i === 0 ? 'data' : 'extra',
-      headers: perCountryHeaders,
+      headers: perCountryHeaders(q),
       rows: body,
-      cols: [{wch:16},{wch:6},{wch:18},{wch:7},{wch:7},{wch:7},{wch:8}]
+      cols: [{wch:16},{wch:6},{wch:18},{wch:14},{wch:7},{wch:7},{wch:7},{wch:8}]
     });
   });
 
@@ -3258,16 +3310,23 @@ function buildImpactExportModel(){
       // Either milestone can be batting or bowling (2026-11-02): name each one.
       headers: (() => {
         const n1 = labelForQuery(queries[0]).short, n2 = labelForQuery(queries[1]).short;
-        return ['Country', n1 + ' matches', n1 + ' W', n1 + ' L', n1 + ' D', n1 + ' win %',
-                n2 + ' matches', n2 + ' W', n2 + ' L', n2 + ' D', n2 + ' win %', 'Delta (' + n1 + ' - ' + n2 + ')'];
+        return ['Country', n1 + ' matches', countLabelForQuery(queries[0]), n1 + ' W', n1 + ' L', n1 + ' D', n1 + ' win %',
+                n2 + ' matches', countLabelForQuery(queries[1]), n2 + ' W', n2 + ' L', n2 + ' D', n2 + ' win %',
+                'Delta (' + n1 + ' - ' + n2 + ')'];
       })(),
       rows: rows.map(r => [
         TEAM_NAMES[r.code] || r.code,
-        r.b ? r.b.total : '', r.b ? r.b.W : '', r.b ? r.b.L : '', r.b ? r.b.D : '', r.bp === null ? '' : r.bp,
-        r.w ? r.w.total : '', r.w ? r.w.W : '', r.w ? r.w.L : '', r.w ? r.w.D : '', r.wp === null ? '' : r.wp,
+        r.b ? r.b.total : '', r.b ? r.b.n : '', r.b ? r.b.W : '', r.b ? r.b.L : '', r.b ? r.b.D : '', r.bp === null ? '' : r.bp,
+        r.w ? r.w.total : '', r.w ? r.w.n : '', r.w ? r.w.W : '', r.w ? r.w.L : '', r.w ? r.w.D : '', r.wp === null ? '' : r.wp,
         r.delta === null ? '' : r.delta
-      ]),
-      cols: [{wch:16},{wch:11},{wch:6},{wch:6},{wch:6},{wch:9},{wch:12},{wch:7},{wch:7},{wch:7},{wch:10},{wch:16}]
+      ]).concat(rows.length > 1 ? [(() => {
+        // Totals (2026-11-02), as on the page.
+        const tb = pctOf(sBat.aggW, sBat.aggTotal), tw = pctOf(sBow.aggW, sBow.aggTotal);
+        return ['Total', sBat.aggTotal, sBat.aggN, sBat.aggW, sBat.aggL, sBat.aggD, tb === null ? '' : tb,
+                sBow.aggTotal, sBow.aggN, sBow.aggW, sBow.aggL, sBow.aggD, tw === null ? '' : tw,
+                tb !== null && tw !== null ? +(tb - tw).toFixed(1) : ''];
+      })()] : []),
+      cols: [{wch:16},{wch:11},{wch:14},{wch:6},{wch:6},{wch:6},{wch:9},{wch:12},{wch:14},{wch:7},{wch:7},{wch:7},{wch:10},{wch:16}]
     });
   }
 
