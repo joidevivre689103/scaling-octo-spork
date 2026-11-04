@@ -1093,6 +1093,13 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
     if(p&&r==null&&SimEngine.isV3()){
       const x=SimEngine.parts(p,i);
       const n=kind==="bat"?x.nInns:x.nBalls;
+      // A part-timer with a short record (under 30 balls a Test): his number would
+      // be almost all a typical part-timer's, not his own, so the column shows
+      // "—". He still counts, lightly, in Bowling Strength and the chances.
+      const perTest=p.n_tests?x.nBalls/p.n_tests:0;
+      if(kind==="bow"&&n>0&&perTest<30){
+        return `<span class="rat bow dim" title="Part-time bowling: ${n} balls in ${p.n_tests} Test${p.n_tests===1?"":"s"}. Too little to rate on its own; counted lightly in Bowling Strength.">—</span>`;
+      }
       if(n>0&&(kind==="bat"||x.w>0.2)){
         const v=kind==="bat"?x.b:x.w;
         const what=kind==="bat"?`${n} Test innings`:`${n} balls bowled`;
