@@ -542,7 +542,7 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
         <button class="picker-close" id="whatIfFindBtn">Find Matches</button>
       </div>
       <div class="hp-info" id="whatIfStatus">
-        <strong>How it works:</strong> Find a historical Test, start from the actual XIs and venue, then change a player to see how the result might have changed. Players are rated as they stood before that Test.
+        <strong>How it works:</strong> Find a historical Test, start from the actual XIs and venue, then change a player to see how the result might have changed. Players are rated as they stood before that Test, and the chances come only from what was known before it was played.
       </div>
     </div>
 
@@ -1351,6 +1351,9 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
     function replayNote(rp){
       const dflt="Win chances aren\u2019t shown for two current sides.";
       if(!rp) return dflt;
+      // 2026-11-04: a replay's chances come only from models fitted on Tests
+      // finished before it; the first Tests ever played have too few before them.
+      if(rp.noModel) return "Win chances aren\u2019t shown for this Test: too few Tests had been played before it to model it without hindsight.";
       if(rp.mode==="in-progress") return "Win chances aren\u2019t shown while this series is still being played.";
       if(rp.mode==="strict"&&rp.changes>rp.maxChanges.total)
         return "These sides could meet again within a year, so this replay allows one change in total. Undo a change to see win chances.";
