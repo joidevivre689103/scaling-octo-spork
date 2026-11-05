@@ -3542,7 +3542,10 @@ function otdScorecardHTML(D, k, h2h) {
 
     // Fall of wickets sits under the bowling card, in the space beside the
     // batting card (stacked below it on phones).
-    const fw = fow && fow[String(k)] && fow[String(k)][String(inn)];
+    // Cricsheet's ball-by-ball first; a hand-entered scorecard's fall of
+    // wickets (D.MFW, scripts/manual_scorecards.py, 2026-11-05) where it has none.
+    const fw = (fow && fow[String(k)] && fow[String(k)][String(inn)])
+      || (D.MFW && D.MFW[String(k)] && D.MFW[String(k)][String(inn)]);
     let fwt = '';
     if (fw && fw.length) {
       // Two columns (1–5 beside 6–10) so the list fits beside the batting card;
