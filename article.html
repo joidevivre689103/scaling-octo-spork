@@ -1010,6 +1010,21 @@ body{
   font-weight:700;
   color:var(--text);
 }
+/* 'Moderator' beside IJ's name on his comments (2026-11-05) */
+.comment-mod{
+  display:inline-block;
+  margin-left:6px;
+  padding:2px 6px 1px;
+  border-radius:2px;
+  background:#8b1a1a;
+  color:#fff;
+  font-family:'Inter',system-ui,sans-serif;
+  font-size:10px;
+  font-weight:600;
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+  vertical-align:2px;
+}
 .comment-date{
   font-family:'Source Serif 4',Georgia,serif;
   font-size:12px;
@@ -1897,6 +1912,14 @@ import { getAuth, onAuthStateChanged }
 const COMMENTS_COLLECTION = 'comments';
 const MAX_WORDS   = 200;
 const MAX_COMMENTS = 50;
+
+// IJ's two editor accounts (2026-11-05): their comments show 'Moderator'
+// beside the name. Must match CT_EDITOR_UIDS in bts.html and btsModerators()
+// in firestore.rules.
+const CT_EDITOR_UIDS = new Set([
+  'A8OVKwU4s6ZutaWiEnk3IUKrDtz2',   // ivan@cricketimes.com
+  'u9PUjBqW0MVnEFQxccQmyfZTUCI2'    // ivan@thegrassbank.com
+]);
 // [2026-06-06, item f] ADMIN_EMAIL retired. Admin status now comes from the
 // requireAccess verdict (settings/userTypes via feature-flags.js), restoring
 // parity for both superadmin accounts. Sign-in itself is the site-wide
@@ -2162,7 +2185,8 @@ function renderComments() {
       html += '<li class="comment-item" data-id="' + c.id + '">';
       html += '  <div class="comment-meta">';
       html += '    <div class="comment-avatar">' + cEsc(cGetInitials(c.displayName)) + '</div>';
-      html += '    <span class="comment-author">' + cEsc(c.displayName) + '</span>';
+      html += '    <span class="comment-author">' + cEsc(c.displayName) + '</span>'
+            + (c.authorUid && CT_EDITOR_UIDS.has(c.authorUid) ? '<span class="comment-mod">Moderator</span>' : '');
       html += '    <span class="comment-date">' + timeAgo(c.timestamp) + '</span>';
       html += '  </div>';
       html += '  <div class="comment-body">' + cEsc(c.text) + '</div>';
