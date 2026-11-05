@@ -488,6 +488,83 @@ button.btn:disabled { opacity: 0.5; cursor: not-allowed; }
 }
 
 .hidden { display: none !important; }
+
+/* ---------- Moderator label (2026-11-05) ---------- */
+.mod-badge {
+  display: inline-block; vertical-align: 2px; margin-left: 7px;
+  font-family: 'Special Elite', monospace; font-size: 10px; font-weight: 400;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--paper); background: var(--crimson);
+  padding: 2px 6px 1px; border-radius: 2px;
+}
+
+/* ---------- Notebook / Conversations tabs (2026-11-05) ---------- */
+.bts-tabs { display: flex; justify-content: center; gap: 6px; margin: 0 0 22px; }
+.bts-tabs button {
+  font-family: 'Special Elite', monospace; font-size: 12px; letter-spacing: 0.14em;
+  text-transform: uppercase; background: transparent; color: var(--ink-mute);
+  border: 1px solid var(--rule); padding: 8px 14px; cursor: pointer;
+}
+.bts-tabs button.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.unread-badge {
+  display: inline-block; min-width: 18px; margin-left: 6px; padding: 1px 5px;
+  border-radius: 9px; background: var(--crimson); color: #fff;
+  font-size: 11px; letter-spacing: 0; text-align: center;
+}
+
+.convo-actions { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+.convo-actions .note { font-style: italic; color: var(--ink-mute); font-size: 15px; }
+.convo-list { list-style: none; margin: 0; padding: 0; }
+.convo-item {
+  display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; align-items: baseline;
+  background: var(--paper); border: 1px solid var(--rule); padding: 12px 14px; margin-bottom: 10px;
+  cursor: pointer; box-shadow: var(--shadow-soft);
+}
+.convo-item:hover { border-color: var(--ink-mute); }
+.convo-item .who { font-family: 'Playfair Display', serif; font-weight: 600; font-size: 16px; min-width: 0; }
+.convo-item .when { font-family: 'Special Elite', monospace; font-size: 11px; color: var(--ink-mute); }
+.convo-item .last { grid-column: 1 / -1; color: var(--ink-soft); font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.convo-item.unread { border-left: 4px solid var(--crimson); }
+.convo-item.unread .when { color: var(--crimson); }
+
+.thread-head { display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--rule); padding-bottom: 10px; margin-bottom: 12px; }
+.thread-head .grow { flex: 1; min-width: 0; }
+.thread-title { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 20px; }
+.thread-members { font-size: 14px; color: var(--ink-mute); font-style: italic; }
+.thread-msgs { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
+.msg { background: var(--paper); border: 1px solid var(--rule-soft); padding: 10px 12px; max-width: 88%; align-self: flex-start; }
+.msg.mine { align-self: flex-end; background: var(--cream-deep); }
+.msg .meta { display: flex; gap: 8px; align-items: baseline; font-size: 13px; margin-bottom: 4px; }
+.msg .meta .name { font-family: 'Playfair Display', serif; font-weight: 600; font-size: 14px; }
+.msg .meta .when { font-family: 'Special Elite', monospace; font-size: 10.5px; color: var(--ink-mute); }
+.msg .meta .del { margin-left: auto; background: none; border: none; color: var(--ink-mute); cursor: pointer; font-size: 15px; line-height: 1; }
+.msg .text { white-space: pre-wrap; word-wrap: break-word; font-size: 16px; line-height: 1.5; }
+.thread-empty { font-style: italic; color: var(--ink-mute); text-align: center; padding: 18px 0; }
+.thread-composer { background: var(--paper); border: 1px solid var(--rule); padding: 10px 12px; }
+.thread-composer textarea {
+  width: 100%; min-height: 70px; border: none; background: transparent; resize: vertical; box-sizing: border-box;
+  font-family: 'EB Garamond', serif; font-size: 17px; color: var(--ink);
+}
+.thread-composer textarea:focus { outline: none; }
+.thread-composer .toolbar { display: flex; justify-content: flex-end; align-items: center; gap: 10px; }
+.thread-composer .count { font-family: 'Special Elite', monospace; font-size: 11px; color: var(--ink-mute); }
+.thread-composer .count.over { color: var(--crimson); }
+
+.picker-backdrop { position: fixed; inset: 0; background: rgba(26,22,18,0.45); z-index: 900; display: flex; align-items: flex-start; justify-content: center; padding: 6vh 12px; }
+.picker { background: var(--paper); border: 1px solid var(--ink); width: 100%; max-width: 520px; max-height: 84vh; display: flex; flex-direction: column; box-shadow: var(--shadow-pin); }
+.picker h3 { font-family: 'Playfair Display', serif; margin: 0; padding: 14px 16px 6px; font-size: 20px; }
+.picker .hint { padding: 0 16px 8px; font-size: 14px; color: var(--ink-mute); font-style: italic; }
+.picker input[type=search], .picker input[type=text] {
+  margin: 0 16px 8px; padding: 8px 10px; border: 1px solid var(--rule); background: #fff;
+  font-family: 'EB Garamond', serif; font-size: 16px; width: calc(100% - 32px); box-sizing: border-box;
+}
+.picker-list { overflow-y: auto; border-top: 1px solid var(--rule-soft); border-bottom: 1px solid var(--rule-soft); flex: 1; min-height: 120px; }
+.picker-list label { display: flex; gap: 10px; align-items: center; padding: 8px 16px; cursor: pointer; border-bottom: 1px solid var(--rule-soft); }
+.picker-list label:hover { background: var(--cream); }
+.picker-list .nm { font-family: 'Playfair Display', serif; font-weight: 600; }
+.picker-list .em { font-size: 13px; color: var(--ink-mute); }
+.picker-list .none { padding: 14px 16px; font-style: italic; color: var(--ink-mute); }
+.picker .foot { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 16px; }
 </style>
 <!-- Home-screen app and icons (IJ, 2026-11-02): "Add to Home Screen" opens the site full-screen as "Grass Bank". -->
 <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
@@ -554,6 +631,13 @@ button.btn:disabled { opacity: 0.5; cursor: not-allowed; }
   <!-- Authenticated feed -->
   <div id="feedState" class="hidden">
 
+    <!-- Notebook | Conversations (2026-11-05) -->
+    <div class="bts-tabs" role="tablist">
+      <button type="button" class="on" data-view="notes" role="tab">Notebook</button>
+      <button type="button" data-view="convos" role="tab">Conversations<span class="unread-badge hidden" id="convoBadge"></span></button>
+    </div>
+
+    <div id="notesView">
     <!-- Composer (admin only) -->
     <div id="composerWrap" class="hidden">
       <div class="composer">
@@ -579,11 +663,48 @@ button.btn:disabled { opacity: 0.5; cursor: not-allowed; }
     <div class="feed-heading">— The notebook —</div>
 
     <div id="feedList"></div>
+    </div>
+
+    <!-- Private conversations (2026-11-05). Only the people in one can read
+         it; the moderator is in all of them. -->
+    <div id="convosView" class="hidden">
+      <div id="convoListWrap">
+        <div class="convo-actions">
+          <span class="note" id="convoNote"></span>
+          <button type="button" class="btn" id="newConvoBtn">New conversation</button>
+        </div>
+        <ul class="convo-list" id="convoList"></ul>
+      </div>
+      <div id="threadView" class="hidden">
+        <div class="thread-head">
+          <button type="button" class="btn ghost" id="threadBack" aria-label="All conversations">←</button>
+          <div class="grow"><div class="thread-title" id="threadTitle"></div><div class="thread-members" id="threadMembers"></div></div>
+          <button type="button" class="btn ghost hidden" id="threadDelete">Delete</button>
+        </div>
+        <div class="thread-msgs" id="threadMsgs"></div>
+        <div class="thread-composer">
+          <textarea id="msgText" maxlength="2000" placeholder="Write a message…"></textarea>
+          <div class="toolbar"><span class="count" id="msgCount">0 / 2000</span><button type="button" class="btn" id="msgSend">Send</button></div>
+        </div>
+      </div>
+    </div>
   </div>
 
 </main>
 
 <div class="toast" id="toast"></div>
+
+<!-- New conversation (moderator only) -->
+<div class="picker-backdrop hidden" id="pickerWrap">
+  <div class="picker" role="dialog" aria-labelledby="pickerTitle">
+    <h3 id="pickerTitle">New conversation</h3>
+    <div class="hint">Pick one subscriber for a one-to-one, or several for a group.</div>
+    <input type="search" id="pickerSearch" placeholder="Search by name or email">
+    <div class="picker-list" id="pickerList"></div>
+    <input type="text" id="pickerGroupTitle" class="hidden" maxlength="80" placeholder="Group name (optional)">
+    <div class="foot"><button type="button" class="btn ghost" id="pickerCancel">Cancel</button><button type="button" class="btn" id="pickerStart" disabled>Start</button></div>
+  </div>
+</div>
 
 <!-- Firebase Modular SDK (13.0.0) -->
 <script type="module">
@@ -595,7 +716,7 @@ import {
 } from 'https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js';
 import {
   getFirestore, collection, doc, getDoc, getDocs,
-  addDoc, updateDoc, query, where, orderBy, limit,
+  addDoc, updateDoc, deleteDoc, query, where, orderBy, limit, limitToLast,
   onSnapshot, serverTimestamp, increment, writeBatch
 } from 'https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js';
 import {
@@ -754,10 +875,12 @@ const CT_EDITOR_UIDS = new Set([
   'A8OVKwU4s6ZutaWiEnk3IUKrDtz2',   // ivan@cricketimes.com  — "IJ"
   'u9PUjBqW0MVnEFQxccQmyfZTUCI2'    // ivan@thegrassbank.com — "IV"
 ]);
+// [2026-11-05] Either editor account also shows 'Moderator' beside the
+// pseudonym, on posts, replies and conversations.
 function authorMarkup(name, uid) {
   const safe = escapeHtml(name || 'Member');
   return (uid && CT_EDITOR_UIDS.has(uid))
-    ? `<span class="author-ct">${safe}</span>`
+    ? `<span class="author-ct">${safe}</span><span class="mod-badge">Moderator</span>`
     : safe;
 }
 
@@ -769,6 +892,7 @@ onAuthStateChanged(auth, async user => {
     currentUser = null; currentRole = null;
     $('userPill').classList.add('hidden');
     if (postsUnsub) { postsUnsub(); postsUnsub = null; }
+    stopConversations();
     // Tear down any per-post reply listeners that were attached while signed in.
     replyUnsubs.forEach(unsub => unsub());
     replyUnsubs.clear();
@@ -808,7 +932,9 @@ onAuthStateChanged(auth, async user => {
     showState('feedState');
     $('composerWrap').classList.toggle('hidden', !verdict.isAdmin);
     subscribeToFeed();
+    startConversations();
   } else {
+    stopConversations();
     showState('noAccessState');
   }
 });
@@ -1346,6 +1472,374 @@ async function deleteReply(id) {
     toast('Delete failed: ' + e.message);
   }
 }
+
+/* =====================================================================
+   CONVERSATIONS  (2026-11-05, IJ)
+
+   Private conversations under btsConversations/{cid}, messages in its
+   `messages` subcollection. Both editor accounts (CT_EDITOR_UIDS, shown as
+   "Moderator") are members of every conversation; nobody can read one they
+   are not in (firestore.rules).
+     • A subscriber can start only their one-to-one with the moderator. Its
+       id is fixed, d_<their uid>, so there is exactly one per reader.
+     • The moderator can open that same one-to-one with any subscriber, or
+       start a group. Subscribers take part in groups but cannot start one.
+   A new conversation is written together with its first message, so empty
+   ones never exist. Unread = lastAt after my read mark and not by me; the
+   count shows on the Conversations tab.
+   ===================================================================== */
+const MSG_MAX = 2000;
+const MOD_UIDS = [...CT_EDITOR_UIDS];
+let convos = [];               // [{ id, ...data }], newest first
+let convosUnsub = null;
+let threadUnsub = null;
+let openCid = null;            // conversation on screen
+let pendingConvo = null;       // not written yet: created with its first message
+let readers = null;            // moderator's picker list, loaded once
+
+const isModerator = () => !!currentUser && CT_EDITOR_UIDS.has(currentUser.uid);
+const tsMs = t => (t && typeof t.toMillis === 'function') ? t.toMillis() : 0;
+
+function isUnread(c) {
+  const me = currentUser && currentUser.uid;
+  if (!me || !c.lastBy || c.lastBy === me) return false;
+  return tsMs(c.lastAt) > tsMs((c.reads || {})[me]);
+}
+
+function startConversations() {
+  if (!currentUser) return;
+  stopConversations();
+  $('convoNote').textContent = isModerator()
+    ? 'Private: only the people in a conversation can read it.'
+    : 'Private: only you and the moderator can read your conversation.';
+  $('newConvoBtn').textContent = isModerator() ? 'New conversation' : 'Message the moderator';
+  const q = query(
+    collection(db, 'btsConversations'),
+    where('members', 'array-contains', currentUser.uid),
+    orderBy('lastAt', 'desc'),
+    limit(100)
+  );
+  convosUnsub = onSnapshot(q, async (snap) => {
+    convos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    await resolveProfileNames(convos.flatMap(c => c.members || []));
+    renderConvoList();
+    updateUnreadBadge();
+    if (openCid && !pendingConvo) {
+      const c = convos.find(x => x.id === openCid);
+      if (c) { renderThreadHead(c); markRead(c); } else closeThread();
+    }
+  }, (err) => {
+    console.error('Conversations listener error:', err);
+    $('convoList').innerHTML = `<li class="empty-feed">Could not load conversations right now. Please refresh in a moment.</li>`;
+  });
+}
+
+function stopConversations() {
+  if (convosUnsub) { convosUnsub(); convosUnsub = null; }
+  if (threadUnsub) { threadUnsub(); threadUnsub = null; }
+  convos = []; openCid = null; pendingConvo = null;
+  const b = $('convoBadge'); if (b) b.classList.add('hidden');
+}
+
+function updateUnreadBadge() {
+  const n = convos.filter(isUnread).length;
+  const b = $('convoBadge');
+  b.textContent = n;
+  b.classList.toggle('hidden', n === 0);
+}
+
+/* Names. Readers see the moderator as "Moderator", never which account. */
+function memberNames(c) {
+  const me = currentUser.uid;
+  const others = (c.members || []).filter(u => u !== me && !CT_EDITOR_UIDS.has(u)).map(u => bylineFor(u));
+  if (!isModerator()) others.push('Moderator');
+  return others;
+}
+function convoTitle(c) {
+  if (c.kind === 'group') return c.title || memberNames(c).join(', ') || 'Group';
+  return isModerator() ? bylineFor(c.subject) : 'Moderator';
+}
+
+function renderConvoList() {
+  const list = $('convoList');
+  if (!convos.length) {
+    list.innerHTML = `<li class="empty-feed">${isModerator()
+      ? 'No conversations yet.'
+      : 'No conversations yet. Message the moderator to start one.'}</li>`;
+    return;
+  }
+  list.innerHTML = convos.map(c => {
+    const who = convoTitle(c) + (c.kind === 'group' ? ' · group' : '');
+    const lastBy = c.lastBy ? (c.lastBy === currentUser.uid ? 'You' : (CT_EDITOR_UIDS.has(c.lastBy) ? 'Moderator' : bylineFor(c.lastBy))) : '';
+    return `<li class="convo-item${isUnread(c) ? ' unread' : ''}" data-cid="${escapeHtml(c.id)}">
+      <span class="who">${escapeHtml(who)}</span><span class="when">${escapeHtml(timeAgo(c.lastAt))}</span>
+      <span class="last">${lastBy ? escapeHtml(lastBy) + ': ' : ''}${escapeHtml(c.lastText || '')}</span></li>`;
+  }).join('');
+}
+$('convoList').addEventListener('click', e => {
+  const li = e.target.closest('.convo-item');
+  if (li) openThread(li.dataset.cid);
+});
+
+/* ---------- tabs ---------- */
+function showView(v) {
+  document.querySelectorAll('.bts-tabs button').forEach(b => b.classList.toggle('on', b.dataset.view === v));
+  $('notesView').classList.toggle('hidden', v !== 'notes');
+  $('convosView').classList.toggle('hidden', v !== 'convos');
+  try { history.replaceState(null, '', v === 'convos' ? '#conversations' : location.pathname + location.search); } catch (e) { /* fine */ }
+}
+document.querySelectorAll('.bts-tabs button').forEach(b => b.addEventListener('click', () => showView(b.dataset.view)));
+if (location.hash === '#conversations') showView('convos');
+
+/* ---------- a conversation ---------- */
+function renderThreadHead(c) {
+  $('threadTitle').textContent = convoTitle(c);
+  const names = memberNames(c);
+  $('threadMembers').textContent = c.kind === 'group'
+    ? 'With ' + names.join(', ')
+    : (isModerator() ? 'One-to-one' : 'Just you and the moderator');
+  $('threadDelete').classList.toggle('hidden', !isModerator() || !!pendingConvo);
+}
+
+function openThread(cid, pending) {
+  if (threadUnsub) { threadUnsub(); threadUnsub = null; }
+  openCid = cid;
+  pendingConvo = pending || null;
+  $('convoListWrap').classList.add('hidden');
+  $('threadView').classList.remove('hidden');
+  $('threadMsgs').innerHTML = '';
+  const c = pendingConvo || convos.find(x => x.id === cid);
+  if (c) renderThreadHead(c);
+  if (pendingConvo) {
+    $('threadMsgs').innerHTML = `<div class="thread-empty">${isModerator()
+      ? 'Nothing sent yet. The conversation starts with your first message.'
+      : 'Write to the moderator. Only the two of you can read this.'}</div>`;
+    $('msgText').focus();
+    return;
+  }
+  if (c) markRead(c);
+  const q = query(collection(db, 'btsConversations', cid, 'messages'), orderBy('timestamp'), limitToLast(200));
+  threadUnsub = onSnapshot(q, async (snap) => {
+    const msgs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    await resolveProfileNames(msgs.map(m => m.authorUid));
+    renderMessages(msgs);
+  }, (err) => {
+    console.error('Messages listener error:', err);
+    $('threadMsgs').innerHTML = `<div class="thread-empty">Could not load this conversation.</div>`;
+  });
+}
+
+let shownMsgs = [];
+function renderMessages(msgs) {
+  shownMsgs = msgs;
+  const box = $('threadMsgs');
+  const atBottom = window.innerHeight + window.scrollY >= document.body.scrollHeight - 80;
+  if (!msgs.length) { box.innerHTML = `<div class="thread-empty">No messages.</div>`; return; }
+  const me = currentUser.uid;
+  box.innerHTML = msgs.map(m => {
+    const mine = m.authorUid === me;
+    const canDel = mine || isModerator();
+    return `<div class="msg${mine ? ' mine' : ''}" data-mid="${escapeHtml(m.id)}">
+      <div class="meta"><span class="name">${authorMarkup(bylineFor(m.authorUid), m.authorUid)}</span>
+        <span class="when">${escapeHtml(timeAgo(m.timestamp))}</span>
+        ${canDel ? `<button type="button" class="del" data-del="${escapeHtml(m.id)}" title="Delete">×</button>` : ''}</div>
+      <div class="text">${escapeHtml(m.text || '')}</div></div>`;
+  }).join('');
+  if (atBottom) window.scrollTo(0, document.body.scrollHeight);
+}
+
+function closeThread() {
+  if (threadUnsub) { threadUnsub(); threadUnsub = null; }
+  openCid = null; pendingConvo = null;
+  $('threadView').classList.add('hidden');
+  $('convoListWrap').classList.remove('hidden');
+}
+$('threadBack').addEventListener('click', closeThread);
+
+let _readTimer = null;
+function markRead(c) {
+  if (!c || !isUnread(c)) return;
+  clearTimeout(_readTimer);
+  _readTimer = setTimeout(() => {
+    updateDoc(doc(db, 'btsConversations', c.id), { [`reads.${currentUser.uid}`]: serverTimestamp() })
+      .catch(e => console.warn('Could not mark as read:', e));
+  }, 400);
+}
+
+/* ---------- sending ---------- */
+$('msgText').addEventListener('input', e => {
+  const n = e.target.value.length;
+  $('msgCount').textContent = `${n} / ${MSG_MAX}`;
+  $('msgCount').classList.toggle('over', n > MSG_MAX);
+});
+$('msgText').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); sendMessage(); }
+});
+$('msgSend').addEventListener('click', sendMessage);
+
+async function sendMessage() {
+  const text = $('msgText').value.trim();
+  if (!text || !openCid || !currentUser) return;
+  if (text.length > MSG_MAX) { toast('Message too long'); return; }
+  const me = currentUser.uid;
+  $('msgSend').disabled = true;
+  try {
+    const cref = doc(db, 'btsConversations', openCid);
+    const mref = doc(collection(cref, 'messages'));
+    const last = text.slice(0, 140);
+    const batch = writeBatch(db);
+    if (pendingConvo) {
+      const data = {
+        kind: pendingConvo.kind,
+        members: pendingConvo.members,
+        createdBy: me,
+        createdAt: serverTimestamp(),
+        lastAt: serverTimestamp(),
+        lastText: last,
+        lastBy: me,
+        reads: { [me]: serverTimestamp() }
+      };
+      if (pendingConvo.kind === 'direct') data.subject = pendingConvo.subject;
+      if (pendingConvo.kind === 'group' && pendingConvo.title) data.title = pendingConvo.title;
+      batch.set(cref, data);
+    } else {
+      batch.update(cref, { lastAt: serverTimestamp(), lastText: last, lastBy: me, [`reads.${me}`]: serverTimestamp() });
+    }
+    batch.set(mref, { authorUid: me, text, timestamp: serverTimestamp() });
+    await batch.commit();
+    $('msgText').value = '';
+    $('msgCount').textContent = `0 / ${MSG_MAX}`;
+    if (pendingConvo) { const cid = openCid; pendingConvo = null; openThread(cid); }
+  } catch (e) {
+    console.error(e);
+    toast('Could not send: ' + e.message);
+  } finally {
+    $('msgSend').disabled = false;
+  }
+}
+
+$('threadMsgs').addEventListener('click', async e => {
+  const id = e.target.dataset && e.target.dataset.del;
+  if (!id || !openCid) return;
+  if (!confirm('Delete this message?')) return;
+  // If it was the newest message, the list preview still quotes it: replace
+  // that with a note in the same batch, so deleted words do not linger there.
+  const wasLast = shownMsgs.length && shownMsgs[shownMsgs.length - 1].id === id;
+  try {
+    const b = writeBatch(db);
+    b.delete(doc(db, 'btsConversations', openCid, 'messages', id));
+    if (wasLast) b.update(doc(db, 'btsConversations', openCid), {
+      lastAt: serverTimestamp(), lastText: '(message deleted)', lastBy: currentUser.uid,
+      [`reads.${currentUser.uid}`]: serverTimestamp()
+    });
+    await b.commit();
+  }
+  catch (err) { console.error(err); toast('Delete failed: ' + err.message); }
+});
+
+$('threadDelete').addEventListener('click', async () => {
+  if (!isModerator() || !openCid) return;
+  if (!confirm('Delete this whole conversation for everyone in it?')) return;
+  const cid = openCid;
+  try {
+    const msgs = await getDocs(collection(db, 'btsConversations', cid, 'messages'));
+    const docs = msgs.docs;
+    for (let i = 0; i < docs.length; i += 400) {
+      const b = writeBatch(db);
+      docs.slice(i, i + 400).forEach(d => b.delete(d.ref));
+      await b.commit();
+    }
+    await deleteDoc(doc(db, 'btsConversations', cid));
+    closeThread();
+    toast('Conversation deleted');
+  } catch (err) { console.error(err); toast('Delete failed: ' + err.message); }
+});
+
+/* ---------- starting one ---------- */
+function directFor(uid) {
+  const cid = 'd_' + uid;
+  if (convos.some(c => c.id === cid)) { openThread(cid); return; }
+  openThread(cid, { kind: 'direct', subject: uid, members: [uid, ...MOD_UIDS] });
+}
+
+$('newConvoBtn').addEventListener('click', () => {
+  if (!currentUser) return;
+  if (!isModerator()) { directFor(currentUser.uid); return; }
+  openPicker();
+});
+
+/* The moderator's picker: paid subscribers (Stripe active/past_due, or a
+   complimentary/admin role), by pseudonym, with the email to tell people
+   apart. Reads users/, subscriptions/ and settings/userTypes, which are
+   admin-only. */
+const toKey = e => (window.CTFeatureFlags && window.CTFeatureFlags.emailToKey)
+  ? window.CTFeatureFlags.emailToKey(e) : String(e || '').toLowerCase().replace(/[.@]/g, '_');
+
+async function loadReaders() {
+  const [users, subs, types] = await Promise.all([
+    getDocs(collection(db, 'users')),
+    getDocs(collection(db, 'subscriptions')),
+    getDoc(doc(db, 'settings', 'userTypes'))
+  ]);
+  const paid = new Set(subs.docs.filter(d => ['active', 'past_due'].includes((d.data() || {}).status)).map(d => d.id));
+  const roles = types.exists() ? (types.data() || {}) : {};
+  const list = users.docs
+    .map(d => ({ uid: d.id, email: (d.data() || {}).email || '' }))
+    .filter(u => !CT_EDITOR_UIDS.has(u.uid))
+    .filter(u => { const k = toKey(u.email); return paid.has(k) || ['paidSubscriber', 'admin', 'superadmin'].includes(roles[k]); });
+  await resolveProfileNames(list.map(u => u.uid));
+  list.forEach(u => { u.name = bylineFor(u.uid); });
+  list.sort((a, b) => a.name.localeCompare(b.name));
+  return list;
+}
+
+const picked = new Set();
+async function openPicker() {
+  picked.clear();
+  $('pickerSearch').value = ''; $('pickerGroupTitle').value = '';
+  $('pickerGroupTitle').classList.add('hidden'); $('pickerStart').disabled = true;
+  $('pickerWrap').classList.remove('hidden');
+  $('pickerList').innerHTML = '<div class="none">Loading subscribers…</div>';
+  try {
+    if (!readers) readers = await loadReaders();
+    renderPicker();
+    $('pickerSearch').focus();
+  } catch (e) {
+    console.error(e);
+    $('pickerList').innerHTML = `<div class="none">Could not load subscribers: ${escapeHtml(e.message)}</div>`;
+  }
+}
+function renderPicker() {
+  const q = $('pickerSearch').value.trim().toLowerCase();
+  const rows = (readers || []).filter(u => !q || u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q));
+  $('pickerList').innerHTML = rows.length ? rows.map(u => `<label>
+      <input type="checkbox" data-uid="${escapeHtml(u.uid)}"${picked.has(u.uid) ? ' checked' : ''}>
+      <span><span class="nm">${escapeHtml(u.name)}</span><br><span class="em">${escapeHtml(u.email)}</span></span></label>`).join('')
+    : '<div class="none">No paid subscribers match.</div>';
+}
+function pickerChanged() {
+  $('pickerStart').disabled = picked.size === 0;
+  $('pickerStart').textContent = picked.size > 1 ? `Start group (${picked.size})` : 'Start';
+  $('pickerGroupTitle').classList.toggle('hidden', picked.size < 2);
+}
+$('pickerSearch').addEventListener('input', renderPicker);
+$('pickerList').addEventListener('change', e => {
+  const uid = e.target.dataset && e.target.dataset.uid;
+  if (!uid) return;
+  if (e.target.checked) picked.add(uid); else picked.delete(uid);
+  pickerChanged();
+});
+$('pickerCancel').addEventListener('click', () => $('pickerWrap').classList.add('hidden'));
+$('pickerWrap').addEventListener('click', e => { if (e.target === $('pickerWrap')) $('pickerWrap').classList.add('hidden'); });
+$('pickerStart').addEventListener('click', () => {
+  const ids = [...picked];
+  if (!ids.length) return;
+  $('pickerWrap').classList.add('hidden');
+  if (ids.length === 1) { directFor(ids[0]); return; }
+  if (ids.length > 50) { toast('A group can have at most 50 subscribers'); return; }
+  const cref = doc(collection(db, 'btsConversations'));
+  openThread(cref.id, { kind: 'group', title: $('pickerGroupTitle').value.trim().slice(0, 80), members: [...ids, ...MOD_UIDS] });
+});
 </script>
 
 <footer data-ct-nav="footer"></footer>
