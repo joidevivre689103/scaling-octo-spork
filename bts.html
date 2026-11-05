@@ -1629,7 +1629,9 @@ function openThread(cid, pending) {
   });
 }
 
+let shownMsgs = [];
 function renderMessages(msgs) {
+  shownMsgs = msgs;
   const box = $('threadMsgs');
   const atBottom = window.innerHeight + window.scrollY >= document.body.scrollHeight - 80;
   if (!msgs.length) { box.innerHTML = `<div class="thread-empty">No messages.</div>`; return; }
@@ -1720,7 +1722,18 @@ $('threadMsgs').addEventListener('click', async e => {
   const id = e.target.dataset && e.target.dataset.del;
   if (!id || !openCid) return;
   if (!confirm('Delete this message?')) return;
-  try { await deleteDoc(doc(db, 'btsConversations', openCid, 'messages', id)); }
+  // If it was the newest message, the list preview still quotes it: replace
+  // that with a note in the same batch, so deleted words do not linger there.
+  const wasLast = shownMsgs.length && shownMsgs[shownMsgs.length - 1].id === id;
+  try {
+    const b = writeBatch(db);
+    b.delete(doc(db, 'btsConversations', openCid, 'messages', id));
+    if (wasLast) b.update(doc(db, 'btsConversations', openCid), {
+      lastAt: serverTimestamp(), lastText: '(message deleted)', lastBy: currentUser.uid,
+      [`reads.${currentUser.uid}`]: serverTimestamp()
+    });
+    await b.commit();
+  }
   catch (err) { console.error(err); toast('Delete failed: ' + err.message); }
 });
 
