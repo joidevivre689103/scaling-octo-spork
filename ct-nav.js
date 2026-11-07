@@ -59,7 +59,11 @@
   // are precisely those who cannot subscribe — gating it would hide it from them.
   // It sits after Manage Subscription, which means that for a signed-out or
   // non-paying reader (Manage hidden) it renders immediately after Subscribe.
+  //
+  // 'Pages' [2026-11-07] is the guide to every page on the site (pages.html),
+  // first in the extras so it sits straight after the content links.
   var FOOTER_EXTRAS = [
+    { href: '/pages.html',                 label: 'Pages' },
     { href: '/bts.html',                   label: 'Behind the Scenes' },
     { href: '/about.html',                 label: 'About' },
     { href: 'mailto:contact@thegrassbank.com', label: 'Contact' },
