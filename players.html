@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!-- CT_7G_INJECT:START (auto-injected by deploy tool — do not edit by hand) -->
+<style id="ct-7g-hide">body{visibility:hidden}</style>
+<script>window.CT_PAGE_ID="players";</script>
+<script src="/feature-flags.js"></script>
+<script>setTimeout(function(){if(!window.__ctFlagsLoaded){location.replace("/comingsoon.html");}},2500);</script>
+<script src="/auth-status.js"></script>
+<script src="/ct-tracker.js" async></script>
+<!-- CT_7G_INJECT:END -->
+<script src="/prelaunch-guard.js"></script>
+<script src="/ct-appcheck.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+<title>Players — The Grass Bank™</title>
+<!-- Players (2026-11-07, IJ). FREE page: every Test cricketer, each linking
+     to his profile (/player.html?id=<pid>). The list is ONE public document,
+     playerIndex/all, written by super-fortnight's profiles-publish.yml with
+     the profiles: { json: '[[pid, name, full name, country, first year,
+     last year, Tests, has a written profile 0/1], …]', count, asOf }.
+     Deliberately only who and when — no runs or wickets — so the free list
+     is not a copy of the stats pages. The intro comes from /ct-pages.js
+     (card "players"), the same text as this page's card on pages.html.
+     NEW PAGE CHECKLIST: "players" must be in the Free bucket of
+     settings/featureGates (Admin → Access Tiers) before this goes live. -->
+<meta name="description" content="Every Test cricketer since 1877, each with a page of his own: his career in figures and, for many, a short profile.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="The Grass Bank">
+<meta property="og:title" content="Players — The Grass Bank">
+<meta property="og:description" content="Every Test cricketer since 1877, each with a page of his own.">
+<meta property="og:url" content="https://thegrassbank.com/players.html">
+<meta property="og:image" content="https://thegrassbank.com/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Players — The Grass Bank">
+<meta name="twitter:description" content="Every Test cricketer since 1877, each with a page of his own.">
+<meta name="twitter:image" content="https://thegrassbank.com/og-image.png">
+<link rel="canonical" href="https://thegrassbank.com/players.html">
+<link rel="stylesheet" href="/fonts/fonts-opsz.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#faf9f7;--surface:#ffffff;--surface2:#f5f4f2;--surface3:#eceae6;
+  --border:#d8d4cc;--border2:#c8c4bc;
+  --text:#1a1a18;--text2:#4a4a46;--text3:#6f6f69;
+  --accent:#a03020;--accent-hover:#801810;--accent-dim:rgba(160,48,32,0.08);
+  --gold:#8A6508;
+}
+body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-height:100vh;overflow-x:hidden}
+.main{max-width:980px;margin:0 auto;padding:28px 32px 64px}
+.page-title{font-family:'DM Serif Display',serif;font-size:34px;letter-spacing:-0.4px;margin-bottom:8px}
+.filters{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:10px;margin:8px 0 10px;align-items:end}
+.filters label{display:block;font-family:'Inter',sans-serif;font-size:10.5px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--text3);margin-bottom:5px}
+.filters input,.filters select{width:100%;font:inherit;font-size:15px;padding:9px 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text)}
+.filters input:focus,.filters select:focus{outline:2px solid var(--accent);outline-offset:-1px}
+.subrow{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:6px 0 12px;font-family:'Inter',sans-serif;font-size:13px;color:var(--text3)}
+.subrow label{display:flex;gap:6px;align-items:center;cursor:pointer;color:var(--text2)}
+.letters{display:flex;flex-wrap:wrap;gap:3px;margin:0 0 14px}
+.letters button{font-family:'Inter',sans-serif;font-size:12px;font-weight:600;min-width:28px;padding:5px 0;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text2);cursor:pointer}
+.letters button.on{background:var(--text);color:#fff;border-color:var(--text)}
+.letters button:disabled{opacity:.35;cursor:default}
+.list{list-style:none;border:1px solid var(--border);border-radius:11px;background:var(--surface);overflow:hidden}
+.row{display:grid;grid-template-columns:1fr auto;gap:2px 16px;padding:11px 16px;border-top:1px solid var(--surface3)}
+.row:first-child{border-top:none}
+.row:hover{background:var(--surface2)}
+.row a{color:var(--text);text-decoration:none;font-family:'DM Serif Display',serif;font-size:19px;line-height:1.2}
+.row a:hover{color:var(--accent)}
+.row .full{grid-column:1;font-size:13.5px;color:var(--text3)}
+.row .meta{grid-column:2;grid-row:1 / span 2;align-self:center;text-align:right;font-family:'Inter',sans-serif;font-size:12.5px;color:var(--text2);white-space:nowrap}
+.row .meta b{font-weight:600}
+.badge{display:inline-block;margin-left:8px;vertical-align:3px;padding:2px 7px;border-radius:10px;font-family:'Inter',sans-serif;font-size:10px;font-weight:700;letter-spacing:.3px;color:var(--gold);background:rgba(138,101,8,0.08)}
+.more{display:block;margin:16px auto 0;font-family:'Inter',sans-serif;font-size:13px;font-weight:700;padding:10px 18px;border-radius:7px;border:1.5px solid var(--accent);color:var(--accent);background:var(--surface);cursor:pointer}
+.more:hover{background:var(--accent);color:#fff}
+.msg{font-size:16px;color:var(--text2);line-height:1.6;padding:22px 16px}
+.msg a{color:var(--accent)}
+@media(max-width:760px){
+  .main{padding:20px 16px 50px}
+  .page-title{font-size:28px}
+  .filters{grid-template-columns:1fr 1fr}
+  .filters .search{grid-column:1 / -1}
+  .row{padding:10px 12px;grid-template-columns:1fr}
+  .row .meta{grid-column:1;grid-row:auto;text-align:left;white-space:normal;margin-top:3px}
+  .letters button{min-width:26px}
+  .row a{font-size:17px}
+}
+</style>
+<!-- Home-screen app and icons (IJ, 2026-11-02): "Add to Home Screen" opens the site full-screen as "Grass Bank". -->
+<link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Grass Bank">
+<meta name="theme-color" content="#fbf8f1">
+</head>
+<body>
+<header data-ct-nav="masthead"></header>
+<nav data-ct-nav="primary"></nav>
+<main class="main">
+  <h1 class="page-title">Players</h1>
+  <div data-ct-intro="players"></div>
+
+  <div class="filters">
+    <div class="search"><label for="q">Search</label><input id="q" type="search" placeholder="Name, e.g. Tendulkar" autocomplete="off"></div>
+    <div><label for="country">Country</label><select id="country"><option value="">All countries</option></select></div>
+    <div><label for="decade">Started</label><select id="decade"><option value="">Any decade</option></select></div>
+    <div><label for="sort">Sort</label><select id="sort">
+      <option value="az">A to Z</option>
+      <option value="tests">Most Tests</option>
+      <option value="first">First to play</option>
+      <option value="last">Most recent</option>
+    </select></div>
+  </div>
+  <div class="letters" id="letters" aria-label="Surname starts with"></div>
+  <div class="subrow">
+    <span id="count"></span>
+    <label><input type="checkbox" id="written"> Only players with a written profile</label>
+  </div>
+  <ul class="list" id="list"><li class="msg">Loading the players…</li></ul>
+  <button type="button" class="more" id="more" hidden>Show more</button>
+</main>
+<footer data-ct-nav="footer"></footer>
+<script>
+(function () {
+  'use strict';
+  var PAGE = 100;
+  var all = [], shown = PAGE, letter = '';
+  var $ = function (id) { return document.getElementById(id); };
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  // Ignore accents and punctuation when searching ("Muralitharan", "D'Oliveira").
+  function fold(s) { return String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9 ]/g, ''); }
+  function surname(name) { var t = String(name || '').trim().split(/\s+/); return t[t.length - 1] || ''; }
+
+  function read() {
+    var p = new URLSearchParams(location.search);
+    $('q').value = p.get('q') || '';
+    $('country').value = p.get('country') || '';
+    $('decade').value = p.get('from') || '';
+    $('sort').value = p.get('sort') || 'az';
+    $('written').checked = p.get('written') === '1';
+    letter = (p.get('l') || '').toUpperCase().slice(0, 1);
+  }
+  function write() {
+    var p = new URLSearchParams();
+    if ($('q').value.trim()) p.set('q', $('q').value.trim());
+    if ($('country').value) p.set('country', $('country').value);
+    if ($('decade').value) p.set('from', $('decade').value);
+    if ($('sort').value !== 'az') p.set('sort', $('sort').value);
+    if ($('written').checked) p.set('written', '1');
+    if (letter) p.set('l', letter);
+    var qs = p.toString();
+    try { history.replaceState(null, '', location.pathname + (qs ? '?' + qs : '')); } catch (e) { /* fine */ }
+  }
+
+  function filtered(ignoreLetter) {
+    var q = fold($('q').value).trim(), c = $('country').value, d = $('decade').value, w = $('written').checked;
+    var terms = q ? q.split(/\s+/) : [];
+    return all.filter(function (p) {
+      if (c && p.country !== c) return false;
+      if (d && Math.floor(p.first / 10) * 10 !== +d) return false;
+      if (w && !p.profile) return false;
+      if (!ignoreLetter && letter && p.initial !== letter) return false;
+      for (var i = 0; i < terms.length; i++) if (p.search.indexOf(terms[i]) === -1) return false;
+      return true;
+    });
+  }
+  function sorted(rows) {
+    var s = $('sort').value, az = function (a, b) { return a.sortKey < b.sortKey ? -1 : a.sortKey > b.sortKey ? 1 : 0; };
+    return rows.slice().sort(
+      s === 'tests' ? function (a, b) { return b.tests - a.tests || az(a, b); } :
+      s === 'first' ? function (a, b) { return a.first - b.first || a.pid - b.pid; } :
+      s === 'last'  ? function (a, b) { return b.last - a.last || b.first - a.first || az(a, b); } : az);
+  }
+
+  function render() {
+    var base = filtered(true), have = {};
+    base.forEach(function (p) { have[p.initial] = 1; });
+    $('letters').innerHTML = '<button type="button" data-l=""' + (letter ? '' : ' class="on"') + '>All</button>' +
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(function (L) {
+        return '<button type="button" data-l="' + L + '"' + (L === letter ? ' class="on"' : '') + (have[L] ? '' : ' disabled') + '>' + L + '</button>';
+      }).join('');
+    var rows = sorted(filtered(false));
+    $('count').textContent = rows.length.toLocaleString('en-GB') + (rows.length === 1 ? ' player' : ' players');
+    if (!rows.length) {
+      $('list').innerHTML = '<li class="msg">No players match. Try fewer filters.</li>';
+      $('more').hidden = true;
+      return;
+    }
+    $('list').innerHTML = rows.slice(0, shown).map(function (p) {
+      var yrs = p.first === p.last ? p.first : p.first + '–' + p.last;
+      return '<li class="row"><a href="/player.html?id=' + p.pid + '">' + esc(p.name) + '</a>' +
+        '<span class="meta">' + esc(p.country) + ' · ' + yrs + ' · <b>' + p.tests + '</b> Test' + (p.tests === 1 ? '' : 's') +
+        (p.profile ? '<span class="badge">Profile</span>' : '') + '</span>' +
+        (p.full && p.full !== p.name ? '<span class="full">' + esc(p.full) + '</span>' : '') + '</li>';
+    }).join('');
+    $('more').hidden = rows.length <= shown;
+    $('more').textContent = 'Show ' + Math.min(PAGE, rows.length - shown) + ' more \u00b7 ' + (rows.length - shown).toLocaleString('en-GB') + ' left';
+  }
+  function changed() { shown = PAGE; write(); render(); }
+
+  ['country', 'decade', 'sort', 'written'].forEach(function (id) { $(id).addEventListener('change', changed); });
+  var t;
+  $('q').addEventListener('input', function () { clearTimeout(t); t = setTimeout(changed, 150); });
+  $('letters').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b || b.disabled) return;
+    letter = b.getAttribute('data-l'); changed();
+  });
+  $('more').addEventListener('click', function () { shown += PAGE; render(); });
+
+  function message(html) { $('list').innerHTML = '<li class="msg">' + html + '</li>'; $('more').hidden = true; }
+
+  (async function init() {
+    try {
+      var app = await window.CTFeatureFlags.firebaseReady;
+      var fs = await import('https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js');
+      var snap = await fs.getDoc(fs.doc(fs.getFirestore(app), 'playerIndex', 'all'));
+      if (!snap.exists()) { message('The list of players is not ready yet. Please come back soon.'); return; }
+      var raw = JSON.parse(snap.data().json || '[]');
+      all = raw.map(function (r) {
+        var name = r[1] || '', full = r[2] || '';
+        var sur = surname(name);
+        return { pid: r[0], name: name, full: full, country: r[3] || '', first: r[4] || 0, last: r[5] || 0, tests: r[6] || 0, profile: !!r[7],
+                 initial: fold(sur).charAt(0).toUpperCase(), sortKey: fold(sur) + ' ' + fold(name),
+                 search: fold(name + ' ' + full) };
+      });
+      var countries = {}, decades = {};
+      all.forEach(function (p) { countries[p.country] = 1; if (p.first) decades[Math.floor(p.first / 10) * 10] = 1; });
+      Object.keys(countries).filter(Boolean).sort().forEach(function (c) { $('country').insertAdjacentHTML('beforeend', '<option>' + esc(c) + '</option>'); });
+      Object.keys(decades).sort().forEach(function (d) { $('decade').insertAdjacentHTML('beforeend', '<option value="' + d + '">' + d + 's</option>'); });
+      read();
+      render();
+    } catch (e) {
+      console.warn('[players] not loaded:', e && e.message);
+      message('The list of players is not available right now. Please try again later.');
+    }
+  })();
+})();
+</script>
+<script src="/ct-nav.js"></script>
+<script src="/ct-pages.js"></script>
+</body>
+</html>
