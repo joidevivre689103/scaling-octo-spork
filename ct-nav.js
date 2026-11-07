@@ -64,6 +64,7 @@
   // first in the extras so it sits straight after the content links.
   var FOOTER_EXTRAS = [
     { href: '/pages.html',                 label: 'Pages' },
+    { href: '/players.html',               label: 'Players' },
     { href: '/bts.html',                   label: 'Behind the Scenes' },
     { href: '/about.html',                 label: 'About' },
     { href: 'mailto:contact@thegrassbank.com', label: 'Contact' },
