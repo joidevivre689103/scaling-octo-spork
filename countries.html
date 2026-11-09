@@ -2521,7 +2521,7 @@ function attachH2HUrlState() {
   };
   CTUrlState.attach({
     root: document.getElementById('h2hFilters'),
-    keep: ['otd', 'test'],
+    keep: ['otd', 'test', 'find'],
     apply: () => renderTable(),
     extra: {
       get: cur,
@@ -3600,7 +3600,8 @@ async function openScorecard(k) {
 function closeScorecard() {
   document.getElementById('scOverlay').hidden = true;
   document.body.classList.remove('sc-open');
-  if (new URLSearchParams(location.search).has('test')) {
+  const q = new URLSearchParams(location.search);
+  if (q.has('test') || q.has('find')) {
     try { history.replaceState(null, '', location.pathname + location.hash); } catch (e) { /* non-fatal */ }
   }
 }
@@ -3616,6 +3617,48 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && !document.
 (function () {
   const t = parseInt(new URLSearchParams(location.search).get('test'), 10);
   if (t > 0) openScorecard(t);
+})();
+
+// ?find=<team>|<team>|<YYYY-MM-DD> (2026-11-09): the homepage's State of play
+// links a finished Test by its two teams and first day (the live feed doesn't
+// know our Test numbers). Opens that Test's scorecard: same teams, first day
+// within three days. A Test only just finished may not be in the data yet.
+function scFirstDay(raw, year) {
+  const txt = String(raw == null ? '' : raw).split('(')[0];
+  const day = txt.match(/\b(\d{1,2})\b/);
+  const mon = txt.split(/[\s,.]+/).find(w => monthIdx(w) >= 0);
+  return day && mon ? Date.UTC(year, monthIdx(mon), +day[1]) : NaN;
+}
+function scFindTest(D, t1, t2, start) {
+  const a = D.T.indexOf(t1), b = D.T.indexOf(t2);
+  if (a < 0 || b < 0 || isNaN(start)) return 0;
+  const y = new Date(start).getUTCFullYear();
+  let found = 0;
+  for (const k in D.M) {
+    const m = D.M[k];
+    if (!((m[2] === a && m[3] === b) || (m[2] === b && m[3] === a)) || Math.abs(m[7] - y) > 1) continue;
+    const d = scFirstDay(D.DT && D.DT[m[10]], m[7]);
+    if (Math.abs(d - start) <= 3 * 864e5) found = Math.max(found, +k);
+  }
+  return found;
+}
+(function () {
+  const f = new URLSearchParams(location.search).get('find');
+  if (!f || new URLSearchParams(location.search).has('test')) return;
+  const [t1, t2, day] = f.split('|');
+  const start = Date.parse(String(day || '') + 'T00:00:00Z');
+  const ov = document.getElementById('scOverlay'), body = document.getElementById('scBody');
+  body.innerHTML = '<p class="otd-note">Loading scorecard…</p>';
+  ov.hidden = false;
+  document.body.classList.add('sc-open');
+  loadImpactData().then(D => {
+    const k = scFindTest(D, t1, t2, start);
+    if (k) return openScorecard(k);
+    body.innerHTML = '<p class="otd-note">The full scorecard of ' + otdEsc(t1) + ' v ' + otdEsc(t2) +
+      ' is not in yet. It usually arrives within a few days of the finish.</p>';
+  }).catch(() => {
+    body.innerHTML = '<p class="otd-note">The scorecard could not be loaded. Please try again in a moment.</p>';
+  });
 })();
 
 // ── Top-level tabs (Head-to-Head / Impact Analysis / On this day) ──
