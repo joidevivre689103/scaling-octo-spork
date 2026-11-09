@@ -3651,15 +3651,88 @@ function scFindTest(D, t1, t2, start) {
   body.innerHTML = '<p class="otd-note">Loading scorecard…</p>';
   ov.hidden = false;
   document.body.classList.add('sc-open');
+  const notYet = () => {
+    body.innerHTML = '<p class="otd-note">The full scorecard of ' + otdEsc(t1) + ' v ' + otdEsc(t2) +
+      ' is not in yet. It usually arrives within a few days of the finish.</p>';
+  };
   loadImpactData().then(D => {
     const k = scFindTest(D, t1, t2, start);
     if (k) return openScorecard(k);
-    body.innerHTML = '<p class="otd-note">The full scorecard of ' + otdEsc(t1) + ' v ' + otdEsc(t2) +
-      ' is not in yet. It usually arrives within a few days of the finish.</p>';
+    // Not in the data yet: the scorecard so far, if we have entered one.
+    return liveScorecard(t1, t2, start).then(r => {
+      if (r === 'denied') body.innerHTML = '<p class="otd-note">The scorecard so far is for subscribers. ' +
+        '<a href="/subscribe.html">Subscribe</a> to see it.</p>';
+      else if (r) { body.innerHTML = liveScorecardHTML(r); document.getElementById('scBlbwNote').hidden = true; }
+      else notYet();
+    });
   }).catch(() => {
     body.innerHTML = '<p class="otd-note">The scorecard could not be loaded. Please try again in a moment.</p>';
   });
 })();
+
+// The scorecard so far of a Test still on (2026-11-09): entered by hand on the
+// Scorecard entry admin page, listed (teams, first day) in the public
+// liveScores/scorecardsShown, figures in liveScorecards/<id> (subscribers only).
+// Resolves to the card, 'denied', or null when there is none.
+async function liveScorecard(t1, t2, start) {
+  const app = await window.CTFeatureFlags.firebaseReady;
+  const { getFirestore, doc, getDoc } = await import('https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js');
+  const db = getFirestore(app);
+  const idx = await getDoc(doc(db, 'liveScores', 'scorecardsShown'));
+  const want = [t1, t2].map(x => String(x).toLowerCase()).sort().join('|');
+  const hit = Object.entries((idx.exists() && idx.data().tests) || {}).find(([, v]) => v
+    && (v.teams || []).map(x => String(x).toLowerCase()).sort().join('|') === want
+    && Math.abs(Date.parse(String(v.start) + 'T00:00:00Z') - start) <= 864e5);
+  if (!hit) return null;
+  try {
+    const snap = await getDoc(doc(db, 'liveScorecards', hit[0]));
+    return snap.exists() ? snap.data() : null;
+  } catch (e) {
+    if (e && /permission/i.test(e.code || e.message || '')) return 'denied';
+    throw e;
+  }
+}
+function liveScorecardHTML(r) {
+  const [a, b] = r.teams || ['', ''];
+  const when = r.start ? new Date(r.start + 'T00:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', timeZone: 'UTC' }) : '';
+  let html = `<div class="otd-match">
+    <div class="otd-match-head"><span class="otd-match-year">${otdEsc(String(r.start || '').slice(0, 4))}</span>
+      <span class="otd-match-title">${otdEsc(a)} v ${otdEsc(b)}</span></div>
+    <p class="otd-match-sub">${[r.matchName, [r.ground, r.city].filter(Boolean).join(', '), when].filter(Boolean).map(otdEsc).join(' · ')}</p>
+    <p class="otd-match-result">${otdEsc(r.result || ('In progress' + (r.asOf ? ': ' + r.asOf.charAt(0).toLowerCase() + r.asOf.slice(1) : '')))}</p>${r.toss
+      ? `<p class="otd-match-toss">${otdEsc(r.toss.team)} won the toss and chose to ${r.toss.choice === 'bat' ? 'bat' : 'field'}</p>` : ''}
+    <p class="otd-note">The scorecard so far. The full scorecard follows when the Test is over.</p>`;
+  (r.innings || []).forEach((inn, i) => {
+    const totalTxt = inn.wkts >= 10 ? `${inn.total} all out` : `${inn.total}/${inn.wkts}${inn.declared ? ' declared' : ''}`;
+    const showBalls = (inn.bat || []).some(x => x.balls > 0);
+    let bt = `<div class="tbl-wrap"><table class="rec-table"><thead><tr>
+      <th class="left">Batter</th><th class="left">Dismissal</th><th>R</th>${showBalls ? '<th>B</th>' : ''}</tr></thead><tbody>`;
+    (inn.bat || []).forEach(x => {
+      bt += `<tr><td class="left">${otdEsc(x.name)}</td><td class="left">${otdEsc(x.how)}</td>
+        <td>${otdEsc(x.runs == null ? '' : x.runs)}${x.notOut ? '*' : ''}</td>${showBalls ? `<td>${x.balls > 0 ? x.balls : ''}</td>` : ''}</tr>`;
+    });
+    if (inn.extras > 0) bt += `<tr class="otd-extras"><td class="left" colspan="2">Extras</td><td>${otdEsc(inn.extras)}</td>${showBalls ? '<td></td>' : ''}</tr>`;
+    bt += `<tr class="otd-sum"><td class="left" colspan="2">Total${inn.overs ? ' (' + otdEsc(inn.overs) + ' overs)' : ''}</td><td class="otd-total" colspan="${showBalls ? 2 : 1}">${otdEsc(totalTxt)}</td></tr>`;
+    if ((inn.dnb || []).length) bt += `<tr><td class="left" colspan="${showBalls ? 4 : 3}">${i === r.innings.length - 1 && !r.result && inn.wkts < 10 && !inn.declared ? 'Yet to bat' : 'Did not bat'}: ${(inn.dnb).map(otdEsc).join(', ')}</td></tr>`;
+    bt += '</tbody></table></div>';
+    let bw = `<div class="tbl-wrap"><table class="rec-table"><thead><tr>
+      <th class="left">Bowler</th><th>O</th><th>M</th><th>R</th><th>W</th></tr></thead><tbody>`;
+    (inn.bowl || []).forEach(x => {
+      bw += `<tr><td class="left">${otdEsc(x.name)}</td><td>${otdEsc(x.o)}</td><td>${otdEsc(x.m)}</td><td>${otdEsc(x.r)}</td><td>${otdEsc(x.w)}</td></tr>`;
+    });
+    if (!(inn.bowl || []).length) bw += '<tr><td class="left" colspan="5">No bowling figures yet.</td></tr>';
+    bw += '</tbody></table></div>';
+    const fw = inn.fow || [];
+    const half = Math.ceil(fw.length / 2);
+    const fwt = fw.length ? `<div class="otd-fow-grid" style="--fow-rows:${half}">` + fw.map(w =>
+      `<div class="otd-fow-item"><b>${otdEsc(w.w)}-${otdEsc(w.score)}</b>` +
+      `<span class="otd-fow-name">${otdEsc(w.name)}</span><span class="otd-fow-ov">${otdEsc(w.over)} ov</span></div>`).join('') + `</div>` : '';
+    html += `<div class="otd-inn-title"><span>${otdEsc(inn.team)} · ${otdOrdinal(i + 1)} innings</span>
+      <span class="otd-inn-total">${otdEsc(totalTxt)}</span></div>
+      <div class="otd-cards">${bt}<div class="otd-side">${bw}${fwt ? '<div class="otd-fow-lbl">Fall of wickets</div>' + fwt : ''}</div></div>`;
+  });
+  return html + '</div>';
+}
 
 // ── Top-level tabs (Head-to-Head / Impact Analysis / On this day) ──
 // The URL hash follows the tab (#impact), so a shared link or a reload
