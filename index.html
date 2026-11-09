@@ -2265,7 +2265,28 @@ window.lsCard = (function () {
     if (finished.size >= 2) balance();
   };
   setTimeout(() => { if (finished.size < 2) balance(); }, 6000);
-  return { el, done, equalize };
+  // "12 min ago" instead of a clock time (IJ, 2026-11-08): the same in every
+  // time zone. Ticks every minute so an open page doesn't go stale; the exact
+  // time, in the reader's zone, is in the tooltip (long-press on a phone).
+  const ago = t => {
+    const min = Math.max(0, Math.round((Date.now() - t.getTime()) / 60000));
+    if (min < 1) return 'just now';
+    if (min < 60) return min + ' min ago';
+    const h = Math.floor(min / 60);
+    if (h < 24) return h + ' h ago';
+    return h < 48 ? 'yesterday' : Math.floor(h / 24) + ' days ago';
+  };
+  const timed = [];
+  const relTime = (tag, cls, prefix, t, node) => {
+    const n = node || el(tag, cls);
+    const paint = () => { n.textContent = prefix + ago(t); };
+    paint();
+    n.title = t.toLocaleString([], { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZoneName: 'short' });
+    timed.push(paint);
+    return n;
+  };
+  setInterval(() => timed.forEach(f => f()), 60000);
+  return { el, done, equalize, relTime };
 })();
 
 (async function loadOnThisDay() {
@@ -2702,9 +2723,7 @@ window.lsCard = (function () {
         // from, so a reader doesn't take it for live (IJ, 2026-11-08).
         if (m.hand && m.handUpdatedAt && m.state !== 'result') {
           const t = m.handUpdatedAt.toDate ? m.handUpdatedAt.toDate() : new Date(m.handUpdatedAt);
-          if (!isNaN(t)) card.appendChild(el('p', 'lc-asof', 'Score as of ' +
-            t.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZoneName: 'short' }) +
-            (new Date().toDateString() === t.toDateString() ? '' : ', ' + t.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }))));
+          if (!isNaN(t)) card.appendChild(window.lsCard.relTime('p', 'lc-asof', 'Score from ', t));
         }
         const nd = nextDay(m);
         if (nd) {
@@ -2747,8 +2766,8 @@ window.lsCard = (function () {
     });
 
     const up = data.updatedAt && data.updatedAt.toDate ? data.updatedAt.toDate() : null;
-    if (up) document.getElementById('sopUpdated').textContent =
-      'Updated ' + up.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZoneName: 'short' });
+    // (A stale preview shows its own warning below instead.)
+    if (up && !(stale && preview)) window.lsCard.relTime(null, null, 'Updated ', up, document.getElementById('sopUpdated'));
     if (stale && preview) {
       const u = document.getElementById('sopUpdated');
       const h = fetchedAt ? Math.round((Date.now() - fetchedAt.getTime()) / 3600000) : null;
