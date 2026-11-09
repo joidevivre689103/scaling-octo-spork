@@ -2491,6 +2491,20 @@ window.lsCard = (function () {
       || a.i - b.i)
       .slice(0, 6).map(x => x.m);   // up to six; lsCard.balance decides how many show (2026-11-02)
 
+    // Tests whose scorecard so far is shown to subscribers (2026-11-09; the
+    // Scorecard entry admin page writes the list: teams, first day, as of).
+    let shown = {};
+    try {
+      const s2 = await getDoc(doc(window._fsDb, 'liveScores', 'scorecardsShown'));
+      if (s2.exists()) shown = s2.data().tests || {};
+    } catch (e) { /* no list is normal */ }
+    const teamKey = ts => (ts || []).map(x => String(x).toLowerCase()).sort().join('|');
+    const shownFor = m => {
+      const d = Date.parse(String(m.startsAt || '').slice(0, 10) + 'T00:00:00Z');
+      return Object.values(shown).find(v => v && teamKey(v.teams) === teamKey(m.teams)
+        && Math.abs(Date.parse(String(v.start) + 'T00:00:00Z') - d) <= 864e5);
+    };
+
     // Published notes for the cards shown (franchise cards carry none).
     const notes = {};
     await Promise.all(matches.filter(m => m.tier !== 'franchise').map(async m => {
@@ -2782,6 +2796,17 @@ window.lsCard = (function () {
       // The feed doesn't know our Test numbers, so the link names the teams
       // and the first day and the countries page finds the Test (?find=).
       const teams2 = m.teams || [];
+      // A Test still on links to its scorecard so far when we have entered one
+      // (IJ, 2026-11-09), also for subscribers.
+      const sf = m.state === 'live' && m.tier === 'test' && teams2.length === 2 && m.startsAt ? shownFor(m) : null;
+      if (sf) {
+        const foot = el('div', 'lc-foot');
+        foot.appendChild(el('span', 'lc-cap', 'For subscribers'));
+        const a = el('a', 'lc-link', 'Scorecard so far' + (sf.asOf ? ' (' + sf.asOf.toLowerCase() + ')' : '') + ' \u2192');
+        a.href = '/countries.html?find=' + encodeURIComponent(teams2.join('|') + '|' + String(m.startsAt).slice(0, 10));
+        foot.appendChild(a);
+        card.appendChild(foot);
+      }
       if (m.state === 'result' && m.tier === 'test' && teams2.length === 2 && m.startsAt) {
         const foot = el('div', 'lc-foot');
         foot.appendChild(el('span', 'lc-cap', 'For subscribers'));
