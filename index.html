@@ -2487,7 +2487,8 @@ window.lsCard = (function () {
     }));
 
     const { el } = window.lsCard;
-    const fig = i => (i.wickets === 10 || i.wickets == null) ? String(i.runs) : i.runs + '/' + i.wickets;
+    // "d" for a declared innings (hand corrections only; IJ, 2026-11-09).
+    const fig = i => ((i.wickets === 10 || i.wickets == null) ? String(i.runs) : i.runs + '/' + i.wickets) + (i.declared ? 'd' : '');
     // Next day's start for a Test at stumps (IJ, 2026-10-31), in the reader's
     // own time zone. Day N+1 = day 1's start time + N days (assumes no rest
     // day). If that moment has already passed while the card still says
