@@ -349,6 +349,8 @@ body{
 .feed-col .quiz-question-text{ font-size:16px; }
 .feed-title{ font-family:'Playfair Display',serif; font-size:22px; font-weight:700; margin:0 0 10px; }
 .feed-score{ font-size:16px; line-height:1.5; color:var(--text); margin:6px 0; }
+.joined-test + .joined-test{ margin-top:18px; padding-top:16px; border-top:1px solid var(--surface3); }
+.joined-test .otd-more{ margin-top:10px; }
 .feed-list{ list-style:none; margin:0; padding:0; }
 .feed-list li{ font-size:15px; line-height:1.45; color:var(--text2); padding:7px 0; border-top:1px solid var(--surface3); }
 .feed-list li:first-child{ border-top:none; padding-top:0; }
@@ -1154,10 +1156,9 @@ body.articles-loading .analysis-section{ visibility:hidden; }
   <section class="feed-row" id="feedRow" hidden>
     <div class="feed-col" id="latestTest" hidden>
       <h2 class="feed-title">Joins the archive</h2>
-      <p class="otd-label" id="latestLabel"></p>
-      <p class="feed-score" id="latestScore"></p>
-      <p class="otd-standout" id="latestStandout"></p>
-      <a class="otd-more" id="latestMore" href="/countries.html">Full scorecard →</a>
+      <!-- Every Test in the latest arrival (IJ, 2026-11-09), kept until the
+           next Test or Tests come in: liveScores/home.joined, else .latest. -->
+      <div id="latestList"></div>
     </div>
     <div class="feed-col coming-up" id="comingUp" hidden>
       <h2 class="feed-title">Up next</h2>
@@ -2095,13 +2096,26 @@ async function refreshFeedRow() {
     const d = snap.data();
     window._homeFeed = d;
     let shown = 0;
-    const lt = d.latest;
-    if (lt && lt.scoreline) {
-      const fin = lt.finished ? new Date(lt.finished + 'T12:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
-      document.getElementById('latestLabel').textContent = [fin && 'Finished ' + fin, lt.label].filter(Boolean).join(' · ');
-      document.getElementById('latestScore').textContent = lt.scoreline;
-      document.getElementById('latestStandout').textContent = lt.standout || '';
-      if (lt.test) document.getElementById('latestMore').href = '/countries.html?otd=' + parseInt(lt.test, 10) + '#onthisday';
+    // Joins the archive (IJ, 2026-11-09): every Test in the latest arrival,
+    // not just one; the feed keeps them until the next Test or Tests come in.
+    const joined = (Array.isArray(d.joined) && d.joined.length ? d.joined : [d.latest])
+      .filter(t => t && t.scoreline).slice(0, 6);
+    if (joined.length) {
+      const list = document.getElementById('latestList');
+      list.textContent = '';
+      for (const lt of joined) {
+        const box = document.createElement('div');
+        box.className = 'joined-test';
+        const fin = lt.finished ? new Date(lt.finished + 'T12:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+        const line = (tag, cls, text) => { const e = document.createElement(tag); e.className = cls; e.textContent = text; return e; };
+        box.appendChild(line('p', 'otd-label', [fin && 'Finished ' + fin, lt.label].filter(Boolean).join(' · ')));
+        box.appendChild(line('p', 'feed-score', lt.scoreline));
+        if (lt.standout) box.appendChild(line('p', 'otd-standout', lt.standout));
+        const more = line('a', 'otd-more', 'Full scorecard \u2192');
+        more.href = lt.test ? '/countries.html?otd=' + parseInt(lt.test, 10) + '#onthisday' : '/countries.html';
+        box.appendChild(more);
+        list.appendChild(box);
+      }
       document.getElementById('latestTest').hidden = false;
       shown++;
     }
