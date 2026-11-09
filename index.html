@@ -306,6 +306,7 @@ body{
 .lc-verdict{ margin:2px 0 0; font-size:13px; line-height:1.45; color:var(--text); font-weight:600; }
 .lc-next{ margin:0; font-size:12.5px; line-height:1.45; color:var(--text2); }
 .lc-next b{ font-weight:600; color:var(--text); }
+.lc-asof{ margin:0; font-size:12px; color:var(--text3); }
 .lc-link{ font-size:13px; line-height:1.4; color:var(--accent); text-decoration:none; font-weight:600; }
 .lc-link:hover{ color:var(--accent-hover); text-decoration:underline; }
 .lc-standout{ margin:0; font-size:12.5px; line-height:1.4; color:var(--accent); }
@@ -2696,6 +2697,14 @@ window.lsCard = (function () {
         else if (m.summary) card.appendChild(el('p', 'lc-inns', m.summary));
         const st = m.state === 'result' ? m.result : (m.statusNote || m.toss);
         if (st) card.appendChild(el('p', 'lc-state', st));
+        // A score typed in by IJ (the feed had stalled): say when it dates
+        // from, so a reader doesn't take it for live (IJ, 2026-11-08).
+        if (m.hand && m.handUpdatedAt && m.state !== 'result') {
+          const t = m.handUpdatedAt.toDate ? m.handUpdatedAt.toDate() : new Date(m.handUpdatedAt);
+          if (!isNaN(t)) card.appendChild(el('p', 'lc-asof', 'Score as of ' +
+            t.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZoneName: 'short' }) +
+            (new Date().toDateString() === t.toDateString() ? '' : ', ' + t.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }))));
+        }
         const nd = nextDay(m);
         if (nd) {
           const p = el('p', 'lc-next');
