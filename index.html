@@ -2763,6 +2763,19 @@ window.lsCard = (function () {
         d.appendChild(el('span', '', [n.authorName, n.writtenOnDay ? 'written ' + n.writtenOnDay : ''].filter(Boolean).join(' · ')));
         card.appendChild(d);
       }
+      // A finished Test links to its full scorecard (IJ, 2026-11-09), like the
+      // On this day cards (subscribers; the countries page's gate decides).
+      // The feed doesn't know our Test numbers, so the link names the teams
+      // and the first day and the countries page finds the Test (?find=).
+      const teams2 = m.teams || [];
+      if (m.state === 'result' && m.tier === 'test' && teams2.length === 2 && m.startsAt) {
+        const foot = el('div', 'lc-foot');
+        foot.appendChild(el('span', 'lc-cap', 'For subscribers'));
+        const a = el('a', 'lc-link', 'See the full scorecard →');
+        a.href = '/countries.html?find=' + encodeURIComponent(teams2.join('|') + '|' + String(m.startsAt).slice(0, 10));
+        foot.appendChild(a);
+        card.appendChild(foot);
+      }
       box.appendChild(card);
     });
 
