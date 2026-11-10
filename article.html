@@ -360,10 +360,30 @@ body{
 }
 .audio-bar-progress-fill{height:100%;background:var(--accent);border-radius:2px;width:0%;transition:width 0.2s}
 .audio-bar-time{font-size:12px;color:var(--text3);font-variant-numeric:tabular-nums;white-space:nowrap;min-width:70px;text-align:right}
+/* Stop, speed and volume (2026-11-10) */
+.audio-ctl{
+  width:32px;height:32px;border-radius:50%;flex-shrink:0;
+  background:transparent;border:1px solid var(--border2);color:var(--text2);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;padding:0;
+  font-family:'Inter',sans-serif;transition:border-color 0.15s,color 0.15s;
+}
+.audio-ctl:hover{border-color:var(--accent);color:var(--accent)}
+.audio-ctl svg{width:14px;height:14px;fill:currentColor;stroke:none}
+.audio-speed{width:auto;min-width:42px;padding:0 10px;border-radius:16px;font-size:12px;font-weight:600;font-variant-numeric:tabular-nums}
+.audio-vol{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.audio-vol-slider{width:72px;accent-color:var(--accent);cursor:pointer}
+/* Phones set volume with their own buttons (iPhones ignore a page's volume
+   setting), so only mute shows there. */
+@media(hover:none) and (pointer:coarse){ .audio-vol-slider{display:none} }
 @media(max-width:600px){
   .article-audio-bar{flex-wrap:wrap;gap:10px;padding:12px 14px}
-  .audio-bar-progress{width:100%;order:10}
-  .audio-bar-time{order:9}
+  /* Phone: play, stop and the label on the first line; the progress bar
+     across the second; time, speed and mute on the third (2026-11-10). */
+  .audio-bar-info{flex:1 1 calc(100% - 110px)}
+  .audio-bar-progress{flex:1 1 100%;order:10}
+  .audio-bar-time{order:11;flex:1;text-align:left}
+  .audio-speed{order:12}
+  .audio-vol{order:13}
 }
 
 /* ─── ARTICLE BODY ─── */
@@ -1514,6 +1534,9 @@ function renderArticle(container, article, related) {
             <button class="audio-play-btn" id="audioPlayBtn" onclick="toggleAudioPlayback()" title="Listen to this article">
               <svg viewBox="0 0 24 24" id="audioPlayIcon"><polygon points="5 3 19 12 5 21 5 3"/></svg>
             </button>
+            <button class="audio-ctl" id="audioStopBtn" onclick="stopAudio()" title="Stop" aria-label="Stop">
+              <svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="1.5"/></svg>
+            </button>
             <div class="audio-bar-info">
               <div class="audio-bar-label">${article.audioOnly ? 'Listen' : 'Listen to this article'}${
                 article.audioSource === 'ai'
@@ -1534,6 +1557,14 @@ function renderArticle(container, article, related) {
               <div class="audio-bar-progress-fill" id="audioProgressFill"></div>
             </div>
             <div class="audio-bar-time" id="audioTime">0:00 / 0:00</div>
+            <button class="audio-ctl audio-speed" id="audioSpeedBtn" onclick="cycleAudioSpeed()" title="Playback speed" aria-label="Playback speed">1×</button>
+            <div class="audio-vol">
+              <button class="audio-ctl" id="audioMuteBtn" onclick="toggleAudioMute()" title="Mute" aria-label="Mute">
+                <svg viewBox="0 0 24 24" id="audioVolIcon"></svg>
+              </button>
+              <input type="range" class="audio-vol-slider" id="audioVolSlider" min="0" max="1" step="0.05" value="1"
+                     oninput="setAudioVolume(this.value)" aria-label="Volume">
+            </div>
             <audio id="articleAudio" src="${esc(article.audioUrl || '')}" preload="metadata"></audio>
           </div>`
         : ''}
@@ -1570,6 +1601,15 @@ function renderArticle(container, article, related) {
       audioEl.src = article.audioData;
     }
 
+    // Speed and volume as this reader last left them.
+    var savedRate = parseFloat(audioPref('speed'));
+    applyAudioSpeed(AUDIO_SPEEDS.indexOf(savedRate) >= 0 ? savedRate : 1);
+    var savedVol = parseFloat(audioPref('volume'));
+    if (isFinite(savedVol) && savedVol > 0) { audioEl.volume = savedVol; document.getElementById('audioVolSlider').value = savedVol; }
+    drawVolIcon(audioEl);
+    // Browsers reset the speed when a new source loads; put it back.
+    audioEl.addEventListener('loadedmetadata', function() { applyAudioSpeed(parseFloat(audioEl.defaultPlaybackRate) || 1); });
+
     // WebM files from MediaRecorder often have Infinity duration.
     // Fix: once metadata loads, if duration is Infinity, seek to a huge
     // number to force the browser to discover the real duration, then reset.
@@ -1604,6 +1644,9 @@ function renderArticle(container, article, related) {
         fill.style.width = ((audioEl.currentTime / _realDuration) * 100) + '%';
         updateAudioTime(audioEl, _realDuration);
       }
+    });
+    audioEl.addEventListener('pause', function() {
+      document.getElementById('audioPlayIcon').innerHTML = PLAY_ICON;
     });
     audioEl.addEventListener('ended', function() {
       document.getElementById('audioPlayIcon').innerHTML = '<polygon points="5 3 19 12 5 21 5 3"/>';
@@ -1647,6 +1690,75 @@ function seekAudio(e) {
   const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
   audio.currentTime = pct * dur;
 }
+// ── Stop, speed and volume (2026-11-10) ──────────────────────────────────
+// Speed and volume are remembered in this browser for the next article.
+var AUDIO_SPEEDS = [0.75, 1, 1.25, 1.5, 2];
+var PLAY_ICON = '<polygon points="5 3 19 12 5 21 5 3"/>';
+function audioPref(k, v) {
+  try { if (v === undefined) return localStorage.getItem('ct_audio_' + k); localStorage.setItem('ct_audio_' + k, String(v)); }
+  catch (e) { return null; }
+}
+function stopAudio() {
+  const audio = document.getElementById('articleAudio');
+  if (!audio) return;
+  audio.pause();
+  audio.currentTime = 0;
+  document.getElementById('audioPlayIcon').innerHTML = PLAY_ICON;
+  document.getElementById('audioProgressFill').style.width = '0%';
+  var dur = parseFloat(document.getElementById('audioProgress').dataset.duration) || 0;
+  updateAudioTime(audio, dur);
+}
+function applyAudioSpeed(rate) {
+  const audio = document.getElementById('articleAudio');
+  const btn = document.getElementById('audioSpeedBtn');
+  if (!audio || !btn) return;
+  audio.playbackRate = rate;
+  audio.defaultPlaybackRate = rate;
+  btn.textContent = rate + '×';
+}
+function cycleAudioSpeed() {
+  const audio = document.getElementById('articleAudio');
+  if (!audio) return;
+  var i = AUDIO_SPEEDS.indexOf(audio.playbackRate);
+  var next = AUDIO_SPEEDS[(i + 1) % AUDIO_SPEEDS.length];
+  applyAudioSpeed(next);
+  audioPref('speed', next);
+}
+function drawVolIcon(audio) {
+  const icon = document.getElementById('audioVolIcon');
+  const btn = document.getElementById('audioMuteBtn');
+  if (!icon) return;
+  var off = audio.muted || audio.volume === 0;
+  var speaker = '<path d="M4 9h4l5-4v14l-5-4H4z"/>';
+  icon.innerHTML = speaker + (off
+    ? '<path d="M16 9l5 6M21 9l-5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/>'
+    : '<path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/>');
+  btn.title = off ? 'Unmute' : 'Mute';
+  btn.setAttribute('aria-label', btn.title);
+}
+function toggleAudioMute() {
+  const audio = document.getElementById('articleAudio');
+  if (!audio) return;
+  if (audio.muted || audio.volume === 0) {
+    audio.muted = false;
+    if (audio.volume === 0) setAudioVolume(1);
+  } else {
+    audio.muted = true;
+  }
+  drawVolIcon(audio);
+}
+function setAudioVolume(v) {
+  const audio = document.getElementById('articleAudio');
+  if (!audio) return;
+  v = Math.max(0, Math.min(1, parseFloat(v) || 0));
+  audio.volume = v;
+  audio.muted = v === 0;
+  const slider = document.getElementById('audioVolSlider');
+  if (slider && parseFloat(slider.value) !== v) slider.value = v;
+  audioPref('volume', v);
+  drawVolIcon(audio);
+}
+
 function updateAudioTime(audio, realDuration) {
   const el = document.getElementById('audioTime');
   if (!el) return;
@@ -1677,6 +1789,10 @@ window.toggleAudioPlayback = toggleAudioPlayback;
   }, 200);
 })();
 window.seekAudio = seekAudio;
+window.stopAudio = stopAudio;
+window.cycleAudioSpeed = cycleAudioSpeed;
+window.toggleAudioMute = toggleAudioMute;
+window.setAudioVolume = setAudioVolume;
 
 // ═══════════════════════════════════════════════════════════════════════════
 // HELPERS
