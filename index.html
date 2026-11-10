@@ -1053,7 +1053,7 @@ body.articles-loading .analysis-section{ visibility:hidden; }
              Keeping · Simulations · Yorker (Yorker Archives)
        here: Deep Analysis · Explore Stats · Figures from every Test ever played ·
              Features · Googlies · Inside every Test since 1877 (members: In good
-             company) · Joins the archive · Latest · Latest News · Milestone watch · Most Read ·
+             company) · Joins the archive · Latest · Latest News · Milestones · Most Read ·
              Never miss a dispatch · On this day · Player Compare · Points of View ·
              Quiz of the month · Run machines · Tweakers to tearaways · Up next ·
              Viewpoints · World Test Championship · XI v XI ·
@@ -1165,7 +1165,7 @@ body.articles-loading .analysis-section{ visibility:hidden; }
       <ul class="feed-list" id="comingUpList"></ul>
     </div>
     <div class="feed-col" id="milestoneWatch" hidden>
-      <h2 class="feed-title">Milestone watch</h2>
+      <h2 class="feed-title">Milestones</h2>
       <ul class="feed-list" id="milestoneList"></ul>
     </div>
   </section>
@@ -2008,9 +2008,29 @@ function renderMilestones(d, next) {
     if (!nextFor[u.host]) nextFor[u.host] = 'v ' + u.visitor + (city ? ', ' + city : '');
     if (!nextFor[u.visitor]) nextFor[u.visitor] = 'v ' + u.host + (city ? ', ' + city : '');
   });
-  let ms = (d.watch || []).filter(m => settled(m) && nextFor[m.team]).slice(0, 4);
+  // 2026-11-10 (IJ): the column is "Milestones" — first those reached in the
+  // Tests that have just joined the archive (up to three), then the ones in
+  // sight, five in all.
+  const reached = (d.reached || []).filter(m => m && m.text).slice(0, 3);
+  reached.forEach(m => {
+    const li = document.createElement('li');
+    const a = document.createElement('a');
+    a.href = m.kind === 'wkts' ? '/bowling.html' : '/batting.html';
+    const t = document.createElement('span');
+    t.className = 'cu-teams';
+    t.textContent = m.text;
+    a.appendChild(t);
+    const meta = document.createElement('span');
+    meta.className = 'cu-meta';
+    meta.textContent = 'Reached' + (m.team && m.against ? ' · ' + m.team + ' v ' + m.against : '');
+    a.appendChild(meta);
+    li.appendChild(a);
+    ul.appendChild(li);
+  });
+  const room = 5 - reached.length;
+  let ms = (d.watch || []).filter(m => settled(m) && nextFor[m.team]).slice(0, Math.min(4, room));
   const tied = ms.length > 0;
-  if (!tied) ms = (d.milestones || []).filter(settled).slice(0, 4);
+  if (!tied) ms = (d.milestones || []).filter(settled).slice(0, Math.min(4, room));
   ms.forEach(m => {
     const li = document.createElement('li');
     const a = document.createElement('a');
@@ -2030,7 +2050,7 @@ function renderMilestones(d, next) {
   });
   // 2026-10-28 (IJ): Milestone watch always shows, with a line when nobody is
   // close to one, rather than disappearing.
-  if (!ms.length) {
+  if (!ms.length && !reached.length) {
     const li = document.createElement('li');
     const t = document.createElement('span');
     t.className = 'cu-teams';

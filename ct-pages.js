@@ -62,7 +62,7 @@
             ],
             [
               "Also",
-              "At a Glance, Deep Analysis, Milestone watch, Up next, the WTC strip and the newsletter sign-up"
+              "At a Glance, Deep Analysis, Milestones, Up next, the WTC strip and the newsletter sign-up"
             ],
             [
               "Comments",
