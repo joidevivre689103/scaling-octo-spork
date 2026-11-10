@@ -568,7 +568,7 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
         ['winAll', 'drawAll', 'loseAll'].forEach(function (k) { rw.appendChild(el('span', 'v', pc(n[k]))); });
         nc.appendChild(rw);
       });
-      nc.appendChild(el('p', 'note', 'Each figure is ' + team + '’s % once that series is over, before the later series are played. ' +
+      nc.appendChild(el('p', 'note', 'Each figure is ' + team + '’s % once that series is over, if they win, draw or lose every Test until then. ' +
         'Best possible finish: ' + pc(row.best) + '.' +
         (last ? ' Last cycle (' + String(last.cycle).replace('-', '–') + '), second place finished on ' + pc(last.secondPct) + '.' : '')));
     }
