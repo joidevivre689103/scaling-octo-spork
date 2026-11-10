@@ -364,6 +364,11 @@ button.btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .action-btn.liked { color: var(--crimson); font-weight: 700; }
 .action-btn .icon { font-size: 14px; }
 .action-btn.delete { margin-left: auto; color: var(--ink-mute); opacity: 0.5; }
+/* Report (2026-11-10): quiet; sits at the far right, or just before Delete. */
+.action-btn.report { margin-left: auto; font-size: 11px; letter-spacing: 0.04em; color: var(--ink-mute); }
+.action-btn.report + .action-btn.delete { margin-left: 0; }
+.action-btn.report:hover { color: var(--crimson); background: transparent; }
+.action-btn.report.reported { cursor: default; opacity: 0.6; color: var(--ink-mute); }
 .action-btn.delete:hover { opacity: 1; color: var(--crimson); background: transparent; }
 
 /* ---------- Replies ---------- */
@@ -537,6 +542,10 @@ button.btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .msg .meta { display: flex; gap: 8px; align-items: baseline; font-size: 13px; margin-bottom: 4px; }
 .msg .meta .name { font-family: 'Playfair Display', serif; font-weight: 600; font-size: 14px; }
 .msg .meta .when { font-family: 'Special Elite', monospace; font-size: 10.5px; color: var(--ink-mute); }
+.msg .meta .rep { margin-left: auto; background: none; border: none; color: var(--ink-mute); cursor: pointer; font-size: 11px; letter-spacing: 0.04em; }
+.msg .meta .rep:hover { color: var(--crimson); }
+.msg .meta .rep.reported { cursor: default; opacity: 0.6; color: var(--ink-mute); }
+.msg .meta .rep + .del { margin-left: 0; }
 .msg .meta .del { margin-left: auto; background: none; border: none; color: var(--ink-mute); cursor: pointer; font-size: 15px; line-height: 1; }
 .msg .text { white-space: pre-wrap; word-wrap: break-word; font-size: 16px; line-height: 1.5; }
 .thread-empty { font-style: italic; color: var(--ink-mute); text-align: center; padding: 18px 0; }
@@ -723,6 +732,10 @@ import {
 import {
   getStorage, ref as storageRef, uploadBytes, getDownloadURL
 } from 'https://www.gstatic.com/firebasejs/13.0.0/firebase-storage.js';
+// [2026-11-10] Readers' replies and messages go through Cloud Functions
+// (moderation.js), which run the profanity filter where it can't be skipped.
+import { getFunctions, httpsCallable }
+  from 'https://www.gstatic.com/firebasejs/13.0.0/firebase-functions.js';
 
 /* =====================================================================
    FIREBASE INIT
@@ -742,6 +755,37 @@ const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
+const fns = getFunctions(app, 'us-central1');
+const postBtsReplyFn   = httpsCallable(fns, 'postBtsReply');
+const sendBtsMessageFn = httpsCallable(fns, 'sendBtsMessage');
+const reportContentFn  = httpsCallable(fns, 'reportContent');
+
+// The function's own message for things the reader can fix (language,
+// length); a plain fallback for anything else.
+function fnError(e, fallback) {
+  const fixable = e && (e.code === 'functions/invalid-argument' || e.code === 'functions/failed-precondition'
+                        || e.code === 'functions/resource-exhausted' || e.code === 'functions/not-found');
+  return fixable ? e.message : fallback + (e && e.message ? ': ' + e.message : '');
+}
+
+// [2026-11-10] Report: remembered for this visit so the button stays
+// "Reported"; the server keeps one report per reader per item regardless.
+function wasReported(key) { try { return sessionStorage.getItem('bts_reported_' + key) === '1'; } catch (e) { return false; } }
+function markReported(key) { try { sessionStorage.setItem('bts_reported_' + key, '1'); } catch (e) {} }
+async function reportItem(payload, key, btn, what) {
+  const reason = prompt('Report this ' + what + ' to the moderator?\n\nWhat’s wrong with it? (optional)', '');
+  if (reason === null) return;
+  if (btn) btn.disabled = true;
+  try {
+    await reportContentFn({ ...payload, reason: reason.trim().slice(0, 300) });
+    markReported(key);
+    if (btn) { btn.textContent = 'Reported'; btn.classList.add('reported'); }
+    toast('Reported. The moderator will take a look.');
+  } catch (e) {
+    if (btn) btn.disabled = false;
+    toast(fnError(e, 'Could not send the report'));
+  }
+}
 
 setPersistence(auth, browserLocalPersistence);
 
@@ -1243,6 +1287,11 @@ function renderReplyTree(postId, r, byParent, depth) {
 
   const liked = isLikedLocally('reply', r.id);
   const canDelete = currentRole === 'admin' || (currentUser && r.authorUid === currentUser.uid);
+  // [2026-11-10] Report: other readers' replies only — not your own, not the
+  // moderator's, and not for the moderator (who has Delete).
+  const canReport = !!currentUser && currentRole !== 'admin'
+    && r.authorUid !== currentUser.uid && !CT_EDITOR_UIDS.has(r.authorUid);
+  const reported = canReport && wasReported('r_' + r.id);
 
   el.innerHTML = `
     <div class="head">
@@ -1257,6 +1306,7 @@ function renderReplyTree(postId, r, byParent, depth) {
         <span class="count">${r.likes || 0}</span>
       </button>
       ${depth < 2 ? '<button class="action-btn" data-action="reply-to-reply"><span class="icon">↳</span> Reply</button>' : ''}
+      ${canReport ? `<button class="action-btn report${reported ? ' reported' : ''}" data-action="report-reply"${reported ? ' disabled' : ''}>${reported ? 'Reported' : 'Report'}</button>` : ''}
       ${canDelete ? '<button class="action-btn delete" data-action="delete-reply" title="Delete">🗑</button>' : ''}
     </div>
     <div class="reply-form" data-reply-form style="display:none;margin-top:8px">
@@ -1280,6 +1330,10 @@ function renderReplyTree(postId, r, byParent, depth) {
   el.querySelector('[data-action="like-reply"]').addEventListener('click', () => toggleLike('reply', r.id, el));
   if (canDelete) {
     el.querySelector('[data-action="delete-reply"]').addEventListener('click', () => deleteReply(r.id));
+  }
+  if (canReport && !reported) {
+    const rb = el.querySelector('[data-action="report-reply"]');
+    rb.addEventListener('click', () => reportItem({ kind: 'btsReply', id: r.id }, 'r_' + r.id, rb, 'reply'));
   }
   if (depth < 2) {
     const replyBtn = el.querySelector('[data-action="reply-to-reply"]');
@@ -1354,20 +1408,14 @@ function wireReplyForm(postId, parentReplyId, formEl) {
       // This one mattered more: replies are authored by READERS, so the field
       // exposed subscribers' addresses to each other in plaintext.
       // [2026-08-07] authorName REMOVED — see the note on the post write.
-      await addDoc(collection(db, 'btsReplies'), {
+      // [2026-11-10] Saved by the postBtsReply function, which checks the
+      // language, then writes the reply and bumps the post's replyCount in one
+      // go (all replies, nested included, as before).
+      await postBtsReplyFn({
         postId,
         parentReplyId: parentReplyId || null,
         text,
-        imageUrl,
-        authorUid: currentUser.uid,
-        timestamp: serverTimestamp(),
-        likes: 0
-      });
-
-      // Increment post replyCount (top-level only inflates the visible counter,
-      // but we count all replies including nested for engagement)
-      await updateDoc(doc(db, 'btsPosts', postId), {
-        replyCount: increment(1)
+        imageUrl
       });
 
       ta.value = '';
@@ -1380,7 +1428,7 @@ function wireReplyForm(postId, parentReplyId, formEl) {
       toast('Reply sent');
     } catch (e) {
       console.error(e);
-      toast('Could not reply: ' + e.message);
+      toast(fnError(e, 'Could not reply'));
     } finally {
       sendBtn.disabled = false;
     }
@@ -1637,12 +1685,19 @@ function renderMessages(msgs) {
   const atBottom = window.innerHeight + window.scrollY >= document.body.scrollHeight - 80;
   if (!msgs.length) { box.innerHTML = `<div class="thread-empty">No messages.</div>`; return; }
   const me = currentUser.uid;
+  const conv = convos.find(x => x.id === openCid);
+  const inGroup = !!conv && conv.kind === 'group';
   box.innerHTML = msgs.map(m => {
     const mine = m.authorUid === me;
     const canDel = mine || isModerator();
+    // [2026-11-10] Report: in groups, on other readers' messages. (In a
+    // one-to-one the only other person is the moderator.)
+    const canRep = inGroup && !mine && !isModerator() && !CT_EDITOR_UIDS.has(m.authorUid);
+    const repd = canRep && wasReported('m_' + m.id);
     return `<div class="msg${mine ? ' mine' : ''}" data-mid="${escapeHtml(m.id)}">
       <div class="meta"><span class="name">${authorMarkup(bylineFor(m.authorUid), m.authorUid)}</span>
         <span class="when">${escapeHtml(timeAgo(m.timestamp))}</span>
+        ${canRep ? `<button type="button" class="rep${repd ? ' reported' : ''}" data-rep="${escapeHtml(m.id)}"${repd ? ' disabled' : ''}>${repd ? 'Reported' : 'Report'}</button>` : ''}
         ${canDel ? `<button type="button" class="del" data-del="${escapeHtml(m.id)}" title="Delete">×</button>` : ''}</div>
       <div class="text">${escapeHtml(m.text || '')}</div></div>`;
   }).join('');
@@ -1685,39 +1740,36 @@ async function sendMessage() {
   const me = currentUser.uid;
   $('msgSend').disabled = true;
   try {
-    const cref = doc(db, 'btsConversations', openCid);
-    const mref = doc(collection(cref, 'messages'));
-    const last = text.slice(0, 140);
-    const batch = writeBatch(db);
+    // [2026-11-10] Sent by the sendBtsMessage function, which checks the
+    // language and writes the message with the conversation's last-message
+    // fields — and, for a first message, starts the conversation (same checks
+    // the rules used to make).
+    const payload = { cid: openCid, text };
     if (pendingConvo) {
-      const data = {
-        kind: pendingConvo.kind,
-        members: pendingConvo.members,
-        createdBy: me,
-        createdAt: serverTimestamp(),
-        lastAt: serverTimestamp(),
-        lastText: last,
-        lastBy: me,
-        reads: { [me]: serverTimestamp() }
-      };
-      if (pendingConvo.kind === 'direct') data.subject = pendingConvo.subject;
-      if (pendingConvo.kind === 'group' && pendingConvo.title) data.title = pendingConvo.title;
-      batch.set(cref, data);
-    } else {
-      batch.update(cref, { lastAt: serverTimestamp(), lastText: last, lastBy: me, [`reads.${me}`]: serverTimestamp() });
+      payload.start = { kind: pendingConvo.kind };
+      if (pendingConvo.kind === 'direct') payload.start.subject = pendingConvo.subject;
+      if (pendingConvo.kind === 'group') {
+        payload.start.members = pendingConvo.members;
+        if (pendingConvo.title) payload.start.title = pendingConvo.title;
+      }
     }
-    batch.set(mref, { authorUid: me, text, timestamp: serverTimestamp() });
-    await batch.commit();
+    await sendBtsMessageFn(payload);
     $('msgText').value = '';
     $('msgCount').textContent = `0 / ${MSG_MAX}`;
     if (pendingConvo) { const cid = openCid; pendingConvo = null; openThread(cid); }
   } catch (e) {
     console.error(e);
-    toast('Could not send: ' + e.message);
+    toast(fnError(e, 'Could not send'));
   } finally {
     $('msgSend').disabled = false;
   }
 }
+
+$('threadMsgs').addEventListener('click', e => {
+  const id = e.target.dataset && e.target.dataset.rep;
+  if (!id || !openCid || e.target.disabled) return;
+  reportItem({ kind: 'btsMessage', cid: openCid, id }, 'm_' + id, e.target, 'message');
+});
 
 $('threadMsgs').addEventListener('click', async e => {
   const id = e.target.dataset && e.target.dataset.del;
