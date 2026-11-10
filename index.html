@@ -2014,15 +2014,18 @@ function renderMilestones(d, next) {
   const reached = (d.reached || []).filter(m => m && m.text).slice(0, 3);
   reached.forEach(m => {
     const li = document.createElement('li');
+    // Reached in a Test: opens that Test's scorecard, and says where and when
+    // without clicking (IJ, 2026-11-10).
     const a = document.createElement('a');
-    a.href = m.kind === 'wkts' ? '/bowling.html' : '/batting.html';
+    a.href = m.test ? '/countries.html?test=' + parseInt(m.test, 10) : '/countries.html';
     const t = document.createElement('span');
     t.className = 'cu-teams';
     t.textContent = m.text;
     a.appendChild(t);
     const meta = document.createElement('span');
     meta.className = 'cu-meta';
-    meta.textContent = 'Reached' + (m.team && m.against ? ' · ' + m.team + ' v ' + m.against : '');
+    meta.textContent = [m.team && m.against ? m.team + ' v ' + m.against : '', m.match || 'Test', m.where, m.dates]
+      .filter(Boolean).join(' · ') + ' · Scorecard \u2192';
     a.appendChild(meta);
     li.appendChild(a);
     ul.appendChild(li);
@@ -2132,7 +2135,7 @@ async function refreshFeedRow() {
         box.appendChild(line('p', 'feed-score', lt.scoreline));
         if (lt.standout) box.appendChild(line('p', 'otd-standout', lt.standout));
         const more = line('a', 'otd-more', 'Full scorecard \u2192');
-        more.href = lt.test ? '/countries.html?otd=' + parseInt(lt.test, 10) + '#onthisday' : '/countries.html';
+        more.href = lt.test ? '/countries.html?test=' + parseInt(lt.test, 10) : '/countries.html';
         box.appendChild(more);
         list.appendChild(box);
       }
