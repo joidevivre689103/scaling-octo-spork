@@ -2014,15 +2014,17 @@ function renderMilestones(d, next) {
   const reached = (d.reached || []).filter(m => m && m.text).slice(0, 3);
   reached.forEach(m => {
     const li = document.createElement('li');
+    // Reached in a Test: names the Test and opens its scorecard (IJ, 2026-11-10).
     const a = document.createElement('a');
-    a.href = m.kind === 'wkts' ? '/bowling.html' : '/batting.html';
+    a.href = m.test ? '/countries.html?otd=' + parseInt(m.test, 10) + '#onthisday' : '/countries.html';
     const t = document.createElement('span');
     t.className = 'cu-teams';
     t.textContent = m.text;
     a.appendChild(t);
     const meta = document.createElement('span');
     meta.className = 'cu-meta';
-    meta.textContent = 'Reached' + (m.team && m.against ? ' · ' + m.team + ' v ' + m.against : '');
+    meta.textContent = 'Reached' + (m.team && m.against ? ' · ' + m.team + ' v ' + m.against : '')
+      + ' · ' + (m.match || 'Test') + ' · Scorecard \u2192';
     a.appendChild(meta);
     li.appendChild(a);
     ul.appendChild(li);
