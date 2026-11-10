@@ -1143,8 +1143,23 @@ body{
 }
 
 /* ── Comment reactions ── */
+/* Report (2026-11-10): quiet, at the far end of the reactions row. */
+.comment-report-btn{
+  margin-left:auto;
+  background:none;
+  border:none;
+  padding:3px 6px;
+  cursor:pointer;
+  font-family:'Inter',sans-serif;
+  font-size:11px;
+  letter-spacing:0.04em;
+  color:var(--text3);
+}
+.comment-report-btn:hover{color:#c0392b;text-decoration:underline}
+.comment-report-btn.reported{cursor:default;text-decoration:none;color:var(--text3);opacity:0.7}
 .comment-reactions{
   display:flex;
+  align-items:center;
   gap:4px;
   padding-left:44px;
   margin-top:8px;
@@ -1905,8 +1920,12 @@ function showCopyToast() {
 ═══════════════════════════════════════════════════════════════════════════ -->
 <script type="module">
 import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js';
-import { getFirestore, collection, query, where, orderBy, getDocs, addDoc, deleteDoc, doc, getDoc, setDoc, serverTimestamp, updateDoc, increment }
+import { getFirestore, collection, query, where, orderBy, getDocs, deleteDoc, doc, getDoc, setDoc, serverTimestamp, updateDoc, increment }
   from 'https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js';
+// [2026-11-10] Posting and reporting go through Cloud Functions (moderation.js),
+// which run the profanity filter where it can't be skipped.
+import { getFunctions, httpsCallable }
+  from 'https://www.gstatic.com/firebasejs/13.0.0/firebase-functions.js';
 import { getAuth, onAuthStateChanged }
   from 'https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js';
 
@@ -1931,32 +1950,19 @@ const CT_EDITOR_UIDS = new Set([
 const app  = getApps()[0];
 const db   = getFirestore(app);
 const auth = getAuth(app);
+const fns  = getFunctions(app, 'us-central1');
+const postCommentFn   = httpsCallable(fns, 'postComment');
+const reportContentFn = httpsCallable(fns, 'reportContent');
 
-// ── Profanity word list ──────────────────────────────────────────────────
-const PROFANITY_LIST = [
-  'fuck','shit','ass','asshole','bitch','bastard','damn','dick','piss',
-  'cock','cunt','slut','whore','wanker','twat','bollocks','motherfucker',
-  'bullshit','jackass','dumbass','dipshit','shithead','fuckhead','fucker',
-  'nigger','nigga','faggot','retard','retarded','spastic','spaz',
-  'chutiya','madarchod','bhenchod','gaandu','randi','harami','lauda',
-  'lund','choot','bhosdike','saala','kutta','kamina'
-];
-
-function buildProfanityRegex() {
-  const escaped = PROFANITY_LIST.map(w => {
-    return w
-      .replace(/a/g,'[a@4]')
-      .replace(/e/g,'[e3]')
-      .replace(/i/g,'[i1!]')
-      .replace(/o/g,'[o0]')
-      .replace(/s/g,'[s$5]')
-      .replace(/t/g,'[t7]');
-  });
-  return new RegExp('\\b(' + escaped.join('|') + ')\\b', 'gi');
-}
-const PROFANITY_REGEX = buildProfanityRegex();
-function containsProfanity(text) { return PROFANITY_REGEX.test(text); }
+// [2026-11-10] The in-page profanity list is GONE. The check now runs in the
+// postComment function (functions/profanity.js) — one list, on the server,
+// where nobody can step round it. The function's error message is shown as is.
 function wordCount(text) { const t = text.trim(); return t ? t.split(/\s+/).length : 0; }
+// Remember, for this visit, which comments this reader has reported, so the
+// button stays "Reported" across re-renders. The server keeps one report per
+// reader per comment regardless.
+function wasReported(id) { try { return sessionStorage.getItem('ct_reported_c_' + id) === '1'; } catch (e) { return false; } }
+function markReported(id) { try { sessionStorage.setItem('ct_reported_c_' + id, '1'); } catch (e) {} }
 
 function cGetInitials(name) {
   return name.split(/\s+/).map(w => w[0]).join('').toUpperCase().slice(0, 2);
@@ -2200,6 +2206,13 @@ function renderComments() {
             + '<span class="react-icon">👎</span><span class="react-count">' + (c.dislikes || '') + '</span></button>';
       html += '    <button class="comment-react-btn' + (voted.love ? ' reacted' : '') + '" data-reaction="love" data-cid="' + c.id + '">'
             + '<span class="react-icon">❤️</span><span class="react-count">' + (c.loves || '') + '</span></button>';
+      // [2026-11-10] Report — signed-in readers, on other people's comments.
+      // Not for the moderator, who has Delete instead.
+      if (currentUser && !isAdmin && c.authorUid !== currentUser.uid) {
+        const done = wasReported(c.id);
+        html += '    <button class="comment-report-btn' + (done ? ' reported' : '') + '" data-report="' + c.id + '"'
+              + (done ? ' disabled' : '') + '>' + (done ? 'Reported' : 'Report') + '</button>';
+      }
       html += '  </div>';
       if (isAdmin) {
         html += '  <button class="comment-delete-btn" title="Delete comment" data-delete="' + c.id + '">🗑</button>';
@@ -2250,12 +2263,6 @@ function renderComments() {
         errorEl.textContent = 'Your comment exceeds the ' + MAX_WORDS + '-word limit.';
         return;
       }
-      // Name is generated, so there is nothing user-supplied left to screen
-      // but the comment body itself.
-      if (containsProfanity(text)) {
-        errorEl.textContent = 'Your comment contains inappropriate language. Please revise and try again.';
-        return;
-      }
 
       btnEl.disabled = true;
       btnEl.textContent = 'Posting…';
@@ -2284,15 +2291,11 @@ function renderComments() {
         // the reader renames and outlives the account when it closes. Same
         // reasoning that removed emailKey above — a denormalised field nothing
         // needs is a liability, not a convenience.
-        await addDoc(collection(db, COMMENTS_COLLECTION), {
-          articleId: artId,
-          text: text,
-          timestamp: serverTimestamp(),
-          authorUid: currentUser.uid,
-          likes: 0,
-          dislikes: 0,
-          loves: 0
-        });
+        // [2026-11-10] Written by the postComment function, which checks the
+        // language, the word limit and the 50-comment cap, then saves the same
+        // document shape as before (authorUid, three counters at 0, no name,
+        // no emailKey).
+        await postCommentFn({ articleId: artId, text: text });
         // [2026-08-07] The displayName persist-on-post block is GONE. It used
         // to write whatever was typed in the name field back to
         // users/{uid}.displayName. With bylines resolving at render that would
@@ -2304,13 +2307,36 @@ function renderComments() {
         countEl.textContent = '0 / ' + MAX_WORDS + ' words';
         setTimeout(loadComments, 800);
       } catch(e) {
-        errorEl.textContent = 'Failed to post comment. Please try again.';
+        // The function's own message for things the reader can fix (language,
+        // length, comments closed); a plain one for anything else.
+        const fixable = e && (e.code === 'functions/invalid-argument' || e.code === 'functions/failed-precondition');
+        errorEl.textContent = fixable ? e.message : 'Failed to post comment. Please try again.';
         console.error('Comment post error:', e);
         btnEl.disabled = false;
         btnEl.textContent = 'Post Comment';
       }
     });
   }
+
+  // [2026-11-10] Report buttons → reportContent. The moderator sees it in the
+  // admin app (Readers → Reports) and deletes or keeps it.
+  root.querySelectorAll('[data-report]').forEach(btn => {
+    btn.addEventListener('click', async function() {
+      const id = this.getAttribute('data-report');
+      const reason = prompt('Report this comment to the moderator?\n\nWhat’s wrong with it? (optional)', '');
+      if (reason === null) return;                     // Cancel
+      this.disabled = true;
+      try {
+        await reportContentFn({ kind: 'comment', id: id, reason: reason.trim().slice(0, 300) });
+        markReported(id);
+        this.textContent = 'Reported';
+        this.classList.add('reported');
+      } catch (e) {
+        this.disabled = false;
+        alert(e && e.message ? e.message : 'Could not send the report. Please try again.');
+      }
+    });
+  });
 
   // Wire admin delete buttons
   if (isAdmin) {
