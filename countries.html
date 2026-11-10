@@ -155,6 +155,9 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
 .sc-close:hover{color:var(--text)}
 .sc-dialog .otd-match{margin-bottom:12px}
 body.sc-open{overflow:hidden}
+/* 2026-11-10: the signed-in pill (auth-status.js, fixed, z-index 9999) sat on top of
+   the × on mobile. Hide it while a scorecard is open; it returns on close. */
+body.sc-open #ct-auth-status{display:none}
 @media(max-width:600px){ .sc-overlay{padding:0} .sc-dialog{border-radius:0;padding:44px 14px 16px;min-height:100%} }
 
 /* ═══ Collapsible Filters Card (captaincy-style) ═══ */
