@@ -431,7 +431,7 @@
           "href": "/wtc.html",
           "gate": "wtc",
           "tier": "free",
-          "blurb": "The World Test Championship table and the race to the final at Lord’s, worked out from the results alone.",
+          "blurb": "The World Test Championship table and the race to the final at the Oval, worked out from the results alone.",
           "questions": [
             "Can your team still reach the final?",
             "Which results elsewhere would help your side?"
