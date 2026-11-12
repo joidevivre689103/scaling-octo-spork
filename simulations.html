@@ -917,17 +917,42 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
     return {b,w,usage:use,shortBat:q.bat_base==null,shortBow:q.bow_base==null,nInns:nI,nBalls:nB};
   }
 
+  // Short-record cap (2026-11-12) — twin of functions/simRules.js capShort and
+  // scripts/strength_v3.cap_short, on when the model file carries
+  // aggregation.cap_n_tests. A bowler with 1..n-1 Tests is rated no higher than
+  // the average of his established team-mates of the same type (n+ Tests, 60+
+  // balls a Test); none -> the front-line prior. His rating as the chances count
+  // it is economy x strike = his minimum-sample rating, or w for a short record.
+  function capShort(P,xi){
+    const n=MODEL.aggregation.cap_n_tests;
+    if(!n) return;
+    const kindOf=p=>p&&p.bowl_type?(p.bowl_type==="Spin"?"spin":"pace"):null;
+    const eff=xi.map((p,i)=>p&&p.bow_base!=null&&p.bow_base>0?p.bow_base:P[i].w);
+    const nt=xi.map(p=>(p&&p.n_tests)||0), kinds=xi.map(kindOf);
+    for(let i=0;i<11;i++){
+      P[i].kind=kinds[i];
+      if(!(nt[i]>0&&nt[i]<n)||!kinds[i]) continue;
+      let sum=0,k=0;
+      for(let j=0;j<11;j++) if(j!==i&&kinds[j]===kinds[i]&&nt[j]>=n&&P[j].usage>=60){sum+=eff[j];k++;}
+      const cap=k?sum/k:MODEL.aggregation.priors.bow_front;
+      if(eff[i]>cap){P[i].capped=cap;P[i].capFactor=cap/eff[i];}
+      if(P[i].w>cap){P[i].w=cap;P[i].capped=cap;}
+    }
+  }
+
   function aggregate(xi){
     requireLoaded();
     if(!Array.isArray(xi)||xi.length!==11) throw new Error("aggregate: xi must be length 11");
     if(isV3()){
       const W=positionWeights(), tot0=MODEL.aggregation.workload_total||5;
       const P=xi.map((p,i)=>parts(p,i));
+      capShort(P,xi);
       const tot=P.reduce((s,x)=>s+x.usage,0)||1;
       let team_bat=0, team_bow=0; const perPlayer=[];
       P.forEach((x,i)=>{
         team_bat+=x.b*W[i]; team_bow+=x.w*x.usage/tot*tot0;
-        perPlayer.push({position:i+1,name:xi[i]?xi[i].name:"(empty)",bat_rating:x.b,bow_rating:x.w,bat_weight:W[i],bat_contribution:x.b*W[i]});
+        perPlayer.push({position:i+1,name:xi[i]?xi[i].name:"(empty)",bat_rating:x.b,bow_rating:x.w,bat_weight:W[i],bat_contribution:x.b*W[i],
+          capped:x.capped||null,capFactor:x.capFactor||1,kind:x.kind||null});
       });
       return {team_bat,team_bow,perPlayer};
     }
@@ -1148,9 +1173,18 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
   // A rating in the XI. Under the minimum sample (20 innings / 600 balls) a
   // player is rated from his short record (strength v3): shown in italics, with
   // what it is based on. Bowling that small is a part-timer's and stays "—".
-  function ratCell(p,i,kind){
+  function ratCell(p,i,kind,ci){
     const good=kind==="bat"?1.3:1.2;
     const r=p?(kind==="bat"?p.bat_rating:p.bow_rating):null;
+    // Capped short record (2026-11-12): show his figure as the chances count it.
+    if(kind==="bow"&&p&&ci&&ci.capped){
+      const own=r!=null?r:SimEngine.parts(p,i).w;
+      const shown=r!=null?r*ci.capFactor:Math.min(own,ci.capped);
+      if(shown<own-0.005){
+        const tests=`${p.n_tests} Test${p.n_tests===1?"":"s"}`;
+        return `<span class="rat bow short" title="Only ${tests}: rated no higher than his team-mates who bowl ${ci.kind} (his own figure ${own.toFixed(2)}).">${shown.toFixed(2)}</span>`;
+      }
+    }
     if(p&&r==null&&SimEngine.isV3()){
       const x=SimEngine.parts(p,i);
       const n=kind==="bat"?x.nInns:x.nBalls;
@@ -1180,6 +1214,8 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
     if(!container) return;
     const xi=MS.xi[side];
     container.innerHTML="";
+    let agg=null;
+    try{ if(SimEngine.isV3()&&xi.some(Boolean)) agg=SimEngine.aggregate(xi); }catch(e){ agg=null; }
     for(let i=0;i<11;i++){
       const p=xi[i];
       const row=document.createElement("div");
@@ -1192,7 +1228,7 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
         </span>
         <span class="name ${p?"":"empty"}" title="${p?(p.full_name||p.name):"Click to pick"}">${p?p.name:"empty — click to pick"}<div class="era">${fmtEra(p)}</div></span>
         ${ratCell(p,i,"bat")}
-        ${ratCell(p,i,"bow")}
+        ${ratCell(p,i,"bow",agg&&agg.perPlayer[i])}
         <button class="slot-btn" data-act="${p?"remove":"pick"}" title="${p?"Remove":"Pick"}">${p?"×":"+"}</button>
       `;
       // click name -> picker
