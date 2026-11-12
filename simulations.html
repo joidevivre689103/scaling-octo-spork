@@ -235,6 +235,40 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
 .hp-info{padding:14px 18px;background:rgba(184,134,11,0.06);border-left:3px solid var(--gold);border-radius:0 6px 6px 0;margin-top:12px;font-family:'Source Serif 4',serif;font-size:13px;color:var(--text2);line-height:1.5}
 .hp-info strong{color:var(--text1);font-weight:600}
 
+/* What-if comparison (IJ, 2026-11-12): up to 4 replays side by side, each
+   labelled with what was changed from the XIs that actually played. */
+.wi-compare{margin-top:36px;display:none}
+.wi-compare.visible{display:block}
+.wi-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.wi-card{background:var(--surface);border:1px solid var(--border);border-top:3px solid var(--accent);border-radius:10px;padding:16px 18px;display:flex;flex-direction:column;gap:12px;transition:box-shadow 0.2s}
+.wi-card.base{border-top-color:var(--gold)}
+.wi-card.flash{box-shadow:0 0 0 2px var(--accent)}
+.wi-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.wi-num{font-family:'Inter',sans-serif;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3)}
+.wi-acts{display:flex;gap:6px}
+.wi-acts button{padding:3px 9px;font-size:10px}
+.wi-changes{list-style:none;font-size:13.5px;line-height:1.45;color:var(--text1);padding-bottom:10px;border-bottom:1px dashed var(--border2)}
+.wi-changes li{padding:1px 0}
+.wi-changes .side{font-family:'Inter',sans-serif;font-size:10px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;color:var(--text3);margin-right:6px}
+.wi-changes .none{font-style:italic;color:var(--text2)}
+.wi-row{display:grid;grid-template-columns:minmax(0,120px) 1fr 52px;gap:10px;align-items:center;margin-bottom:7px}
+.wi-row:last-child{margin-bottom:0}
+.wi-row .lbl{font-family:'Playfair Display',serif;font-weight:700;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wi-row .track{background:var(--surface3);height:14px;border-radius:3px;overflow:hidden}
+.wi-row .fill{height:100%;transition:width 0.6s cubic-bezier(0.2,0.7,0.3,1)}
+.wi-row .fill.A{background:var(--accent)}
+.wi-row .fill.D{background:#8a7a6a}
+.wi-row .fill.B{background:var(--blue)}
+.wi-row .pct{font-family:'Playfair Display',serif;font-weight:700;font-size:15px;text-align:right;font-variant-numeric:tabular-nums;line-height:1.1}
+.wi-row .pct small{display:block;font-family:'Inter',sans-serif;font-size:9.5px;font-weight:600;color:var(--text3)}
+.wi-str{display:grid;grid-template-columns:1fr auto auto;gap:4px 14px;font-family:'Inter',sans-serif;font-size:11px;color:var(--text2);align-items:baseline}
+.wi-str .h{font-size:9.5px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:var(--text3);text-align:right}
+.wi-str .t{font-family:'Playfair Display',serif;font-weight:700;font-size:13px;color:var(--text1)}
+.wi-str .n{font-family:'Playfair Display',serif;font-weight:700;font-size:15px;text-align:right;font-variant-numeric:tabular-nums}
+.wi-note{font-size:12px;color:var(--text3);line-height:1.45}
+.wi-empty{font-family:'Inter',sans-serif;font-size:12px;color:var(--text3)}
+@media(max-width:900px){.wi-grid{grid-template-columns:1fr}}
+
 /* Bottom footer-note */
 .method-note{margin-top:40px;padding:20px 24px;background:var(--surface);border:1px dashed var(--border2);border-radius:8px;font-family:'Source Serif 4',serif;font-size:13px;color:var(--text2);line-height:1.6}
 .method-note h4{font-family:'Inter',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3);margin-bottom:10px}
@@ -616,8 +650,17 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
       </div>
 
       <div class="run-bar">
-        <span class="run-aside">Single-match probabilities · swap players or flip bat-first to see counterfactuals</span>
+        <span class="run-aside" id="whatIfRunNote">Each run adds a what-if below &middot; up to 4 side by side</span>
         <button class="run-btn" id="runBtn3">Run Replay</button>
+      </div>
+
+      <!-- What-if comparison: up to 4 runs of this Test, side by side (2026-11-12) -->
+      <div class="wi-compare" id="whatIfCompare">
+        <div class="results-head">
+          <h2 id="whatIfCompareTitle">What-ifs</h2>
+          <span class="results-meta" id="whatIfCompareMeta"></span>
+        </div>
+        <div class="wi-grid" id="whatIfGrid"></div>
       </div>
     </div>
   </section>
@@ -915,9 +958,12 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
     pickerTarget:null,  // {side, slotIdx}
     data:null,          // raw data.json (for what-if)
     dataLoading:null,
-    countries:[]
+    countries:[],
+    whatIfs:[],         // What-If Replay runs shown side by side (2026-11-12)
+    whatIfSeq:0
   };
   window.MS=MS;
+  const WHATIF_MAX=4;
 
   // ── Toast helper
   function toast(msg,err){
@@ -1347,6 +1393,16 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
     btn2.disabled=!(fullX&&fullY);
     const st2=document.getElementById("runStatus2");
     st2.textContent=(fullX&&fullY)?"Ready to simulate":`Complete Side ${!fullX?"1":"2"} XI`;
+
+    // Flow 3: up to WHATIF_MAX replays side by side. At the cap the button
+    // waits for one to be removed, so a run is never spent on a hidden card.
+    const btn3=document.getElementById("runBtn3");
+    const full3=(MS.whatIfs||[]).length>=WHATIF_MAX;
+    btn3.disabled=full3;
+    const st3=document.getElementById("whatIfRunNote");
+    if(st3) st3.textContent=full3
+      ? WHATIF_MAX+" what-ifs shown · remove one to run another"
+      : "Each run adds a what-if below · up to "+WHATIF_MAX+" side by side";
   }
 
   // ── Flow tabs
@@ -1423,6 +1479,15 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
       if(rp.mode==="clear"&&rp.maxChanges)
         return "This replay allows up to "+rp.maxChanges.perSide+" changes a side, "+rp.maxChanges.total+" in total. Undo a change to see win chances.";
       return dflt;
+    }
+
+    // What-If Replay: each run becomes a card in the comparison grid instead
+    // of replacing the shared results section (2026-11-12).
+    if(sideA==="H"){
+      showRunLimit(r.limits,false);
+      addWhatIf(r,opts,labels,replayNote(r.replay));
+      writeWhatIfLink();
+      return r;
     }
 
     // Like-for-like edges: each side's batting against the other's batting,
@@ -1552,15 +1617,35 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
     q.set("a",MS.xi[s1].map(p=>p?p.id:"").join(","));
     q.set("b",MS.xi[s2].map(p=>p?p.id:"").join(","));
     if(f==="w" && opts && opts.tid!=null) q.set("tid",String(opts.tid));
-    return location.pathname+"?"+q.toString().replace(/%2C/g,",")+location.hash;
+    // What-ifs (2026-11-12): one wi=<XI 1>~<XI 2>~<bat first> per card on
+    // screen, in order. Opening the link replays each in turn: every card is
+    // a run of its own and counts toward the reader's limit, as it did for
+    // the sender.
+    if(f==="w") (MS.whatIfs||[]).forEach(c=>{
+      const ids=xi=>xi.map(p=>p?p.id:"").join(",");
+      q.append("wi",ids(c.H)+"~"+ids(c.V)+"~"+(c.bfChoice||"actual"));
+    });
+    return location.pathname+"?"+q.toString().replace(/%2C/g,",").replace(/%7E/gi,"~")+location.hash;
   }
-  function mountSimShare(){
+  // The address always matches the what-ifs on screen: rewritten after each
+  // run and each removal; cleared when none are left.
+  function writeWhatIfLink(){
+    const h=MS.currentHistMatch;
+    try{
+      if(!h || !(MS.whatIfs||[]).length){ history.replaceState(null,"",location.pathname+location.hash); return; }
+      history.replaceState(null,"",simLink("H",{tid:h.tid}));
+      mountSimShare(document.querySelector("#whatIfCompare .results-head"),
+        ()=>h.t1Name+" vs "+h.t2Name+(h.year?", "+h.year:"")+": what if? \u00b7 The Grass Bank\u2122",
+        "Share these what-ifs");
+    }catch(e){ console.warn("[sim-link] not written:",e&&e.message); }
+  }
+  function mountSimShare(host,textFn,label){
     if(!window.CTUrlState) return;
-    const host=document.querySelector("#resultsSection .results-head");
+    host=host||document.querySelector("#resultsSection .results-head");
     CTUrlState.mountShareRow(host,{
-      inline:true, label:"Share this simulation",
+      inline:true, label:label||"Share this simulation",
       url:()=>location.href,
-      text:()=>document.getElementById("resultsTitle").textContent+": who wins? \u00b7 The Grass Bank™"
+      text:textFn||(()=>document.getElementById("resultsTitle").textContent+": who wins? \u00b7 The Grass Bank™")
     });
   }
   async function restoreFromLink(){
@@ -1590,6 +1675,30 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
     const asOfTid=f==="w"&&MS.currentHistMatch?MS.currentHistMatch.tid:null;
     const xi=k=>(q.get(k)||"").split(",").slice(0,11)
       .map(x=>{ if(x==="") return null; const pl=SimEngine.getPlayer(parseInt(x,10))||null; return asOfTid&&pl?asOfPlayer(pl,asOfTid):pl; });
+    const wis=f==="w"?q.getAll("wi").slice(0,WHATIF_MAX):[];
+    if(wis.length){
+      // Replay each what-if in the order it was shared. Stop if a run fails
+      // (run limit reached, say) — runSim has already told the reader why.
+      let missing=false;
+      const ids=s=>{ const out=(s||"").split(",").slice(0,11).map(x=>{
+        if(x==="") return null;
+        const pl=SimEngine.getPlayer(parseInt(x,10));
+        if(!pl){ missing=true; return null; }
+        return asOfPlayer(pl,asOfTid);
+      }); while(out.length<11) out.push(null); return out; };
+      const bfSel=document.getElementById("batFirstSelect3");
+      for(const w of wis){
+        const [a,b,bf]=w.split("~");
+        MS.xi.H=ids(a); MS.xi.V=ids(b);
+        bfSel.value=Array.prototype.some.call(bfSel.options,o=>o.value===bf)?bf:"actual";
+        renderXI("H"); renderXI("V"); updateRunButtons();
+        const before=MS.whatIfs.length;
+        await runReplay();
+        if(MS.whatIfs.length===before) break;
+      }
+      if(missing) toast("Some players in this link are no longer in the ratings \u2014 their places are left empty.",true);
+      return;
+    }
     const A=xi("a"), B=xi("b");
     if(A.some(Boolean)) MS.xi[s1]=A.concat(Array(11).fill(null)).slice(0,11);
     if(B.some(Boolean)) MS.xi[s2]=B.concat(Array(11).fill(null)).slice(0,11);
@@ -1773,7 +1882,12 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
     // Store the match. Also derive actual bat-first team from innings-1 scorecards (ground truth,
     // not toss winner — a captain who won the toss and chose to bowl is not the bat-first team).
     const batFirstTeam=deriveBatFirstTeam(tid);
-    MS.currentHistMatch={tid,t1Name,t2Name,t1Idx,t2Idx,winner:m[4],toss:m[5],groundIdx:m[1],locationIdx:m[6],batFirstTeam};
+    MS.currentHistMatch={tid,t1Name,t2Name,t1Idx,t2Idx,winner:m[4],toss:m[5],groundIdx:m[1],locationIdx:m[6],batFirstTeam,year:m[7]};
+    // The XIs as played: what every what-if's changes are described against.
+    // A new Test starts a fresh comparison.
+    MS.histOriginal={H:MS.xi.H.slice(),V:MS.xi.V.slice()};
+    MS.whatIfs=[]; MS.whatIfSeq=0;
+    renderWhatIfs();
     // Populate the bat-first selector: "Actual" + both teams. Default = Actual.
     const bfSel=document.getElementById("batFirstSelect3");
     const actualLabel=batFirstTeam?("Actual ("+batFirstTeam+")"):"Actual (unknown)";
@@ -1789,9 +1903,113 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
     document.getElementById("whatIfSimArea").scrollIntoView({behavior:"smooth",block:"start"});
   }
 
-  document.getElementById("runBtn3").addEventListener("click",()=>{
+  // ── What-if comparison (IJ, 2026-11-12) ────────────────────────────────
+  // Up to WHATIF_MAX runs of the loaded Test shown side by side. Each card is
+  // labelled with what differs from the XIs that actually played (and the
+  // bat-first choice, if changed). A run of the unchanged XIs is the "as
+  // played" card; the others show their chances against it.
+  const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  function xiChanges(orig,cur){
+    const out=[];
+    const oSet=new Set(orig.filter(Boolean).map(p=>p.id));
+    const cSet=new Set(cur.filter(Boolean).map(p=>p.id));
+    for(let i=0;i<11;i++){
+      const o=orig[i], c=cur[i];
+      const oOut=!!(o&&!cSet.has(o.id)), cIn=!!(c&&!oSet.has(c.id));
+      if(oOut&&cIn){ out.push(esc(o.name)+" → "+esc(c.name)); continue; }
+      if(oOut) out.push(esc(o.name)+" left out");
+      if(cIn) out.push(esc(c.name)+" in at #"+(i+1));
+      else if(c&&(!o||o.id!==c.id)) out.push(esc(c.name)+" moved to #"+(i+1));
+    }
+    return out;
+  }
+  function whatIfChanges(h,H,V,bfChoice){
+    const items=[];
+    const o=MS.histOriginal||{H:[],V:[]};
+    xiChanges(o.H,H).forEach(t=>items.push({side:h.t1Name,text:t}));
+    xiChanges(o.V,V).forEach(t=>items.push({side:h.t2Name,text:t}));
+    const bfTeam=bfChoice==="T1"?h.t1Name:bfChoice==="T2"?h.t2Name:null;
+    if(bfTeam && bfTeam!==h.batFirstTeam) items.push({side:"Bats first",text:esc(bfTeam)});
+    return items;
+  }
+  function whatIfKey(H,V,bat_first){
+    const ids=xi=>xi.map(p=>p?p.id:"").join(",");
+    return ids(H)+"|"+ids(V)+"|"+bat_first;
+  }
+  function addWhatIf(r,opts,labels,note){
+    const card={n:++MS.whatIfSeq,key:opts.key,H:opts.H,V:opts.V,bfChoice:opts.bfChoice,
+      changes:opts.changes,labels,r,note};
+    MS.whatIfs.push(card);
+    renderWhatIfs();
+    updateRunButtons();
+    const el=document.querySelector('.wi-card[data-n="'+card.n+'"]');
+    if(el) el.scrollIntoView({behavior:"smooth",block:"nearest"});
+  }
+  function renderWhatIfs(){
+    const box=document.getElementById("whatIfCompare");
+    const grid=document.getElementById("whatIfGrid");
+    const list=MS.whatIfs||[];
+    box.classList.toggle("visible",list.length>0);
+    grid.innerHTML="";
+    if(!list.length){ updateRunButtons(); return; }
+    const h=MS.currentHistMatch||{};
+    document.getElementById("whatIfCompareTitle").textContent=
+      (h.t1Name&&h.t2Name)?h.t1Name+" vs "+h.t2Name+(h.year?", "+h.year:""):"What-ifs";
+    document.getElementById("whatIfCompareMeta").textContent=list.length+" of "+WHATIF_MAX+" what-ifs";
+    // The as-played run, if there is one with chances, is the yardstick.
+    const base=list.find(c=>!c.changes.length&&c.r.mode==="chances");
+    const pct=p=>Math.round(p*100);
+    for(const c of list){
+      const el=document.createElement("div");
+      const isBase=!c.changes.length;
+      el.className="wi-card"+(isBase?" base":"");
+      el.dataset.n=c.n;
+      const changes=isBase
+        ? '<li class="none">As played &mdash; no changes</li>'
+        : c.changes.map(x=>'<li><span class="side">'+esc(x.side)+'</span>'+x.text+'</li>').join("");
+      let body;
+      if(c.r.mode==="chances"){
+        const p=c.r.probs, b=base&&base!==c?base.r.probs:null;
+        const row=(lbl,cls,v,bv)=>{
+          const d=bv==null?null:pct(v)-pct(bv);
+          const delta=d==null?"":'<small title="Change from the as-played run">'+(d===0?"same":(d>0?"+":"−")+Math.abs(d)+" pts")+'</small>';
+          return '<div class="wi-row"><div class="lbl" title="'+esc(lbl)+'">'+esc(lbl)+'</div>'+
+            '<div class="track"><div class="fill '+cls+'" style="width:'+pct(v)+'%"></div></div>'+
+            '<div class="pct">'+pct(v)+'%'+delta+'</div></div>';
+        };
+        body=row(c.labels.A+" win","A",p.pA,b&&b.pA)+row("Draw","D",p.pDraw,b&&b.pDraw)+row(c.labels.B+" win","B",p.pB,b&&b.pB);
+      }else{
+        const A=c.r.A, B=c.r.B;
+        body='<div class="wi-str"><span></span><span class="h">Batting</span><span class="h">Bowling</span>'+
+          '<span class="t">'+esc(c.labels.A)+'</span><span class="n">'+A.team_bat.toFixed(2)+'</span><span class="n">'+A.team_bow.toFixed(2)+'</span>'+
+          '<span class="t">'+esc(c.labels.B)+'</span><span class="n">'+B.team_bat.toFixed(2)+'</span><span class="n">'+B.team_bow.toFixed(2)+'</span></div>'+
+          '<div class="wi-note">'+esc(c.note)+'</div>';
+      }
+      el.innerHTML='<div class="wi-top"><span class="wi-num">What-if '+c.n+'</span>'+
+        '<span class="wi-acts"><button class="picker-close" data-act="edit" title="Load these XIs above to change them further">Edit</button>'+
+        '<button class="picker-close" data-act="remove" title="Remove this what-if">&times;</button></span></div>'+
+        '<ul class="wi-changes">'+changes+'</ul>'+body;
+      el.querySelector('[data-act="remove"]').addEventListener("click",()=>{
+        MS.whatIfs=MS.whatIfs.filter(x=>x!==c);
+        renderWhatIfs(); updateRunButtons(); writeWhatIfLink();
+      });
+      el.querySelector('[data-act="edit"]').addEventListener("click",()=>{
+        MS.xi.H=c.H.slice(); MS.xi.V=c.V.slice();
+        document.getElementById("batFirstSelect3").value=c.bfChoice||"actual";
+        renderXI("H"); renderXI("V"); updateRunButtons();
+        document.getElementById("whatIfSimArea").scrollIntoView({behavior:"smooth",block:"start"});
+      });
+      grid.appendChild(el);
+    }
+  }
+
+  document.getElementById("runBtn3").addEventListener("click",()=>{ runReplay(); });
+  // Returns when the run has finished (or was refused), so a shared link's
+  // what-ifs can be replayed one after another.
+  async function runReplay(){
     if(!MS.currentHistMatch){ toast("Load a match first",true); return; }
     const h=MS.currentHistMatch;
+    if((MS.whatIfs||[]).length>=WHATIF_MAX){ toast("Remove a what-if to run another",true); return; }
     // Venue: use authoritative location L-index from D.M[m[6]] with UAE-as-Pakistan-home override.
     // Previous ground-substring heuristic failed on ~98 tests (Mirpur/Abu Dhabi/Dubai/Sharjah/
     // Darren Sammy/Darwin/various Indian regional venues) and had no way to encode Pakistan's
@@ -1814,8 +2032,20 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
       if(h.batFirstTeam===h.t1Name) bat_first=1;
       else if(h.batFirstTeam===h.t2Name) bat_first=-1;
     }
-    runSim("H","V",{home,bat_first,N:1,iters:10000,tid:h.tid},{A:h.t1Name,B:h.t2Name});
-  });
+    // Same XIs and bat-first as a card already shown: point at it rather
+    // than spend a run on an identical result.
+    const key=whatIfKey(MS.xi.H,MS.xi.V,bat_first);
+    const dup=(MS.whatIfs||[]).find(c=>c.key===key);
+    if(dup){
+      const el=document.querySelector('.wi-card[data-n="'+dup.n+'"]');
+      if(el){ el.scrollIntoView({behavior:"smooth",block:"nearest"}); el.classList.add("flash"); setTimeout(()=>el.classList.remove("flash"),1600); }
+      toast("Already shown as What-if "+dup.n);
+      return;
+    }
+    return runSim("H","V",{home,bat_first,N:1,iters:10000,tid:h.tid,key,bfChoice,
+      H:MS.xi.H.slice(),V:MS.xi.V.slice(),changes:whatIfChanges(h,MS.xi.H,MS.xi.V,bfChoice)},
+      {A:h.t1Name,B:h.t2Name});
+  }
 
   // ── Boot
   async function boot(){
