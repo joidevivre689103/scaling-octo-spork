@@ -2825,7 +2825,10 @@ window.lsCard = (function () {
       if (sf) {
         const foot = el('div', 'lc-foot');
         foot.appendChild(el('span', 'lc-cap', 'For subscribers'));
-        const a = el('a', 'lc-link', 'Scorecard so far' + (sf.asOf ? ' (' + sf.asOf.toLowerCase() + ')' : '') + ' \u2192');
+        // Our card is finished though the feed is behind (2026-11-13): say so.
+        const a = el('a', 'lc-link', sf.result
+          ? 'Full scorecard (' + sf.result.charAt(0).toLowerCase() + sf.result.slice(1) + ') \u2192'
+          : 'Scorecard so far' + (sf.asOf ? ' (' + sf.asOf.toLowerCase() + ')' : '') + ' \u2192');
         a.href = '/countries.html?find=' + encodeURIComponent(teams2.join('|') + '|' + String(m.startsAt).slice(0, 10));
         foot.appendChild(a);
         card.appendChild(foot);
