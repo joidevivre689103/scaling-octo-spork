@@ -10,6 +10,7 @@
 <script src="/ct-tracker.js" async></script>
 <!-- CT_7G_INJECT:END -->
 <script src="/feature-flags.js"></script>
+<script src="/article-window-filter.js"></script>
 <script src="/prelaunch-guard.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -561,6 +562,8 @@ body{
   margin-bottom:4px;
 }
 .other-stories-list{list-style:none;margin:0;padding:0}
+.other-stories-archive{margin:14px 0 0;font-size:14px;color:var(--text2)}
+.other-stories-archive a{color:var(--green);text-decoration:underline;text-underline-offset:2px}
 .other-stories-list li{border-bottom:1px solid var(--border)}
 .other-story{
   display:block;
@@ -1322,6 +1325,8 @@ body{
 import { initializeApp, getApps, getApp } from 'https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js';
 import { getFirestore, doc, getDoc, collection, query, where, orderBy, limit, getDocs }
   from 'https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js';
+import { getAuth, onAuthStateChanged }
+  from 'https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // FIREBASE INIT
@@ -1336,6 +1341,22 @@ const firebaseConfig = {
 };
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const db  = getFirestore(app);
+
+// Can this reader open the archive (paid, Honorary, admin)? Same check
+// archive.html's gate makes. Waits for the sign-in state at most 2.5s; any
+// doubt answers no, which only shortens "More from" (IJ, 2026-11-13).
+function readerHasArchive() {
+  const signedIn = new Promise(resolve => {
+    const stop = onAuthStateChanged(getAuth(app), u => { stop(); resolve(u); });
+  });
+  const check = signedIn.then(async u => {
+    const FF = window.CTFeatureFlags;
+    if (!u || !u.email || !FF || !FF.requireAccess) return false;
+    const v = await FF.requireAccess(db, { page: 'archive', email: u.email, user: u });
+    return !!(v && v.allowed);
+  }).catch(() => false);
+  return Promise.race([check, new Promise(r => setTimeout(() => r(false), 2500))]);
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // LOAD ARTICLE FROM FIRESTORE
@@ -1421,7 +1442,9 @@ window._articleLoadComplete = (async function() {
     // only voice notes and withdrawn pieces are left out. Its own try/catch:
     // if this query fails, the article still renders, just without the list.
     let related = [];
+    let archiveNote = false;
     try {
+      const hasArchive = readerHasArchive();
       const relatedSnap = await getDocs(query(
         collection(db, 'articles'),
         where('status', '==', 'published'),
@@ -1432,15 +1455,24 @@ window._articleLoadComplete = (async function() {
         .map(d => ({ id: d.id, ...d.data() }))
         .filter(a => String(a.id) !== String(articleId))
         .filter(a => a.withdrawn !== true && !a.audioOnly && a.headline);
-      const same  = pool.filter(a => a.category === article.category);
-      const other = pool.filter(a => a.category !== article.category);
+      // A reader without the archive (IJ, 2026-11-13) sees only what is on
+      // the home page now, plus a line pointing to Subscribe; otherwise this
+      // row would walk them through the archive one free article at a time.
+      let shown = pool;
+      if (!(await hasArchive)) {
+        const W = window.CTArticleWindow;
+        shown = W ? W.filterToLiveWindow(pool, await W.getWindowDays(db)) : [];
+        archiveNote = true;
+      }
+      const same  = shown.filter(a => a.category === article.category);
+      const other = shown.filter(a => a.category !== article.category);
       related = same.concat(other).slice(0, 4);
     } catch (e) {
       console.warn('Other Stories unavailable:', e);
     }
 
     // ── Render ─────────────────────────────────────────────────────────────
-    renderArticle(container, article, related);
+    renderArticle(container, article, related, archiveNote);
 
   } catch(err) {
     console.error('Firestore error:', err);
@@ -1455,7 +1487,7 @@ window._articleLoadComplete = (async function() {
 // ═══════════════════════════════════════════════════════════════════════════
 // RENDER
 // ═══════════════════════════════════════════════════════════════════════════
-function renderArticle(container, article, related) {
+function renderArticle(container, article, related, archiveNote) {
   const categoryLabel  = article.category
     ? article.category.charAt(0).toUpperCase() + article.category.slice(1) : '';
   const authorInitials = getInitials(article.author);
@@ -1463,10 +1495,12 @@ function renderArticle(container, article, related) {
   const bodyHTML       = renderArticleBody(article);
 
   // Other Stories — shares the end-of-article row with the newsletter.
-  const relatedHTML = related.length > 0 ? `
+  const archiveLine = archiveNote
+    ? `<p class="other-stories-archive">The full archive comes with a <a href="/subscribe.html">subscription</a>.</p>` : '';
+  const relatedHTML = (related.length > 0 || archiveLine) ? `
     <section class="other-stories" aria-labelledby="otherStoriesTitle">
       <h3 class="other-stories-title" id="otherStoriesTitle">More from The Grass Bank™</h3>
-      <ol class="other-stories-list">
+      ${related.length > 0 ? `<ol class="other-stories-list">
         ${related.map(r => `
           <li>
             <a href="article.html?id=${encodeURIComponent(r.id)}" class="other-story">
@@ -1475,7 +1509,8 @@ function renderArticle(container, article, related) {
               <span class="other-story-meta">${esc(r.author || '')}${r.readTime ? ` · ${esc(String(r.readTime))} min read` : ''}</span>
             </a>
           </li>`).join('')}
-      </ol>
+      </ol>` : ''}
+      ${archiveLine}
     </section>` : '';
 
   const tagMap = {
