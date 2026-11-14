@@ -1409,12 +1409,12 @@ window._articleLoadComplete = (async function() {
     // Set page title
     document.title = `${article.headline} — The Grass Bank™`;
 
-    // What the Share button sends (IJ, 2026-11-13): the /a/<n>/ preview page,
-    // which carries this article's headline, summary and picture for
-    // WhatsApp etc., plus the summary as the message text.
+    // What the Share button sends (IJ, 2026-11-13): the headline as the
+    // message text, then the /a/<n>/ preview page, whose card carries the
+    // summary and picture for WhatsApp etc.
     window._shareInfo = {
       id: parseInt(article.id, 10) || null,
-      summary: article.withdrawn === true ? '' : String(article.summary || '').replace(/\s+/g, ' ').trim()
+      headline: article.withdrawn === true ? '' : String(article.headline || '').replace(/\s+/g, ' ').trim()
     };
 
     // ── Withdrawn articles short-circuit ────────────────────────────────────
@@ -1998,11 +1998,8 @@ function shareLink() {
   const origin = /(^|\.)thegrassbank\.com$/.test(location.hostname) ? 'https://thegrassbank.com' : location.origin;
   return `${origin}/a/${info.id}/`;
 }
-function shareSummary() {
-  const s = (window._shareInfo && window._shareInfo.summary) || '';
-  if (s.length <= 200) return s;
-  const cut = s.slice(0, 199), sp = cut.lastIndexOf(' ');
-  return (sp > 120 ? cut.slice(0, sp) : cut).replace(/[\s,;:.]+$/, '') + '…';
+function shareHeadline() {
+  return (window._shareInfo && window._shareInfo.headline) || '';
 }
 function shareArticle(e) {
   const btn = e.currentTarget;
@@ -2010,7 +2007,7 @@ function shareArticle(e) {
 
   if (navigator.share) {
     const data = { title: document.title, url };
-    const text = shareSummary();
+    const text = shareHeadline();
     if (text) data.text = text;
     navigator.share(data).catch(() => {});
     return;
