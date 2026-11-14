@@ -359,6 +359,9 @@ body{
 .coming-up .cu-teams, .feed-list .cu-teams{ display:block; color:var(--text); }
 .feed-list .cu-meta{ display:block; font-family:'Inter',sans-serif; font-size:11px; letter-spacing:0.06em; text-transform:uppercase; color:var(--text3); margin-top:2px; }
 .feed-list .cu-live{ color:var(--accent); }
+.feed-list li.ms-sub{ font-family:'Inter',sans-serif; font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:var(--accent); padding-top:12px; }
+.feed-list li.ms-sub + li{ border-top:none; padding-top:2px; }
+.feed-list li.ms-sub:first-child{ padding-top:0; }
 @media (max-width:760px){
   .feed-row{ grid-template-columns:1fr; }
   .feed-row{ grid-template-columns:1fr !important; }
@@ -1146,9 +1149,9 @@ body.articles-loading .analysis-section{ visibility:hidden; }
        * Coming up: the next three Tests that haven't started, checked against
          the READER's date (a Test drops off on its first day even if the feed
          hasn't rebuilt) — renderComingUp().
-       * Milestone watch: the players from the sides in those Tests who are near a
-         milestone, each with the Test it could come in; the general list when
-         none are — renderMilestones().
+       * Milestones: only ones that have happened (IJ, 2026-11-14) — those from
+         the last 45 days first, then On this day from the archive to fill
+         five — renderMilestones().
        Placement (IJ): On this day always leads; this row sits directly under it
        when there is no article from the last 7 days, and moves BELOW the articles
        when there is one — see refreshFeedRow(). Hidden until that is decided, so
@@ -1981,41 +1984,33 @@ function renderComingUp(list) {
   return pick.map(r => r.u);
 }
 
-// Milestone watch: players from the sides in the Tests under Coming up (dated
-// ones only) who are near a milestone, closest first, each with the Test it
-// could come in. Falls back to the general list when none are. Up to four.
-// 2026-10-31 (IJ): milestones come from the archive, which learns a Test's
-// result only when Cricsheet adds it, days later. So while a side has a Test
-// that has started but isn't in the archive yet, its players' milestones are
-// left out (they may already have happened), and a milestone is tied only to a
-// Test that hasn't started.
-function renderMilestones(d, next) {
+// Milestones (IJ, 2026-11-14): only milestones that have happened. Looking
+// ahead ("X needs 45 for 5,000") can't know that a player has retired or been
+// dropped, so it is gone. First those from Tests that finished in the last
+// MS_RECENT_DAYS (liveScores/home.reached; judged by the reader's own date so a
+// feed that hasn't rebuilt never passes an old one off as recent), then the
+// rest of the five from the archive (home.onThisDay, keyed 'MM-DD' like
+// liveScores/onThisDay): big milestones from Tests played on this date in an
+// earlier year, or in the week around it when the date has too few.
+const MS_RECENT_DAYS = 45, MS_SHOW = 5;
+function renderMilestones(d) {
   const ul = document.getElementById('milestoneList');
   if (!ul) return false;
   ul.textContent = '';
   const now = new Date();
-  const todayIso = [now.getFullYear(), String(now.getMonth() + 1).padStart(2, '0'), String(now.getDate()).padStart(2, '0')].join('-');
-  const pending = new Set();
-  (d.upcoming || []).forEach(u => {
-    if (u && u.start && u.start <= todayIso) { pending.add(u.host); pending.add(u.visitor); }
-  });
-  const teamOf = {};
-  (d.watch || []).forEach(m => { if (m && m.name && m.team) teamOf[m.name] = m.team; });
-  const settled = m => m && m.text && !pending.has(m.team || teamOf[m.name]);
-  const nextFor = {};
-  (next || []).filter(u => u.start && u.start > todayIso).forEach(u => {
-    const city = (u.city || '').split(' (')[0];
-    if (!nextFor[u.host]) nextFor[u.host] = 'v ' + u.visitor + (city ? ', ' + city : '');
-    if (!nextFor[u.visitor]) nextFor[u.visitor] = 'v ' + u.host + (city ? ', ' + city : '');
-  });
-  // 2026-11-10 (IJ): the column is "Milestones" — first those reached in the
-  // Tests that have just joined the archive (up to three), then the ones in
-  // sight, five in all.
-  const reached = (d.reached || []).filter(m => m && m.text).slice(0, 3);
-  reached.forEach(m => {
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const recent = (d.reached || []).filter(m => {
+    if (!m || !m.text) return false;
+    if (!m.finished) return true;
+    const [y, mo, dd] = m.finished.split('-').map(Number);
+    return (today - new Date(y, mo - 1, dd)) / 864e5 <= MS_RECENT_DAYS;
+  }).slice(0, MS_SHOW);
+  const key = String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+  const past = ((d.onThisDay || {})[key] || []).filter(m => m && m.text).slice(0, MS_SHOW - recent.length);
+  // Each one opens its Test's scorecard and says where and when without
+  // clicking (IJ, 2026-11-10).
+  const item = m => {
     const li = document.createElement('li');
-    // Reached in a Test: opens that Test's scorecard, and says where and when
-    // without clicking (IJ, 2026-11-10).
     const a = document.createElement('a');
     a.href = m.test ? '/countries.html?test=' + parseInt(m.test, 10) : '/countries.html';
     const t = document.createElement('span');
@@ -2025,39 +2020,26 @@ function renderMilestones(d, next) {
     const meta = document.createElement('span');
     meta.className = 'cu-meta';
     meta.textContent = [m.team && m.against ? m.team + ' v ' + m.against : '', m.match || 'Test', m.where, m.dates]
-      .filter(Boolean).join(' · ') + ' · Scorecard \u2192';
+      .filter(Boolean).join(' · ') + ' · Scorecard →';
     a.appendChild(meta);
     li.appendChild(a);
-    ul.appendChild(li);
-  });
-  const room = 5 - reached.length;
-  let ms = (d.watch || []).filter(m => settled(m) && nextFor[m.team]).slice(0, Math.min(4, room));
-  const tied = ms.length > 0;
-  if (!tied) ms = (d.milestones || []).filter(settled).slice(0, Math.min(4, room));
-  ms.forEach(m => {
-    const li = document.createElement('li');
-    const a = document.createElement('a');
-    a.href = m.kind === 'wkts' ? '/bowling.html' : '/batting.html';
-    const t = document.createElement('span');
-    t.className = 'cu-teams';
-    t.textContent = m.text;
-    a.appendChild(t);
-    if (tied) {
-      const meta = document.createElement('span');
-      meta.className = 'cu-meta';
-      meta.textContent = m.team + ' · ' + nextFor[m.team];
-      a.appendChild(meta);
-    }
-    li.appendChild(a);
-    ul.appendChild(li);
-  });
-  // 2026-10-28 (IJ): Milestone watch always shows, with a line when nobody is
-  // close to one, rather than disappearing.
-  if (!ms.length && !reached.length) {
+    return li;
+  };
+  recent.forEach(m => ul.appendChild(item(m)));
+  if (past.length) {
+    // A heading of their own, so nobody takes a 2004 milestone for this week's.
+    const h = document.createElement('li');
+    h.className = 'ms-sub';
+    h.textContent = past.some(m => m.near) ? 'This week in history' : 'On this day';
+    ul.appendChild(h);
+    past.forEach(m => ul.appendChild(item(m)));
+  }
+  // 2026-10-28 (IJ): the column always shows, with a line when it has nothing.
+  if (!recent.length && !past.length) {
     const li = document.createElement('li');
     const t = document.createElement('span');
     t.className = 'cu-teams';
-    t.textContent = 'No milestones in sight just now. Check back after the next Test.';
+    t.textContent = 'No milestones just now. Check back after the next Test.';
     li.appendChild(t);
     ul.appendChild(li);
   }
@@ -2144,7 +2126,7 @@ async function refreshFeedRow() {
     }
     const next = renderComingUp(d.upcoming || []);
     if (next.length) shown++;
-    if (renderMilestones(d, next)) shown++;
+    if (renderMilestones(d)) shown++;
     refreshFeedRow();
   } catch (err) {
     console.warn('[home-feed] not shown:', err && err.message);
