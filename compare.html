@@ -277,6 +277,7 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
   max-height:220px;overflow-y:auto;box-shadow:0 10px 36px rgba(0,0,0,0.13);display:none;
 }
 .ms-dd.open{display:block}
+.ms-dd-group{padding:6px 10px 4px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);background:var(--surface2);border-bottom:1px solid var(--border)}
 .ms-dd-item{
   padding:6px 10px;cursor:pointer;display:flex;align-items:center;gap:8px;
   font-size:12px;border-bottom:1px solid rgba(200,205,214,0.4);transition:background 0.12s;
@@ -1017,6 +1018,12 @@ header.header{display:none !important}
         </div>
       </div>
       <div class="fp-group"><label>Played Together</label><select class="fp-select-lg" id="fTogether" onchange="applyFilters()"><option value="">No (all stats)</option><option value="yes">Yes (same matches)</option></select></div>
+      <div class="fp-group"><label>Metrics shown</label>
+        <div class="ms-wrap" id="fMetWrap">
+          <button class="ms-toggle" id="fMetToggle" type="button" onclick="metToggleDD()"><span class="ms-placeholder">All metrics</span></button>
+          <div class="ms-dd" id="fMetDD"></div>
+        </div>
+      </div>
       <div class="fp-group" id="phaseGroup"><label>Career Phases</label>
         <div class="phase-ms-wrap" id="phaseMsWrap">
           <button class="phase-ms-toggle" id="phaseMsToggle" type="button" onclick="togglePhasePicker()"><span class="ms-placeholder">All (full career)</span></button>
@@ -1287,6 +1294,7 @@ function buildStateParams(){
   if(t && t !== 'player') q.set('t', t);
   const st = getStatsType();
   if(st && st !== 'both' && t !== 'against') q.set('st', st);
+  if(hiddenMetrics.size) q.set('hm', [...hiddenMetrics].join(','));
   if(t === 'against'){
     if(againstMode !== 'batter') q.set('am', againstMode);
     if(againstSel[0]) q.set('af', againstSel[0].id);
@@ -1366,6 +1374,8 @@ function loadFromURL(){
   const ids = v => (params.get(v) || '').split(',').map(x => parseInt(x, 10));
   const known = id => PLAYERS.some(p => p.id === id);
   urlRestoring = true;
+  (params.get('hm') || '').split(',').filter(k => METRIC_KEYS.has(k)).forEach(k => hiddenMetrics.add(k));
+  metRenderDD();
 
   const t = params.get('t');
   const rt = document.getElementById('fRecordType');
@@ -2079,6 +2089,7 @@ function resetFilters(){
   document.getElementById('phaseYearFrom').value='';
   document.getElementById('phaseYearTo').value='';
   clearAllPhases();
+  hiddenMetrics.clear(); metRenderDD();
   updateOppToggleLabel();updateTeamCaptToggleLabel();updateOppCaptToggleLabel();
   document.querySelectorAll('#fOppDD .ms-dd-item').forEach(el=>el.classList.remove('checked'));
   document.querySelectorAll('#fTeamCaptDD .ms-dd-item').forEach(el=>el.classList.remove('checked'));
@@ -2097,11 +2108,16 @@ function showTags(){
   f.oppCapts.forEach(p=>tags.push({k:'oppCapt_'+p,l:'Opp capt: '+(PID_NAME[p]||'?')}));
   if(f.together)tags.push({k:'fTogether',l:'Played together'});
   if(selectedPhases.length)tags.push({k:'phases',l:selectedPhases.map(p=>p.label).join(' · ')});
+  if(hiddenMetrics.size){
+    const hid=METRICS.filter(m=>hiddenMetrics.has(m.key)).map(m=>m.label);
+    tags.push({k:'metrics',l:'Hidden: '+(hid.length<=3?hid.join(', '):hid.slice(0,3).join(', ')+' +'+(hid.length-3))});
+  }
   document.getElementById('activeFilt').innerHTML=tags.map(t=>{
     if(t.ms){return`<span class="af-tag">${t.l}<button onclick="msRemove('${t.ms}','${t.v}')">&times;</button></span>`;}
     if(t.k.startsWith('opp_')){const ov=t.k.split('_')[1];return`<span class="af-tag">${t.l}<button onclick="removeOpp(${ov})">&times;</button></span>`;}
     if(t.k.startsWith('teamCapt_')){const pv=+t.k.split('_')[1];return`<span class="af-tag">${t.l}<button onclick="removeTeamCapt(${pv})">&times;</button></span>`;}
     if(t.k.startsWith('oppCapt_')){const pv=+t.k.split('_')[1];return`<span class="af-tag">${t.l}<button onclick="removeOppCapt(${pv})">&times;</button></span>`;}
+    if(t.k==='metrics'){return`<span class="af-tag">${t.l}<button onclick="metShowAll()">&times;</button></span>`;}
     if(t.k==='phases'){return`<span class="af-tag">${t.l}<button onclick="clearAllPhases();applyFilters()">&times;</button></span>`;}
     return`<span class="af-tag">${t.l}<button onclick="document.getElementById('${t.k}').value='';applyFilters()">&times;</button></span>`;
   }).join('');
@@ -2133,6 +2149,105 @@ function getRows(player){
 /* Fewer than this many recorded balls is not a sample worth rating — see the
    batting page's MIN_BALLS_FOR_SR for the full reasoning. */
 const MIN_BALLS_FOR_SR = 20;
+
+/* AvRate (2026-11-14) = batting average + strike rate. Both halves are runs
+   (per dismissal, per 100 balls) on similar scales for Test batters, so a
+   plain sum weighs them equally. No strike rate (too few balls recorded) or
+   no average means no AvRate: we never invent half of it. */
+function avRateOf(avg, sr){
+  return (typeof avg==='number' && avg>0 && typeof sr==='number' && sr>0) ? avg+sr : null;
+}
+
+/* ---- Metrics shown (2026-11-14) ----
+   Include/exclude picker in the filter panel. A hidden metric drops out of
+   every comparison table (overview, batting, bowling, all stats, phase rows,
+   head-to-head) and out of the Summary verdict, so the results focus on what
+   is left. Not a row filter: it never changes which innings are counted.
+   The Excel export stays complete on purpose. URL key: hm=key,key */
+const METRICS = [
+  {g:'General', key:'years',     label:'Years'},
+  {g:'General', key:'tests',     label:'Tests'},
+  {g:'Batting', key:'inns',      label:'Innings'},
+  {g:'Batting', key:'no',        label:'Not outs'},
+  {g:'Batting', key:'runs',      label:'Runs'},
+  {g:'Batting', key:'balls',     label:'Balls faced'},
+  {g:'Batting', key:'batAvg',    label:'Batting average'},
+  {g:'Batting', key:'sr',        label:'Strike rate'},
+  {g:'Batting', key:'avRate',    label:'AvRate'},
+  {g:'Batting', key:'hs',        label:'High score'},
+  {g:'Batting', key:'fifties',   label:'50s'},
+  {g:'Batting', key:'hundreds',  label:'100s'},
+  {g:'Bowling', key:'overs',     label:'Overs'},
+  {g:'Bowling', key:'mdns',      label:'Maidens'},
+  {g:'Bowling', key:'bowlRuns',  label:'Runs conceded'},
+  {g:'Bowling', key:'wkts',      label:'Wickets'},
+  {g:'Bowling', key:'bowlAvg',   label:'Bowling average'},
+  {g:'Bowling', key:'econ',      label:'Economy'},
+  {g:'Bowling', key:'bpw',       label:'Balls per wicket'},
+  {g:'Bowling', key:'bestBowl',  label:'Best bowling'},
+  {g:'Fielding',key:'catches',   label:'Catches'},
+  {g:'Fielding',key:'stumpings', label:'Stumpings'},
+  {g:'Fielding',key:'mom',       label:'Player of the match'},
+];
+const METRIC_KEYS = new Set(METRICS.map(m=>m.key));
+// Head-to-head tables use their own key for the batting average.
+const METRIC_ALIAS = {avg:'batAvg'};
+const hiddenMetrics = new Set();
+function metHidden(key){ return hiddenMetrics.has(METRIC_ALIAS[key]||key); }
+// Drop hidden columns, then any section header left with nothing under it.
+function visibleCols(cols){
+  const kept = cols.filter(c => c.sec || !metHidden(c.key));
+  return kept.filter((c,i) => !c.sec || (kept[i+1] && !kept[i+1].sec));
+}
+function metUpdateLabel(){
+  const btn=document.getElementById('fMetToggle'); if(!btn) return;
+  const shown = METRICS.length - hiddenMetrics.size;
+  btn.innerHTML = hiddenMetrics.size===0
+    ? '<span class="ms-placeholder">All metrics</span>'
+    : shown + ' of ' + METRICS.length + ' shown';
+}
+function metRenderDD(){
+  const dd=document.getElementById('fMetDD'); if(!dd) return;
+  let html='', g='';
+  METRICS.forEach(m=>{
+    if(m.g!==g){ g=m.g; html+='<div class="ms-dd-group">'+g+'</div>'; }
+    html += '<div class="ms-dd-item '+(hiddenMetrics.has(m.key)?'':'checked')+'" data-val="'+m.key
+          + '" onclick="metToggleItem(this,event)"><span class="ms-cb"></span><span class="ms-lbl">'+m.label+'</span></div>';
+  });
+  html += '<div class="ms-dd-actions"><button type="button" onclick="metShowAll(event)">Show all</button></div>';
+  dd.innerHTML=html;
+  metUpdateLabel();
+}
+function metToggleDD(){
+  const dd=document.getElementById('fMetDD'), btn=document.getElementById('fMetToggle');
+  if(!dd) return; dd.classList.toggle('open'); btn.classList.toggle('open');
+}
+function metToggleItem(el,e){
+  if(e) e.stopPropagation();
+  const k=el.dataset.val;
+  if(hiddenMetrics.has(k)) hiddenMetrics.delete(k); else hiddenMetrics.add(k);
+  el.classList.toggle('checked', !hiddenMetrics.has(k));
+  metUpdateLabel(); metRerender();
+}
+function metShowAll(e){
+  if(e) e.stopPropagation();
+  hiddenMetrics.clear(); metRenderDD(); metRerender();
+}
+// Re-draw whichever comparison is on screen; metrics apply to all of them.
+function metRerender(){
+  const t=document.getElementById('fRecordType').value;
+  if(t==='against'){ renderAgainst(); }
+  else if(partnershipMode){ if(hasEnoughPartnerships()) renderPartnerships(); }
+  else applyFilters();
+  showTags(); syncURL();
+}
+document.addEventListener('click',e=>{
+  if(!e.target.closest('#fMetWrap')){
+    const dd=document.getElementById('fMetDD'), btn=document.getElementById('fMetToggle');
+    if(dd) dd.classList.remove('open'); if(btn) btn.classList.remove('open');
+  }
+});
+metRenderDD();
 
 function agg(player,idxs,isFiltered){
   let inns=0,no=0,runs=0,balls=0,hs=0,fifties=0,hundreds=0;
@@ -2174,6 +2289,7 @@ function agg(player,idxs,isFiltered){
     tests:tests.size, inns, no, runs, balls,
     batAvg:(inns-no)>0?runs/(inns-no):0,
     sr:sr,
+    avRate:avRateOf((inns-no)>0?runs/(inns-no):0, sr),
     hs, fifties, hundreds,
     overs:Math.round(overs*10)/10, mdns, bowlRuns:bR, wkts, bowlInns,
     bowlAvg:wkts>0?bR/wkts:0, econ:overs>0?bR/overs:0,
@@ -2250,6 +2366,7 @@ function buildTable(stats, cols, options = {}) {
       t.econ    = t.overs>0 ? t.bowlRuns/t.overs : 0;
       t.bpw     = t.wkts>0 ? (t.overs*6)/t.wkts : 0;
       t.sr      = t.balls>0 ? (t.runs/t.balls)*100 : null;
+      t.avRate  = avRateOf(t.batAvg, t.sr);
       return t;
     }
     function renderTotalsRow(label, meta, t, accentColor){
@@ -3077,6 +3194,7 @@ function render(){
   const scores=stats.map(()=>0);
   const metricWins=stats.map(()=>[]);
   function scoreMetric(key, higher, label){
+    if(metHidden(key)) return;
     const vals=stats.map(s=>{const v=s[key];return typeof v==='number'?v:0});
     if(higher){ const mx=Math.max(...vals); if(vals.filter(v=>v===mx).length===1){const wi=vals.indexOf(mx);scores[wi]++;metricWins[wi].push(label);} }
     else { const nonZero=vals.map((v,i)=>({v,i})).filter(x=>x.v>0); if(nonZero.length>1){ const mn=Math.min(...nonZero.map(x=>x.v)); const winners=nonZero.filter(x=>x.v===mn); if(winners.length===1){scores[winners[0].i]++;metricWins[winners[0].i].push(label);} } }
@@ -3085,6 +3203,7 @@ function render(){
   // Only score relevant metrics based on stats type
   if(st !== 'bowling'){
     scoreMetric('batAvg',true,'Batting Average');
+    scoreMetric('avRate',true,'AvRate');
     scoreMetric('runs',true,'Runs');
     scoreMetric('hundreds',true,'Centuries');
   }
@@ -3132,6 +3251,7 @@ function render(){
     {label:'Inns',key:'inns',higher:true,dec:0},
     {label:'Runs',key:'runs',higher:true,dec:0},
     {label:'Bat Avg',key:'batAvg',higher:true},
+    {label:'AvRate',key:'avRate',higher:true},
     {label:'100s',key:'hundreds',higher:true,dec:0},
     {label:'HS',key:'hs',higher:true,dec:0},
     {sec:'Bowling'},
@@ -3153,6 +3273,7 @@ function render(){
     {label:'Balls',key:'balls',higher:true,dec:0},
     {label:'Average',key:'batAvg',higher:true},
     {label:'S/R',key:'sr',higher:true},
+    {label:'AvRate',key:'avRate',higher:true},
     {label:'H.S.',key:'hs',higher:true,dec:0},
     {label:'50s',key:'fifties',higher:true,dec:0},
     {label:'100s',key:'hundreds',higher:true,dec:0},
@@ -3178,6 +3299,7 @@ function render(){
     {label:'Balls',key:'balls',higher:true,dec:0},
     {label:'Avg',key:'batAvg',higher:true},
     {label:'S/R',key:'sr',higher:true},
+    {label:'AvRate',key:'avRate',higher:true},
     {label:'H.S.',key:'hs',higher:true,dec:0},
     {label:'50s',key:'fifties',higher:true,dec:0},
     {label:'100s',key:'hundreds',higher:true,dec:0},
@@ -3438,7 +3560,7 @@ function render(){
   }
 
   // ---- Render each tab ----
-  const buildTab = (cols, opts) => phaseView ? buildPhaseRowTable(cols, opts) : buildDualOrSingle(cols, opts);
+  const buildTab = (cols, opts) => { cols = visibleCols(cols); return phaseView ? buildPhaseRowTable(cols, opts) : buildDualOrSingle(cols, opts); };
 
   if(st === 'both'){
     document.getElementById('tblOverview').innerHTML = buildTab(ovCols, { showVerdict: !phaseView, footNote: '* Career fielding totals — not affected by filters' });
@@ -3709,6 +3831,7 @@ function exportToExcel(){
     t.econ    = t.overs>0 ? t.bowlRuns/t.overs : 0;
     t.bpw     = t.wkts>0 ? (t.overs*6)/t.wkts : 0;
     t.sr      = t.balls>0 ? (t.runs/t.balls)*100 : null;
+    t.avRate  = avRateOf(t.batAvg, t.sr);
     let bW=0,bR=9999;
     statArr.forEach(s=>{ if(s.bestBowl&&s.bestBowl!=='\u2014'){ const [w,r]=s.bestBowl.split('/').map(Number); if(w>bW||(w===bW&&r<bR)){bW=w;bR=r;} } });
     t.bestBowl = bW>0 ? bW+'/'+bR : '\u2014';
@@ -3735,13 +3858,13 @@ function exportToExcel(){
   }
 
   // Row builders
-  const batHdr  = ['Player','Country','Years','Tests','Innings','N.O.','Runs','Balls','Average','Strike Rate','H.S.','50s','100s'];
+  const batHdr  = ['Player','Country','Years','Tests','Innings','N.O.','Runs','Balls','Average','Strike Rate','AvRate','H.S.','50s','100s'];
   const bowlHdr = ['Player','Country','Years','Tests','Bowl Inn','Overs','Maidens','Bowl Runs','Wickets','Average','Economy','B/W','Best'];
   const fieldHdr= ['Player','Catches','Stumpings','Man of Match'];
-  const batCW   = [{wch:26},{wch:14},{wch:12},{wch:7},{wch:8},{wch:6},{wch:8},{wch:8},{wch:10},{wch:12},{wch:7},{wch:6},{wch:6}];
+  const batCW   = [{wch:26},{wch:14},{wch:12},{wch:7},{wch:8},{wch:6},{wch:8},{wch:8},{wch:10},{wch:12},{wch:9},{wch:7},{wch:6},{wch:6}];
   const bowlCW  = [{wch:26},{wch:14},{wch:12},{wch:7},{wch:9},{wch:8},{wch:8},{wch:10},{wch:8},{wch:10},{wch:10},{wch:8},{wch:10}];
 
-  function batRow(s){ return [s.name, s.country, sv(s.years), s.tests, s.inns, s.no, s.runs, s.balls, n2(s.batAvg), sv(s.sr?n2(s.sr):null), s.hs||0, s.fifties||0, s.hundreds||0]; }
+  function batRow(s){ return [s.name, s.country, sv(s.years), s.tests, s.inns, s.no, s.runs, s.balls, n2(s.batAvg), sv(s.sr?n2(s.sr):null), sv(s.avRate?n2(s.avRate):null), s.hs||0, s.fifties||0, s.hundreds||0]; }
   function bowlRow(s){ return [s.name, s.country, sv(s.years), s.tests, s.bowlInns||0, n1(s.overs), s.mdns||0, s.bowlRuns||0, s.wkts||0, n2(s.bowlAvg), n2(s.econ), n2(s.bpw), sv(s.bestBowl)]; }
   function fieldRow(s){ return [s.name, s.catches||0, s.stumpings||0, s.mom||0]; }
 
@@ -4030,7 +4153,7 @@ function calcAgainstStats(focusPlayer, opponent){
     const sr  = balls>0 ? (runs/balls)*100 : null;
     // Career average is always the focus batter's career avg (same across all rows in batter mode)
     const focusCareerAvg = focusPlayer && typeof focusPlayer.batAvg === 'number' && focusPlayer.batAvg > 0 ? focusPlayer.batAvg : null;
-    return { tests:sharedTests.size, sharedIds:[...sharedTests], inns, no, dismissed, runs, balls, avg, sr, hs, fifties, hundreds,
+    return { tests:sharedTests.size, sharedIds:[...sharedTests], inns, no, dismissed, runs, balls, avg, sr, avRate: avRateOf(avg, sr), hs, fifties, hundreds,
              careerAvg: focusCareerAvg,
              name:opponent.fullName||opponent.name, country:opponent.country };
 
@@ -4064,7 +4187,7 @@ function calcAgainstStats(focusPlayer, opponent){
     const sr  = balls>0 ? (runs/balls)*100 : null;
     // Career average is the opponent batter's career avg
     const oppCareerAvg = opponent && typeof opponent.batAvg === 'number' && opponent.batAvg > 0 ? opponent.batAvg : null;
-    return { tests:sharedTests.size, sharedIds:[...sharedTests], inns, no, dismissed, runs, balls, avg, sr, hs, fifties, hundreds,
+    return { tests:sharedTests.size, sharedIds:[...sharedTests], inns, no, dismissed, runs, balls, avg, sr, avRate: avRateOf(avg, sr), hs, fifties, hundreds,
              careerAvg: oppCareerAvg,
              name:opponent.fullName||opponent.name, country:opponent.country };
   }
@@ -4093,7 +4216,7 @@ function renderAgainst(){
     ? `<strong>${focusName}</strong>'s batting in matches where each bowler played for the opposition`
     : `Each batter's record in matches where <strong>${focusName}</strong> played for the opposition`;
 
-  const cols = [
+  const cols = visibleCols([
     {label:'Tests',            key:'tests',     higher:true,  dec:0},
     {label:'Innings',          key:'inns',      higher:true,  dec:0},
     {label:'N.O.',             key:'no',        higher:null,  dec:0},
@@ -4103,10 +4226,11 @@ function renderAgainst(){
     {label:'Career Avg',       key:'careerAvg', higher:null,  dec:2, special:'career'},
     {label:'Δ Avg',            key:'delta',     higher:null,  dec:2, special:'delta'},
     {label:'S/R',              key:'sr',        higher:true,  dec:2},
+    {label:'AvRate',           key:'avRate',    higher:true,  dec:2},
     {label:'H.S.',             key:'hs',        higher:true,  dec:0},
     {label:'50s',              key:'fifties',   higher:true,  dec:0},
     {label:'100s',             key:'hundreds',  higher:true,  dec:0},
-  ];
+  ]);
 
   const bestVals = {};
   const statsWithData = stats.filter(s=>s.tests>0);
@@ -4216,7 +4340,7 @@ async function renderH2H(focus, opponents, stats, isBatter){
     return;
   }
   if (!document.getElementById('h2hBlock')) return;     // view changed while loading
-  const cols = ['Ball-by-ball Tests','Balls','Runs','Dismissed','Average','S/R','Dot %','4s','6s'];
+  const cols = ['Ball-by-ball Tests','Balls','Runs','Dismissed','Average','S/R','AvRate','Dot %','4s','6s'];
   let rows = '';
   stats.forEach((s, idx) => {
     const opp = opponents[idx];
@@ -4235,9 +4359,10 @@ async function renderH2H(focus, opponents, stats, isBatter){
     const [balls, runs, outs, dots, fours, sixes] = v || [0, 0, 0, 0, 0, 0];
     const avg = outs > 0 ? (runs / outs).toFixed(2) : '—';
     const sr  = balls > 0 ? (runs / balls * 100).toFixed(2) : '—';
+    const avr = (outs > 0 && balls > 0) ? (runs / outs + runs / balls * 100).toFixed(2) : '—';
     const dot = balls > 0 ? (dots / balls * 100).toFixed(1) : '—';
     rows += `<tr>${cell}<td>${n} of ${shared.length}</td><td>${balls}</td><td>${runs}</td><td>${outs}</td>` +
-            `<td>${avg}</td><td>${sr}</td><td>${dot}</td><td>${fours}</td><td>${sixes}</td></tr>`;
+            `<td>${avg}</td><td>${sr}</td><td>${avr}</td><td>${dot}</td><td>${fours}</td><td>${sixes}</td></tr>`;
   });
   box.innerHTML =
     `<div class="h2h-title">${title}</div>` +
@@ -4718,14 +4843,14 @@ function renderPartnerships(){
       });
     });
 
-    const bowlCols = [
+    const bowlCols = visibleCols([
       {key:'tests', label:'Tests', higher:true, dec:0},
       {key:'overs', label:'Overs', higher:true, dec:1},
       {key:'wkts', label:'Wickets', higher:true, dec:0},
       {key:'bowlAvg', label:'Bowl Avg', higher:false, dec:2},
       {key:'econ', label:'Economy', higher:false, dec:2},
       {key:'bestBowl', label:'Best', higher:null},
-    ];
+    ]);
     const bestVals2 = {};
     bowlCols.forEach(c => {
       if(c.higher === null) return;
