@@ -1326,7 +1326,28 @@ body{
 
     try {
       await ensureFirebase();
-      await firebase.auth().signInWithEmailAndPassword(email, password);
+      const cred = await firebase.auth().signInWithEmailAndPassword(email, password);
+
+      // Pre-grants (2026-11-13) — same step as login.html: switch on a type an
+      // admin set up before this person had an account. Never blocks sign-in.
+      let pg = 'none';
+      try {
+        if (!(window.firebase && firebase.functions)) {
+          await loadScript('https://www.gstatic.com/firebasejs/13.0.0/firebase-functions-compat.js');
+        }
+        const res = await Promise.race([
+          firebase.app().functions('us-central1').httpsCallable('claimPreGrant')({}),
+          new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 8000)),
+        ]);
+        pg = (res && res.data && res.data.status) || 'none';
+        if (pg === 'applied') await cred.user.getIdToken(true);
+      } catch (pgErr) { console.warn('claimPreGrant (non-fatal):', pgErr); }
+      if (pg === 'verify-sent' || pg === 'verify-wait') {
+        setLoginMsg('info', 'One last step: we\u2019ve emailed a link to ' + email +
+          ' to confirm it\u2019s yours. Click it and your membership switches on.');
+        btn.disabled = false; btn.textContent = 'Sign in';
+        return;
+      }
 
       // Clear prelaunch-guard's cached verdict so the next page re-checks
       // access against the newly authenticated session instead of reusing
