@@ -161,6 +161,12 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
 }
 .add-player-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-dim)}
 .add-player-btn .plus{font-size:20px;line-height:1}
+.sel-tools{flex-basis:100%;display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.sel-tool-btn{background:var(--surface);border:1px solid var(--border2);border-radius:8px;padding:6px 12px;cursor:pointer;
+  font-family:'Outfit',sans-serif;font-size:12px;font-weight:600;color:var(--text2);transition:all 0.2s}
+.sel-tool-btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent);background:var(--accent-dim)}
+.sel-tool-btn:disabled{opacity:0.45;cursor:default}
+.sel-tool-note{font-family:'Outfit',sans-serif;font-size:12px;color:var(--text3)}
 .sel-card .sel-pcolor{
   position:absolute;top:14px;left:16px;width:8px;height:8px;border-radius:50%;
   box-shadow:0 0 6px currentColor;
@@ -835,6 +841,12 @@ header.header{display:none !important}
       <div class="sel-info" id="i2"><div class="si-name" id="n2"></div><div class="si-meta" id="m2"></div></div>
     </div>
     <button class="add-player-btn" id="addPlayerBtn" onclick="addPlayerSlot()"><span class="plus">+</span> Add Player</button>
+    <div class="sel-tools" id="selTools">
+      <button type="button" class="sel-tool-btn" id="savePlayersBtn" onclick="savePlayers()">Save players</button>
+      <button type="button" class="sel-tool-btn" id="loadPlayersBtn" onclick="loadSavedPlayers()" style="display:none">Load saved</button>
+      <button type="button" class="sel-tool-btn" id="clearPlayersBtn" onclick="clearPlayers()">Clear players</button>
+      <span class="sel-tool-note" id="savedPlayersNote"></span>
+    </div>
   </div>
 
   <!-- Cohort Comparison Area (Together modes) -->
@@ -1456,6 +1468,7 @@ function loadFromURL(){
     return;                                 // page is paid-gated; non-entitled users are redirected before this runs
   }
   buildData();
+  updateSavedPlayersUI();
   if (document.readyState === 'loading') window.addEventListener('DOMContentLoaded', loadFromURL);
   else loadFromURL();
 })();
@@ -1481,6 +1494,58 @@ function addPlayerSlot(){
 }
 
 function activeSel(){return sel.filter(Boolean)}
+
+/* ---- Save / load / clear players (2026-11-14) ----
+   Save remembers the current Players line-up in this browser (localStorage,
+   player ids only), so a fresh visit or a cleared board can bring the same
+   players straight back for a different question. Player mode only:
+   head-to-head, partnership and cohort pickers keep their own slots.
+   Storage can be absent or throw (private modes, embedded views), so every
+   access is guarded and the buttons simply do nothing harmful there. */
+const SAVED_PLAYERS_KEY = 'ct_compare_saved_players';
+function readSavedPlayers(){
+  try {
+    const ids = JSON.parse(localStorage.getItem(SAVED_PLAYERS_KEY) || '[]');
+    return Array.isArray(ids) ? ids.filter(id => PLAYERS.some(p => p.id === id)) : [];
+  } catch(e){ return []; }
+}
+function surnameOf(p){ const n = (p.fullName || p.name || '').trim().split(/\s+/); return n[n.length-1] || ''; }
+function updateSavedPlayersUI(msg){
+  const ids = readSavedPlayers();
+  const loadBtn = document.getElementById('loadPlayersBtn');
+  const saveBtn = document.getElementById('savePlayersBtn');
+  const clearBtn = document.getElementById('clearPlayersBtn');
+  const note = document.getElementById('savedPlayersNote');
+  if(!loadBtn) return;
+  loadBtn.style.display = ids.length ? '' : 'none';
+  loadBtn.textContent = 'Load saved (' + ids.length + ')';
+  saveBtn.disabled = activeSel().length === 0;
+  clearBtn.disabled = activeSel().length === 0;
+  const names = ids.map(id => surnameOf(PLAYERS.find(p => p.id === id))).filter(Boolean);
+  note.textContent = msg || (names.length ? 'Saved: ' + names.join(', ') : '');
+}
+function savePlayers(){
+  const ids = activeSel().map(p => p.id);
+  if(!ids.length) return;
+  try { localStorage.setItem(SAVED_PLAYERS_KEY, JSON.stringify(ids)); }
+  catch(e){ updateSavedPlayersUI('Could not save in this browser'); return; }
+  updateSavedPlayersUI('Saved ' + ids.length + ' player' + (ids.length > 1 ? 's' : ''));
+  setTimeout(() => updateSavedPlayersUI(), 2500);
+}
+function clearPlayers(){
+  for(let n = 1; n <= slotCount; n++) if(sel[n-1]) clearP(n);
+  updateSavedPlayersUI();
+  syncURL();
+}
+function loadSavedPlayers(){
+  const ids = readSavedPlayers();
+  if(!ids.length) return;
+  for(let n = 1; n <= slotCount; n++) if(sel[n-1]) clearP(n);
+  while(slotCount < Math.min(ids.length, MAX_PLAYERS)) addPlayerSlot();
+  ids.slice(0, MAX_PLAYERS).forEach((id, i) => pickP(i + 1, id));
+  updateSavedPlayersUI();
+  syncURL();
+}
 function hasEnough(){return activeSel().length>=1}
 
 function pickP(n,id){
@@ -1494,6 +1559,7 @@ function pickP(n,id){
   document.getElementById('x'+n).classList.add('show');
   document.getElementById('c'+n).classList.add('active-'+n);
   if(hasEnough()){populateFilters();document.getElementById('filtersPanel').classList.add('show');render()}
+  updateSavedPlayersUI();
 }
 
 function clearP(n){
@@ -1507,6 +1573,7 @@ function clearP(n){
     document.getElementById('emptyState').style.display='block';
     document.getElementById('filtersPanel').classList.remove('show');
   } else { populateFilters(); render(); }
+  updateSavedPlayersUI();
 }
 
 // ---- Multi-select Opponent state ----
