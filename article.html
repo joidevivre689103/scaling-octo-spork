@@ -1388,6 +1388,14 @@ window._articleLoadComplete = (async function() {
     // Set page title
     document.title = `${article.headline} — The Grass Bank™`;
 
+    // What the Share button sends (IJ, 2026-11-13): the /a/<n>/ preview page,
+    // which carries this article's headline, summary and picture for
+    // WhatsApp etc., plus the summary as the message text.
+    window._shareInfo = {
+      id: parseInt(article.id, 10) || null,
+      summary: article.withdrawn === true ? '' : String(article.summary || '').replace(/\s+/g, ' ').trim()
+    };
+
     // ── Withdrawn articles short-circuit ────────────────────────────────────
     // If an article has been withdrawn, we still resolve its URL (so links
     // from elsewhere on the web don't break) but render a withdrawal notice
@@ -1946,12 +1954,30 @@ function formatDate(dateStr) {
 // ═══════════════════════════════════════════════════════════════════════════
 // SHARE / COPY LINK
 // ═══════════════════════════════════════════════════════════════════════════
+function shareLink() {
+  // The article's share preview page (/a/<n>/, written by the Share previews
+  // workflow in super-fortnight). It forwards to this page; if it hasn't been
+  // written yet, 404.html forwards instead.
+  const info = window._shareInfo;
+  if (!info || !info.id) return window.location.href;
+  const origin = /(^|\.)thegrassbank\.com$/.test(location.hostname) ? 'https://thegrassbank.com' : location.origin;
+  return `${origin}/a/${info.id}/`;
+}
+function shareSummary() {
+  const s = (window._shareInfo && window._shareInfo.summary) || '';
+  if (s.length <= 200) return s;
+  const cut = s.slice(0, 199), sp = cut.lastIndexOf(' ');
+  return (sp > 120 ? cut.slice(0, sp) : cut).replace(/[\s,;:.]+$/, '') + '…';
+}
 function shareArticle(e) {
   const btn = e.currentTarget;
-  const url = window.location.href;
+  const url = shareLink();
 
   if (navigator.share) {
-    navigator.share({ title: document.title, url }).catch(() => {});
+    const data = { title: document.title, url };
+    const text = shareSummary();
+    if (text) data.text = text;
+    navigator.share(data).catch(() => {});
     return;
   }
 
