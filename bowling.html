@@ -510,7 +510,17 @@ function decodePlayer(arr){
   const p={};
   KEYS.forEach((k,i)=>p[k]=arr[i]);
   p.country = D.T[p.country]||p.country;
+  p.avgSR = avgPlusSR(p.wkts,p.bowlAvg,p.bowlSR);
   return p;
+}
+
+/* AvRate (IJ, 2026-11-14) — bowling average plus strike rate, added point
+   for point, mirroring the batting page's column. Both are per-wicket costs
+   (runs per wicket, balls per wicket), so lower is better. null when the
+   bowler has no wickets, so it shows a dash and sorts last either way. */
+function avgPlusSR(wkts,avg,sr){
+  avg=+avg; sr=+sr;                       // the dataset may hold these as strings
+  return (+wkts>0 && avg>0 && sr>0) ? avg+sr : null;
 }
 
 let D = null;        // dataset from the gated loader (replaces the old data.js global)
@@ -1018,6 +1028,7 @@ function slicedPlayers(f){
         bowlAvg: a.wkts>0 ? a.runs/a.wkts : 0,
         econ:    a.balls>0 ? a.runs/(a.balls/6) : 0,
         bowlSR:  a.wkts>0 ? a.balls/a.wkts : 0,
+        avgSR:   a.wkts>0 ? avgPlusSR(a.wkts, a.runs/a.wkts, a.balls/a.wkts) : null,
         fiveWkts:a.five, fourWI:a.four, tenWkts:ten, eightWM:eight, tenWI:a.tenI||0, twoX4WI:x4, twoX5WI:x5,
         bestBowl: a.bestW>0 ? a.bestW+'/'+a.bestR : '—',
         fromYear:a.from, toYear:a.to, mom:null, _sliced:true,
@@ -1069,6 +1080,7 @@ function aggregateInnings(list,label){
     avg: wkts>0 ? runs/wkts : 0,
     econ: balls>0 ? runs/(balls/6) : 0,
     sr:   wkts>0 ? balls/wkts : 0,
+    avgSR: wkts>0 ? avgPlusSR(wkts, runs/wkts, balls/wkts) : 0,
     five, ten,
     best: bestW>0 ? bestW+'/'+bestR : '—',
     bestName: bestPid!==null ? (PID_NAME[bestPid]||'') : ''
@@ -1332,7 +1344,7 @@ function sortData(){
 
 function sortBy(key){
   if(currentSort===key) currentDir=currentDir==='desc'?'asc':'desc';
-  else{currentSort=key;currentDir='desc';}
+  else{currentSort=key;currentDir=key==='avgSR'?'asc':'desc';}   // AvRate: lower is better, so it opens lowest first
   sortData();
   currentPage=1;
   renderTable();
@@ -1343,6 +1355,9 @@ const SR_TIP='Overs are converted at six balls per over. Test cricket also used 
              '(to 1888), 5-ball (1889–1899) and 8-ball overs (Australia 1924–1979, New Zealand '+
              '1968–1979, Pakistan 1974–1978), so strike rate for those eras understates the '+
              'true balls per wicket. Average and economy are unaffected.';
+const AVGSR_TIP='AvRate\u2122 adds bowling average and strike rate, point for point. Lower is '+
+                'better. It is the price of a wicket, counted in runs and balls together. Left '+
+                'blank for bowlers without a wicket.';
 const MDN_TIP='Maidens are gap-filled from scorecard data for some older matches and may be '+
               'incomplete in early eras.';
 
@@ -1363,6 +1378,7 @@ const TAB_COLS={
     {label:'Avg',key:'bowlAvg',dec:2,lower:true},
     {label:'Econ',key:'econ',dec:2,lower:true},
     {label:'S/R',key:'bowlSR',dec:1,lower:true,tip:SR_TIP},
+    {label:'AvRate',key:'avgSR',dec:2,lower:true,tip:AVGSR_TIP},
     {label:'WPI',key:'bowlWPI',dec:2,tip:WPI_TIP},
     {label:'WPM',key:'bowlWPM',dec:2,tip:WPM_TIP},
     {label:'Best',key:'bestBowl',nosort:true},
@@ -1384,6 +1400,7 @@ const TAB_COLS={
     {label:'Avg',key:'bowlAvg',dec:2,lower:true},
     {label:'Econ',key:'econ',dec:2,lower:true},
     {label:'S/R',key:'bowlSR',dec:1,lower:true,tip:SR_TIP},
+    {label:'AvRate',key:'avgSR',dec:2,lower:true,tip:AVGSR_TIP},
     {label:'WPI',key:'bowlWPI',dec:2,tip:WPI_TIP},
     {label:'WPM',key:'bowlWPM',dec:2,tip:WPM_TIP},
     {label:'Runs',key:'bowlRuns'},
@@ -1402,6 +1419,7 @@ const TAB_COLS={
     {label:'Econ',key:'econ',dec:2,lower:true},
     {label:'Avg',key:'bowlAvg',dec:2,lower:true},
     {label:'S/R',key:'bowlSR',dec:1,lower:true,tip:SR_TIP},
+    {label:'AvRate',key:'avgSR',dec:2,lower:true,tip:AVGSR_TIP},
     {label:'Wkts',key:'wkts'},
     {label:'Best',key:'bestBowl',nosort:true},
     {label:'MoM',key:'mom'},
@@ -1414,6 +1432,7 @@ const TAB_COLS={
     {label:'Tests',key:'tests'},
     {label:'Wkts',key:'wkts'},
     {label:'S/R',key:'bowlSR',dec:1,lower:true,tip:SR_TIP},
+    {label:'AvRate',key:'avgSR',dec:2,lower:true,tip:AVGSR_TIP},
     {label:'WPI',key:'bowlWPI',dec:2,tip:WPI_TIP},
     {label:'WPM',key:'bowlWPM',dec:2,tip:WPM_TIP},
     {label:'Avg',key:'bowlAvg',dec:2,lower:true},
@@ -1694,6 +1713,7 @@ const AGG_COLS=[
   {key:'avg',      label:'Avg',  dec:2},
   {key:'econ',     label:'Econ', dec:2},
   {key:'sr',       label:'S/R',  dec:1, tip:SR_TIP},
+  {key:'avgSR',    label:'AvRate', dec:2, tip:AVGSR_TIP},
   {key:'five',     label:'5w'},
   {key:'ten',      label:'10w'},
   {key:'best',     label:'Best'}
@@ -1889,6 +1909,7 @@ function totalsRowHTML(cols){
     overs: balls?fmtOvers(balls):'', maidens:sum('maidens').toLocaleString(),
     bowlRuns:rn.toLocaleString(), wkts:wk.toLocaleString(),
     bowlAvg: wk?(rn/wk).toFixed(2):'—', econ: balls?(rn/(balls/6)).toFixed(2):'—', bowlSR: wk?(balls/wk).toFixed(1):'—',
+    avgSR: wk?(rn/wk+balls/wk).toFixed(2):'—',
     fiveWkts:sum('fiveWkts'), fourWI:sum('fourWI'), tenWkts:sum('tenWkts'), tenWI:sum('tenWI'),
     twoX4WI:sum('twoX4WI'), twoX5WI:sum('twoX5WI'), mom:sum('mom'),
     bestBowl: best?`${best.wkts}/${best.runs}`:''
@@ -1927,6 +1948,7 @@ const AGG_EXPORT_COLS=[
   {label:'Average',fn:r=>r.avg?r.avg.toFixed(2):''},
   {label:'Economy',fn:r=>r.econ?r.econ.toFixed(2):''},
   {label:'Strike Rate',fn:r=>r.sr?r.sr.toFixed(1):''},
+  {label:'AvRate',fn:r=>r.avgSR?r.avgSR.toFixed(2):''},
   {label:'5w',fn:r=>r.five},{label:'10w',fn:r=>r.ten},
   {label:'Best',fn:r=>r.best},{label:'Best By',fn:r=>r.bestName||''}
 ];
@@ -1947,6 +1969,7 @@ const EXPORT_COLS=[
   {label:'Average',   fn:p=>p.bowlAvg!=null?Number(p.bowlAvg).toFixed(2):''},
   {label:'Economy',   fn:p=>p.econ!=null?Number(p.econ).toFixed(2):''},
   {label:'Strike Rate',fn:p=>p.bowlSR!=null?Number(p.bowlSR).toFixed(1):''},
+  {label:'AvRate',    fn:p=>p.avgSR!=null?Number(p.avgSR).toFixed(2):''},
   {label:'Wkts per Innings',fn:p=>p.bowlWPI!=null?Number(p.bowlWPI).toFixed(2):''},
   {label:'Wkts per Test',fn:p=>p.bowlWPM!=null?Number(p.bowlWPM).toFixed(2):''},
   {label:'Best Innings',fn:p=>p.bestBowl||''},
