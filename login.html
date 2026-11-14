@@ -510,8 +510,11 @@
       signOut,
       onAuthStateChanged,
       verifyPasswordResetCode,
-      confirmPasswordReset
+      confirmPasswordReset,
+      applyActionCode
     } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js";
+    import { getFunctions, httpsCallable } from
+      "https://www.gstatic.com/firebasejs/13.0.0/firebase-functions.js";
     import {
       getFirestore,
       doc,
@@ -539,6 +542,39 @@
     const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
+
+    // -------------------------------------------------------------------
+    // Pre-grants (2026-11-13). An admin can give someone a type (Honorary
+    // member, Beta) before they have an account. After every sign-in and
+    // sign-up we ask the claimPreGrant function whether one is waiting for
+    // this address. Almost always the answer is 'none' and nothing changes.
+    // Never allowed to block or fail a sign-in: any error counts as 'none'.
+    //   applied      → token refreshed, gate cache cleared, carry on
+    //   verify-sent  → we emailed a confirm link; tell them and stop here
+    //   verify-wait  → link sent recently; same message
+    // -------------------------------------------------------------------
+    async function claimPreGrant(user) {
+      try {
+        const call = httpsCallable(getFunctions(app, 'us-central1'), 'claimPreGrant');
+        const res = await Promise.race([
+          call({}),
+          new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 8000)),
+        ]);
+        const status = (res && res.data && res.data.status) || 'none';
+        if (status === 'applied') {
+          await user.getIdToken(true);
+          try { sessionStorage.removeItem('ct_access_verdict_v1'); } catch (e) {}
+        }
+        return status;
+      } catch (err) {
+        console.warn('[login] claimPreGrant (non-fatal):', err);
+        return 'none';
+      }
+    }
+    function preGrantWaitingText(email) {
+      return 'One last step: we\u2019ve emailed a link to ' + email +
+        ' to confirm it\u2019s yours. Click it and your membership switches on.';
+    }
 
     // -------------------------------------------------------------------
     // Helpers
@@ -827,8 +863,10 @@
     const FB_MODE = params.get('mode') || '';
     const FB_OOB_CODE = params.get('oobCode') || '';
     const IS_RESET_CONFIRM = (FB_MODE === 'resetPassword') && !!FB_OOB_CODE;
+    // verifyEmail (2026-11-13): the confirm link claimPreGrant emails for a pre-grant.
+    const IS_VERIFY_EMAIL = (FB_MODE === 'verifyEmail') && !!FB_OOB_CODE;
     const IS_UNKNOWN_FB_ACTION =
-      !!FB_OOB_CODE && ['verifyEmail', 'recoverEmail', 'revertSecondFactorAddition'].includes(FB_MODE);
+      !!FB_OOB_CODE && ['recoverEmail', 'revertSecondFactorAddition'].includes(FB_MODE);
 
     // Tab/pane resolution
     if (IS_RESET_CONFIRM) {
@@ -846,6 +884,7 @@
       if (params.get('intent') === 'signup') initialMode = 'signup';
       // Discard Firebase action modes that landed here — they're not user-tab values.
       if (!['signin','signup','reset'].includes(initialMode)) initialMode = 'signin';
+      if (IS_VERIFY_EMAIL) initialMode = 'signin';
       setActiveTab(initialMode);
 
       if (IS_UNKNOWN_FB_ACTION) {
@@ -879,7 +918,9 @@
     onAuthStateChanged(auth, user => {
       if (!initialAuthChecked) {
         initialAuthChecked = true;
-        if (user && !IS_RESET_CONFIRM) {
+        if (IS_VERIFY_EMAIL) {
+          handleVerifyEmailLoad(user);
+        } else if (user && !IS_RESET_CONFIRM) {
           showAlreadySignedInPanel(user);
         }
       }
@@ -909,7 +950,9 @@
         '<button class="btn" id="signout-btn" type="button" style="background:var(--paper); color:var(--ink); border:1px solid var(--rule);">Sign out</button>';
       document.querySelector('.card').insertBefore(panel, document.querySelector('.card-footer'));
 
-      document.getElementById('continue-btn').addEventListener('click', () => {
+      document.getElementById('continue-btn').addEventListener('click', async () => {
+        // A pre-grant confirmed on another device switches on here too.
+        await claimPreGrant(user);
         location.replace(RETURN_URL);
       });
       document.getElementById('signout-btn').addEventListener('click', async () => {
@@ -925,6 +968,34 @@
           alert('Sign-out failed. Please try again.');
         }
       });
+    }
+
+    // Arrived from the confirm-your-email link (?mode=verifyEmail&oobCode=…).
+    // Confirm the address, then — if they're signed in on this device —
+    // switch the pre-grant on straight away. Otherwise ask them to sign in,
+    // which runs the same claim.
+    async function handleVerifyEmailLoad(user) {
+      const clean = location.origin + location.pathname;
+      try { history.replaceState(null, '', clean); } catch (e) {}
+      try {
+        await applyActionCode(auth, FB_OOB_CODE);
+      } catch (err) {
+        console.warn('[login] applyActionCode failed:', err);
+        if (user) { showAlreadySignedInPanel(user); return; }
+        showMsg('signin', 'error', 'That link has expired or was already used. Sign in and we\u2019ll send a fresh one if it\u2019s still needed.');
+        return;
+      }
+      if (!user) {
+        showMsg('signin', 'success', 'Email confirmed. Sign in to switch on your membership.');
+        return;
+      }
+      showMsg('signin', 'info', 'Email confirmed. Switching on your membership\u2026');
+      try { await user.reload(); await user.getIdToken(true); } catch (e) {}
+      const status = await claimPreGrant(user);
+      showMsg('signin', 'success', status === 'applied'
+        ? 'Your membership is on. Taking you in\u2026'
+        : 'Email confirmed. Taking you in\u2026');
+      setTimeout(() => location.replace(RETURN_URL), 900);
     }
 
     function escapeHtml(s) {
@@ -1001,8 +1072,16 @@
         // Bust the prelaunch-guard's cached "denied" verdict so the next
         // gated page does a fresh check with the new auth state.
         try { sessionStorage.removeItem('ct_access_verdict_v1'); } catch (e) {}
+        const pg = await claimPreGrant(user);
+        if (pg === 'verify-sent' || pg === 'verify-wait') {
+          setBtnLoading(btn, false, 'Sign in');
+          showMsg('signin', 'info', preGrantWaitingText(user.email || email));
+          return;
+        }
         // Success — redirect.
-        showMsg('signin', 'success', 'Signed in. Redirecting\u2026');
+        showMsg('signin', 'success', pg === 'applied'
+          ? 'Signed in, and your membership is on. Redirecting\u2026'
+          : 'Signed in. Redirecting\u2026');
         location.replace(RETURN_URL);
       } catch (err) {
         setBtnLoading(btn, false, 'Sign in');
@@ -1091,6 +1170,13 @@
           }
         }
 
+        const pg = await claimPreGrant(user);
+        if (pg === 'verify-sent' || pg === 'verify-wait') {
+          setBtnLoading(btn, false, 'Create account');
+          showMsg('signup', 'success', 'Account created. ' + preGrantWaitingText(email) +
+            (wantsNewsletter ? ' (The newsletter sends its own confirmation too.)' : ''));
+          return;
+        }
         showMsg('signup', 'success', wantsNewsletter
           ? 'Account created. Check your inbox to confirm the newsletter. Redirecting\u2026'
           : 'Account created. Redirecting\u2026');
