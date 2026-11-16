@@ -15,9 +15,11 @@
  *     await CTData.simulate({...})   -> run the match model on the server (simulateMatch)
  *     CTData.clearCache(['data'])    -> drop cached copy/copies (default: all)
  *
- * Progress bar (2026-11-01): every load() shows a thin bar across the top of
- * the window with a small "Loading data · 42%" note, unless it finishes inside
- * SHOW_DELAY_MS (a warm cache usually does, so nothing flashes). The download
+ * Progress bar (2026-11-01; made more prominent 2026-11-16): every load() shows
+ * a 5px bar across the top of the window, unless it finishes inside
+ * SHOW_DELAY_MS (a warm cache usually does, so nothing flashes); a load still
+ * running at CARD_DELAY_MS also gets a centred "Loading the stats · 42%" card,
+ * with a "Nearly there" line after SLOW_MS. The download
  * share is real when serveDerivedData sends X-CT-Raw-Length; without it the
  * bar eases forward on its own. Opt out with CTData.load(f, { progress: false }).
  *
@@ -405,21 +407,41 @@
    * start still shows movement and never claims to be finished early.
    * Fixed to the top of the window above everything (simulations' overlay is
    * z-index 9999), so it needs no mount point on any page. */
-  var SHOW_DELAY_MS = 250;
+  /* 2026-11-16 (IJ: readers say pages load slowly -- were they seeing the bar?):
+   * They weren't: the injected body{visibility:hidden} (ct-7g-hide) keeps the
+   * page hidden until the access check passes, and the bar, a child of body,
+   * was hidden with it -- a blank page for the whole check. Both elements now
+   * set visibility:visible, which shows through a hidden body. Also:
+   * the 3px bar and the small pill at the bottom were easy to miss, and on a
+   * phone the pill sat behind the browser's toolbar. Now the top bar is 5px,
+   * and a load still running after CARD_DELAY_MS shows a card in the middle of
+   * the screen ("Loading the stats", its own bar, the %), with a "nearly there"
+   * line once it has run SLOW_MS. Quick loads still show only the top bar. */
+  var SHOW_DELAY_MS = 250, CARD_DELAY_MS = 700, SLOW_MS = 8000;
   var BAR_ID = 'ctd-progress', NOTE_ID = 'ctd-progress-note', BAR_STYLE_ID = 'ctd-progress-style';
   var BAR_CSS = [
-    '#ctd-progress{position:fixed;top:0;left:0;right:0;height:3px;z-index:10001;pointer-events:none;',
-      'background:var(--accent-dim,rgba(139,37,0,.12));opacity:0;transition:opacity .25s}',
+    '#ctd-progress{position:fixed;top:0;left:0;right:0;height:5px;z-index:10001;pointer-events:none;visibility:visible;',
+      'background:var(--accent-dim,rgba(139,37,0,.15));opacity:0;transition:opacity .25s}',
     '#ctd-progress.on{opacity:1}',
     '#ctd-progress>i{display:block;height:100%;width:100%;background:var(--accent,#8B2500);',
       'transform-origin:0 50%;transform:scaleX(0);transition:transform .2s linear}',
-    '#ctd-progress-note{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:10001;',
-      'pointer-events:none;padding:7px 14px;border-radius:999px;background:var(--surface,#fffdf8);',
-      'border:1px solid var(--border,#e0dcd5);box-shadow:0 4px 18px rgba(0,0,0,.08);',
-      'font-family:var(--font-body,Georgia,serif);font-size:12.5px;color:var(--text2,#555);',
-      'font-variant-numeric:tabular-nums;white-space:nowrap;opacity:0;transition:opacity .25s}',
+    '#ctd-progress-note{position:fixed;left:50%;top:42%;transform:translate(-50%,-50%);z-index:10001;',
+      'pointer-events:none;visibility:visible;box-sizing:border-box;width:min(300px,calc(100vw - 48px));padding:18px 22px 16px;',
+      'border-radius:14px;background:var(--surface,#fffdf8);border:1px solid var(--border,#e0dcd5);',
+      'box-shadow:0 10px 40px rgba(0,0,0,.16);text-align:center;',
+      'font-family:var(--font-body,Georgia,serif);color:var(--text,#222);opacity:0;transition:opacity .25s}',
     '#ctd-progress-note.on{opacity:1}',
-    '@media (prefers-reduced-motion:reduce){#ctd-progress>i,#ctd-progress,#ctd-progress-note{transition:none}}'
+    '#ctd-progress-note .t{display:block;font-size:17px;font-weight:600;margin-bottom:12px}',
+    '#ctd-progress-note .m{display:block;height:8px;border-radius:999px;overflow:hidden;',
+      'background:var(--accent-dim,rgba(139,37,0,.15))}',
+    '#ctd-progress-note .m>i{display:block;height:100%;width:100%;border-radius:999px;',
+      'background:var(--accent,#8B2500);transform-origin:0 50%;transform:scaleX(0);transition:transform .2s linear}',
+    '#ctd-progress-note .p{display:block;margin-top:9px;font-size:14px;color:var(--text2,#555);',
+      'font-variant-numeric:tabular-nums}',
+    '#ctd-progress-note .s{display:none;margin-top:6px;font-size:13px;color:var(--text2,#555)}',
+    '#ctd-progress-note.slow .s{display:block}',
+    '@media (prefers-reduced-motion:reduce){#ctd-progress>i,#ctd-progress,#ctd-progress-note,',
+      '#ctd-progress-note .m>i{transition:none}}'
   ].join('');
 
   // Stage -> [floor, ceiling] of the bar, as fractions.
@@ -430,7 +452,8 @@
     preparing:   [0.90, 0.98]
   };
 
-  var bar = { jobs: [], shown: false, showTimer: null, tick: null, hideTimer: null, el: null, fill: null, note: null };
+  var bar = { jobs: [], shown: false, showTimer: null, cardTimer: null, slowTimer: null, tick: null, hideTimer: null,
+              el: null, fill: null, note: null, noteTitle: null, noteFill: null, notePct: null };
 
   function barEnsure() {
     if (bar.el && document.body && document.body.contains(bar.el)) return true;
@@ -451,6 +474,14 @@
     bar.note = document.createElement('div');
     bar.note.id = NOTE_ID;
     bar.note.setAttribute('aria-hidden', 'true');   // the bar itself carries the value for screen readers
+    bar.noteTitle = document.createElement('span'); bar.noteTitle.className = 't';
+    var meter = document.createElement('span'); meter.className = 'm';
+    bar.noteFill = document.createElement('i'); meter.appendChild(bar.noteFill);
+    bar.notePct = document.createElement('span'); bar.notePct.className = 'p';
+    var slow = document.createElement('span'); slow.className = 's';
+    slow.textContent = 'Nearly there — the first load takes longest.';
+    bar.note.appendChild(bar.noteTitle); bar.note.appendChild(meter);
+    bar.note.appendChild(bar.notePct); bar.note.appendChild(slow);
     document.body.appendChild(bar.el);
     document.body.appendChild(bar.note);
     return true;
@@ -468,9 +499,19 @@
     var v = Math.max(0, Math.min(1, barValue()));
     var pct = Math.round(v * 100);
     bar.fill.style.transform = 'scaleX(' + v.toFixed(4) + ')';
+    bar.noteFill.style.transform = 'scaleX(' + v.toFixed(4) + ')';
     bar.el.setAttribute('aria-valuenow', String(pct));
     var preparing = bar.jobs.length && bar.jobs.every(function (j) { return j.stage === 'preparing' || j.stage === 'done'; });
-    bar.note.textContent = (preparing ? 'Preparing' : 'Loading data') + ' \u00b7 ' + pct + '%';
+    bar.noteTitle.textContent = preparing ? 'Preparing the stats' : 'Loading the stats';
+    bar.notePct.textContent = pct + '%';
+  }
+
+  function cardShow() { bar.cardTimer = null; if (bar.shown && bar.note) bar.note.classList.add('on'); }
+  function cardSlow() { bar.slowTimer = null; if (bar.shown && bar.note) bar.note.classList.add('slow'); }
+  function cardHide() {
+    clearTimeout(bar.cardTimer); bar.cardTimer = null;
+    clearTimeout(bar.slowTimer); bar.slowTimer = null;
+    if (bar.note) bar.note.classList.remove('on', 'slow');
   }
 
   // Ease every unfinished job toward the ceiling of its stage (never past it).
@@ -494,7 +535,11 @@
     barPaint();
     void bar.fill.offsetWidth;
     bar.fill.style.transition = '';
-    bar.el.classList.add('on'); bar.note.classList.add('on');
+    bar.el.classList.add('on');
+    // The top bar shows at SHOW_DELAY_MS; the centre card only if the load is
+    // still running at CARD_DELAY_MS (both counted from the load's start).
+    bar.cardTimer = setTimeout(cardShow, Math.max(0, CARD_DELAY_MS - SHOW_DELAY_MS));
+    bar.slowTimer = setTimeout(cardSlow, Math.max(0, SLOW_MS - SHOW_DELAY_MS));
     bar.tick = setInterval(barStep, 120);
   }
 
@@ -507,16 +552,24 @@
     bar.jobs = []; bar.shown = false;
     if (!wasShown || !bar.el) return;
     if (failed) {
-      bar.el.classList.remove('on'); bar.note.classList.remove('on');
+      bar.el.classList.remove('on'); cardHide();
       return;
     }
+    clearTimeout(bar.cardTimer); bar.cardTimer = null;   // finished: don't open the card now
+    clearTimeout(bar.slowTimer); bar.slowTimer = null;
     bar.fill.style.transform = 'scaleX(1)';
+    bar.noteFill.style.transform = 'scaleX(1)';
     bar.el.setAttribute('aria-valuenow', '100');
-    bar.note.textContent = 'Loading data \u00b7 100%';
+    bar.notePct.textContent = '100%';
     bar.hideTimer = setTimeout(function () {
       if (bar.shown) return;                          // a new load started meanwhile
-      bar.el.classList.remove('on'); bar.note.classList.remove('on');
-      setTimeout(function () { if (!bar.shown && bar.fill) { bar.fill.style.transition = 'none'; bar.fill.style.transform = 'scaleX(0)'; void bar.fill.offsetWidth; bar.fill.style.transition = ''; } }, 300);
+      bar.el.classList.remove('on'); cardHide();
+      setTimeout(function () {
+        if (bar.shown || !bar.fill) return;
+        [bar.fill, bar.noteFill].forEach(function (f) {
+          f.style.transition = 'none'; f.style.transform = 'scaleX(0)'; void f.offsetWidth; f.style.transition = '';
+        });
+      }, 300);
     }, 250);
   }
 
