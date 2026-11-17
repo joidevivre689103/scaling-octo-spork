@@ -2317,7 +2317,7 @@ window.lsCard = (function () {
 // PREVIEW ONLY until IJ has checked them. Seen only on a device where
 // ?hooks=preview has been opened (?hooks=off clears it). To ship: set
 // HOOKS_LIVE to true.
-const HOOKS_LIVE = false;
+const HOOKS_LIVE = true;   // live for every reader since 2026-11-17 (IJ)
 window.ctHooksLive = HOOKS_LIVE;
 window.ctHooksOn = (function () {
   if (HOOKS_LIVE) return true;
