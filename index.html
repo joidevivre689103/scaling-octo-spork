@@ -296,6 +296,10 @@ body{
 .lc-guesses{ display:flex; flex-wrap:wrap; gap:6px; margin:3px 0 4px; }
 .lc-guess{ font-family:'Inter',sans-serif; font-size:11.5px; padding:5px 9px; border:1px solid var(--border2); border-radius:3px; background:var(--bg); color:var(--text); cursor:pointer; line-height:1.2; }
 .lc-guess:hover, .lc-guess:focus-visible{ border-color:var(--accent); color:var(--accent); outline:none; }
+/* Tool links on the cards (2026-11-16, IJ): boxes like the guess buttons above. */
+.lc-tools{ display:flex; flex-wrap:wrap; gap:6px; margin:4px 0 2px; }
+.lc-tool{ font-family:'Inter',sans-serif; font-size:11.5px; font-weight:600; padding:5px 9px; border:1px solid var(--border2); border-radius:3px; background:var(--bg); color:var(--accent); text-decoration:none; line-height:1.2; }
+.lc-tool:hover, .lc-tool:focus-visible{ border-color:var(--accent); background:var(--accent-dim); outline:none; }
 .lc-answer{ margin:0 0 4px; font-size:13px; line-height:1.45; color:var(--text); }
 .lc-answer b{ color:var(--text2); }
 .lc-answer.is-right b{ color:#1E7A55; }
@@ -410,7 +414,7 @@ body{
 #pageNav .nav-link:not(.az-w)::first-letter,
 .otd-title:not(.az-w)::first-letter, .feed-title:not(.az-w)::first-letter, .sidebar-title:not(.az-w)::first-letter, .col-header:not(.az-w)::first-letter,
 .snippets-title:not(.az-w)::first-letter, .section-title:not(.az-w)::first-letter, #statsPromo-title:not(.az-w)::first-letter,
-.stat-card-title:not(.az-w)::first-letter, .sim-feature-title:not(.az-w)::first-letter, .home-card-title:not(.az-w)::first-letter, .jewel-title a:not(.az-w)::first-letter,
+.stat-card-title:not(.az-w)::first-letter, .sim-feature-title:not(.az-w)::first-letter, .home-card-title:not(.az-w)::first-letter,
 .ct-nl__heading:not(.az-w)::first-letter, .wtc-pointer-kicker:not(.az-w)::first-letter, .wtc-strip-title:not(.az-w)::first-letter,
 .hero-category:not(.az-w)::first-letter{
   /* antique gold, deeper than --gold so it reads on white and cream (~5:1) */
@@ -1227,29 +1231,6 @@ body.articles-loading .analysis-section{ visibility:hidden; }
     <p class="articles-status-text">Loading articles…</p>
   </div>
 
-  <!-- CROWN JEWELS (2026-11-16, IJ): Compare and Simulations, the two headline
-       stats tools, get a band straight after Latest so readers meet them
-       before scrolling. The top nav order is unchanged on purpose: IJ wants
-       readers led there gradually, and this band says what each page does.
-       The cards further down (Explore Stats) stay as they are. -->
-  <section class="jewels" aria-label="Compare players and simulate matches">
-    <div class="jewels-inner">
-      <div class="jewel">
-        <div class="jewel-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 4v16"/><path d="M8 20h8"/><path d="M5 7h14"/><path d="M5 7l-2.8 6.5a2.8 2.8 0 0 0 5.6 0z"/><path d="M19 7l-2.8 6.5a2.8 2.8 0 0 0 5.6 0z"/></svg></div>
-        <h2 class="jewel-title"><a href="compare.html">Player Compare</a></h2>
-        <p class="jewel-desc">Any two Test players, side by side, from any era.</p>
-        <a class="jewel-try" href="compare.html?p1=1811&amp;p2=1845&amp;st=batting"><span class="jewel-try-tag">Try</span>Tendulkar or Lara?</a>
-        <a class="jewel-cta" href="compare.html">Compare players &rarr;</a>
-      </div>
-      <div class="jewel">
-        <div class="jewel-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="3"/><circle cx="8" cy="8" r="1.5" fill="currentColor" stroke="none"/><circle cx="16" cy="8" r="1.5" fill="currentColor" stroke="none"/><circle cx="8" cy="16" r="1.5" fill="currentColor" stroke="none"/><circle cx="16" cy="16" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/></svg></div>
-        <h2 class="jewel-title"><a href="simulations.html">XI v XI</a></h2>
-        <p class="jewel-desc">Pick two elevens from any era and let them play it out. Or replay a real Test with one change.</p>
-        <a class="jewel-try" href="simulations.html?sim=w&amp;wa=India&amp;wb=Australia&amp;wy=2023"><span class="jewel-try-tag">Try</span>What if India had picked Ashwin for the 2023 WTC final?</a>
-        <a class="jewel-cta" href="simulations.html">Pick your XIs &rarr;</a>
-      </div>
-    </div>
-  </section>
 
   <!-- SNIPPETS STRIP -->
   <section class="snippets-section" id="snippetsSection" data-nav="At a Glance" data-nav-target="fromTheDesk-title" style="display:none">
@@ -1533,23 +1514,6 @@ body.articles-loading .analysis-section{ visibility:hidden; }
 .sim-feature-example-tag{ display:inline-block; margin-right:8px; font-family:'Inter',sans-serif; font-size:10px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--accent,#8b1a1a); }
 .sim-feature-cta{ font-family:'Inter',sans-serif; font-size:12px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--accent,#8b1a1a); }
 @media(max-width:900px){ .stats-cards{ grid-template-columns:repeat(2,1fr); gap:14px; } .stat-card{ padding:18px; } }
-/* CROWN JEWELS band (2026-11-16): see the comment on the section. */
-.jewels{ padding:8px 0 40px; }
-.jewels-inner{ max-width:1400px; margin:0 auto; padding:0 24px; display:grid; grid-template-columns:1fr 1fr; gap:24px; }
-.jewel{ position:relative; display:flex; flex-direction:column; align-items:flex-start; padding:28px 30px 26px; background:#fff; border:1px solid var(--border); border-top:3px solid var(--accent,#8b1a1a); border-radius:8px; box-shadow:0 2px 10px rgba(26,22,18,.06); transition:all .25s; }
-.jewel:hover{ border-color:var(--gold); border-top-color:var(--accent,#8b1a1a); box-shadow:0 12px 40px rgba(192,128,24,0.12); }
-.jewel-icon{ width:52px; height:52px; margin-bottom:16px; background:var(--gold-dim); border-radius:12px; display:flex; align-items:center; justify-content:center; }
-.jewel-icon svg{ width:28px; height:28px; stroke:var(--gold); fill:none; stroke-width:2; }
-.jewel-title{ font-family:'Playfair Display',serif; font-size:28px; font-weight:700; line-height:1.2; margin:0 0 8px; }
-.jewel-title a{ color:var(--text); text-decoration:none; }
-.jewel-title a:hover{ color:var(--accent); }
-.jewel-desc{ font-size:16px; line-height:1.55; color:var(--text2); margin:0 0 16px; max-width:520px; }
-.jewel-try{ display:block; align-self:stretch; font-size:15px; line-height:1.5; color:var(--text); text-decoration:none; margin:0 0 18px; padding:11px 15px; background:var(--accent-dim,rgba(139,0,0,.06)); border-left:3px solid var(--accent,#8b1a1a); }
-.jewel-try:hover{ color:var(--accent); }
-.jewel-try-tag{ display:inline-block; margin-right:8px; font-family:'Inter',sans-serif; font-size:10px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--accent,#8b1a1a); }
-.jewel-cta{ margin-top:auto; font-family:'Inter',sans-serif; font-size:12px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--accent,#8b1a1a); text-decoration:none; }
-.jewel-cta:hover{ text-decoration:underline; }
-@media(max-width:760px){ .jewels-inner{ grid-template-columns:1fr; gap:16px; } .jewel{ padding:22px 20px 20px; } .jewel-title{ font-size:24px; } }
 @media(max-width:560px){ .stats-cards{ grid-template-columns:1fr; } .sim-feature{ padding:22px 20px; } .sim-feature-body{ flex-direction:column; gap:14px; } }
 
 .audio-listen-btn{
@@ -2349,6 +2313,33 @@ window.lsCard = (function () {
   return { el, done, equalize, relTime };
 })();
 
+// Compare and Simulations links on the strip's cards (2026-11-16, IJ):
+// PREVIEW ONLY until IJ has checked them. Seen only on a device where
+// ?hooks=preview has been opened (?hooks=off clears it). To ship: set
+// HOOKS_LIVE to true.
+const HOOKS_LIVE = false;
+window.ctHooksLive = HOOKS_LIVE;
+window.ctHooksOn = (function () {
+  if (HOOKS_LIVE) return true;
+  try {
+    const q = new URLSearchParams(location.search).get('hooks');
+    if (q === 'preview') localStorage.setItem('tgb-hooks-preview', '1');
+    if (q === 'off') localStorage.removeItem('tgb-hooks-preview');
+    return localStorage.getItem('tgb-hooks-preview') === '1';
+  } catch (e) { return false; }
+})();
+// A row of boxed links: [[text, href], ...].
+window.ctToolRow = function (links) {
+  const row = document.createElement('div');
+  row.className = 'lc-tools';
+  links.forEach(([text, href]) => {
+    const a = document.createElement('a');
+    a.className = 'lc-tool'; a.textContent = text; a.href = href;
+    row.appendChild(a);
+  });
+  return row;
+};
+
 (async function loadOnThisDay() {
   try {
     let attempts = 0;
@@ -2410,15 +2401,11 @@ window.lsCard = (function () {
       // Shown once the result is known (after a guess), so neither link gives
       // the answer away.
       const toolLinks = () => {
-        if (!(test > 0)) return;
-        if (e.year && e.year <= now.getFullYear() - 3) {
-          const r = el('a', 'lc-link', 'Replay it →');
-          r.href = '/simulations.html?sim=w&tid=' + test + '&run=0';
-          foot.appendChild(r);
-        }
-        const c = el('a', 'lc-link', 'Compare the top scorers →');
-        c.href = '/compare.html?stars=' + test;
-        foot.appendChild(c);
+        if (!(test > 0) || !window.ctHooksOn) return;
+        const links = [];
+        if (e.year && e.year <= now.getFullYear() - 3) links.push(['Replay it', '/simulations.html?sim=w&tid=' + test + '&run=0']);
+        links.push(['Compare the top scorers', '/compare.html?stars=' + test]);
+        foot.appendChild(window.ctToolRow(links));
       };
       const sides = String(e.teams || '').split(' v ');
       if (test > 0 && e.outcome && e.result && sides.length === 2) {
@@ -2784,6 +2771,22 @@ window.lsCard = (function () {
     };
     const t20Verdict = m => { const c = t20Case(m); return c === 'M' ? comfortLine(m) : (T20_LINES[c] || ''); };
 
+    // The home feed's upcoming Tests carry `before` (see the card below).
+    let upcomingFeed = [];
+    if (window.ctHooksOn) {
+      try {
+        const h = await getDoc(doc(window._fsDb, 'liveScores', 'home'));
+        upcomingFeed = (h.exists() && Array.isArray((h.data() || {}).upcoming)) ? h.data().upcoming : [];
+      } catch (e) { /* no link then */ }
+    }
+    const beforeFor = (teams, startsAt) => {
+      const want = teams.slice().sort().join('|');
+      const t0 = Date.parse(startsAt);
+      const hit = upcomingFeed.find(u => u && u.before && u.start
+        && [u.host, u.visitor].sort().join('|') === want
+        && !isNaN(t0) && Math.abs(Date.parse(u.start) - t0) <= 3 * 86400000);
+      return hit ? hit.before : null;
+    };
     const box = document.getElementById('sopCards');
     matches.forEach(m => {
       const f = fmtOf(m);
@@ -2885,22 +2888,23 @@ window.lsCard = (function () {
         card.appendChild(foot);
       }
       // "What happened before?" (IJ, 2026-11-16): a Test on now or coming up
-      // links to What-If Replay with an earlier Test at the same ground loaded
-      // (not run): the last one between these two sides, else the last one
-      // there against anyone, and only Tests more than two years old, so the
-      // replay sits under rule 4d. The simulations page finds the Test
-      // (findTestBefore) and says so if there isn't one. Nothing about the
-      // Test on now is simulated or shown as a chance. Subscribers.
-      if ((m.state === 'live' || m.state === 'upcoming') && m.tier === 'test' && teams2.length === 2 && m.venue) {
+      // links to What-If Replay with an earlier Test between the SAME two
+      // sides, loaded not run. The home feed picks it (build_home_feed.py
+      // history_before: same ground within 5 years, else same country within
+      // 5 years, else the latest anywhere; only Tests more than 730 days old,
+      // rule 4d). No history between them: no link. Nothing about the Test on
+      // now is simulated. Subscribers.
+      const bf = window.ctHooksOn && (m.state === 'live' || m.state === 'upcoming') && m.tier === 'test'
+        && teams2.length === 2 ? beforeFor(teams2, m.startsAt) : null;
+      if (bf) {
         let foot = card.querySelector(':scope > .lc-foot');
         if (!foot) {
           foot = el('div', 'lc-foot');
           foot.appendChild(el('span', 'lc-cap', 'For subscribers'));
           card.appendChild(foot);
         }
-        const a = el('a', 'lc-link', 'What happened before? →');
-        a.href = '/simulations.html?' + new URLSearchParams({ sim: 'w', gv: m.venue, wa: teams2[0], wb: teams2[1] }).toString();
-        foot.appendChild(a);
+        foot.appendChild(window.ctToolRow([['What happened before?',
+          '/simulations.html?sim=w&tid=' + bf.test + '&run=0&why=before']]));
       }
       box.appendChild(card);
     });
@@ -3441,7 +3445,7 @@ watchSubscriber();
 (function(){
   'use strict';
   var SEL = '.ct-nav-bar .ct-nav-link, #pageNav .nav-link, .otd-title, .feed-title, .sidebar-title, .col-header,' +
-    '.snippets-title, .section-title, #statsPromo-title, .stat-card-title, .sim-feature-title, .home-card-title, .jewel-title a,' +
+    '.snippets-title, .section-title, #statsPromo-title, .stat-card-title, .sim-feature-title, .home-card-title,' +
     '.ct-nl__heading, .wtc-pointer-kicker, .wtc-strip-title, .hero-category';
   // Tests No. 1 to 26 by start year (checked against the published list, 2026-10-30).
   var T = [null,['MCG',1877],['MCG',1877],['MCG',1879],['The Oval',1880],['MCG',1881],['SCG',1882],
@@ -3522,12 +3526,14 @@ watchSubscriber();
   }
 })();
 </script>
-</html><!-- Admin-only scores preview switch (IJ, 2026-11-02). Shown only to an
+</html><!-- Admin-only preview switches: Scores (IJ, 2026-11-02) and Links
+     (2026-11-16, until HOOKS_LIVE). Shown only to an
      admin; readers never see it. Switches State of play between what readers
      see (liveScores/current) and the admin preview (scoresPreview/current),
      for testing scores providers before the go-live switch. -->
 <style>
-.admin-scores{position:fixed;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:900;display:flex;align-items:center;gap:8px;
+.admin-switches{position:fixed;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:900;display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.admin-scores{display:flex;align-items:center;gap:8px;
   padding:6px 8px 6px 12px;border-radius:20px;border:1px solid var(--border,#d8d4cc);background:var(--surface,#fff);box-shadow:0 2px 10px rgba(0,0,0,.12);
   font-family:'Inter',sans-serif;font-size:12px;color:var(--text2,#4a4a46)}
 .admin-scores b{font-weight:700;letter-spacing:.04em;text-transform:uppercase;font-size:10px;color:var(--text3,#7a7a74)}
@@ -3546,7 +3552,7 @@ watchSubscriber();
     const { getAuth, onAuthStateChanged } = await import('https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js');
     const { getFirestore } = await import('https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js');
     onAuthStateChanged(getAuth(app), async user => {
-      const old = document.getElementById('adminScores');
+      const old = document.getElementById('adminSwitches');
       if (old) old.remove();
       if (!user || !user.email) return;
       const role = await ff.getUserRole(window._fsDb || getFirestore(app), user.email, user);
@@ -3572,7 +3578,36 @@ watchSubscriber();
         else location.reload();
       });
       box.appendChild(sel);
-      document.body.appendChild(box);
+      // Admin pills stack bottom right (2026-11-16): Links above Scores.
+      const stack = document.createElement('div');
+      stack.id = 'adminSwitches';
+      stack.className = 'admin-switches';
+      // Links (IJ, 2026-11-16): the Compare and Simulations links on the
+      // State of play and On this day cards. Preview shows them in this
+      // browser only; Live shows what readers see. Gone once HOOKS_LIVE is true.
+      if (!window.ctHooksLive) {
+        const hooksOn = !!window.ctHooksOn;
+        const hb = document.createElement('div');
+        hb.className = 'admin-scores' + (hooksOn ? ' on' : '');
+        hb.innerHTML = '<b>Admin · Links</b>';
+        const hs = document.createElement('select');
+        hs.setAttribute('aria-label', 'Compare and Simulations links on the cards');
+        hs.innerHTML = '<option value="live">Live: what readers see</option><option value="preview">Preview: new links</option>';
+        hs.value = hooksOn ? 'preview' : 'live';
+        hs.addEventListener('change', () => {
+          try {
+            if (hs.value === 'preview') localStorage.setItem('tgb-hooks-preview', '1');
+            else localStorage.removeItem('tgb-hooks-preview');
+          } catch (e) { /* fine */ }
+          const u = new URL(location.href);
+          if (u.searchParams.has('hooks')) { u.searchParams.delete('hooks'); location.replace(u.pathname + u.search + u.hash); }
+          else location.reload();
+        });
+        hb.appendChild(hs);
+        stack.appendChild(hb);
+      }
+      stack.appendChild(box);
+      document.body.appendChild(stack);
     });
   } catch (e) { console.warn('[admin-scores] not shown:', e && e.message); }
 })();
