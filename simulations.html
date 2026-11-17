@@ -1730,11 +1730,35 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
     setAll();
     if(f==="t") MS.eraUserTouched={A:true,B:true};   // keep the linked eras apart
     if(f==="w"){
-      const tid=parseInt(q.get("tid"),10);
+      // Homepage links (2026-11-16) open a Test loaded but NOT run, so the
+      // reader's first run (of 20 an hour) is their own what-if:
+      //   ?sim=w&tid=N&run=0          On this day -> Replay it
+      //   ?sim=w&gv=..&wa=..&wb=..    State of play -> What happened before?
+      const st=document.getElementById("whatIfStatus");
+      let tid=parseInt(q.get("tid"),10);
+      if(q.has("gv")){
+        await ensureData();
+        tid=findTestBefore(q.get("gv"),q.get("wa"),q.get("wb"));
+        if(!tid){
+          if(st) st.innerHTML="<strong>No earlier Test at this ground to replay.</strong> Pick another match between these sides below.";
+          if(q.get("wa")&&q.get("wb")) document.getElementById("whatIfFindBtn").click();
+          return;
+        }
+      }
       if(!tid) return;
       await ensureData();
       await loadHistoricalMatch(tid);
       setAll();                                        // the match rebuilt the bat-first list
+      if(q.has("gv")||q.get("run")==="0"){
+        const D=MS.data, m=D.M[String(tid)];
+        if(st&&m){
+          const where=D.G[m[1]]||"";
+          const lead=q.has("gv")?"What happened before: ":"";
+          st.innerHTML="<strong>"+lead+D.T[m[2]]+" v "+D.T[m[3]]+(where?" at "+where:"")+", "+m[7]+".</strong> "+
+            "Change a player and run it to see how the result might have changed.";
+        }
+        return;
+      }
     }
     const asOfTid=f==="w"&&MS.currentHistMatch?MS.currentHistMatch.tid:null;
     const xi=k=>(q.get(k)||"").split(",").slice(0,11)
@@ -1837,6 +1861,54 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
     }
     out.sort((a,b)=>b.year-a.year);
     return out.slice(0,40);  // cap at 40 matches to keep UI manageable
+  }
+
+  /* "What happened before?" (2026-11-16, IJ): a State of play Test card links
+   * here with its ground (gv, CricketData's "Ground, City") and its two sides
+   * (wa, wb). Pick, in this order:
+   *   1. the last Test between the same two sides at that ground, then
+   *   2. the last Test at that ground against anyone,
+   * counting only Tests from at least three calendar years ago, so every one
+   * is more than 730 days old (rule 4d: relaxed limits whatever happens next;
+   * whole years are used because D.M carries the year, and three is the
+   * smallest that is always past 730 days). The server applies its rules to the
+   * run as always. Ground names differ between the feed and the archive, so the
+   * ground is matched on its name words, with the city to break ties; if that
+   * finds nothing certain, the city alone is used only when it has one Test
+   * ground. Nothing certain -> null (the page says so). */
+  function findTestBefore(venue,a,b){
+    const D=MS.data; if(!D||!venue) return null;
+    const T=D.T, G=D.G||[], C=D.C||[], M=D.M;
+    const norm=s=>String(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9]+/g," ").trim();
+    const STOP=new Set(["cricket","ground","stadium","the","international","club","association","of","and","sports","complex"]);
+    const words=s=>norm(s).split(" ").filter(w=>w&&!STOP.has(w));
+    const parts=String(venue).split(",");
+    const vWords=new Set(words(parts[0]));
+    const vCity=norm(parts.slice(1).join(" "));
+    const cityOk=ci=>{ if(!vCity) return true; const c=norm(C[ci]); return !!c&&(c===vCity||c.includes(vCity)||vCity.includes(c)); };
+    const nameOk=gi=>{
+      const gw=words(G[gi]); if(!gw.length||!vWords.size) return false;
+      const hit=gw.filter(w=>vWords.has(w)).length;
+      return hit>0&&(hit===gw.length||hit===vWords.size);
+    };
+    const cutoff=new Date().getFullYear()-3;
+    const all=Object.entries(M).map(([k,m])=>({tid:parseInt(k,10),m}));
+    let atGround=all.filter(x=>nameOk(x.m[1]));
+    if(atGround.length){
+      const inCity=atGround.filter(x=>cityOk(x.m[0]));
+      if(inCity.length) atGround=inCity;
+      else if(new Set(atGround.map(x=>x.m[1])).size>1) atGround=[];   // same name in several places
+    }
+    if(!atGround.length&&vCity){
+      const inCity=all.filter(x=>norm(C[x.m[0]])&&cityOk(x.m[0])&&x.m[7]>=2000);
+      const grounds=new Set(inCity.map(x=>x.m[1]));
+      if(grounds.size===1){ const g=[...grounds][0]; atGround=all.filter(x=>x.m[1]===g&&cityOk(x.m[0])); }
+    }
+    const old=atGround.filter(x=>x.m[7]<=cutoff).sort((p,q)=>q.tid-p.tid);
+    if(!old.length) return null;
+    const ia=T.indexOf(a), ib=T.indexOf(b);
+    const same=old.find(x=>ia>=0&&ib>=0&&((x.m[2]===ia&&x.m[3]===ib)||(x.m[2]===ib&&x.m[3]===ia)));
+    return (same||old[0]).tid;
   }
 
   function renderMatchList(matches){
