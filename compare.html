@@ -95,6 +95,18 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
 /* Player Selection */
 .sel-area{display:flex;flex-wrap:wrap;gap:12px;align-items:start;margin-bottom:18px}
 .sel-area.hidden{display:none !important}
+/* "In this Test" box (2026-11-16) */
+.ft-box{margin:0 0 22px;padding:18px 22px;background:var(--surface);border:1px solid var(--border);border-top:3px solid var(--accent);border-radius:8px}
+.ft-cap{font-family:'Inter',sans-serif;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin:0 0 4px}
+.ft-title{font-size:18px;font-weight:700;margin:0 0 12px}
+.ft-rows{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.ft-row{padding:10px 14px;background:var(--surface2);border-left:3px solid var(--p1);border-radius:4px}
+.ft-row.p2{border-left-color:var(--p2)}
+.ft-name{font-weight:700}
+.ft-team{font-size:12px;color:var(--text2,#555)}
+.ft-runs{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;margin-top:2px}
+.ft-inns{font-size:13px;color:var(--text2,#555);font-variant-numeric:tabular-nums}
+.ft-note{font-size:13px;color:var(--text2,#555);margin:12px 0 0}
 .sel-card{
   background:var(--surface);border:1px solid var(--border);border-radius:11px;
   padding:14px 16px;position:relative;transition:border-color 0.25s;
@@ -787,6 +799,10 @@ header.header{display:none !important}
 
 <div class="main" data-ct-data-region>
 <div data-ct-intro="compare"></div>
+  <!-- "In this Test" (2026-11-16, IJ): an On this day "Compare the top
+       scorers" link first shows the two players' scores in that Test, then
+       their overall records below as usual. Filled by showTestScores(). -->
+  <div class="ft-box" id="ftBox" hidden></div>
   <!-- ═══ Record Type + Stats Type dropdowns ═══ -->
   <div class="record-type-filter" style="margin-bottom:20px;display:flex;gap:20px;flex-wrap:wrap;align-items:flex-end;">
     <div class="fp-group" style="min-width:200px;">
@@ -1402,10 +1418,36 @@ function topScorersOf(tid){
   return (a && b && a !== b) ? [a, b] : null;
 }
 
+/* The two players' innings in Test `tid`, in the box above the filters. */
+function showTestScores(tid, ids){
+  const box = document.getElementById('ftBox');
+  const m = D && D.M && D.M[String(tid)];
+  if(!box || !m) return;
+  const esc = v => String(v == null ? '' : v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const byId = {}; D.P.forEach(p => { byId[p[0]] = p; });
+  const ground = (D.G || [])[m[1]] || '';
+  const rows = ids.map((id, i) => {
+    const inns = D.S.filter(s => s[0] === tid && s[1] === id && (s[3] > 0 || s[4] === 1 || s[5] > 0))
+      .sort((a, b) => a[2] - b[2]);
+    const total = inns.reduce((n, s) => n + (s[3] || 0), 0);
+    const line = inns.map(s => s[3] + (s[4] === 1 ? '*' : '')).join(' & ');
+    const p = byId[id] || [];
+    return `<div class="ft-row${i ? ' p2' : ''}"><div class="ft-name">${esc(p[2] || p[1] || '')}</div>` +
+      `<div class="ft-team">${esc(p[3] || '')}</div><div class="ft-runs">${total} runs</div>` +
+      (inns.length > 1 ? `<div class="ft-inns">${esc(line)}</div>` : '') + `</div>`;
+  }).join('');
+  box.innerHTML = `<p class="ft-cap">Top scorers in this Test</p>` +
+    `<p class="ft-title">${esc(D.T[m[2]])} v ${esc(D.T[m[3]])}${ground ? ', ' + esc(ground) : ''}, ${m[7]}</p>` +
+    `<div class="ft-rows">${rows}</div><p class="ft-note">Their full Test careers, side by side, are below.</p>`;
+  box.hidden = false;
+}
+
 function loadFromURL(){
   let params = new URLSearchParams(window.location.search);
   if(params.has('stars')){
-    const ids = topScorersOf(parseInt(params.get('stars'), 10));
+    const starsTid = parseInt(params.get('stars'), 10);
+    const ids = topScorersOf(starsTid);
+    if(ids) showTestScores(starsTid, ids);
     params.delete('stars');
     if(ids){ params.set('p1', ids[0]); params.set('p2', ids[1]); params.set('st', 'batting'); }
     const qs = params.toString();
