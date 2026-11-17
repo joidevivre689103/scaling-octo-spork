@@ -2887,7 +2887,8 @@ window.ctToolRow = function (links) {
         foot.appendChild(a);
         card.appendChild(foot);
       }
-      // "What happened before?" (IJ, 2026-11-16): a Test on now or coming up
+      // "Replay a past meeting" (IJ, 2026-11-16; was "What happened before?"
+      // until 2026-11-17): a Test on now or coming up
       // links to What-If Replay with an earlier Test between the SAME two
       // sides, loaded not run. The home feed picks it (build_home_feed.py
       // history_before: same ground within 5 years, else same country within
@@ -2903,7 +2904,7 @@ window.ctToolRow = function (links) {
           foot.appendChild(el('span', 'lc-cap', 'For subscribers'));
           card.appendChild(foot);
         }
-        foot.appendChild(window.ctToolRow([['What happened before?',
+        foot.appendChild(window.ctToolRow([['Replay a past meeting',
           '/simulations.html?sim=w&tid=' + bf.test + '&run=0&why=before']]));
       }
       box.appendChild(card);

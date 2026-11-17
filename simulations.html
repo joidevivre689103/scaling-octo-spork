@@ -1780,7 +1780,7 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
       // Homepage links (2026-11-16) open a Test loaded but NOT run, so the
       // reader's first run (of 20 an hour) is their own what-if:
       //   ?sim=w&tid=N&run=0              On this day -> Replay it
-      //   ?sim=w&tid=N&run=0&why=before   State of play -> What happened before?
+      //   ?sim=w&tid=N&run=0&why=before   State of play -> Replay a past meeting
       // (the earlier Test is chosen by the home feed: build_home_feed.py
       // history_before, same two sides only, more than 730 days old).
       const st=document.getElementById("whatIfStatus");
@@ -1793,7 +1793,7 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
         const D=MS.data, m=D.M[String(tid)];
         if(st&&m){
           const where=D.G[m[1]]||"";
-          const lead=q.get("why")==="before"?"What happened before: ":"";
+          const lead=q.get("why")==="before"?"A past meeting: ":"";
           st.innerHTML="<strong>"+lead+D.T[m[2]]+" v "+D.T[m[3]]+(where?" at "+where:"")+", "+m[7]+".</strong> "+
             "Change a player and run it to see how the result might have changed.";
         }
