@@ -439,13 +439,14 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
   // remaining Tests' / 'their one remaining Test' · {W} wins needed · {Y} last
   // cycle's second place % · {best} best possible % · {worst} % if they lose
   // the rest · {pct} now · {hero} the team's line in HEROES ·
-  // {allTail} the team's line in ALL_TAILS.
+  // {allTail} the team's line in ALL_TAILS ·
+  // {outTail} the team's line in OUT_TAILS.
   var TAKES = {
     done:      '{T} have played every Test. {pct}% it is. Now they wait, and watch.',
     own:       '{T}\u2019s destiny is in their own hands: win {allLeft} and they\u2019re in the final, whatever else happens.',
     through:   '{T} are through. Book the hotel in St John’s Wood.',
-    out:       '{T} can’t reach the final now, even winning {allLeft}. {hero}',
-    outDone:   '{T} are out. There’s always the next cycle.',
+    out:       '{T} can’t reach the final now, even winning {allLeft}. {outTail}',
+    outDone:   '{T} are out. {outTail}',
     safe:      'Even losing {allLeft}, {T} finish on {worst}%, above the {Y}% that took second place last time. Not that anyone wants to test it.',
     comfy:     '{W} wins from their last {left} would take {T} past {Y}%. Comfortable, for now.',
     inIt:      '{W} wins from {left} take {T} to {Y}%. Definitely in with a chance.',
@@ -473,6 +474,13 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
     'India':       'Rajni needs to bat, bowl, keep and field.',
     _default:      'They need two new players – one called James and the other called Bond.'
   };
+  // The end of the line once a team is out, per team (IJ, 2026-11-17). Teams
+  // not listed get their HEROES line, or 'There’s always the next cycle.' if
+  // they have no Tests left.
+  var OUT_TAILS = {
+    'West Indies': 'They might need to bring back Viv and Lara next year.',
+    'Pakistan':    'Even Imran and Javed can’t help them now.'
+  };
   function fill(t, v) { return t.replace(/\{(\w+)\}/g, function (m, k) { return v[k] != null ? v[k] : m; }); }
   // own: the team is "In own hands" (exact). Then the yardstick doesn't
   // matter and its line would contradict the column (IJ, 2026-10-31), so it
@@ -484,6 +492,7 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
     var allLeft = r.left === 1 ? 'their one remaining Test' : r.left === 2 ? 'both remaining Tests' : 'all ' + r.left + ' remaining Tests';
     var v = { T: r.team, left: r.left, W: W, Y: Number(Y).toFixed(2), allLeft: allLeft,
               hero: HEROES[r.team] || HEROES._default, allTail: ALL_TAILS[r.team] || ALL_TAILS._default,
+              outTail: OUT_TAILS[r.team] || (r.left ? (HEROES[r.team] || HEROES._default) : 'There’s always the next cycle.'),
               best: Number(r.best).toFixed(2), worst: Number(r.worst).toFixed(2), pct: Number(r.pct).toFixed(2) };
     var key;
     if (r.status === 'through') key = 'through';
