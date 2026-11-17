@@ -2402,6 +2402,24 @@ window.lsCard = (function () {
         a.href = '/countries.html?otd=' + test + '#onthisday';
         return a;
       };
+      // The two tools (IJ, 2026-11-16), for subscribers like the scorecard:
+      // "Replay it" opens What-If Replay with this Test loaded, not run — only
+      // for Tests from three or more calendar years ago, so always more than
+      // 730 days old (rule 4d); "Compare the top scorers" opens Compare with
+      // each side's top run-scorer in this Test (records only, no model).
+      // Shown once the result is known (after a guess), so neither link gives
+      // the answer away.
+      const toolLinks = () => {
+        if (!(test > 0)) return;
+        if (e.year && e.year <= now.getFullYear() - 3) {
+          const r = el('a', 'lc-link', 'Replay it →');
+          r.href = '/simulations.html?sim=w&tid=' + test + '&run=0';
+          foot.appendChild(r);
+        }
+        const c = el('a', 'lc-link', 'Compare the top scorers →');
+        c.href = '/compare.html?stars=' + test;
+        foot.appendChild(c);
+      };
       const sides = String(e.teams || '').split(' v ');
       if (test > 0 && e.outcome && e.result && sides.length === 2) {
         // "Who do you think won?" (IJ, 2026-10-31). The reader guesses, then the
@@ -2421,6 +2439,7 @@ window.lsCard = (function () {
           foot.appendChild(p);
           foot.appendChild(el('span', 'lc-cap', 'For subscribers'));
           foot.appendChild(scoreLink('See the full scorecard →'));
+          toolLinks();
           window.lsCard.equalize();
         };
         if (saved) {
@@ -2444,6 +2463,7 @@ window.lsCard = (function () {
       } else if (test > 0) {
         foot.appendChild(el('span', 'lc-cap', 'For subscribers'));
         foot.appendChild(scoreLink('How did it end? See the full scorecard →'));
+        toolLinks();
       } else {
         foot.appendChild(el('span', 'lc-cap', 'Result'));
         foot.appendChild(el('p', 'lc-result', e.scoreline));
@@ -2863,6 +2883,24 @@ window.lsCard = (function () {
         a.href = '/countries.html?find=' + encodeURIComponent(teams2.join('|') + '|' + String(m.startsAt).slice(0, 10));
         foot.appendChild(a);
         card.appendChild(foot);
+      }
+      // "What happened before?" (IJ, 2026-11-16): a Test on now or coming up
+      // links to What-If Replay with an earlier Test at the same ground loaded
+      // (not run): the last one between these two sides, else the last one
+      // there against anyone, and only Tests more than two years old, so the
+      // replay sits under rule 4d. The simulations page finds the Test
+      // (findTestBefore) and says so if there isn't one. Nothing about the
+      // Test on now is simulated or shown as a chance. Subscribers.
+      if ((m.state === 'live' || m.state === 'upcoming') && m.tier === 'test' && teams2.length === 2 && m.venue) {
+        let foot = card.querySelector(':scope > .lc-foot');
+        if (!foot) {
+          foot = el('div', 'lc-foot');
+          foot.appendChild(el('span', 'lc-cap', 'For subscribers'));
+          card.appendChild(foot);
+        }
+        const a = el('a', 'lc-link', 'What happened before? →');
+        a.href = '/simulations.html?' + new URLSearchParams({ sim: 'w', gv: m.venue, wa: teams2[0], wb: teams2[1] }).toString();
+        foot.appendChild(a);
       }
       box.appendChild(card);
     });

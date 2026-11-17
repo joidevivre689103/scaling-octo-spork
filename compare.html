@@ -1380,8 +1380,38 @@ function restorePhases(list){
   updatePhaseMsToggleLabel(); updateYearHint();
 }
 
+/* "Compare the top scorers" (2026-11-16, IJ): an On this day card links here
+   with ?stars=<Test number>. Turn it into the ordinary link for that Test's
+   top run-scorer on each side (most runs across both innings; ties to the
+   first found), compared on batting, and carry on as if that had been the
+   link. Records only, no model. Unknown Test or a side with no runs: the
+   page opens as normal. */
+function topScorersOf(tid){
+  const m = D && D.M && D.M[String(tid)];
+  if(!m || !Array.isArray(D.S) || !Array.isArray(D.P)) return null;
+  const t1 = D.T[m[2]], t2 = D.T[m[3]];
+  const country = {}; D.P.forEach(p => { country[p[0]] = p[3]; });
+  const runs = {};
+  for(const s of D.S){ if(s[0] === tid) runs[s[1]] = (runs[s[1]] || 0) + (s[3] || 0); }
+  const best = team => {
+    let id = null, n = -1;
+    for(const k in runs){ if(country[k] === team && runs[k] > n){ id = parseInt(k, 10); n = runs[k]; } }
+    return id;
+  };
+  const a = best(t1), b = best(t2);
+  return (a && b && a !== b) ? [a, b] : null;
+}
+
 function loadFromURL(){
-  const params = new URLSearchParams(window.location.search);
+  let params = new URLSearchParams(window.location.search);
+  if(params.has('stars')){
+    const ids = topScorersOf(parseInt(params.get('stars'), 10));
+    params.delete('stars');
+    if(ids){ params.set('p1', ids[0]); params.set('p2', ids[1]); params.set('st', 'batting'); }
+    const qs = params.toString();
+    history.replaceState(null, '', location.pathname + (qs ? '?' + qs : '') + location.hash);
+    params = new URLSearchParams(window.location.search);
+  }
   if(![...params.keys()].length) return;
   const ids = v => (params.get(v) || '').split(',').map(x => parseInt(x, 10));
   const known = id => PLAYERS.some(p => p.id === id);
