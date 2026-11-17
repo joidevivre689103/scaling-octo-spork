@@ -237,6 +237,8 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
 /* What-if replay specific */
 .historical-picker{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin-bottom:18px}
 .hp-row{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+.era-note{margin:0 0 16px;border-left-color:var(--accent)}
+.era-note .era-go{margin-top:10px}
 .hp-info{padding:14px 18px;background:rgba(184,134,11,0.06);border-left:3px solid var(--gold);border-radius:0 6px 6px 0;margin-top:12px;font-family:'Source Serif 4',serif;font-size:13px;color:var(--text2);line-height:1.5}
 .hp-info strong{color:var(--text1);font-weight:600}
 /* Year box wide enough for the whole "e.g. 2005" placeholder and a typed year (2026-11-12) */
@@ -599,6 +601,10 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
     </div>
 
     <div id="whatIfSimArea" style="display:none">
+      <!-- A player who hadn't played a Test by then (2026-11-16, IJ): a replay
+           rates everyone as he stood the day before the Test, so he can't be
+           rated; this says so and offers Cross-Era XI. Filled by eraNote(). -->
+      <div class="hp-info era-note" id="whatIfEraNote" hidden></div>
       <div class="teams-grid">
         <div class="team-panel" data-side="H">
           <div class="tp-head">
@@ -1280,6 +1286,39 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
   const pickerSub=document.getElementById("pickerSub");
   const pickerFootMeta=document.getElementById("pickerFootMeta");
 
+  /* Cross-Era XI hand-off (2026-11-16, IJ). Everyone in a What-If Replay is
+   * rated as he stood the day before the replayed Test (rule 4; the server
+   * does the same), so a player who hadn't yet played a Test has no rating
+   * there. Cross-Era XI mixes players from any era on their career ratings,
+   * and the usual rules decide whether chances are shown. */
+  function eraNote(p,side,slot){
+    const box=document.getElementById("whatIfEraNote"); if(!box) return;
+    const h=MS.currentHistMatch||{};
+    const esc=v=>String(v==null?"":v).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+    box.innerHTML=`<strong>${esc(p.name)} hadn\u2019t played a Test before this one (${esc(h.year)}),</strong> `+
+      `so a replay can\u2019t rate him: everyone in a replay is rated as he stood the day before the Test. `+
+      `To see him in this side, use Cross-Era XI, which mixes players from any era.`+
+      `<div class="era-go"><button class="picker-close" type="button">Open these sides in Cross-Era XI \u2192</button></div>`;
+    box.hidden=false;
+    box.querySelector("button").addEventListener("click",()=>toCrossEra(p,side,slot));
+    box.scrollIntoView({behavior:"smooth",block:"center"});
+  }
+  function toCrossEra(p,side,slot){
+    // Both replay sides on their career ratings, with the player in the slot
+    // the reader chose: the side being changed becomes Side 1.
+    const career=x=>x?(SimEngine.getPlayer(x.id)||null):null;
+    const other=side==="H"?"V":"H";
+    const mine=MS.xi[side].map(career); mine[slot]=SimEngine.getPlayer(p.id)||p;
+    MS.xi.X=mine.concat(Array(11).fill(null)).slice(0,11);
+    MS.xi.Y=MS.xi[other].map(career).concat(Array(11).fill(null)).slice(0,11);
+    document.querySelectorAll(".preset-select").forEach(sel=>{ sel.selectedIndex=-1; });
+    const tab=document.querySelector('.flow-tab[data-flow="cross-era"]'); if(tab) tab.click();
+    renderXI("X"); renderXI("Y"); updateRunButtons();
+    const box=document.getElementById("whatIfEraNote"); if(box) box.hidden=true;
+    toast("Both sides moved to Cross-Era XI on career ratings. Run it when ready.");
+    const sec=document.getElementById("flow-cross-era"); if(sec) sec.scrollIntoView({behavior:"smooth",block:"start"});
+  }
+
   function openPicker(side,slotIdx){
     MS.pickerTarget={side,slotIdx};
     const sideLabel={A:"Team A",B:"Team B",X:"Side 1",Y:"Side 2",H:"Home (historical)",V:"Visiting (historical)"}[side]||side;
@@ -1324,7 +1363,15 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
         const already=MS.xi[t.side].findIndex((x,i)=>x&&x.id===p.id&&i!==t.slotIdx);
         if(already>=0){ toast(`${p.name} already at #${already+1}`,true); return; }
         const onReplay=(t.side==="H"||t.side==="V")&&MS.currentHistMatch;
-        MS.xi[t.side][t.slotIdx]=onReplay?asOfPlayer(p,MS.currentHistMatch.tid):p;
+        const asOf=onReplay?asOfPlayer(p,MS.currentHistMatch.tid):p;
+        // No Test before this one: a replay can't rate him (rule 4). Don't
+        // place him; explain, and offer the same sides in Cross-Era XI.
+        if(onReplay&&asOf&&asOf.asOf&&!asOf.n_tests){
+          closePicker();
+          eraNote(p,t.side,t.slotIdx);
+          return;
+        }
+        MS.xi[t.side][t.slotIdx]=asOf;
         renderXI(t.side);
         closePicker();
         updateRunButtons();
@@ -1963,6 +2010,7 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',Georgia
     // Store the match. Also derive actual bat-first team from innings-1 scorecards (ground truth,
     // not toss winner — a captain who won the toss and chose to bowl is not the bat-first team).
     const batFirstTeam=deriveBatFirstTeam(tid);
+    { const en=document.getElementById("whatIfEraNote"); if(en) en.hidden=true; }
     MS.currentHistMatch={tid,t1Name,t2Name,t1Idx,t2Idx,winner:m[4],toss:m[5],groundIdx:m[1],locationIdx:m[6],batFirstTeam,year:m[7]};
     // The XIs as played: what every what-if's changes are described against.
     // A new Test starts a fresh comparison.
