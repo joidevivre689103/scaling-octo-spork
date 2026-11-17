@@ -2558,6 +2558,20 @@ window.ctToolRow = function (links) {
         && Math.abs(Date.parse(String(v.start) + 'T00:00:00Z') - d) <= 864e5);
     };
 
+    // Recent Tests with a full scorecard in the data (home feed, 2026-11-17).
+    let fullCards = (window._homeFeed && window._homeFeed.fullCards) || null;
+    if (!fullCards) {
+      try {
+        const h = await getDoc(doc(window._fsDb, 'liveScores', 'home'));
+        fullCards = (h.exists() && h.data().fullCards) || [];
+      } catch (e) { fullCards = []; }
+    }
+    const inFullCards = m => {
+      const d = Date.parse(String(m.startsAt || '').slice(0, 10) + 'T00:00:00Z');
+      return fullCards.some(v => v && teamKey(v.teams) === teamKey(m.teams)
+        && Math.abs(Date.parse(String(v.start) + 'T00:00:00Z') - d) <= 3 * 864e5);
+    };
+
     // Published notes for the cards shown (franchise cards carry none).
     const notes = {};
     await Promise.all(matches.filter(m => m.tier !== 'franchise').map(async m => {
@@ -2880,17 +2894,22 @@ window.ctToolRow = function (links) {
         card.appendChild(foot);
       }
       if (m.state === 'result' && m.tier === 'test' && teams2.length === 2 && m.startsAt) {
-        const foot = el('div', 'lc-foot');
-        foot.appendChild(el('span', 'lc-cap', 'For subscribers'));
-        // The feed has the result but our scorecard is still the in-progress
-        // one (IJ, 2026-11-17: AFG v ZIM said "See the full scorecard" while
-        // ours stopped at day 4): say what the link opens until ours is finished.
+        // "See the full scorecard" only when there is one (IJ, 2026-11-17): in
+        // the data from any source (Ananth, Cricsheet or our finished Scorecard
+        // entry; the home feed's fullCards), or our own card saved as finished.
+        // Otherwise our scorecard so far, if we have one; else no link yet.
         const ours = shownFor(m);
-        const a = el('a', 'lc-link', ours && !ours.result
-          ? 'Scorecard so far' + (ours.asOf ? ' (' + ours.asOf.toLowerCase() + ')' : '') + '; full scorecard soon \u2192'
-          : 'See the full scorecard →');
-        a.href = '/countries.html?find=' + encodeURIComponent(teams2.join('|') + '|' + String(m.startsAt).slice(0, 10));
-        foot.appendChild(a);
+        const full = inFullCards(m) || !!(ours && ours.result);
+        const foot = el('div', 'lc-foot');
+        if (full || ours) {
+          foot.appendChild(el('span', 'lc-cap', 'For subscribers'));
+          const a = el('a', 'lc-link', full ? 'See the full scorecard \u2192'
+            : 'Scorecard so far' + (ours.asOf ? ' (' + ours.asOf.toLowerCase() + ')' : '') + '; full scorecard soon \u2192');
+          a.href = '/countries.html?find=' + encodeURIComponent(teams2.join('|') + '|' + String(m.startsAt).slice(0, 10));
+          foot.appendChild(a);
+        } else {
+          foot.appendChild(el('span', 'lc-cap', 'Full scorecard soon'));
+        }
         card.appendChild(foot);
       }
       // "Replay a past meeting" (IJ, 2026-11-16; was "What happened before?"
