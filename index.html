@@ -2899,7 +2899,8 @@ window.ctToolRow = function (links) {
         // entry; the home feed's fullCards), or our own card saved as finished.
         // Otherwise our scorecard so far, if we have one; else no link yet.
         const ours = shownFor(m);
-        const full = inFullCards(m) || !!(ours && ours.result);
+        // CricketData's final scorecard (2026-11-18, S plan) counts as full too.
+        const full = inFullCards(m) || !!(ours && (ours.result || ours.final));
         const foot = el('div', 'lc-foot');
         if (full || ours) {
           foot.appendChild(el('span', 'lc-cap', 'For subscribers'));
