@@ -3445,6 +3445,9 @@ function otdScorecardHTML(D, k, h2h) {
   // The gated h2h file carries fall of wickets and the toss, both from
   // Cricsheet, so both exist only for Tests from about 2001.
   const fow = (h2h && h2h.fow) || {};
+  // 4s and 6s per batter (2026-11-18): Cricsheet's (h2h bnd), else a card
+  // entered or fetched with them (D.MBX). Shown only when the innings has them.
+  const bnd = (h2h && h2h.bnd && h2h.bnd[String(k)]) || (D.MBX && D.MBX[String(k)]) || {};
   let toss = h2h && h2h.toss && h2h.toss[String(k)];
   const m = D.M[String(k)];
   if (!m) return `<div class="otd-match"><p class="otd-note">Test #${k} is not in the dataset.</p></div>`;
@@ -3507,16 +3510,21 @@ function otdScorecardHTML(D, k, h2h) {
     const showBalls = bat.some(s => s[5] > 0);
     const runsSum = bat.reduce((a, s) => a + (s[3] || 0), 0);
     const extras = bat.length ? total - runsSum : null;
+    const bx = new Map((bnd[String(inn)] || []).map(r => [r[0], r]));
+    const showBound = bx.size > 0;
+    const extraCols = (showBalls ? 1 : 0) + (showBound ? 2 : 0);
 
     let bt = `<div class="tbl-wrap"><table class="rec-table"><thead><tr>
-      <th class="left">Batter</th><th class="left">Dismissal</th><th>R</th>${showBalls ? '<th>B</th>' : ''}</tr></thead><tbody>`;
+      <th class="left">Batter</th><th class="left">Dismissal</th><th>R</th>${showBalls ? '<th>B</th>' : ''}${showBound ? '<th>4s</th><th>6s</th>' : ''}</tr></thead><tbody>`;
     bat.forEach(s => {
       const how = otdHowOut(s, name);
+      const b4 = bx.get(s[1]);
       bt += `<tr><td class="left">${otdEsc(name.get(s[1]) || '#' + s[1])}</td><td class="left">${otdEsc(how)}</td>
-        <td>${otdEsc(s[3] == null ? '' : s[3])}${(s[4] === 1 || s[4] === true) ? '*' : ''}</td>${showBalls ? `<td>${s[5] > 0 ? s[5] : ''}</td>` : ''}</tr>`;
+        <td>${otdEsc(s[3] == null ? '' : s[3])}${(s[4] === 1 || s[4] === true) ? '*' : ''}</td>${showBalls ? `<td>${s[5] > 0 ? s[5] : ''}</td>` : ''}${showBound
+          ? `<td>${b4 ? b4[1] : ''}</td><td>${b4 ? b4[2] : ''}</td>` : ''}</tr>`;
     });
-    if (extras !== null && extras > 0) bt += `<tr class="otd-extras"><td class="left" colspan="2">Extras</td><td>${extras}</td>${showBalls ? '<td></td>' : ''}</tr>`;
-    bt += `<tr class="otd-sum"><td class="left" colspan="2">Total</td><td class="otd-total" colspan="${showBalls ? 2 : 1}">${otdEsc(totalTxt)}</td></tr>`;
+    if (extras !== null && extras > 0) bt += `<tr class="otd-extras"><td class="left" colspan="2">Extras</td><td>${extras}</td>${extraCols ? `<td colspan="${extraCols}"></td>` : ''}</tr>`;
+    bt += `<tr class="otd-sum"><td class="left" colspan="2">Total</td><td class="otd-total" colspan="${1 + extraCols}">${otdEsc(totalTxt)}</td></tr>`;
     if (!bat.length && wkSum) {
       const top = wkSum.top[inn - 1] || {};
       bt = `<div class="tbl-wrap"><table class="rec-table"><tbody>`
@@ -3708,15 +3716,19 @@ function liveScorecardHTML(r) {
   (r.innings || []).forEach((inn, i) => {
     const totalTxt = inn.wkts >= 10 ? `${inn.total} all out` : `${inn.total}/${inn.wkts}${inn.declared ? ' declared' : ''}`;
     const showBalls = (inn.bat || []).some(x => x.balls > 0);
+    // 4s and 6s when the card has them (CricketData's scorecards, 2026-11-18).
+    const showBound = (inn.bat || []).some(x => x.fours != null || x.sixes != null);
+    const extraCols = (showBalls ? 1 : 0) + (showBound ? 2 : 0);
     let bt = `<div class="tbl-wrap"><table class="rec-table"><thead><tr>
-      <th class="left">Batter</th><th class="left">Dismissal</th><th>R</th>${showBalls ? '<th>B</th>' : ''}</tr></thead><tbody>`;
+      <th class="left">Batter</th><th class="left">Dismissal</th><th>R</th>${showBalls ? '<th>B</th>' : ''}${showBound ? '<th>4s</th><th>6s</th>' : ''}</tr></thead><tbody>`;
     (inn.bat || []).forEach(x => {
       bt += `<tr><td class="left">${otdEsc(x.name)}</td><td class="left">${otdEsc(x.how)}</td>
-        <td>${otdEsc(x.runs == null ? '' : x.runs)}${x.notOut ? '*' : ''}</td>${showBalls ? `<td>${x.balls > 0 ? x.balls : ''}</td>` : ''}</tr>`;
+        <td>${otdEsc(x.runs == null ? '' : x.runs)}${x.notOut ? '*' : ''}</td>${showBalls ? `<td>${x.balls > 0 ? x.balls : ''}</td>` : ''}${showBound
+          ? `<td>${otdEsc(x.fours == null ? '' : x.fours)}</td><td>${otdEsc(x.sixes == null ? '' : x.sixes)}</td>` : ''}</tr>`;
     });
-    if (inn.extras > 0) bt += `<tr class="otd-extras"><td class="left" colspan="2">Extras</td><td>${otdEsc(inn.extras)}</td>${showBalls ? '<td></td>' : ''}</tr>`;
-    bt += `<tr class="otd-sum"><td class="left" colspan="2">Total${inn.overs ? ' (' + otdEsc(inn.overs) + ' overs)' : ''}</td><td class="otd-total" colspan="${showBalls ? 2 : 1}">${otdEsc(totalTxt)}</td></tr>`;
-    if ((inn.dnb || []).length) bt += `<tr><td class="left" colspan="${showBalls ? 4 : 3}">${i === r.innings.length - 1 && !r.result && inn.wkts < 10 && !inn.declared ? 'Yet to bat' : 'Did not bat'}: ${(inn.dnb).map(otdEsc).join(', ')}</td></tr>`;
+    if (inn.extras > 0) bt += `<tr class="otd-extras"><td class="left" colspan="2">Extras</td><td>${otdEsc(inn.extras)}</td>${extraCols ? `<td colspan="${extraCols}"></td>` : ''}</tr>`;
+    bt += `<tr class="otd-sum"><td class="left" colspan="2">Total${inn.overs ? ' (' + otdEsc(inn.overs) + ' overs)' : ''}</td><td class="otd-total" colspan="${1 + extraCols}">${otdEsc(totalTxt)}</td></tr>`;
+    if ((inn.dnb || []).length) bt += `<tr><td class="left" colspan="${3 + extraCols}">${i === r.innings.length - 1 && !r.result && inn.wkts < 10 && !inn.declared ? 'Yet to bat' : 'Did not bat'}: ${(inn.dnb).map(otdEsc).join(', ')}</td></tr>`;
     bt += '</tbody></table></div>';
     let bw = `<div class="tbl-wrap"><table class="rec-table"><thead><tr>
       <th class="left">Bowler</th><th>O</th><th>M</th><th>R</th><th>W</th></tr></thead><tbody>`;
