@@ -466,8 +466,15 @@ body{
    decides which pictures are narrow enough; phones keep them stacked. */
 .article-body .img-scroll-wrap.img-float{
   float:left;
-  margin:6px 32px 18px 0;
+  /* Each picture starts back at the left margin, below any picture before
+     it — never beside it (the staircase IJ saw, 2026-11-17). */
+  clear:left;
+  margin:4px 32px 18px 0;
 }
+/* A paragraph that is only bold text is how sections are titled in the CMS
+   ("India's top seven:"), so it starts below the previous picture like a
+   heading would. layoutPictures() marks them. */
+.article-body p.para-head{clear:both}
 .article-body p.shot{margin-bottom:0}
 .article-body h2,.article-body h3,.article-body hr,.article-body blockquote{clear:both}
 .article-body::after{content:'';display:block;clear:both}
@@ -1885,6 +1892,11 @@ function analysisLinkAbove(root, node) {
 const FLOAT_MAX_SHARE = 0.6, FLOAT_MIN_SCREEN = 760;
 function layoutPictures(body) {
   if (!body) return;
+  body.querySelectorAll('p').forEach(p => {
+    const t = p.textContent.trim();
+    const b = p.querySelector('strong, b');
+    if (t && t.length <= 140 && b && b.textContent.trim() === t) p.classList.add('para-head');
+  });
   const place = () => {
     const col = body.clientWidth;
     body.querySelectorAll('.img-scroll-wrap').forEach(wrap => {
