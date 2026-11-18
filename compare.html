@@ -525,17 +525,21 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
 }
 
 /* ---- TRANSPOSED TABLE: players = rows, stats = columns ---- */
-.tbl-wrap{overflow-x:auto;margin-bottom:24px;border-radius:11px;border:1px solid var(--border)}
+/* Compact tables (2026-11-17): a table is as wide as its columns, not the page,
+   so hiding metrics tightens it instead of spreading what is left. It scrolls
+   sideways only when it is wider than the page. */
+.tbl-wrap{overflow-x:auto;margin-bottom:24px;border-radius:11px;border:1px solid var(--border);width:fit-content;max-width:100%}
+.cmp-wrap{overflow-x:auto;max-width:100%}
 /* 1 Against X — ball-by-ball head-to-head title (2026-10-27) */
 .h2h-title{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3);margin:26px 0 8px}
 .cmp-table{
-  width:100%;border-collapse:separate;border-spacing:0;
-  background:var(--surface);min-width:600px;
+  width:max-content;border-collapse:separate;border-spacing:0;
+  background:var(--surface);
 }
 
 /* Column headers = stat names */
 .cmp-table thead th{
-  padding:10px 12px;font-size:10px;font-weight:700;letter-spacing:0.8px;
+  padding:8px 14px;font-size:10px;font-weight:700;letter-spacing:0.8px;
   text-transform:uppercase;color:var(--text3);text-align:center;
   border-bottom:2px solid var(--border2);background:var(--surface2);
   position:sticky;top:0;z-index:2;white-space:nowrap;
@@ -555,7 +559,7 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
 
 /* Player rows */
 .cmp-table tbody td{
-  padding:10px 12px;font-size:13.5px;font-weight:600;
+  padding:6px 14px;font-size:13.5px;font-weight:600;
   text-align:center;font-variant-numeric:tabular-nums;
   border-bottom:1px solid var(--border);
   transition:background 0.1s;
@@ -570,7 +574,7 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
   border-right:1px solid var(--border);
 }
 .cmp-table tbody tr:hover td.player-cell{background:var(--surface2)}
-.pc-name{font-family:'DM Serif Display',serif;font-size:15px;display:block;margin-bottom:1px}
+.pc-name{font-family:'DM Serif Display',serif;font-size:14px;line-height:1.2;display:block}
 .pc-meta{font-size:10px;font-weight:400;color:var(--text3);display:block}
 
 /* Colored player row accents */
@@ -635,9 +639,8 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
   .add-player-btn{flex:1 1 calc(50% - 5px);min-width:280px;max-width:calc(50% - 5px)}
   .fp-grid{grid-template-columns:repeat(3,1fr);gap:10px 16px}
   .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
-  .cmp-table{min-width:800px}
   .cmp-table thead th{padding:9px 10px;font-size:10px}
-  .cmp-table tbody td{padding:9px 10px;font-size:12px}
+  .cmp-table tbody td{padding:6px 10px;font-size:12px}
   .cmp-table tbody td.player-cell{min-width:140px}
   .sel-input{font-size:14px;padding:10px 12px}
   .dd-item{padding:10px 14px;font-size:13px}
@@ -666,9 +669,8 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
   .add-player-btn{max-width:100%;min-height:50px}
   .fp-grid{grid-template-columns:1fr 1fr}
   .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
-  .cmp-table{min-width:600px}
   .cmp-table thead th{padding:7px 8px;font-size:8.5px}
-  .cmp-table tbody td{padding:7px 8px;font-size:11.5px}
+  .cmp-table tbody td{padding:5px 8px;font-size:11.5px}
   .cmp-table tbody td.player-cell{min-width:120px}
   .pc-name{font-size:13px}
   .record-type-filter{flex-direction:column !important;gap:8px !important}

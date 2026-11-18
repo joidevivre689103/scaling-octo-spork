@@ -14,6 +14,7 @@
 <script src="/ct-appcheck.js"></script>
 <script src="/ct-data-loader.js"></script>
 <script src="/ct-urlstate.js"></script><!-- filters kept in the address + Share (2026-10-27) --><!-- Phase 3 §3: gated derived-data loader -->
+<script src="/ct-metrics.js"></script><!-- "Metrics shown" column picker (2026-11-17) -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Bowling Records – The Grass Bank™</title>
 <!-- Link previews and search snippet (rename item 4 / (9), 2026-10-21) -->
@@ -136,8 +137,11 @@ body{font-family:'Source Serif 4',Georgia,serif;background:var(--bg);color:var(-
 
 /* ── Table ── */
 .data-footnote{font-size:12px;line-height:1.5;color:var(--text3);margin:14px 2px 0}
-.tbl-wrap{overflow-x:auto;margin-bottom:12px}
-.rec-table{width:100%;border-collapse:collapse;font-size:13px}
+/* Compact tables (2026-11-17): a table is as wide as its columns, not the page,
+   so hiding metrics tightens it instead of spreading what is left. It scrolls
+   sideways only when it is wider than the page. */
+.tbl-wrap{overflow-x:auto;margin-bottom:12px;width:fit-content;max-width:100%}
+.rec-table{width:max-content;border-collapse:collapse;font-size:13px}
 .rec-table thead th{font-family:'Source Serif 4',serif;font-size:10px;text-transform:uppercase;letter-spacing:0.7px;color:var(--text2);font-weight:600;padding:10px 12px;text-align:left;border-bottom:2px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none;position:relative}
 .rec-table thead th:hover{color:var(--text2)}
 .rec-table thead th.sort-asc::after,.rec-table thead th.sort-desc::after{position:absolute;right:4px;font-size:9px;color:var(--accent)}
@@ -211,7 +215,6 @@ td.num.highlight{color:var(--accent);font-weight:700}
   .main{padding:12px 14px 40px}
   .stat-cards{grid-template-columns:1fr 1fr}
   .fp-grid{grid-template-columns:1fr 1fr}
-  .rec-table{min-width:720px}
   .rec-table thead th{padding:7px 9px;font-size:8.5px}
   .rec-table tbody td{padding:7px 9px;font-size:12px}
   .tabs{width:100%;overflow-x:auto}
@@ -454,6 +457,10 @@ td.num.highlight{color:var(--accent);font-weight:700}
           <label>Search Player</label>
           <input type="text" id="fSearch" placeholder="Name or country…" oninput="applyFilters()">
         </div>
+        <div class="fg">
+          <label>Metrics shown</label>
+          <div id="msMetrics"></div>
+        </div>
               <div class="fp-note" id="fpNote" style="display:none"></div>
 </div>
       <div class="fp-actions">
@@ -638,7 +645,7 @@ document.addEventListener('click',e=>{
    otherwise cut an open dropdown off at the panel edge. */
 function syncPanelOverflow(){
   document.querySelectorAll('.fp').forEach(p=>{
-    p.classList.toggle('ms-open', !!p.querySelector('.ms-drop.open'));
+    p.classList.toggle('ms-open', !!p.querySelector('.ms-drop.open, .ctm-drop.open'));
   });
 }
 /* The City and Ground dropdowns carry a search box, so an input:checked
@@ -1307,6 +1314,7 @@ function resetFilters(){
   document.querySelectorAll('#msCity-drop input[type="checkbox"], #msGround-drop input[type="checkbox"]').forEach(c=>c.checked=false);
   document.querySelectorAll('#msCity-drop .ms-search input, #msGround-drop .ms-search input').forEach(i=>{ i.value=''; });
   msSearch('msCity',''); msSearch('msGround','');
+  CTMetrics.reset();
   applyFilters();
 }
 
@@ -1650,10 +1658,15 @@ function renderTags(){
   if(!aggregateMode&&topN()) tags.push([`Top ${topN()}`,'fTop']);
   if(f.search) tags.push([`Search: "${f.search}"`,'fSearch']);
 
+  // Hidden metrics get a tag but don't count towards the export gate: they
+  // change which columns show, not which rows (2026-11-17).
+  const rowFilters=tags.length;
+  if(CTMetrics.count()) tags.push([escHtml(CTMetrics.tag()),'metrics']);
+
   const bar=document.getElementById('tagBar');
   if(!tags.length){bar.innerHTML='';updateExportButton(0);return;}
   bar.innerHTML=tags.map(([txt,id])=>`<span class="tag">${txt}<span class="tag-x" onclick="clearTag('${id}')">&times;</span></span>`).join('');
-  updateExportButton(tags.length);
+  updateExportButton(rowFilters);
 }
 
 /* ── Export gating: at least 2 active filters required ── */
@@ -1662,6 +1675,7 @@ function updateExportButton(activeCount){
 }
 
 function clearTag(id){
+  if(id==='metrics'){ CTMetrics.showAll(); return; }
   if(id==='fMode'){ document.getElementById('fMode').value='players'; applyFilters(); return; }
   if(id.startsWith('ctry_')){
     const box=document.querySelector(`#msCountry-drop input[value="${id.slice(5)}"]`);
@@ -1701,7 +1715,7 @@ function clearTag(id){
    1974–78) — see the S/R tooltip.
    ─────────────────────────────────────────────────────────────────────── */
 
-const AGG_COLS=[
+const AGG_COLS_ALL=[
   {key:'label',    label:'Era',     align:'left'},
   {key:'bowlers',  label:'Bowlers'},
   {key:'tests',    label:'Tests'},
@@ -1764,6 +1778,7 @@ function thLabel(c){
 
 function renderAggregate(){
   const rows=aggRows||[];
+  const AGG_COLS=CTMetrics.cols(AGG_COLS_ALL);
   document.getElementById('tHead').innerHTML='<tr>'+AGG_COLS.map(c=>
     `<th style="${c.align==='left'?'':'text-align:right;'}cursor:default">${thLabel(c)}</th>`).join('')+'</tr>';
 
@@ -1806,6 +1821,7 @@ function renderTable(){
   if(aggregateMode){ renderAggregate(); return; }
   // MoM has no per-innings source, so it can't be sliced
   let cols=sliced ? TAB_COLS[currentTab].filter(c=>c.key!=='mom') : TAB_COLS[currentTab];
+  cols=CTMetrics.cols(cols);
   if(eraSplit()){
     cols=cols.slice();
     const at=cols.findIndex(c=>c.key==='country');
@@ -2070,17 +2086,53 @@ CTExport.init({ build: buildExportModel, minFilters: 2 });
   buildBazballSet();
   populateCountryDropdown();
   populateCityGround();
+  // Metrics shown (2026-11-17): the compare.html picker, for every table here.
+  CTMetrics.init({
+    mount: 'msMetrics', btnClass: 'ms-btn',
+    metrics: [
+      { g:'General', key:'years',    label:'Span' },
+      { g:'General', key:'tests',    label:'Tests' },
+      { g:'General', key:'bowlers',  label:'Bowlers (aggregate)' },
+      { g:'General', key:'inns',     label:'Innings (aggregate)' },
+      { g:'General', key:'_bowlType',label:'Bowling type' },
+      { g:'Bowling', key:'overs',    label:'Overs' },
+      { g:'Bowling', key:'maidens',  label:'Maidens' },
+      { g:'Bowling', key:'bowlRuns', label:'Runs conceded' },
+      { g:'Bowling', key:'wkts',     label:'Wickets' },
+      { g:'Bowling', key:'bowlAvg',  label:'Average' },
+      { g:'Bowling', key:'econ',     label:'Economy' },
+      { g:'Bowling', key:'bowlSR',   label:'Strike rate' },
+      { g:'Bowling', key:'avgSR',    label:'AvRate' },
+      { g:'Bowling', key:'bowlWPI',  label:'WPI' },
+      { g:'Bowling', key:'bowlWPM',  label:'WPM' },
+      { g:'Bowling', key:'bestBowl', label:'Best bowling' },
+      { g:'Hauls',   key:'fourWI',   label:'4WI' },
+      { g:'Hauls',   key:'twoX4WI',  label:'2X4WI' },
+      { g:'Hauls',   key:'fiveWkts', label:'5w' },
+      { g:'Hauls',   key:'twoX5WI',  label:'2X5w' },
+      { g:'Hauls',   key:'tenWI',    label:'10WI' },
+      { g:'Hauls',   key:'tenWkts',  label:'10w' },
+      { g:'Awards',  key:'mom',      label:'Man of the match' }
+    ],
+    // The aggregate table names a few of the same figures differently.
+    alias: { _span:'years', oversText:'overs', mdns:'maidens', runs:'bowlRuns', avg:'bowlAvg',
+             sr:'bowlSR', best:'bestBowl', five:'fiveWkts', ten:'tenWkts' },
+    onChange: () => { renderTags(); renderTable(); },
+    onToggle: syncPanelOverflow
+  });
   applyFilters();
   // Filters, tab and sort live in the address; a Share button sends it (2026-10-27).
+  // hm = hidden metrics (2026-11-17), the same key compare uses.
   CTUrlState.attach({
     root: document.getElementById('filterPanel'),
     apply: applyFilters,
     extra: {
-      get: () => ({ tb: currentTab, s: currentSort, d: currentDir }),
-      defaults: { tb: 'wickets', s: 'wkts', d: 'desc' },
+      get: () => ({ tb: currentTab, s: currentSort, d: currentDir, hm: CTMetrics.toParam() }),
+      defaults: { tb: 'wickets', s: 'wkts', d: 'desc', hm: '' },
       set: (q) => {
         if (q.tb) { const el = document.querySelector('.tab[data-tab="' + q.tb + '"]'); if (el) switchTab(q.tb, el); }
         if (q.s) { currentSort = q.s; currentDir = q.d === 'asc' ? 'asc' : 'desc'; }
+        if (q.hm != null) CTMetrics.fromParam(q.hm);
       }
     }
   });

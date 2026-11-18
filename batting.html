@@ -14,6 +14,7 @@
 <script src="/ct-appcheck.js"></script>
 <script src="/ct-data-loader.js"></script>
 <script src="/ct-urlstate.js"></script><!-- filters kept in the address + Share (2026-10-27) --><!-- Phase 3 §3: gated derived-data loader -->
+<script src="/ct-metrics.js"></script><!-- "Metrics shown" column picker (2026-11-17) -->
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Batting Records – The Grass Bank™</title>
 <!-- Link previews and search snippet (rename item 4 / (9), 2026-10-21) -->
@@ -175,8 +176,11 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-he
 .rec-table thead th:nth-child(2),.rec-table tbody td:nth-child(2){padding-left:12px}
 .rec-table thead th:last-child,.rec-table tbody td:last-child{padding-right:14px}
 .data-footnote{font-size:12px;line-height:1.5;color:var(--text3);margin:14px 2px 0}
-.tbl-wrap{overflow-x:auto}
-.rec-table{width:100%;border-collapse:collapse;font-size:13px}
+/* Compact tables (2026-11-17): a table is as wide as its columns, not the page,
+   so hiding metrics tightens it instead of spreading what is left. It scrolls
+   sideways only when it is wider than the page. */
+.tbl-wrap{overflow-x:auto;width:fit-content;max-width:100%}
+.rec-table{width:max-content;border-collapse:collapse;font-size:13px}
 .rec-table thead th{padding:9px 8px;text-align:left;font-family:var(--font-body);font-size:10px;text-transform:uppercase;letter-spacing:0.7px;color:var(--text2);font-weight:600;border-bottom:2px solid var(--border);cursor:pointer;white-space:nowrap;user-select:none;background:var(--bg);position:sticky;top:0}
 .rec-table thead th:hover{color:var(--text2)}
 .rec-table thead th.sorted-asc::after,.rec-table thead th.sorted-desc::after{color:var(--accent)}
@@ -229,7 +233,6 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-he
   .main{padding:12px 14px 40px}
   .stat-cards{grid-template-columns:repeat(2,1fr)}
   .fp-grid{grid-template-columns:1fr 1fr}
-  .rec-table{min-width:620px}
   .rec-table thead th{padding:7px 9px;font-size:8.5px}
   .rec-table tbody td{padding:7px 9px;font-size:12px}
   .tabs{width:100%;overflow-x:auto}
@@ -453,6 +456,10 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-he
         <div class="fp-group" data-dim="1">
           <label>Search player</label>
           <input class="fp-input" id="fSearch" placeholder="Name or country…" oninput="applyFilters()">
+        </div>
+        <div class="fp-group">
+          <label>Metrics shown</label>
+          <div id="msMetrics"></div>
         </div>
         <div class="fp-note" id="fpNote" style="display:none"></div>
         <div class="fp-group" style="display:flex;align-items:flex-end;gap:10px">
@@ -1734,7 +1741,7 @@ function render() {
   const foot = document.getElementById('tFoot');
   if (foot) foot.innerHTML = '';
   if (aggregateMode) { renderAggregate(); return; }
-  const cols = getCols();
+  const cols = CTMetrics.cols(getCols());
 
   // Header
   const thead = document.getElementById('tHead');
@@ -1922,7 +1929,7 @@ function thLabel(c){
 
 function renderAggregate() {
   const rows = aggRows || [];
-  const AGG_COLS = centuryMode ? CENT_COLS : AGG_COLS_ERA;
+  const AGG_COLS = CTMetrics.cols(centuryMode ? CENT_COLS : AGG_COLS_ERA);
   document.getElementById('tHead').innerHTML =
     '<tr>' + AGG_COLS.map(c => `<th class="${c.cls}">${thLabel(c)}</th>`).join('') + '</tr>';
 
@@ -2033,10 +2040,16 @@ function renderTags() {
     tags.push(`<span class="fp-tag" onclick="document.querySelector('#msOpp-drop input[value=\\'${o}\\']').checked=false;applyFilters()">vs ${o} ${x}</span>`);
   });
 
+  // Hidden metrics get a tag but don't count towards the export gate: they
+  // change which columns show, not which rows. data-noshare keeps the tag out
+  // of the Share message.
+  const rowFilters = tags.length;
+  if (CTMetrics.count()) tags.push(`<span class="fp-tag" data-noshare="1" onclick="CTMetrics.showAll()">${escHtml(CTMetrics.tag())} ${x}</span>`);
+
   const box = document.getElementById('tagBox');
   box.innerHTML = tags.join('');
   document.getElementById('filterCount').textContent = tags.length ? `(${tags.length} active)` : '';
-  updateExportButton(tags.length);
+  updateExportButton(rowFilters);
 }
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -2066,6 +2079,7 @@ function resetFilters() {
   document.querySelectorAll('#msGround-drop input[type="checkbox"]').forEach(c => c.checked = false);
   document.querySelectorAll('#msCity-drop .ms-search input, #msGround-drop .ms-search input').forEach(i => { i.value = ''; });
   msSearch('msCity', ''); msSearch('msGround', '');
+  CTMetrics.reset();
   applyFilters();
 }
 
@@ -2235,17 +2249,49 @@ CTExport.init({ build: buildExportModel, minFilters: 2 });
   applyInningsDerivedSR();
   populateCountries();
   populateCityGround();
+  // Metrics shown (2026-11-17): the compare.html picker, for every table here.
+  CTMetrics.init({
+    mount: 'msMetrics', btnClass: 'ms-btn',
+    metrics: [
+      { g:'General', key:'years',      label:'Years (From / To)' },
+      { g:'General', key:'tests',      label:'Tests' },
+      { g:'General', key:'players',    label:'Players (aggregate)' },
+      { g:'Batting', key:'inns',       label:'Innings' },
+      { g:'Batting', key:'no',         label:'Not outs' },
+      { g:'Batting', key:'runs',       label:'Runs' },
+      { g:'Batting', key:'balls',      label:'Balls faced' },
+      { g:'Batting', key:'hs',         label:'High score' },
+      { g:'Batting', key:'avg',        label:'Average' },
+      { g:'Batting', key:'sr',         label:'Strike rate' },
+      { g:'Batting', key:'avgSR',      label:'AvRate' },
+      { g:'Milestones', key:'fifties',  label:'50s' },
+      { g:'Milestones', key:'half',     label:'Half+' },
+      { g:'Milestones', key:'hundreds', label:'100s' },
+      { g:'Milestones', key:'cShare',   label:'100s Share' },
+      { g:'Milestones', key:'doubles',  label:'200s' },
+      { g:'Milestones', key:'triples',  label:'300s' },
+      { g:'Milestones', key:'twoX100',  label:'2X100S' },
+      { g:'Centuries view', key:'teamRuns',   label:'Team runs' },
+      { g:'Centuries view', key:'avgCentury', label:'Avg score' },
+      { g:'Centuries view', key:'teamTotal',  label:'Avg team total' },
+      { g:'Awards', key:'mom',         label:'Player of the match' }
+    ],
+    alias: { from:'years', to:'years' },
+    onChange: () => { renderTags(); render(); }
+  });
   applyFilters();
   // Filters, tab and sort live in the address; a Share button sends it (2026-10-27).
+  // hm = hidden metrics (2026-11-17), the same key compare uses.
   CTUrlState.attach({
     root: document.getElementById('filterPanel'),
     apply: applyFilters,
     extra: {
-      get: () => ({ tb: currentTab, s: sortKey, d: sortDir }),
-      defaults: { tb: 'runs', s: 'runs', d: 'desc' },
+      get: () => ({ tb: currentTab, s: sortKey, d: sortDir, hm: CTMetrics.toParam() }),
+      defaults: { tb: 'runs', s: 'runs', d: 'desc', hm: '' },
       set: (q) => {
         if (q.tb) switchTab(q.tb)
         if (q.s) { sortKey = q.s; sortDir = q.d === 'asc' ? 'asc' : 'desc'; }
+        if (q.hm != null) CTMetrics.fromParam(q.hm);
       }
     }
   });
