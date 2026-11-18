@@ -448,6 +448,25 @@
           ],
           "note": "Arithmetic, not prediction: nothing here is a forecast.",
           "cta": "See the race"
+        },
+        {
+          "key": "fixtures",
+          "title": "Fixtures",
+          "href": "/fixtures.html",
+          "gate": "fixtures",
+          "tier": "free",
+          "blurb": "Every men’s Test coming up: when, where, and which count for the World Test Championship.",
+          "questions": [
+            "When does your team play next?",
+            "Which Tests are on this month?"
+          ],
+          "inside": [
+            [
+              "Free",
+              "every scheduled Test by month, with ground, series and a WTC mark; pick a team to see only theirs; a Test in play links to State of play"
+            ]
+          ],
+          "cta": "See the fixtures"
         }
       ]
     },

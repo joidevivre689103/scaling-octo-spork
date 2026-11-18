@@ -24,6 +24,9 @@
     // free draw, and readers should reach it by scrolling the homepage to its
     // strip at the bottom, past the articles, not straight from the top nav.
     { href: '/wtc.html',        label: 'WTC Race', footerOnly: true },
+    // Fixtures (2026-11-18, IJ): free, footer only like WTC Race, so the top
+    // nav (and the homepage's A–Z titles) stay as they are.
+    { href: '/fixtures.html',   label: 'Fixtures', footerOnly: true },
     { href: '/countries.html',  label: 'Countries' },
     { href: '/batting.html',    label: 'Batting' },
     { href: '/bowling.html',    label: 'Bowling' },
