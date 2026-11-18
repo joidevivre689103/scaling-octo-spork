@@ -3704,7 +3704,7 @@ function liveScorecardHTML(r) {
     <p class="otd-match-sub">${[r.matchName, [r.ground, r.city].filter(Boolean).join(', '), when].filter(Boolean).map(otdEsc).join(' · ')}</p>
     <p class="otd-match-result">${otdEsc(r.result || ('In progress' + (r.asOf ? ': ' + r.asOf.charAt(0).toLowerCase() + r.asOf.slice(1) : '')))}</p>${r.toss
       ? `<p class="otd-match-toss">${otdEsc(r.toss.team)} won the toss and chose to ${r.toss.choice === 'bat' ? 'bat' : 'field'}</p>` : ''}
-    <p class="otd-note">The scorecard so far. The full scorecard follows when the Test is over.</p>`;
+    ${r.result ? '' : '<p class="otd-note">The scorecard so far. The full scorecard follows when the Test is over.</p>'}`;
   (r.innings || []).forEach((inn, i) => {
     const totalTxt = inn.wkts >= 10 ? `${inn.total} all out` : `${inn.total}/${inn.wkts}${inn.declared ? ' declared' : ''}`;
     const showBalls = (inn.bat || []).some(x => x.balls > 0);
