@@ -2526,7 +2526,14 @@ window.ctToolRow = function (links) {
       : (m.teams || []).filter(t => TOP.includes(String(t).toLowerCase().replace(/\s+(women|men)$/, ''))).length;
     const rank = m => {
       const live = m.state === 'live' ? 0 : m.state === 'result' ? 1 : 2;
-      if (m.tier === 'test') return m.state === 'upcoming' ? 4 : live;          // 0 live, 1 result, 4 upcoming
+      // A Test starting within 12 hours, or whose start has passed while the
+      // feed still says upcoming (NZ v India, Wellington, 18 Nov 2026), comes
+      // right after the live Tests and before results (IJ, 2026-11-18).
+      if (m.tier === 'test' && m.state === 'upcoming') {
+        const t = Date.parse(m.startsAt || '');
+        return Number.isFinite(t) && t - Date.now() < 12 * 3600e3 ? 0.5 : 4;
+      }
+      if (m.tier === 'test') return live;                                         // 0 live, 1 result
       if (m.tier === 'international') {
         if (m.state === 'upcoming') return 12;
         const top = topOf(m);
