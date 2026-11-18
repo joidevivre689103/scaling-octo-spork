@@ -1,0 +1,79 @@
+/*
+ * ct-table.css — one look for the stats tables (IJ, 2026-11-17).
+ *
+ * batting, bowling, keeping and captaincy take compare.html's table look —
+ * a white card, dark semi-bold figures and a green dot on the best figure —
+ * and all five get a crimson header row in the site's crimson (#8B0000, the
+ * homepage accent). Loaded after each page's own <style>, so these rules win
+ * at equal specificity; the pages' own column logic is unchanged.
+ *
+ * Classes the pages use for a leading figure:
+ *   batting   td.lead            best in the column        → green + dot
+ *   bowling   td.num.highlight   best in the column        → green + dot
+ *             td.num.key         the aggregate's key column → bold
+ *   keeping / captaincy
+ *             td.num.highlight   the open tab's own column → bold
+ */
+:root{
+  --ct-crimson:#8B0000;
+  --ct-crimson-deep:#6B0000;
+  --ct-head-text:#fdf6ec;
+  --ct-best:#1a9a60;
+}
+
+/* ── Header row: crimson, cream text ── */
+.rec-table thead th,
+.cmp-table thead th,
+.cmp-table thead th:first-child{
+  background:var(--ct-crimson);
+  color:var(--ct-head-text);
+  border-bottom:2px solid var(--ct-crimson-deep);
+  font-weight:700;
+  letter-spacing:0.8px;
+}
+.rec-table thead th:hover,
+.rec-table thead th:hover:not(.rank){color:#fff}
+.rec-table thead th.sorted-asc::after,.rec-table thead th.sorted-desc::after,
+.rec-table thead th.sort-asc::after,.rec-table thead th.sort-desc::after{color:#f0c87a}
+.cmp-table thead th.sec-head{
+  color:var(--ct-head-text);
+  border-left:2px solid var(--ct-crimson-deep);
+}
+
+/* ── Stats tables: compare's card and figures ── */
+.tbl-wrap{background:var(--surface,#fff);border:1px solid var(--border);border-radius:10px}
+.rec-table{background:var(--surface,#fff)}
+.rec-table tbody td{
+  border-bottom:1px solid var(--border);
+  color:var(--text,var(--text1));
+}
+.rec-table tbody tr:last-child td{border-bottom:none}
+.rec-table tbody tr:hover{background:rgba(0,0,0,0.025)}
+.rec-table tbody td.num,
+.rec-table tbody td.num-center{
+  font-family:'Outfit',sans-serif;
+  font-size:13.5px;
+  font-weight:600;
+  font-variant-numeric:tabular-nums;
+}
+.rec-table tbody td.rank,
+.rec-table tbody td:first-child.num{color:var(--text3);font-weight:500}
+.rec-table td.player-name,
+.rec-table td.name-cell{font-weight:700}
+
+/* Best figure in a column: green with a dot, as on compare. */
+.rec-table tbody td.lead,
+.rec-table tbody td.num.highlight{color:var(--ct-best);font-weight:700}
+.rec-table tbody td.lead::after,
+.rec-table tbody td.num.highlight::after{
+  content:'';display:inline-block;width:4px;height:4px;border-radius:50%;
+  background:var(--ct-best);margin-left:6px;vertical-align:middle;
+  box-shadow:0 0 5px rgba(26,154,96,0.4);
+}
+/* keeping / captaincy mark the open tab's column, not a best figure. */
+body.ct-tab-key .rec-table tbody td.num.highlight{color:var(--text);font-weight:700}
+body.ct-tab-key .rec-table tbody td.num.highlight::after{content:none}
+.rec-table tbody td.num.key{font-weight:700}
+
+/* Totals row keeps its grey band. */
+.rec-table tfoot td{color:var(--text,var(--text1))}
