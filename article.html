@@ -457,7 +457,20 @@ body{
   border:1px solid var(--border);
   border-radius:6px;
   padding:4px;
+  /* The frame fits the picture, not the column (IJ, 2026-11-17). */
+  width:fit-content;
+  max-width:100%;
 }
+/* A narrow picture (a table cut down to a few columns) sits on the left with
+   the text running beside it, as in print (IJ, 2026-11-17). layoutPictures()
+   decides which pictures are narrow enough; phones keep them stacked. */
+.article-body .img-scroll-wrap.img-float{
+  float:left;
+  margin:6px 32px 18px 0;
+}
+.article-body p.shot{margin-bottom:0}
+.article-body h2,.article-body h3,.article-body hr,.article-body blockquote{clear:both}
+.article-body::after{content:'';display:block;clear:both}
 
 /* Link to the analysis a picture shows, in the enlarged view (IJ, 2026-11-02). */
 .img-lightbox-link{
@@ -1633,6 +1646,8 @@ function renderArticle(container, article, related, archiveNote) {
 
     </main>`;
 
+  layoutPictures(container.querySelector('.article-body'));
+
   // Wire share button now that it's in the DOM
   document.getElementById('shareBtn').addEventListener('click', shareArticle);
 
@@ -1861,6 +1876,29 @@ function analysisLinkAbove(root, node) {
     if (links.length) return links[links.length - 1].getAttribute('href');
   }
   return '';
+}
+
+// Narrow pictures float left with the text beside them (IJ, 2026-11-17).
+// "Narrow" = at most 60% of the column, so the text beside it keeps a
+// readable measure. Not on phones, and not inside a list (the bullets would
+// wrap around it). Re-checked on resize and as each picture loads.
+const FLOAT_MAX_SHARE = 0.6, FLOAT_MIN_SCREEN = 760;
+function layoutPictures(body) {
+  if (!body) return;
+  const place = () => {
+    const col = body.clientWidth;
+    body.querySelectorAll('.img-scroll-wrap').forEach(wrap => {
+      const img = wrap.querySelector('img');
+      if (!img) return;
+      wrap.classList.remove('img-float');
+      if (window.innerWidth < FLOAT_MIN_SCREEN || wrap.closest('li') || !img.complete || !img.naturalWidth) return;
+      if (wrap.getBoundingClientRect().width <= col * FLOAT_MAX_SHARE) wrap.classList.add('img-float');
+    });
+  };
+  body.querySelectorAll('.img-scroll-wrap img').forEach(img => { if (!img.complete) img.addEventListener('load', place, { once: true }); });
+  place();
+  let t = null;
+  window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(place, 120); });
 }
 
 function renderArticleBody(article) {
