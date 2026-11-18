@@ -592,7 +592,12 @@ function compute4WI(){
 /* Classify bowling type */
 function getBowlClass(bt){
   if(!bt && bt!==0) return 'unknown';
-  const s = String(bt).toLowerCase();
+  const s = String(bt).toLowerCase().trim();
+  // The data now carries plain 'Pace' / 'Spin'. 'Spin' matched none of the
+  // older codes below, so the Spin filter returned nobody (fixed 2026-11-17,
+  // the same check models.html's classifyBowlType already has).
+  if(s==='spin') return 'spin';
+  if(s==='pace') return 'pace';
   if(s.includes('sla')||s.includes('ob')||s.includes('lb')||s.includes('lbg')||s.includes('leg')||s.includes('off')||s.includes('wrist')||s.includes('finger')||s.includes('slow')||s.includes('chin')) return 'spin';
   if(s.includes('rf')||s.includes('rmf')||s.includes('rm')||s.includes('lf')||s.includes('lmf')||s.includes('lm')||s.includes('fast')||s.includes('medium')||s.includes('pace')||s.includes('seam')) return 'pace';
   // Numeric codes: try common patterns
