@@ -186,7 +186,7 @@ body{
   color:var(--text); font:600 14px 'Inter',sans-serif; cursor:pointer;
 }
 .comments-toggle:hover{border-color:var(--accent); color:var(--accent)}
-.comments-toggle svg{width:17px; height:17px; fill:none; stroke:currentColor; stroke-width:2}
+.comments-toggle svg{width:17px; height:17px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round}
 .article-layout-sidebar{
   display:none;
   width:100%;
@@ -858,6 +858,8 @@ body{
 .comments-section{
   padding:28px 24px 40px;
 }
+.comments-header-icon{display:inline-flex;vertical-align:-3px;margin-right:8px;color:var(--accent)}
+.comments-header-icon svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .comments-header{
   font-family:'Playfair Display',Georgia,serif;
   font-size:20px;
@@ -1309,11 +1311,12 @@ body{
   </div>
   <div class="comments-toggle-wrap">
     <button class="comments-toggle" id="commentsToggle" type="button" aria-controls="commentsRoot" aria-expanded="false">
-      <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-      <span id="commentsToggleLabel">Show comments</span> <span id="commentsToggleCount"></span>
+      <!-- Comments are "the coffee shop debate" (IJ, 2026-11-17); cup icon. -->
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h12v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5z"/><path d="M16 11h1.5a2.5 2.5 0 0 1 0 5H16"/><path d="M8 3c-.8 1 .8 2 0 3M12 3c-.8 1 .8 2 0 3"/></svg>
+      <span id="commentsToggleLabel">Coffee shop debate</span> <span id="commentsToggleCount"></span>
     </button>
   </div>
-  <aside class="article-layout-sidebar" id="commentsRoot" aria-label="Reader comments"></aside>
+  <aside class="article-layout-sidebar" id="commentsRoot" aria-label="Coffee shop debate"></aside>
 </div>
 <script>
 /* Comments at the end of the article, closed until asked for (IJ,
@@ -1327,7 +1330,7 @@ body{
   function setOpen(on, scroll) {
     panel.classList.toggle('open', on);
     btn.setAttribute('aria-expanded', on ? 'true' : 'false');
-    lab.textContent = on ? 'Hide comments' : 'Show comments';
+    lab.textContent = on ? 'Hide the debate' : 'Coffee shop debate';
     if (on && scroll) panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
   window.CTComments = { open: () => setOpen(true, true), close: () => setOpen(false) };
@@ -2359,7 +2362,7 @@ function renderComments() {
 
   let html = '<div class="comments-section">';
   html += '<hr class="comments-divider">';
-  html += '<h3 class="comments-header">Reader Comments '
+  html += '<h3 class="comments-header"><span class="comments-header-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h12v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5z"/><path d="M16 11h1.5a2.5 2.5 0 0 1 0 5H16"/><path d="M8 3c-.8 1 .8 2 0 3M12 3c-.8 1 .8 2 0 3"/></svg></span>Coffee shop debate '
         + '<span class="comment-count-badge">(' + count
         + (isClosed ? ' — closed' : '') + ')</span></h3>';
   html += '<p class="comments-subtext">Share your thoughts — keep it civil, max '
