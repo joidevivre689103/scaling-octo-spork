@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!-- CT_7G_INJECT:START (auto-injected by deploy tool — do not edit by hand) -->
+<style id="ct-7g-hide">body{visibility:hidden}</style>
+<script>window.CT_PAGE_ID="fixtures";</script>
+<script src="/feature-flags.js"></script>
+<script>setTimeout(function(){if(!window.__ctFlagsLoaded){location.replace("/comingsoon.html");}},2500);</script>
+<script src="/auth-status.js"></script>
+<script src="/ct-tracker.js" async></script>
+<!-- CT_7G_INJECT:END -->
+<script src="/prelaunch-guard.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+<title>Fixtures — The Grass Bank™</title>
+<!-- Fixtures (2026-11-18, IJ). FREE page, linked from the footer: every
+     men's Test scheduled from now, from our own fixtures list
+     (scripts/fixtures/upcoming-tests.json in the backend repo, published to
+     Firestore liveScores/fixtures by scripts/publish_fixtures.py). A Test in
+     play links to the homepage's State of play.
+     NEW PAGE CHECKLIST: "fixtures" must be in the Free bucket of
+     settings/featureGates (Admin → Access Tiers) before this goes live, or
+     the gate sends everyone to comingsoon. -->
+<meta name="description" content="Every men's Test coming up: dates, grounds and series, and which count for the World Test Championship.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="The Grass Bank">
+<meta property="og:title" content="Fixtures — The Grass Bank">
+<meta property="og:description" content="Every men's Test coming up: dates, grounds and series.">
+<meta property="og:url" content="https://thegrassbank.com/fixtures.html">
+<meta property="og:image" content="https://thegrassbank.com/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Fixtures — The Grass Bank">
+<meta name="twitter:description" content="Every men's Test coming up: dates, grounds and series.">
+<meta name="twitter:image" content="https://thegrassbank.com/og-image.png">
+<link rel="canonical" href="https://thegrassbank.com/fixtures.html">
+<link rel="stylesheet" href="/fonts/fonts-opsz.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#faf9f7;--surface:#ffffff;--surface2:#f5f4f2;--surface3:#eceae6;
+  --border:#d8d4cc;--border2:#c8c4bc;
+  --text:#1a1a18;--text2:#4a4a46;--text3:#7a7a74;
+  --accent:#a03020;--accent-hover:#801810;--accent-dim:rgba(160,48,32,0.08);
+  --green:#1a6848;--green-dim:rgba(26,104,72,0.10);
+  --gold:#8a6a1a;--gold-dim:rgba(138,106,26,0.10);
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-height:100vh;overflow-x:hidden}
+.main{max-width:1000px;margin:0 auto;padding:28px 32px 64px}
+.page-title{font-family:'DM Serif Display',serif;font-size:34px;letter-spacing:-0.4px;margin-bottom:8px}
+.page-desc{font-size:16px;line-height:1.55;color:var(--text2);max-width:660px}
+.fx-filter{display:flex;gap:10px;align-items:center;margin:22px 0 6px;font-family:'Inter',sans-serif;font-size:13px;color:var(--text2)}
+.fx-filter select{font:inherit;padding:7px 10px;border:1px solid var(--border);border-radius:7px;background:var(--surface);color:var(--text)}
+.fx-month{font-family:'DM Serif Display',serif;font-size:24px;margin:30px 0 10px;padding-top:10px;border-top:2px solid var(--text)}
+.fx-list{list-style:none}
+.fx-row{display:grid;grid-template-columns:118px 1fr auto;gap:16px;align-items:baseline;padding:13px 0;border-top:1px solid var(--surface3)}
+.fx-row:first-child{border-top:none}
+.fx-date{font-family:'Inter',sans-serif;font-size:13px;font-weight:600;color:var(--text2)}
+.fx-teams{font-family:'DM Serif Display',serif;font-size:20px;line-height:1.2}
+.fx-sub{font-size:14px;color:var(--text3);margin-top:3px}
+.fx-tags{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.fx-tag{font-family:'Inter',sans-serif;font-size:11px;font-weight:700;letter-spacing:.3px;padding:3px 9px;border-radius:12px;white-space:nowrap}
+.fx-wtc{background:var(--green-dim);color:var(--green)}
+.fx-tbc{background:var(--surface2);color:var(--text3)}
+.fx-live{background:var(--accent);color:#fff;text-decoration:none}
+.fx-note{font-family:'Inter',sans-serif;font-size:12.5px;color:var(--text3);margin-top:26px;line-height:1.5}
+.fx-empty{font-size:15px;color:var(--text2);margin-top:24px}
+@media(max-width:600px){
+  .main{padding:20px 16px 48px}
+  .page-title{font-size:28px}
+  .fx-row{grid-template-columns:1fr;gap:4px}
+  .fx-tags{justify-content:flex-start}
+}
+</style>
+<!-- Home-screen app and icons (IJ, 2026-11-02): "Add to Home Screen" opens the site full-screen as "Grass Bank". -->
+<link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<script src="/ct-refresh.js" defer></script>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Grass Bank">
+<meta name="theme-color" content="#fbf8f1">
+</head>
+<body>
+<header data-ct-nav="masthead"></header>
+<nav data-ct-nav="primary"></nav>
+<main class="main">
+  <h1 class="page-title">Fixtures</h1>
+  <p class="page-desc">Every men’s Test coming up: when, where, and which count for the World Test Championship.</p>
+  <div class="fx-filter"><label for="fxTeam">Team</label>
+    <select id="fxTeam"><option value="">All teams</option></select></div>
+  <div id="fxList"><p class="fx-empty">Loading fixtures…</p></div>
+  <p class="fx-note" id="fxNote" hidden></p>
+  <noscript><p class="page-desc">The fixtures need JavaScript.</p></noscript>
+</main>
+<footer data-ct-nav="footer"></footer>
+<script src="/ct-nav.js"></script>
+<script>
+(function () {
+  // liveScores/fixtures: our own list (published by the backend's
+  // scripts/publish_fixtures.py). Dates are each Test's local first day.
+  // Built with textContent only.
+  const $ = id => document.getElementById(id);
+  const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August',
+    'September', 'October', 'November', 'December'];
+  const el = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
+  const dayOf = s => new Date(s + 'T12:00:00Z');
+  const fmtDay = s => dayOf(s).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' });
+  const monthKey = t => (t.start || t.month || '').slice(0, 7);
+  const monthName = k => MONTHS[+k.slice(5, 7) - 1] + ' ' + k.slice(0, 4);
+  const today = new Date().toISOString().slice(0, 10);
+  let TESTS = [], LIVE = [];
+
+  // A Test that has started and isn't over: from State of play, so the page
+  // never guesses. Matched by its two teams and a first day within two days.
+  function liveFor(t) {
+    const k = [t.host, t.visitor].map(x => String(x).toLowerCase()).sort().join('|');
+    return LIVE.find(m => m.tier === 'test' && m.state === 'live'
+      && (m.teams || []).map(x => String(x).toLowerCase()).sort().join('|') === k
+      && Math.abs(Date.parse(String(m.startsAt).slice(0, 10)) - Date.parse(t.start)) <= 2 * 864e5);
+  }
+
+  function render() {
+    const team = $('fxTeam').value;
+    const box = $('fxList');
+    box.textContent = '';
+    // Upcoming Tests, plus any still in play (State of play says so).
+    const rows = TESTS.filter(t => !t.cancelled && !/cancel/i.test(t.status || '')
+      && (!team || t.host === team || t.visitor === team)
+      && ((t.start ? t.start >= today : monthKey(t) >= today.slice(0, 7)) || (t.start && liveFor(t))));
+    if (!rows.length) { box.appendChild(el('p', 'fx-empty', team ? 'No Tests coming up for ' + team + ' on the list yet.' : 'No Tests on the list yet.')); return; }
+    let month = null, ul = null;
+    rows.forEach(t => {
+      const mk = monthKey(t);
+      if (mk !== month) {
+        month = mk;
+        box.appendChild(el('h2', 'fx-month', monthName(mk)));
+        ul = el('ul', 'fx-list');
+        box.appendChild(ul);
+      }
+      const li = el('li', 'fx-row');
+      li.appendChild(el('div', 'fx-date', t.start ? fmtDay(t.start) : 'Date to come'));
+      const mid = el('div');
+      mid.appendChild(el('div', 'fx-teams', t.host + ' v ' + t.visitor));
+      mid.appendChild(el('div', 'fx-sub', [t.match, t.venue, t.series].filter(Boolean).join(' · ')));
+      li.appendChild(mid);
+      const tags = el('div', 'fx-tags');
+      const live = t.start && liveFor(t);
+      if (live) { const a = el('a', 'fx-tag fx-live', 'In play →'); a.href = '/#sop-title'; tags.appendChild(a); }
+      if (t.wtc) tags.appendChild(el('span', 'fx-tag fx-wtc', 'WTC'));
+      if (/tentative/i.test(t.status || '') || !t.start) tags.appendChild(el('span', 'fx-tag fx-tbc', 'To be confirmed'));
+      li.appendChild(tags);
+      ul.appendChild(li);
+    });
+  }
+
+  (async function init() {
+    try {
+      const app = await window.CTFeatureFlags.firebaseReady;
+      const fs = await import('https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js');
+      const db = fs.getFirestore(app);
+      const [fx, cur] = await Promise.all([
+        fs.getDoc(fs.doc(db, 'liveScores', 'fixtures')),
+        fs.getDoc(fs.doc(db, 'liveScores', 'current')).catch(() => null)]);
+      if (!fx.exists()) throw new Error('no fixtures yet');
+      const d = fx.data();
+      TESTS = d.tests || [];
+      LIVE = (cur && cur.exists() && (cur.data().matches || [])) || [];
+      const teams = [...new Set(TESTS.flatMap(t => [t.host, t.visitor]))].sort();
+      teams.forEach(x => { const o = el('option', '', x); o.value = x; $('fxTeam').appendChild(o); });
+      $('fxTeam').addEventListener('change', render);
+      if (d.checked) {
+        $('fxNote').textContent = 'Dates are each Test’s first day, local time at the ground. Schedules change; this list was last checked ' +
+          new Date(d.checked + 'T12:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }) + '.';
+        $('fxNote').hidden = false;
+      }
+      render();
+    } catch (e) {
+      $('fxList').textContent = '';
+      $('fxList').appendChild(el('p', 'fx-empty', 'The fixtures could not be loaded. Please try again in a moment.'));
+    }
+  })();
+})();
+</script>
+</body>
+</html>
