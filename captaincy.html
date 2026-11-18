@@ -14,6 +14,7 @@
 <script src="/ct-appcheck.js"></script>
 <script src="/ct-data-loader.js"></script>
 <script src="/ct-urlstate.js"></script><!-- filters kept in the address + Share (2026-10-27) --><!-- Phase 3 §3: gated derived-data loader -->
+<script src="/ct-metrics.js"></script><!-- "Metrics shown" column picker (2026-11-17) -->
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Captaincy Records – The Grass Bank™</title>
 <!-- Link previews and search snippet (rename item 4 / (9), 2026-10-21) -->
@@ -117,8 +118,11 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-he
 .tab.on{color:var(--accent);border-bottom-color:var(--accent)}
 
 /* ── Table ── */
-.tbl-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:var(--radius);margin-bottom:12px}
-.rec-table{width:100%;border-collapse:collapse;font-size:13px;background:var(--surface)}
+/* Compact tables (2026-11-17): a table is as wide as its columns, not the page,
+   so hiding metrics tightens it instead of spreading what is left. It scrolls
+   sideways only when it is wider than the page. */
+.tbl-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:var(--radius);margin-bottom:12px;width:fit-content;max-width:100%}
+.rec-table{width:max-content;border-collapse:collapse;font-size:13px;background:var(--surface)}
 .rec-table thead th{font-family:var(--font-body);font-size:10px;text-transform:uppercase;letter-spacing:0.7px;color:var(--text3);font-weight:600;padding:8px 10px;text-align:left;border-bottom:2px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none;background:var(--surface2)}
 .rec-table thead th.left{text-align:left}
 .rec-table thead th.rank{width:24px;cursor:default;text-align:center;padding:8px 6px}
@@ -259,6 +263,10 @@ td.result-cell{text-align:left;font-size:12px}
             <option value="65">65%+</option>
             <option value="70">70%+</option>
           </select>
+        </div>
+        <div class="fp-group">
+          <label>Metrics shown</label>
+          <div id="msMetrics"></div>
         </div>
         <div class="fp-group" style="grid-column:span 2">
           <label>Search player</label>
@@ -482,6 +490,7 @@ function resetFilters() {
   ['fCountry','fEra'].forEach(id => document.getElementById(id).value = '');
   ['fMinTests','fMinWinPct'].forEach(id => document.getElementById(id).value = '0');
   document.getElementById('fSearch').value = '';
+  CTMetrics.reset();
   applyFilters();
 }
 
@@ -620,7 +629,7 @@ function updateCards() {
 
 /* ── Render ── */
 function render() {
-  const cols = TAB_COLS[currentTab];
+  const cols = CTMetrics.cols(TAB_COLS[currentTab]);
   // Header
   document.getElementById('tHead').innerHTML = '<tr>' + cols.map(c => {
     if (c.key === '_rank') return `<th class="${c.cls}">${c.label}</th>`;
@@ -706,9 +715,14 @@ function renderTags() {
   if (f.minTests)  tags.push(`<span class="fp-tag" onclick="document.getElementById('fMinTests').value='0';applyFilters()">Tests ≥${f.minTests} ${x}</span>`);
   if (f.minWinPct) tags.push(`<span class="fp-tag" onclick="document.getElementById('fMinWinPct').value='0';applyFilters()">Win% ≥${f.minWinPct}% ${x}</span>`);
   if (f.search)    tags.push(`<span class="fp-tag" onclick="document.getElementById('fSearch').value='';applyFilters()">"${f.search}" ${x}</span>`);
+  // Hidden metrics get a tag but don't count towards the export gate: they
+  // change which columns show, not which rows. data-noshare keeps the tag out
+  // of the Share message (2026-11-17).
+  const rowFilters = tags.length;
+  if (CTMetrics.count()) tags.push(`<span class="fp-tag" data-noshare="1" onclick="CTMetrics.showAll()">${CTMetrics.tag()} ${x}</span>`);
   document.getElementById('tagBox').innerHTML = tags.join('');
   document.getElementById('filterCount').textContent = tags.length ? `(${tags.length} active)` : '';
-  updateExportButton(tags.length);
+  updateExportButton(rowFilters);
 }
 
 /* ── Export gating: at least 2 active filters required ── */
@@ -818,17 +832,40 @@ CTExport.init({ build: buildExportModel, minFilters: 2 });
   }
   buildCaptains();
   populateCountries();
+  // Metrics shown (2026-11-17): the compare.html picker, for every table here.
+  CTMetrics.init({
+    mount: 'msMetrics', btnClass: 'fp-select', arrow: true, lift: '.fp',
+    metrics: [
+      { g:'General', key:'years',     label:'Years (From / To)' },
+      { g:'General', key:'captTests', label:'Tests as captain' },
+      { g:'Results', key:'wins',      label:'Won' },
+      { g:'Results', key:'losses',    label:'Lost' },
+      { g:'Results', key:'draws',     label:'Drawn' },
+      { g:'Results', key:'winPct',    label:'Win %' },
+      { g:'Results', key:'_wld',      label:'W/L/D badges' },
+      { g:'Results', key:'_winbar',   label:'Win-rate bar' },
+      { g:'Batting', key:'runs',      label:'Runs' },
+      { g:'Batting', key:'inns',      label:'Innings' },
+      { g:'Batting', key:'avg',       label:'Average' },
+      { g:'Batting', key:'hundreds',  label:'100s' },
+      { g:'Batting', key:'fifties',   label:'50s' },
+      { g:'Awards',  key:'mom',       label:'Man of the match' }
+    ],
+    alias: { from:'years', to:'years' },
+    onChange: () => { renderTags(); render(); }
+  });
   applyFilters();
   // Filters, tab and sort live in the address; a Share button sends it (2026-10-27).
   CTUrlState.attach({
     root: document.getElementById('filterPanel'),
     apply: applyFilters,
     extra: {
-      get: () => ({ tb: currentTab, s: sortKey, d: sortDir }),
-      defaults: { tb: 'tests', s: 'captTests', d: 'desc' },
+      get: () => ({ tb: currentTab, s: sortKey, d: sortDir, hm: CTMetrics.toParam() }),
+      defaults: { tb: 'tests', s: 'captTests', d: 'desc', hm: '' },
       set: (q) => {
         if (q.tb) switchTab(q.tb);
         if (q.s) { sortKey = q.s; sortDir = q.d === 'asc' ? 'asc' : 'desc'; }
+        if (q.hm != null) CTMetrics.fromParam(q.hm);
       }
     }
   });

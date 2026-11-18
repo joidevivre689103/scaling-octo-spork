@@ -183,7 +183,8 @@
     var parts = [];
     var tab = document.querySelector('.tab.on');
     if (tab) parts.push(tab.textContent.trim());
-    document.querySelectorAll('.fp-tag').forEach(function (t) {
+    // data-noshare: chips that change the columns, not the rows (Metrics shown).
+    document.querySelectorAll('.fp-tag:not([data-noshare])').forEach(function (t) {
       var v = t.textContent.replace(/[×✕✖]\s*$/, '').trim();
       if (v) parts.push(v);
     });
