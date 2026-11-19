@@ -467,6 +467,29 @@
             ]
           ],
           "cta": "See the fixtures"
+        },
+        {
+          "key": "scores",
+          "title": "Scores",
+          "href": "/scores.html",
+          "gate": "scores",
+          "tier": "free",
+          "blurb": "Every match we follow, live and just finished: Tests first, then internationals, women’s cricket, leagues and domestic.",
+          "questions": [
+            "What’s the score?",
+            "Who else is playing today?"
+          ],
+          "inside": [
+            [
+              "Free",
+              "live scores, results and today’s starts for every match, grouped by Tests, internationals, women, leagues and domestic"
+            ],
+            [
+              "For subscribers",
+              "each Test’s scorecard so far, and its full scorecard once it ends"
+            ]
+          ],
+          "cta": "See the scores"
         }
       ]
     },

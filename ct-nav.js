@@ -27,6 +27,9 @@
     // Fixtures (2026-11-18, IJ): free, footer only like WTC Race, so the top
     // nav (and the homepage's A–Z titles) stay as they are.
     { href: '/fixtures.html',   label: 'Fixtures', footerOnly: true },
+    // Scores (2026-11-19, IJ): every match in the live feed. Footer only, and
+    // "All scores →" under State of play on the homepage.
+    { href: '/scores.html',     label: 'Scores', footerOnly: true },
     { href: '/countries.html',  label: 'Countries' },
     { href: '/batting.html',    label: 'Batting' },
     { href: '/bowling.html',    label: 'Bowling' },
