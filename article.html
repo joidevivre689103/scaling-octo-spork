@@ -2131,7 +2131,12 @@ function getInitials(name) {
 
 function formatDate(dateStr) {
   if (!dateStr) return '';
-  const d = new Date(dateStr);
+  // A bare "YYYY-MM-DD" is read by browsers as midnight in London (UTC), so
+  // anyone in the Americas saw the day before (an article saved on the 19th
+  // showed Wednesday the 18th in Redmond). Read it as a local calendar day
+  // instead (2026-11-19). Anything with a time in it is left as it was.
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(dateStr).trim());
+  const d = m ? new Date(+m[1], +m[2] - 1, +m[3]) : new Date(dateStr);
   return d.toLocaleDateString('en-US',
     { weekday:'long', month:'long', day:'numeric', year:'numeric' });
 }
