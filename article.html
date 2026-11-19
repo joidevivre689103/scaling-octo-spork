@@ -632,6 +632,11 @@ body{
 }
 
 /* ─── SHARE BUTTON ─── */
+.draft-preview-band{
+  margin:0 0 18px;padding:10px 14px;border-radius:8px;
+  background:#FFF6DC;border:1px solid #E6CF8A;color:#5A4A16;
+  font-family:'Inter',sans-serif;font-size:13.5px;line-height:1.5;
+}
 .share-btn{
   display:inline-flex;
   align-items:center;
@@ -1400,6 +1405,24 @@ window._articleLoadComplete = (async function() {
   const params    = new URLSearchParams(window.location.search);
   const articleId = params.get('id');
 
+  // ── Draft previews (IJ, 2026-11-18) ──────────────────────────────────────
+  // ?draft=1&id=N  — an admin sees any article, draft or not, laid out as
+  //                  readers will see it. Firestore rules already let admins
+  //                  read every article; nobody else gets past them.
+  // ?share=<token> — a read-only copy the CMS made for a collaborator. It
+  //                  lives in draftPreviews/{token}, a collection that can be
+  //                  opened one document at a time by its 32-character token
+  //                  but never listed, and only until its expiresAt (24 hours,
+  //                  or sooner if IJ presses Stop sharing in the CMS).
+  // Both modes show a "Draft preview" band and leave out comments, the Share
+  // button and More from The Grass Bank™.
+  const shareToken = params.get('share');
+  const isShare = /^[0-9a-f]{32}$/.test(shareToken || '');
+  if (isShare || params.get('draft') === '1') {
+    await loadDraftPreview(container, isShare ? shareToken : null, articleId);
+    return;
+  }
+
   if (!articleId) { showNotFound(container); return; }
 
   // Show a loading skeleton while Firestore fetches
@@ -1970,6 +1993,80 @@ function renderArticleBody(article) {
        below for more context on this developing story.</p>`;
 }
 
+// ── Draft preview helpers (IJ, 2026-11-18) — see the comment in the loader ──
+async function loadDraftPreview(container, shareToken, articleId) {
+  window._articlePreview = true;            // comments module skips itself
+  window._shareInfo = { id: null, headline: '' };
+  ['commentsRoot', 'commentsToggle', 'navShareLink'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+  // Keep previews out of search engines, whoever opens them.
+  const robots = document.createElement('meta');
+  robots.name = 'robots'; robots.content = 'noindex, nofollow';
+  document.head.appendChild(robots);
+
+  let article = null, expiresAt = null;
+  try {
+    if (shareToken) {
+      // An expired or stopped link fails the rule (permission-denied) or is
+      // gone; both land in "not available" below.
+      const snap = await getDoc(doc(db, 'draftPreviews', shareToken));
+      if (snap.exists()) {
+        const d = snap.data();
+        article = d.article || null;
+        expiresAt = d.expiresAt && d.expiresAt.toDate ? d.expiresAt.toDate() : null;
+      }
+    } else if (articleId) {
+      const user = await new Promise(resolve => {
+        const stop = onAuthStateChanged(getAuth(app), u => { stop(); resolve(u); });
+      });
+      if (user) {
+        const snap = await getDocs(query(
+          collection(db, 'articles'),
+          where('id', '==', parseInt(articleId, 10)),
+          limit(1)
+        ));
+        if (!snap.empty) article = { firestoreId: snap.docs[0].id, ...snap.docs[0].data() };
+      }
+    }
+  } catch (e) {
+    console.warn('Draft preview unavailable:', (e && e.message) || e);
+    article = null;
+  }
+
+  if (!article) { showPreviewUnavailable(container, !!shareToken); return; }
+
+  document.title = `Draft preview: ${article.headline || 'Untitled'} — The Grass Bank™`;
+  renderArticle(container, article, [], false);
+  const sb = document.getElementById('shareBtn');
+  if (sb) sb.style.display = 'none';
+
+  const band = document.createElement('div');
+  band.className = 'draft-preview-band';
+  if (shareToken) {
+    const until = expiresAt
+      ? expiresAt.toLocaleString(undefined, { weekday: 'short', hour: 'numeric', minute: '2-digit' })
+      : '';
+    band.innerHTML = `<strong>Draft preview</strong> · Not yet published. Shared with you to read, so please don't pass the link on.${until ? ` It stops working ${esc(until)}.` : ''}`;
+  } else {
+    band.innerHTML = `<strong>Draft preview</strong> · Only admins can see this. Readers can't until it's published.`;
+  }
+  const main = container.querySelector('.article-page');
+  (main || container).prepend(band);
+}
+
+function showPreviewUnavailable(container, isShare) {
+  container.innerHTML = `
+    <div class="article-not-found">
+      <h2>${isShare ? 'This preview has ended' : 'Preview not available'}</h2>
+      <p>${isShare
+        ? 'Shared previews work for 24 hours, or until the author stops sharing. Ask for a fresh link if you still need it.'
+        : 'Sign in with an admin account to preview drafts, or check the article number.'}</p>
+      <a href="stories.html">← Back to The Grass Bank™</a>
+    </div>`;
+}
+
 function showNotFound(container) {
   container.innerHTML = `
     <div class="article-not-found">
@@ -2272,7 +2369,7 @@ async function loadComments() {
   if (window._articleLoadComplete) {
     try { await window._articleLoadComplete; } catch (_) { /* article load errors handled there */ }
   }
-  if (window._articleWithdrawn) return;
+  if (window._articleWithdrawn || window._articlePreview) return;
   try {
     const q = query(
       collection(db, COMMENTS_COLLECTION),
@@ -2355,7 +2452,8 @@ async function resolveCommentNames() {
 function renderComments() {
   // Withdrawal short-circuit: even if comments were loaded before the
   // article-load IIFE flagged the article as withdrawn, never render them.
-  if (window._articleWithdrawn) return;
+  // Draft previews (2026-11-18) never show comments either.
+  if (window._articleWithdrawn || window._articlePreview) return;
 
   const count    = comments.length;
   const isClosed = count >= MAX_COMMENTS;

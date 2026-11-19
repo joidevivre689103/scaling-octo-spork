@@ -286,6 +286,21 @@
   // for everyone regardless of tier. Skip the async Firestore check
   // entirely so allowlisted pages keep their original instant render
   // and don't depend on Firestore reachability.
+  // [2026-11-18] A shared draft preview (article.html?share=<32 hex>) renders
+  // for its recipient with no account, nav hidden — the rest of the site
+  // stays behind this gate. What the page shows is decided by Firestore
+  // rules on draftPreviews/{token}, not here; see article.html.
+  let isSharedPreview = false;
+  try {
+    isSharedPreview = file === 'article.html' &&
+      /^[0-9a-f]{32}$/.test(new URLSearchParams(window.location.search).get('share') || '');
+  } catch (e) { /* no URLSearchParams → not a preview */ }
+  if (isSharedPreview) {
+    injectNavHide();
+    rewriteMastheadLink();
+    return;
+  }
+
   if (isAllowedFile || isAllowedSubpath) {
     if (HIDE_NAV_ON.indexOf(file) !== -1 || (isAllowedSubpath && isHideNavSubpath)) {
       injectNavHide();
