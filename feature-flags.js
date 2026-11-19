@@ -386,6 +386,17 @@
     }
     // ── end edition carve-out ─────────────────────────────────────────────
 
+    // ── SHARED DRAFT PREVIEW [2026-11-18] ─────────────────────────────────
+    // article.html?share=<32 hex> is a draft IJ shared with a collaborator
+    // from the CMS. The visitor needs no account. The page itself only shows
+    // anything if the token opens a live draftPreviews/{token} document, which
+    // Firestore rules allow for 24 hours at most, so letting the page render
+    // here gives away nothing.
+    if (pageId === 'article' &&
+        /^[0-9a-f]{32}$/.test(new URLSearchParams(location.search).get('share') || '')) {
+      return reveal();
+    }
+
 
     // Captured out here so the timeout tiebreaker (and denyTarget on the
     // success path) can read them even if a later step is what stalled.
