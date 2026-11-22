@@ -3712,9 +3712,14 @@ function liveScorecardHTML(r) {
     <p class="otd-match-sub">${[r.matchName, [r.ground, r.city].filter(Boolean).join(', '), when].filter(Boolean).map(otdEsc).join(' · ')}</p>
     <p class="otd-match-result">${otdEsc(r.result || ('In progress' + (r.asOf ? ': ' + r.asOf.charAt(0).toLowerCase() + r.asOf.slice(1) : '')))}</p>${r.toss
       ? `<p class="otd-match-toss">${otdEsc(r.toss.team)} won the toss and chose to ${r.toss.choice === 'bat' ? 'bat' : 'field'}</p>` : ''}
-    ${r.result ? '' : '<p class="otd-note">The scorecard so far. The full scorecard follows when the Test is over.</p>'}`;
+    ${r.result ? '' : '<p class="otd-note">The scorecard so far. The full scorecard follows when the Test is over.</p>'}${r.behind
+      ? `<p class="otd-note">The detailed scorecard is behind the score${typeof r.behind === 'string' ? '. Score now: ' + otdEsc(r.behind) : ''}.</p>` : ''}`;
   (r.innings || []).forEach((inn, i) => {
     const totalTxt = inn.wkts >= 10 ? `${inn.total} all out` : `${inn.total}/${inn.wkts}${inn.declared ? ' declared' : ''}`;
+    // Detail behind this innings' score (2026-11-21): the title shows the score
+    // now; the table's total is the detail's own, labelled as such.
+    const bh = inn.behind;
+    const nowTxt = bh ? (bh.w >= 10 ? `${bh.r} all out` : `${bh.r}/${bh.w}`) : '';
     const showBalls = (inn.bat || []).some(x => x.balls > 0);
     // 4s and 6s when the card has them (CricketData's scorecards, 2026-11-18).
     const showBound = (inn.bat || []).some(x => x.fours != null || x.sixes != null);
@@ -3727,7 +3732,8 @@ function liveScorecardHTML(r) {
           ? `<td>${otdEsc(x.fours == null ? '' : x.fours)}</td><td>${otdEsc(x.sixes == null ? '' : x.sixes)}</td>` : ''}</tr>`;
     });
     if (inn.extras > 0) bt += `<tr class="otd-extras"><td class="left" colspan="2">Extras</td><td>${otdEsc(inn.extras)}</td>${extraCols ? `<td colspan="${extraCols}"></td>` : ''}</tr>`;
-    bt += `<tr class="otd-sum"><td class="left" colspan="2">Total${inn.overs ? ' (' + otdEsc(inn.overs) + ' overs)' : ''}</td><td class="otd-total" colspan="${1 + extraCols}">${otdEsc(totalTxt)}</td></tr>`;
+    bt += `<tr class="otd-sum"><td class="left" colspan="2">${bh ? 'Scorecard so far' : 'Total'}${inn.overs ? ' (' + otdEsc(inn.overs) + ' overs)' : ''}</td><td class="otd-total" colspan="${1 + extraCols}">${otdEsc(totalTxt)}</td></tr>`;
+    if (bh) bt += `<tr class="otd-sum"><td class="left" colspan="2">Score now${bh.o ? ' (' + otdEsc(bh.o) + ' overs)' : ''}</td><td class="otd-total" colspan="${1 + extraCols}">${otdEsc(nowTxt)}</td></tr>`;
     if ((inn.dnb || []).length) bt += `<tr><td class="left" colspan="${3 + extraCols}">${i === r.innings.length - 1 && !r.result && inn.wkts < 10 && !inn.declared ? 'Yet to bat' : 'Did not bat'}: ${(inn.dnb).map(otdEsc).join(', ')}</td></tr>`;
     bt += '</tbody></table></div>';
     let bw = `<div class="tbl-wrap"><table class="rec-table"><thead><tr>
@@ -3743,7 +3749,7 @@ function liveScorecardHTML(r) {
       `<div class="otd-fow-item"><b>${otdEsc(w.w)}-${otdEsc(w.score)}</b>` +
       `<span class="otd-fow-name">${otdEsc(w.name)}</span><span class="otd-fow-ov">${otdEsc(w.over)} ov</span></div>`).join('') + `</div>` : '';
     html += `<div class="otd-inn-title"><span>${otdEsc(inn.team)} · ${otdOrdinal(i + 1)} innings</span>
-      <span class="otd-inn-total">${otdEsc(totalTxt)}</span></div>
+      <span class="otd-inn-total">${otdEsc(bh ? nowTxt : totalTxt)}</span></div>
       <div class="otd-cards">${bt}<div class="otd-side">${bw}${fwt ? '<div class="otd-fow-lbl">Fall of wickets</div>' + fwt : ''}</div></div>`;
   });
   return html + '</div>';
