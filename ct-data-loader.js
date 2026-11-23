@@ -23,6 +23,13 @@
  * share is real when serveDerivedData sends X-CT-Raw-Length; without it the
  * bar eases forward on its own. Opt out with CTData.load(f, { progress: false }).
  *
+ * App Check retry (2026-11-23): if serveDerivedData or simulateMatch refuses a
+ * request with 403 'app-check', the loader waits for the App Check token and
+ * tries ONCE more. Found from two alerts for a reader on a slow connection:
+ * the first request of a session went out before the Turnstile token was ready
+ * and was refused, and the token arrived seconds later. With no token on the
+ * second try there is no second request, so a script is still refused.
+ *
  * Requires (already provided by feature-flags.js / prelaunch-guard.js on every
  * gated page): an initialised Firebase compat app + auth, AND a signed-in user
  * holding the `derivedData` entitlement (paid / beta / admin). On a public or
@@ -341,6 +348,11 @@
     });
   }
 
+  function appCheckRefusal() {
+    return CTDataError('forbidden', 'App Check could not verify this browser.',
+      { status: 403, reason: 'app-check' });
+  }
+
   function handle(file, resp, isRetry, track) {
     var s = resp.status;
 
@@ -371,6 +383,20 @@
     }
     if (s === 403) {
       return resp.json().catch(function () { return {}; }).then(function (body) {
+        // App Check refused this request (2026-11-23). In practice that means
+        // the token was not ready yet, on the first page load of a session on a
+        // slow connection, and the request went out with no header. The token
+        // usually arrives a few seconds later, so retry ONCE when we have one.
+        // If we still have no token, stop: a second unattested request would
+        // just be refused again.
+        if (body && body.reason === 'app-check' && !isRetry) {
+          return appCheckToken().then(function (ac) {
+            if (!ac) throw appCheckRefusal();
+            return getToken(false)
+              .then(function (t) { return doFetchWithTokens(file, t, null, ac); })
+              .then(function (r) { return handle(file, r, true, track); });
+          });
+        }
         throw CTDataError('forbidden',
           'Access to derived data was denied (your plan does not include it).',
           { status: 403, reason: (body && body.reason) || 'paywall' });
@@ -958,6 +984,17 @@
     }
     return attempt(false).then(function (resp) {
       return resp.status === 401 ? attempt(true) : resp;   // stale token -> refresh once
+    }).then(function (resp) {
+      // App Check refused (token not ready yet): retry ONCE if a token has
+      // arrived since. Same rule as handle() in load(). (2026-11-23)
+      if (resp.status !== 403) return resp;
+      return resp.clone().json().catch(function () { return {}; }).then(function (body) {
+        if (!body || body.reason !== 'app-check') return resp;
+        return appCheckToken().then(function (ac) {
+          if (!ac) return resp;
+          return getToken(false).then(function (t) { return postSimulate(payload, t, ac); });
+        });
+      });
     }).then(function (resp) {
       var s = resp.status;
       if (s === 200) {
