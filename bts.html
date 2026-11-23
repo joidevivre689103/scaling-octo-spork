@@ -916,9 +916,19 @@ function bylineFor(uid, legacy) {
 // [2026-10-16] Now a set: the Grass Bank™ rebrand added ivan@thegrassbank.com
 // (byline "IV") as the primary editorial account. The old cricketimes account
 // stays in the set so its existing "IJ" posts keep their accent.
+// [2026-11-23] This set is DISPLAY ONLY (accent, byline, Moderator badge).
+// Moderator powers come from CT_MODERATOR_UIDS below. ivan@cricketimes.com is
+// no longer a moderator; it stays here only so its past posts look the same.
 const CT_EDITOR_UIDS = new Set([
-  'A8OVKwU4s6ZutaWiEnk3IUKrDtz2',   // ivan@cricketimes.com  — "IJ"
+  'A8OVKwU4s6ZutaWiEnk3IUKrDtz2',   // ivan@cricketimes.com  — "IJ" (former, display only)
+  'zvzKPyiuPEhcvIrf7lAOVKh5Qlm2',   // joseph.ivan@outlook.com
   'u9PUjBqW0MVnEFQxccQmyfZTUCI2'    // ivan@thegrassbank.com — "IV"
+]);
+// The accounts with moderator powers. Must match btsModerators() in
+// firestore.rules and BTS_MODERATORS in functions/moderation.js.
+const CT_MODERATOR_UIDS = new Set([
+  'zvzKPyiuPEhcvIrf7lAOVKh5Qlm2',   // joseph.ivan@outlook.com
+  'u9PUjBqW0MVnEFQxccQmyfZTUCI2'    // ivan@thegrassbank.com
 ]);
 // [2026-11-05] Either editor account also shows 'Moderator' beside the
 // pseudonym, on posts, replies and conversations.
@@ -1538,7 +1548,7 @@ async function deleteReply(id) {
    count shows on the Conversations tab.
    ===================================================================== */
 const MSG_MAX = 2000;
-const MOD_UIDS = [...CT_EDITOR_UIDS];
+const MOD_UIDS = [...CT_MODERATOR_UIDS];
 let convos = [];               // [{ id, ...data }], newest first
 let convosUnsub = null;
 let threadUnsub = null;
@@ -1546,7 +1556,7 @@ let openCid = null;            // conversation on screen
 let pendingConvo = null;       // not written yet: created with its first message
 let readers = null;            // moderator's picker list, loaded once
 
-const isModerator = () => !!currentUser && CT_EDITOR_UIDS.has(currentUser.uid);
+const isModerator = () => !!currentUser && CT_MODERATOR_UIDS.has(currentUser.uid);
 const tsMs = t => (t && typeof t.toMillis === 'function') ? t.toMillis() : 0;
 
 function isUnread(c) {

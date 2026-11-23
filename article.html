@@ -2265,8 +2265,11 @@ const MAX_COMMENTS = 50;
 // IJ's two editor accounts (2026-11-05): their comments show 'Moderator'
 // beside the name. Must match CT_EDITOR_UIDS in bts.html and btsModerators()
 // in firestore.rules.
+// [2026-11-23] joseph.ivan@outlook.com added as a moderator. ivan@cricketimes.com
+// is no longer one; it stays only so its past comments keep the badge.
 const CT_EDITOR_UIDS = new Set([
-  'A8OVKwU4s6ZutaWiEnk3IUKrDtz2',   // ivan@cricketimes.com
+  'A8OVKwU4s6ZutaWiEnk3IUKrDtz2',   // ivan@cricketimes.com (former, display only)
+  'zvzKPyiuPEhcvIrf7lAOVKh5Qlm2',   // joseph.ivan@outlook.com
   'u9PUjBqW0MVnEFQxccQmyfZTUCI2'    // ivan@thegrassbank.com
 ]);
 // [2026-06-06, item f] ADMIN_EMAIL retired. Admin status now comes from the
