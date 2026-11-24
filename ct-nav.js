@@ -78,6 +78,7 @@
     { href: '/manage.html',                label: 'Manage Subscription', gated: 'paidAccess' },
     { href: '/servicearea.html',          label: 'Service Area' },
     { href: '/voices.html',                label: 'Voices' },
+    { href: '/advertise.html',             label: 'Advertise' },   // 2026-11-23, IJ: for advertisers
     { href: '/terms.html',                 label: 'Terms of Service' },
     { href: '/privacy.html',               label: 'Privacy Policy' }
   ];
