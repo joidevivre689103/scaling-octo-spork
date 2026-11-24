@@ -331,6 +331,7 @@ Instance.prototype.toggle = function (e) {
   closeAllExcept(this);
   const open = !this.menu.classList.contains('open');
   this.menu.classList.toggle('open', open);
+  if (open) loadXlsx().catch(function () { /* retried when a format is picked */ });
   this.btn.setAttribute('aria-expanded', open ? 'true' : 'false');
 };
 Instance.prototype.close = function () {
@@ -386,6 +387,30 @@ Instance.prototype.run = function (fmt) {
   if (fmt === 'pdf') return this.exportPdf();
 };
 
+/* ═══ SheetJS on demand (2026-11-24) ═══════════════════════════════════════
+   The library is ~900 KB. Pages used to load it with a blocking <script> tag,
+   which held up each page's own code on every visit, for a feature most
+   visits never use. It is now fetched the first time the Export menu opens
+   (so it is usually ready by the time a format is picked) or, failing that,
+   when a spreadsheet format is chosen. Pages that call XLSX directly
+   (compare.html, rankings.html) still load it themselves. */
+const XLSX_URL = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+let xlsxPromise = null;
+function loadXlsx() {
+  if (typeof XLSX !== 'undefined') return Promise.resolve();
+  if (xlsxPromise) return xlsxPromise;
+  xlsxPromise = new Promise(function (resolve, reject) {
+    const s = document.createElement('script');
+    s.src = XLSX_URL;
+    s.async = true;
+    s.onload = function () { typeof XLSX !== 'undefined' ? resolve() : reject(new Error('XLSX missing')); };
+    s.onerror = function () { reject(new Error('XLSX failed to load')); };
+    document.head.appendChild(s);
+  });
+  xlsxPromise.catch(function () { xlsxPromise = null; });   // let a later click retry
+  return xlsxPromise;
+}
+
 /* ═══ Spreadsheets — Excel (.xlsx) and LibreOffice Calc (.ods) ═══════════
    Both come out of the same SheetJS workbook; only the book type differs. The
    notice goes BELOW the data, two rows clear, so the header row stays at A1
@@ -393,7 +418,14 @@ Instance.prototype.run = function (fmt) {
 Instance.prototype.writeWorkbook = function (fmt) {
   const m = this.model();
   if (!m) return;
-  if (typeof XLSX === 'undefined') { alert('Spreadsheet library still loading \u2014 try again in a moment.'); return; }
+  // SheetJS is fetched on first use (2026-11-24), not on page load.
+  if (typeof XLSX === 'undefined') {
+    const self = this;
+    loadXlsx().then(function () { self.writeWorkbook(fmt); }, function () {
+      alert('The spreadsheet library could not be loaded. Please try again in a moment.');
+    });
+    return;
+  }
 
   const wb = XLSX.utils.book_new();
   wb.Props = {
