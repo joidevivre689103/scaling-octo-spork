@@ -1012,6 +1012,22 @@ body.articles-loading .analysis-section{ visibility:hidden; }
   flex-shrink:0;
 }
 </style>
+<script>
+// Firestore ready signal (2026-11-24). The loaders below used to poll for
+// window._fsDb for 2 s and then give up silently. The module script that sets
+// it has to fetch the Firebase SDK first, and on a phone with a cold cache that
+// often takes longer than 2 s, so State of play (and On this day, the WTC
+// strip, the quiz...) sometimes never appeared. They now wait on this promise,
+// which the module resolves the moment the database is ready, with a 15 s
+// backstop so a blocked SDK can't hold anything forever.
+(function () {
+  var resolve, ready = new Promise(function (r) { resolve = r; });
+  window.__fsResolve = resolve;
+  window._fsWait = function (ms) {
+    return Promise.race([ready, new Promise(function (r) { setTimeout(r, ms || 15000); })]);
+  };
+})();
+</script>
 <script type="module">
   import { initializeApp, getApp } from 'https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js';
   import { getFirestore, collection, getDocs, query, orderBy, where } from 'https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js';
@@ -1040,6 +1056,7 @@ body.articles-loading .analysis-section{ visibility:hidden; }
   window._fsOrderBy        = orderBy;
   window._fsWhere          = where;
   window._fsCollection     = collection;
+  if (window.__fsResolve) window.__fsResolve(db);   // wake the loaders waiting in _fsWait()
 </script>
 <!-- Home-screen app and icons (IJ, 2026-11-02): "Add to Home Screen" opens the site full-screen as "Grass Bank". -->
 <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
@@ -1687,8 +1704,7 @@ function renderListenStrip(v) {
 (async function loadArticles() {
   try {
     // Wait briefly for Firestore to be ready (initialised in module script above)
-    let attempts = 0;
-    while (!window._fsDb && attempts++ < 20) await new Promise(r => setTimeout(r, 100));
+    await window._fsWait();
     if (!window._fsDb) {
       showArticlesErrorState(() => location.reload());
       return;
@@ -2086,8 +2102,7 @@ async function refreshFeedRow() {
 
 (async function loadTicker() {
   try {
-    let attempts = 0;
-    while (!window._fsDb && attempts++ < 20) await new Promise(r => setTimeout(r, 100));
+    await window._fsWait();
     if (!window._fsDb) return;
     const { getDoc, doc } = await import('https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js');
     const snap = await getDoc(doc(window._fsDb, 'config', 'ticker'));
@@ -2107,8 +2122,7 @@ async function refreshFeedRow() {
 
 (async function loadHomeFeed() {
   try {
-    let attempts = 0;
-    while (!window._fsDb && attempts++ < 20) await new Promise(r => setTimeout(r, 100));
+    await window._fsWait();
     if (!window._fsDb) return;
     const { getDoc, doc } = await import('https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js');
     const snap = await getDoc(doc(window._fsDb, 'liveScores', 'home'));
@@ -2150,8 +2164,7 @@ async function refreshFeedRow() {
 
 (async function loadWtcStrip() {
   try {
-    let attempts = 0;
-    while (!window._fsDb && attempts++ < 20) await new Promise(r => setTimeout(r, 100));
+    await window._fsWait();
     if (!window._fsDb) return;
     const { getDoc, doc } = await import('https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js');
     const snap = await getDoc(doc(window._fsDb, 'liveScores', 'wtc'));
@@ -2352,8 +2365,7 @@ window.ctToolRow = function (links) {
 
 (async function loadOnThisDay() {
   try {
-    let attempts = 0;
-    while (!window._fsDb && attempts++ < 20) await new Promise(r => setTimeout(r, 100));
+    await window._fsWait();
     if (!window._fsDb) return;
     const { getDoc, doc } = await import('https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js');
     const snap = await getDoc(doc(window._fsDb, 'liveScores', 'onThisDay'));
@@ -2482,8 +2494,7 @@ window.ctToolRow = function (links) {
 
 (async function loadStateOfPlay() {
   try {
-    let attempts = 0;
-    while (!window._fsDb && attempts++ < 20) await new Promise(r => setTimeout(r, 100));
+    await window._fsWait();
     if (!window._fsDb) return;
     const { getDoc, doc } = await import('https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js');
     // ?scores=preview: an admin checks the admin-only preview document before
@@ -2972,8 +2983,7 @@ window.ctToolRow = function (links) {
 
 (async function loadSnippets() {
   try {
-    let attempts = 0;
-    while (!window._fsDb && attempts++ < 20) await new Promise(r => setTimeout(r, 100));
+    await window._fsWait();
     if (!window._fsDb) return;
     const { getDoc, doc } = await import('https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js');
     const snap = await getDoc(doc(window._fsDb, 'config', 'snippets'));
@@ -3003,8 +3013,7 @@ window.ctToolRow = function (links) {
 (async function loadVoices() {
   try {
     // Wait briefly for Firebase module to initialise
-    let attempts = 0;
-    while (!window._fsDb && attempts++ < 20) await new Promise(r => setTimeout(r, 100));
+    await window._fsWait();
     if (!window._fsDb) return;
 
     const { _fsDb: fsDb, _fsGetDocs: getDocs, _fsQuery: fsQuery,
@@ -3204,8 +3213,7 @@ function toggleArticleAudio(btn) {
 // ═══════════════════════════════════════════════════════════════════════════
 (async function loadQuiz() {
   try {
-    let attempts = 0;
-    while (!window._fsDb && attempts++ < 20) await new Promise(r => setTimeout(r, 100));
+    await window._fsWait();
     if (!window._fsDb) return;
     const { getDoc, doc } = await import('https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js');
     // 2026-10-27: IJ's own question from the CMS (config/quiz) when it is dated
