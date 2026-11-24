@@ -1520,6 +1520,17 @@ window._articleLoadComplete = (async function() {
     // ── Render ─────────────────────────────────────────────────────────────
     renderArticle(container, article, related, archiveNote);
 
+    // Ads (IJ, 2026-11-23; ads-spec.md): only while the article is still on
+    // the home page. Archived = no ads, whoever is reading. ct-ads.js also
+    // skips every reader with paid access.
+    try {
+      const W = window.CTArticleWindow;
+      const live = article.status === 'published' && article.withdrawn !== true && !!W &&
+        W.filterToLiveWindow([article], await W.getWindowDays(db)).length === 1;
+      window.CT_ARTICLE_LIVE = live;
+      if (window.CTAds) window.CTAds.articleLive(live);
+    } catch (e) { console.warn('[ads] live check failed:', e); }
+
   } catch(err) {
     console.error('Firestore error:', err);
     container.innerHTML = `
@@ -2793,5 +2804,6 @@ function removeVotedReaction(commentId, reaction) {
 <script src="/ct-newsletter.js" defer></script>
 
 <script src="ct-nav.js"></script>
+<script src="/ct-ads.js" data-ct-ad-page="article" defer></script>
 </body>
 </html>

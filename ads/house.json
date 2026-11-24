@@ -1,0 +1,185 @@
+{
+ "_readme": [
+  "House ads: our own pages, shown in the ad slots until a sponsor takes one (ads-spec.md §5a).",
+  "Read by /ct-ads.js only when Firestore ads/live does not exist. Same shape as ads/live.",
+  "A house ad is never shown on the page it links to. Sponsors (house: false) always come first."
+ ],
+ "creatives": [
+  {
+   "id": "house-yorker-banner",
+   "sponsor": "The Grass Bank",
+   "slot": "banner",
+   "house": true,
+   "image": "/ads/house-yorker-banner-970x90.webp",
+   "imageMid": "/ads/house-yorker-banner-728x90.webp",
+   "imageMobile": "/ads/house-yorker-banner-320x100.webp",
+   "alt": "The Yorker, our monthly quiz: fifteen questions on the month in Test cricket. Play free.",
+   "link": "/yorker.html",
+   "pages": [
+    "home",
+    "article",
+    "fixtures",
+    "scores",
+    "wtc",
+    "players",
+    "player",
+    "yorker"
+   ],
+   "start": "2026-11-23",
+   "end": null
+  },
+  {
+   "id": "house-yorker-square",
+   "sponsor": "The Grass Bank",
+   "slot": "square",
+   "house": true,
+   "image": "/ads/house-yorker-square-300x250.webp",
+   "alt": "The Yorker, our monthly quiz: fifteen questions on the month in Test cricket. Play free.",
+   "link": "/yorker.html",
+   "pages": [
+    "home",
+    "article",
+    "fixtures",
+    "scores",
+    "wtc",
+    "players",
+    "player",
+    "yorker"
+   ],
+   "start": "2026-11-23",
+   "end": null
+  },
+  {
+   "id": "house-fixtures-banner",
+   "sponsor": "The Grass Bank",
+   "slot": "banner",
+   "house": true,
+   "image": "/ads/house-fixtures-banner-970x90.webp",
+   "imageMid": "/ads/house-fixtures-banner-728x90.webp",
+   "imageMobile": "/ads/house-fixtures-banner-320x100.webp",
+   "alt": "Fixtures: every men’s Test coming up, in one place.",
+   "link": "/fixtures.html",
+   "pages": [
+    "home",
+    "article",
+    "fixtures",
+    "scores",
+    "wtc",
+    "players",
+    "player",
+    "yorker"
+   ],
+   "start": "2026-11-23",
+   "end": null
+  },
+  {
+   "id": "house-fixtures-square",
+   "sponsor": "The Grass Bank",
+   "slot": "square",
+   "house": true,
+   "image": "/ads/house-fixtures-square-300x250.webp",
+   "alt": "Fixtures: every men’s Test coming up, in one place.",
+   "link": "/fixtures.html",
+   "pages": [
+    "home",
+    "article",
+    "fixtures",
+    "scores",
+    "wtc",
+    "players",
+    "player",
+    "yorker"
+   ],
+   "start": "2026-11-23",
+   "end": null
+  },
+  {
+   "id": "house-wtc-banner",
+   "sponsor": "The Grass Bank",
+   "slot": "banner",
+   "house": true,
+   "image": "/ads/house-wtc-banner-970x90.webp",
+   "imageMid": "/ads/house-wtc-banner-728x90.webp",
+   "imageMobile": "/ads/house-wtc-banner-320x100.webp",
+   "alt": "The race to the final: the World Test Championship table, and what is still possible.",
+   "link": "/wtc.html",
+   "pages": [
+    "home",
+    "article",
+    "fixtures",
+    "scores",
+    "wtc",
+    "players",
+    "player",
+    "yorker"
+   ],
+   "start": "2026-11-23",
+   "end": null
+  },
+  {
+   "id": "house-wtc-square",
+   "sponsor": "The Grass Bank",
+   "slot": "square",
+   "house": true,
+   "image": "/ads/house-wtc-square-300x250.webp",
+   "alt": "The race to the final: the World Test Championship table, and what is still possible.",
+   "link": "/wtc.html",
+   "pages": [
+    "home",
+    "article",
+    "fixtures",
+    "scores",
+    "wtc",
+    "players",
+    "player",
+    "yorker"
+   ],
+   "start": "2026-11-23",
+   "end": null
+  },
+  {
+   "id": "house-players-banner",
+   "sponsor": "The Grass Bank",
+   "slot": "banner",
+   "house": true,
+   "image": "/ads/house-players-banner-970x90.webp",
+   "imageMid": "/ads/house-players-banner-728x90.webp",
+   "imageMobile": "/ads/house-players-banner-320x100.webp",
+   "alt": "Players: every Test cricketer, from 1877 to today.",
+   "link": "/players.html",
+   "pages": [
+    "home",
+    "article",
+    "fixtures",
+    "scores",
+    "wtc",
+    "players",
+    "player",
+    "yorker"
+   ],
+   "start": "2026-11-23",
+   "end": null
+  },
+  {
+   "id": "house-players-square",
+   "sponsor": "The Grass Bank",
+   "slot": "square",
+   "house": true,
+   "image": "/ads/house-players-square-300x250.webp",
+   "alt": "Players: every Test cricketer, from 1877 to today.",
+   "link": "/players.html",
+   "pages": [
+    "home",
+    "article",
+    "fixtures",
+    "scores",
+    "wtc",
+    "players",
+    "player",
+    "yorker"
+   ],
+   "start": "2026-11-23",
+   "end": null
+  }
+ ]
+}
