@@ -596,6 +596,14 @@
           <dd id="cap-row" style="display:none">
             <span id="cap-number" class="plan-name">—</span>
             <div id="cap-debut" class="plan-price">—</div>
+            <!-- Honours Board (IJ, 2026-11-25): caps 1-100 only. The reader's
+                 own switch, users/{uid}.honoursOptOut; the board updates within
+                 six hours (super-fortnight honours-board.yml). -->
+            <div id="honours-row" class="plan-price" style="display:none;margin-top:8px">
+              <a href="/honours.html">On the Honours Board</a> &middot;
+              <label style="cursor:pointer"><input type="checkbox" id="honours-optout"> Leave me off</label>
+              <span id="honours-msg"></span>
+            </div>
           </dd>
 
           <dt id="hon-label" style="display:none">Honorary member</dt>
@@ -757,7 +765,7 @@
     getAuth, onAuthStateChanged, signOut
   } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js";
   import {
-    getFirestore, doc, getDoc
+    getFirestore, doc, getDoc, updateDoc
   } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js";
   import {
     getFunctions, httpsCallable
@@ -1168,6 +1176,7 @@
       document.getElementById("cap-number").textContent = "#" + m.capNumber;
       document.getElementById("cap-debut").textContent = fmtDebut(m.debutAt);
     }
+    renderHonours(m);
     renderHonorary(m);
     if (showSeason) {
       document.getElementById("season-name").textContent = `Season ${season} of ${SEASONS_TO_CAP}`;
@@ -1300,6 +1309,7 @@
       document.getElementById("cap-number").textContent = "#" + m.capNumber;
       document.getElementById("cap-debut").textContent = fmtDebut(m.debutAt);
     }
+    renderHonours(m);
     renderHonorary(m);
     ["season-label", "season-row", "life-label", "life-row", "ladder-label", "ladder-row"].forEach(id =>
       document.getElementById(id).style.display = "none");
@@ -1629,6 +1639,35 @@
   });
 
   // ── Auth state ───────────────────────────────────────────────────────
+  // Honours Board switch (2026-11-25): shown for caps 1-100 with a paid season.
+  async function renderHonours(m) {
+    const row = document.getElementById("honours-row");
+    const box = document.getElementById("honours-optout");
+    const msg = document.getElementById("honours-msg");
+    const on = !!m && Number.isInteger(m.capNumber) && m.capNumber >= 1 && m.capNumber <= 100 && m.seasonsPaid > 0;
+    row.style.display = on ? "" : "none";
+    if (!on || !currentUser) return;
+    const ref = doc(db, "users", currentUser.uid);
+    try {
+      const u = await getDoc(ref);
+      box.checked = !!(u.exists() && u.data().honoursOptOut === true);
+    } catch (e) { /* leave it unticked */ }
+    if (box.dataset.bound) return;
+    box.dataset.bound = "1";
+    box.addEventListener("change", async () => {
+      box.disabled = true;
+      msg.textContent = "";
+      try {
+        await updateDoc(ref, { honoursOptOut: box.checked });
+        msg.textContent = box.checked ? " You'll be off the board within six hours." : " You'll be back on the board within six hours.";
+      } catch (e) {
+        box.checked = !box.checked;
+        msg.textContent = " That didn't save. Please try again.";
+      }
+      box.disabled = false;
+    });
+  }
+
   onAuthStateChanged(auth, async (user) => {
     // Tell the watchdog above we got this far — from here on, any stall is a
     // real network/permissions problem and lands in state-error on its own.
