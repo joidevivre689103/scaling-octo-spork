@@ -6,20 +6,23 @@
  * how many they have earned. A crown once earned is kept for good; closing
  * the account removes it.
  *
+ * Shades and count as decided 2026-10-30 (IJ; Yorker spec §7b): bronze from
+ * 1 crown, silver from 5, gold from 12, deep gold from 25. Never a number
+ * beside the name; the exact count shows on hover (the title).
+ *
  * The count comes from crowns/{uid} (public get, no list), which super-
  * fortnight's publishYorkerStats rewrites every hour. Pages look it up next
  * to publicProfiles/{uid} and call:
  *
  *   window.ctCrown(count)  ->  HTML string ('' when count is 0 or missing)
  *
- * Shades: 1 pale gold, 2 gold, 3-5 deep gold, 6 or more old gold.
  */
 (function () {
-  var SHADES = [
-    [6, '#8c5a0a', '#5e3c06'],
-    [3, '#b8860b', '#7a5807'],
-    [2, '#d6a92b', '#8f6d14'],
-    [1, '#ead27a', '#a8893a']
+  var SHADES = [               // [from count, fill, outline]
+    [25, '#b8860b', '#6e5006'],  // deep gold
+    [12, '#e0b43a', '#9a7414'],  // gold
+    [5,  '#c4c9cf', '#7d848c'],  // silver
+    [1,  '#c27c3e', '#7f4c20']   // bronze
   ];
   var css = '.ct-crown{display:inline-block;width:1.05em;height:.85em;margin-left:.3em;vertical-align:-.05em;flex:none}';
   function addStyle() {
@@ -37,8 +40,9 @@
     for (var i = 0; i < SHADES.length; i++) {
       if (n >= SHADES[i][0]) { fill = SHADES[i][1]; line = SHADES[i][2]; break; }
     }
-    return '<svg class="ct-crown" viewBox="0 0 24 20" role="img" aria-label="Yorker crown">' +
-      '<title>Yorker crown</title>' +
+    var label = n === 1 ? 'Yorker crown' : 'Yorker crown \u00d7 ' + n;
+    return '<svg class="ct-crown" viewBox="0 0 24 20" role="img" aria-label="' + label + '">' +
+      '<title>' + label + '</title>' +
       '<path d="M2 6l5 5 5-9 5 9 5-5-2 11H4z" fill="' + fill + '" stroke="' + line +
       '" stroke-width="1.4" stroke-linejoin="round"/>' +
       '<rect x="4" y="16.2" width="16" height="2.6" rx=".6" fill="' + line + '"/>' +
