@@ -652,10 +652,22 @@
     // Cheap: the Firebase token is usually already cached and a 304 carries no
     // body, so the ~1.4 MB download happens only when the data actually changed.
     var track = (opts.progress === false) ? null : progressStart();
+    // [2026-11-24] Start the sign-in token and the App Check token NOW, in
+    // parallel with the cache read, instead of one after another. On the first
+    // load of a session the App Check step (Turnstile + mintAppCheckToken) can
+    // take seconds, and it used to start only after sign-in had settled. Safe
+    // for the 2026-08-12 gate race: load() is called by page code after the
+    // bootstrap, never at parse time. appCheckToken() never rejects.
+    var tokenP = getToken(false);
+    tokenP.catch(function () { /* handled below, where it is awaited */ });
+    var acP = appCheckToken();
     var p = ssGet(file).then(function (cached) {
       var cachedEtag = cached ? ssGetVer(file) : null;
-      return getToken(false)
-        .then(function (token) { if (track) track.requesting(); return doFetch(file, token, cachedEtag); })
+      return tokenP
+        .then(function (token) {
+          if (track) track.requesting();
+          return acP.then(function (ac) { return doFetchWithTokens(file, token, cachedEtag, ac); });
+        })
         .then(function (resp)  { return handle(file, resp, false, track); })
         .then(function (result) {
           if (result && result.notModified) {                 // server confirms cache is current

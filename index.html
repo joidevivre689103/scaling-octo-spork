@@ -1012,6 +1012,22 @@ body.articles-loading .analysis-section{ visibility:hidden; }
   flex-shrink:0;
 }
 </style>
+<script>
+// Firestore ready signal (2026-11-24). The loaders below used to poll for
+// window._fsDb for 2 s and then give up silently. The module script that sets
+// it has to fetch the Firebase SDK first, and on a phone with a cold cache that
+// often takes longer than 2 s, so State of play (and On this day, the WTC
+// strip, the quiz...) sometimes never appeared. They now wait on this promise,
+// which the module resolves the moment the database is ready, with a 15 s
+// backstop so a blocked SDK can't hold anything forever.
+(function () {
+  var resolve, ready = new Promise(function (r) { resolve = r; });
+  window.__fsResolve = resolve;
+  window._fsWait = function (ms) {
+    return Promise.race([ready, new Promise(function (r) { setTimeout(r, ms || 15000); })]);
+  };
+})();
+</script>
 <script type="module">
   import { initializeApp, getApp } from 'https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js';
   import { getFirestore, collection, getDocs, query, orderBy, where } from 'https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js';
@@ -1040,6 +1056,7 @@ body.articles-loading .analysis-section{ visibility:hidden; }
   window._fsOrderBy        = orderBy;
   window._fsWhere          = where;
   window._fsCollection     = collection;
+  if (window.__fsResolve) window.__fsResolve(db);   // wake the loaders waiting in _fsWait()
 </script>
 <!-- Home-screen app and icons (IJ, 2026-11-02): "Add to Home Screen" opens the site full-screen as "Grass Bank". -->
 <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
@@ -1687,8 +1704,7 @@ function renderListenStrip(v) {
 (async function loadArticles() {
   try {
     // Wait briefly for Firestore to be ready (initialised in module script above)
-    let attempts = 0;
-    while (!window._fsDb && attempts++ < 20) await new Promise(r => setTimeout(r, 100));
+    await window._fsWait();
     if (!window._fsDb) {
       showArticlesErrorState(() => location.reload());
       return;
@@ -1754,7 +1770,7 @@ function renderListenStrip(v) {
         const cat = heroArticle.category.charAt(0).toUpperCase() + heroArticle.category.slice(1);
         heroMain.innerHTML = `
           <div class="hero-category">${escapeHTML(cat)}</div>
-          <h2 class="hero-headline"><a href="article.html?id=${heroArticle.id}">${escapeHTML(heroArticle.headline)}</a></h2>
+          <h2 class="hero-headline"><a href="/a/${heroArticle.id}/">${escapeHTML(heroArticle.headline)}</a></h2>
           <p class="hero-summary">${escapeHTML(heroArticle.summary)}</p>
           ${heroArticle.imageEnabled !== false && (heroArticle.imageUrl || heroArticle.image)
             ? `<img class="hero-image" src="${escapeHTML(heroArticle.imageUrl || heroArticle.image)}" alt="${escapeHTML(heroArticle.headline)}" loading="lazy">`
@@ -1776,7 +1792,7 @@ function renderListenStrip(v) {
         mostRead.map((a, i) => `
           <div class="sidebar-item">
             <span class="sidebar-item-num">${i + 1}</span>
-            <h4 class="sidebar-item-headline"><a href="article.html?id=${a.id}">${escapeHTML(a.headline)}</a></h4>
+            <h4 class="sidebar-item-headline"><a href="/a/${a.id}/">${escapeHTML(a.headline)}</a></h4>
             <div class="sidebar-item-meta">${escapeHTML(a.category.charAt(0).toUpperCase() + a.category.slice(1))} • ${a.readTime} min</div>
           </div>`).join('');
     }
@@ -1853,7 +1869,7 @@ function renderListenStrip(v) {
           }
           <div class="analysis-card-content">
             <div class="analysis-card-category">${escapeHTML(a.category.charAt(0).toUpperCase() + a.category.slice(1))}</div>
-            <h3 class="analysis-card-headline"><a href="article.html?id=${a.id}">${escapeHTML(a.headline)}</a></h3>
+            <h3 class="analysis-card-headline"><a href="/a/${a.id}/">${escapeHTML(a.headline)}</a></h3>
             <p class="analysis-card-excerpt">${escapeHTML(a.summary)}</p>
             <div class="analysis-card-author">${escapeHTML(a.author)} <span>• ${a.readTime} min read</span>
               ${a.audioEnabled !== false && a.summaryAudioUrl ? `<button class="audio-listen-btn" data-audio="true" data-article-id="${a.id}" data-summary-audio-url="${escapeHTML(a.summaryAudioUrl)}" onclick="toggleArticleAudio(this)"><svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg> Listen<sup class="audio-ai-tag" title="AI-narrated summary">AI</sup></button>` : ''}
@@ -2027,7 +2043,7 @@ function renderMilestones(d) {
   const item = m => {
     const li = document.createElement('li');
     const a = document.createElement('a');
-    a.href = m.test ? '/countries.html?test=' + parseInt(m.test, 10) : '/countries.html';
+    a.href = m.test ? '/scorecard/' + parseInt(m.test, 10) + '/' : '/countries.html';
     const t = document.createElement('span');
     t.className = 'cu-teams';
     t.textContent = m.text;
@@ -2086,8 +2102,7 @@ async function refreshFeedRow() {
 
 (async function loadTicker() {
   try {
-    let attempts = 0;
-    while (!window._fsDb && attempts++ < 20) await new Promise(r => setTimeout(r, 100));
+    await window._fsWait();
     if (!window._fsDb) return;
     const { getDoc, doc } = await import('https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js');
     const snap = await getDoc(doc(window._fsDb, 'config', 'ticker'));
@@ -2107,8 +2122,7 @@ async function refreshFeedRow() {
 
 (async function loadHomeFeed() {
   try {
-    let attempts = 0;
-    while (!window._fsDb && attempts++ < 20) await new Promise(r => setTimeout(r, 100));
+    await window._fsWait();
     if (!window._fsDb) return;
     const { getDoc, doc } = await import('https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js');
     const snap = await getDoc(doc(window._fsDb, 'liveScores', 'home'));
@@ -2132,7 +2146,7 @@ async function refreshFeedRow() {
         box.appendChild(line('p', 'feed-score', lt.scoreline));
         if (lt.standout) box.appendChild(line('p', 'otd-standout', lt.standout));
         const more = line('a', 'otd-more', 'Full scorecard \u2192');
-        more.href = lt.test ? '/countries.html?test=' + parseInt(lt.test, 10) : '/countries.html';
+        more.href = lt.test ? '/scorecard/' + parseInt(lt.test, 10) + '/' : '/countries.html';
         box.appendChild(more);
         list.appendChild(box);
       }
@@ -2150,8 +2164,7 @@ async function refreshFeedRow() {
 
 (async function loadWtcStrip() {
   try {
-    let attempts = 0;
-    while (!window._fsDb && attempts++ < 20) await new Promise(r => setTimeout(r, 100));
+    await window._fsWait();
     if (!window._fsDb) return;
     const { getDoc, doc } = await import('https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js');
     const snap = await getDoc(doc(window._fsDb, 'liveScores', 'wtc'));
@@ -2352,8 +2365,7 @@ window.ctToolRow = function (links) {
 
 (async function loadOnThisDay() {
   try {
-    let attempts = 0;
-    while (!window._fsDb && attempts++ < 20) await new Promise(r => setTimeout(r, 100));
+    await window._fsWait();
     if (!window._fsDb) return;
     const { getDoc, doc } = await import('https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js');
     const snap = await getDoc(doc(window._fsDb, 'liveScores', 'onThisDay'));
@@ -2393,14 +2405,14 @@ window.ctToolRow = function (links) {
         });
         card.appendChild(fi);
       }
-      // The result is not on the card (IJ, 2026-10-31): the card links to our
-      // own page for the result and full scorecard, which is for subscribers —
-      // one more reason to subscribe. Signed-out readers meet that page's gate.
+      // The result is not on the card (IJ, 2026-10-31): the card links to the
+      // Test's own public scorecard page (2026-11-25, /scorecard/<n>/: the full
+      // card, or a summary with the full card for subscribers, by source).
       const foot = el('div', 'lc-foot');
       const test = parseInt(e.test, 10);
       const scoreLink = (text) => {
         const a = el('a', 'lc-link', text);
-        a.href = '/countries.html?otd=' + test + '#onthisday';
+        a.href = '/scorecard/' + test + '/';
         return a;
       };
       // The two tools (IJ, 2026-11-16), for subscribers like the scorecard:
@@ -2412,6 +2424,7 @@ window.ctToolRow = function (links) {
       // the answer away.
       const toolLinks = () => {
         if (!(test > 0) || !window.ctHooksOn) return;
+        foot.appendChild(el('span', 'lc-cap', 'For subscribers'));
         const links = [];
         if (e.year && e.year <= now.getFullYear() - 3) links.push(['Replay it', '/simulations.html?sim=w&tid=' + test + '&run=0']);
         links.push(['Compare the top scorers', '/compare.html?stars=' + test]);
@@ -2434,8 +2447,7 @@ window.ctToolRow = function (links) {
           p.appendChild(el('b', '', right ? '✓ Right. ' : 'Not this time. '));
           p.appendChild(document.createTextNode(e.result + '.'));
           foot.appendChild(p);
-          foot.appendChild(el('span', 'lc-cap', 'For subscribers'));
-          foot.appendChild(scoreLink('See the full scorecard →'));
+          foot.appendChild(scoreLink('See the scorecard →'));
           toolLinks();
           window.lsCard.equalize();
         };
@@ -2455,11 +2467,10 @@ window.ctToolRow = function (links) {
             row.appendChild(b);
           });
           foot.appendChild(row);
-          foot.appendChild(scoreLink('Or see the full scorecard (subscribers) →'));
+          foot.appendChild(scoreLink('Or see the scorecard →'));
         }
       } else if (test > 0) {
-        foot.appendChild(el('span', 'lc-cap', 'For subscribers'));
-        foot.appendChild(scoreLink('How did it end? See the full scorecard →'));
+        foot.appendChild(scoreLink('How did it end? See the scorecard →'));
         toolLinks();
       } else {
         foot.appendChild(el('span', 'lc-cap', 'Result'));
@@ -2482,8 +2493,7 @@ window.ctToolRow = function (links) {
 
 (async function loadStateOfPlay() {
   try {
-    let attempts = 0;
-    while (!window._fsDb && attempts++ < 20) await new Promise(r => setTimeout(r, 100));
+    await window._fsWait();
     if (!window._fsDb) return;
     const { getDoc, doc } = await import('https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js');
     // ?scores=preview: an admin checks the admin-only preview document before
@@ -2583,11 +2593,14 @@ window.ctToolRow = function (links) {
         fullCards = (h.exists() && h.data().fullCards) || [];
       } catch (e) { fullCards = []; }
     }
-    const inFullCards = m => {
+    // The matching full card, or undefined. Its `test` (2026-11-25) is the
+    // Test's number, for its public scorecard page.
+    const fullCardOf = m => {
       const d = Date.parse(String(m.startsAt || '').slice(0, 10) + 'T00:00:00Z');
-      return fullCards.some(v => v && teamKey(v.teams) === teamKey(m.teams)
+      return fullCards.find(v => v && teamKey(v.teams) === teamKey(m.teams)
         && Math.abs(Date.parse(String(v.start) + 'T00:00:00Z') - d) <= 3 * 864e5);
     };
+    const inFullCards = m => !!fullCardOf(m);
 
     // Published notes for the cards shown (franchise cards carry none).
     const notes = {};
@@ -2919,7 +2932,14 @@ window.ctToolRow = function (links) {
         // CricketData's final scorecard (2026-11-18, S plan) counts as full too.
         const full = inFullCards(m) || !!(ours && (ours.result || ours.final));
         const foot = el('div', 'lc-foot');
-        if (full || ours) {
+        // In the data with a number (2026-11-25): its public scorecard page,
+        // free. Otherwise, as before, our card on the countries page (subscribers).
+        const fc = fullCardOf(m);
+        if (fc && fc.test > 0) {
+          const a = el('a', 'lc-link', 'See the scorecard \u2192');
+          a.href = '/scorecard/' + parseInt(fc.test, 10) + '/';
+          foot.appendChild(a);
+        } else if (full || ours) {
           foot.appendChild(el('span', 'lc-cap', 'For subscribers'));
           const a = el('a', 'lc-link', full ? 'See the full scorecard \u2192'
             : 'Scorecard so far' + (ours.asOf ? ' (' + ours.asOf.toLowerCase() + ')' : '') + '; full scorecard soon \u2192');
@@ -2972,8 +2992,7 @@ window.ctToolRow = function (links) {
 
 (async function loadSnippets() {
   try {
-    let attempts = 0;
-    while (!window._fsDb && attempts++ < 20) await new Promise(r => setTimeout(r, 100));
+    await window._fsWait();
     if (!window._fsDb) return;
     const { getDoc, doc } = await import('https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js');
     const snap = await getDoc(doc(window._fsDb, 'config', 'snippets'));
@@ -3003,8 +3022,7 @@ window.ctToolRow = function (links) {
 (async function loadVoices() {
   try {
     // Wait briefly for Firebase module to initialise
-    let attempts = 0;
-    while (!window._fsDb && attempts++ < 20) await new Promise(r => setTimeout(r, 100));
+    await window._fsWait();
     if (!window._fsDb) return;
 
     const { _fsDb: fsDb, _fsGetDocs: getDocs, _fsQuery: fsQuery,
@@ -3108,7 +3126,7 @@ function renderColumn(colEl, title, articles) {
         ? `<img class="article-card-image" src="${escapeHTML(lead.imageUrl || lead.image)}" alt="${escapeHTML(lead.headline)}" loading="lazy">`
         : ''
       }
-      <h4 class="article-card-headline"><a href="article.html?id=${lead.id}">${escapeHTML(lead.headline)}</a></h4>
+      <h4 class="article-card-headline"><a href="/a/${lead.id}/">${escapeHTML(lead.headline)}</a></h4>
       <p class="article-card-summary">${escapeHTML(lead.summary)}</p>
       <div class="article-card-meta">${escapeHTML(lead.author)} • ${lead.readTime} min read
         ${lead.audioEnabled !== false && lead.summaryAudioUrl ? `<button class="audio-listen-btn" data-audio="true" data-article-id="${lead.id}" data-summary-audio-url="${escapeHTML(lead.summaryAudioUrl)}" onclick="toggleArticleAudio(this)"><svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg> Listen<sup class="audio-ai-tag" title="AI-narrated summary">AI</sup></button>` : ''}
@@ -3121,7 +3139,7 @@ function renderColumn(colEl, title, articles) {
         : ''
       }
       <div class="article-mini-content">
-        <h4 class="article-mini-headline"><a href="article.html?id=${a.id}">${escapeHTML(a.headline)}</a></h4>
+        <h4 class="article-mini-headline"><a href="/a/${a.id}/">${escapeHTML(a.headline)}</a></h4>
         ${a.summary ? `<p class="article-mini-summary">${escapeHTML(a.summary)}</p>` : ''}
         <div class="article-mini-meta">${timeAgo(a.date)}
           ${a.audioEnabled !== false && a.summaryAudioUrl ? `<button class="audio-listen-btn" data-audio="true" data-article-id="${a.id}" data-summary-audio-url="${escapeHTML(a.summaryAudioUrl)}" onclick="toggleArticleAudio(this)"><svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg> Listen<sup class="audio-ai-tag" title="AI-narrated summary">AI</sup></button>` : ''}
@@ -3204,8 +3222,7 @@ function toggleArticleAudio(btn) {
 // ═══════════════════════════════════════════════════════════════════════════
 (async function loadQuiz() {
   try {
-    let attempts = 0;
-    while (!window._fsDb && attempts++ < 20) await new Promise(r => setTimeout(r, 100));
+    await window._fsWait();
     if (!window._fsDb) return;
     const { getDoc, doc } = await import('https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js');
     // 2026-10-27: IJ's own question from the CMS (config/quiz) when it is dated

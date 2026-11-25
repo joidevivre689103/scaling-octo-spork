@@ -6,7 +6,9 @@
      Also the fallback for share previews (IJ, 2026-11-13): an article's
      /a/<n>/ preview page is written by the Share previews workflow a minute
      or two after publishing, so a link shared before then lands here and is
-     forwarded to the article. -->
+     forwarded to the article.
+     Same for player pages (IJ, 2026-11-25): /player/<pid>/ is written by the
+     daily player pages run, so a new player's link opens player.html until then. -->
 <title>Page not found — The Grass Bank™</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
@@ -14,6 +16,15 @@
 (function () {
   var m = location.pathname.match(/^\/a\/(\d+)\/?(?:index\.html)?$/);
   if (m) location.replace('/article.html?id=' + m[1] + location.hash);
+  var p = location.pathname.match(/^\/player\/(\d+)\/?(?:index\.html)?$/);
+  if (p) location.replace('/player.html?id=' + p[1] + location.hash);
+  // Scorecard pages (/scorecard/<n>-…/, IJ 2026-11-25) are written after each
+  // data build; until a Test's page is there, open its scorecard on Countries.
+  // They were /test/<n>-…/ for their first few hours: send those on.
+  var old = location.pathname.match(/^\/test\/(\d+-[a-z0-9-]*\/?(?:index\.html)?)$/);
+  if (old) location.replace('/scorecard/' + old[1] + location.hash);
+  var t = location.pathname.match(/^\/scorecard\/(\d+)(?:-[a-z0-9-]*)?\/?(?:index\.html)?$/);
+  if (t) location.replace('/countries.html?test=' + t[1] + location.hash);
 })();
 </script>
 <style>

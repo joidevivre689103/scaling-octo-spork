@@ -90,6 +90,51 @@ a:hover { text-decoration: underline; }
   margin-bottom: 14px;
 }
 
+/* ───── Top of page: what this page is, and the way to the plans ─────
+   (IJ, 2026-11-25) A reader sent here from a paid page should know at once
+   that this is the subscribe page and why they are on it. */
+.sub-top {
+  text-align: center;
+  border: 1px solid var(--rule);
+  background: var(--paper);
+  border-radius: 6px;
+  padding: 22px 22px 24px;
+  margin: 0 0 40px;
+}
+.sub-top-from {
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-size: 17px;
+  color: var(--crimson);
+  margin: 0 0 6px;
+}
+.sub-top-title {
+  font-family: 'Playfair Display', serif;
+  font-weight: 800;
+  font-size: clamp(26px, 5vw, 34px);
+  line-height: 1.1;
+  margin: 0 0 8px;
+}
+.sub-top-line {
+  font-size: 17px;
+  color: var(--ink-soft);
+  margin: 0 auto 16px;
+  max-width: 520px;
+}
+.sub-top-btn {
+  display: inline-block;
+  background: var(--crimson);
+  color: #fff;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 12px 22px;
+  border-radius: 6px;
+}
+.sub-top-btn:hover { background: var(--crimson-deep); color: #fff; text-decoration: none; }
+.tiers-heading { scroll-margin-top: 16px; }
+
 h1.title {
   font-family: 'Playfair Display', serif;
   font-weight: 800;
@@ -830,6 +875,31 @@ h1.title em {
 
 <main class="page">
 
+  <section class="sub-top" aria-label="Subscribe">
+    <p class="sub-top-from" id="sub-top-from" hidden></p>
+    <h2 class="sub-top-title">Subscribe to The Grass Bank™</h2>
+    <p class="sub-top-line">Every stats tool, the full archive, simulations and Behind the Scenes. Cheaper every season on the annual plan.</p>
+    <a class="sub-top-btn" href="#plans">See the plans &darr;</a>
+  </section>
+  <script>
+  // Which page sent the reader here (feature-flags.js adds ?from=<page id>).
+  (function () {
+    var NAMES = {
+      batting: ['Batting', 'is'], bowling: ['Bowling', 'is'], keeping: ['Keeping', 'is'],
+      captaincy: ['Captaincy', 'is'], countries: ['Countries', 'is'], compare: ['Compare', 'is'],
+      simulations: ['Simulations', 'are'], archive: ['The article archive', 'is'], audio: ['The audio archive', 'is'],
+      bts: ['Behind the Scenes', 'is'], 'yorker-archives': ['The Yorker Archives', 'are'],
+      oracleEdition: ['This Yorker edition', 'is'], manage: ['That page', 'is']
+    };
+    var from = new URLSearchParams(location.search).get('from');
+    if (!from) return;
+    var n = NAMES[from] || ['That page', 'is'];
+    var el = document.getElementById('sub-top-from');
+    el.textContent = n[0] + ' ' + n[1] + ' for subscribers.';
+    el.hidden = false;
+  })();
+  </script>
+
   <div class="kicker">Why we exist · what you get</div>
   <h1 class="title">Cricket, <em>taken seriously.</em></h1>
   <p class="dek">A small newspaper for people who love the game — the long form, the short form, and everything that has ever happened on a green field with a red ball or a white one.</p>
@@ -896,7 +966,7 @@ h1.title em {
        TIER BOXES
   ═══════════════════════════════════════════════════════════════════════ -->
 
-  <div class="tiers-heading">— Pick your seat —</div>
+  <div class="tiers-heading" id="plans">— Pick your seat —</div>
 
   <div class="tiers">
 
@@ -952,13 +1022,13 @@ h1.title em {
           <ol class="ladder-grid" id="ladder-grid" aria-label="Price by season">
             <!-- Populated by subscribe script -->
           </ol>
-          <p class="ladder-cap">Every subscriber gets a <strong>cap number</strong>, in the order they join &mdash; the way a Test cricketer does on debut. It&rsquo;s yours for good, and so are your seasons: leave and come back, and you carry on where you stopped.</p>
+          <p class="ladder-cap">Every subscriber gets a <strong>cap number</strong>, in the order they join &mdash; the way a Test cricketer does on debut. It&rsquo;s yours for good, and so are your seasons: leave and come back, and you carry on where you stopped. The first hundred also go on the <a href="/honours.html">Honours Board</a>.</p>
         </div>
 
         <div class="value-note" id="value-note">
           <p><strong>What a subscription buys is the part that took longest to build.</strong> Every <strong>statistical tool</strong> on the site &mdash; batting, bowling, keeping, captaincy, country head-to-heads, player comparison &mdash; filterable by era, opposition and venue. The searchable <strong>archive</strong>. The <strong>simulator</strong>, running on the same models as the analysis. And <strong>data export</strong>, so any table you build here is a table you can take away and work with.</p>
           <p class="permonth" id="value-permonth"></p>
-          <p>And last &mdash; though not nothing &mdash; subscribers <strong>don't see advertising</strong>. The free pages may carry a sponsor's banner; you won't. A paper funded by readers answers to readers.</p>
+          <p>And last &mdash; though not nothing &mdash; <strong>no advertising</strong> for subscribers, on any page. Any ads on the free pages come without tracking or cookies. A paper funded by readers answers to readers.</p>
         </div>
 
         <ul class="tier-list">

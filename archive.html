@@ -661,7 +661,7 @@
   }
 
   function articleEntry(a, q) {
-    const url = `article.html?id=${encodeURIComponent(a.id)}`;
+    const url = `/a/${encodeURIComponent(a.id)}/`; // the article's own page (2026-11-25); 404.html forwards if not yet written
     const title = highlight(a.headline || 'Untitled', q);
     const summary = highlight(a.summary || '', q);
     const date = a.date || formatDate(a.createdAt);

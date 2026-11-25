@@ -584,6 +584,7 @@ button.btn:disabled { opacity: 0.5; cursor: not-allowed; }
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Grass Bank">
 <meta name="theme-color" content="#fbf8f1">
+<script src="/ct-crown.js"></script>
 </head>
 <body>
 
@@ -870,6 +871,8 @@ function toast(msg) {
  * without needing an address to test.
  * ======================================================================== */
 const _btsProfileCache = new Map();   // uid -> displayName | null
+// [2026-11-25] Yorker crowns (crowns/{uid}.count), drawn by authorMarkup().
+const _btsCrownCache = new Map();     // uid -> count
 
 async function resolveProfileNames(uids) {
   const unknown = [...new Set(uids.filter(Boolean))].filter(u => !_btsProfileCache.has(u));
@@ -879,6 +882,12 @@ async function resolveProfileNames(uids) {
       _btsProfileCache.set(uid, snap.exists() ? (snap.data().displayName || null) : null);
     } catch (e) {
       _btsProfileCache.set(uid, null);
+    }
+    try {
+      const cs = await getDoc(doc(db, 'crowns', uid));
+      _btsCrownCache.set(uid, cs.exists() ? (cs.data().count || 0) : 0);
+    } catch (e) {
+      _btsCrownCache.set(uid, 0);
     }
   }));
 }
@@ -934,9 +943,13 @@ const CT_MODERATOR_UIDS = new Set([
 // pseudonym, on posts, replies and conversations.
 function authorMarkup(name, uid) {
   const safe = escapeHtml(name || 'Member');
+  // Yorker crown beside a reader's name, only while they have a live profile
+  // (a closed account reads 'Former reader' and shows none).
+  const crown = (uid && _btsProfileCache.get(uid) && window.ctCrown)
+    ? window.ctCrown(_btsCrownCache.get(uid) || 0) : '';
   return (uid && CT_EDITOR_UIDS.has(uid))
-    ? `<span class="author-ct">${safe}</span><span class="mod-badge">Moderator</span>`
-    : safe;
+    ? `<span class="author-ct">${safe}</span>${crown}<span class="mod-badge">Moderator</span>`
+    : safe + crown;
 }
 
 /* =====================================================================

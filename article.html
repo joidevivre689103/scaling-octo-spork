@@ -16,6 +16,14 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>Article — The Grass Bank™</title>
+<!-- [2026-11-25] Search engines get /a/<n>/, a copy of THIS page written by
+     super-fortnight scripts/share_pages.mjs with the article already in it
+     (headline, text, its own title and description, schema.org Article).
+     So this address is noindex. The generator removes every tag marked
+     data-tgb-strip from its copy, and sets window.TGB_ARTICLE_ID, which the
+     scripts below read when there is no ?id=. A change to this file reaches
+     the /a/<n>/ copies at the next Share previews run (daily, or by hand). -->
+<meta name="robots" content="noindex" data-tgb-strip>
 <!-- Link previews and search snippet (rename item 4 / (9), 2026-10-21) -->
 <meta name="description" content="Writing on Test cricket from The Grass Bank.">
 <meta property="og:type" content="website">
@@ -1280,6 +1288,7 @@ body{
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <link rel="manifest" href="/manifest.webmanifest">
 <script src="/ct-refresh.js" defer></script>
+<script src="/ct-crown.js" defer></script>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Grass Bank">
@@ -1403,7 +1412,11 @@ function readerHasArchive() {
 window._articleLoadComplete = (async function() {
   const container = document.getElementById('articleContainer');
   const params    = new URLSearchParams(window.location.search);
-  const articleId = params.get('id');
+  // On an /a/<n>/ copy there is no ?id=; the copy sets TGB_ARTICLE_ID instead.
+  const articleId = params.get('id') || (window.TGB_ARTICLE_ID ? String(window.TGB_ARTICLE_ID) : null);
+  // On an /a/<n>/ copy the article is already in the page (for search
+  // engines and before the live copy arrives); keep it if loading fails.
+  const prerendered = container.dataset.prerendered === '1';
 
   // ── Draft previews (IJ, 2026-11-18) ──────────────────────────────────────
   // ?draft=1&id=N  — an admin sees any article, draft or not, laid out as
@@ -1425,8 +1438,8 @@ window._articleLoadComplete = (async function() {
 
   if (!articleId) { showNotFound(container); return; }
 
-  // Show a loading skeleton while Firestore fetches
-  container.innerHTML = `
+  // Show a loading skeleton while Firestore fetches (not over a prerendered copy)
+  if (!prerendered) container.innerHTML = `
     <div style="max-width:1400px;margin:60px auto;padding:0 24px;text-align:center;
                 font-family:'Inter',sans-serif;font-size:14px;color:var(--text3);">
       Loading article…
@@ -1447,7 +1460,7 @@ window._articleLoadComplete = (async function() {
     );
     const articleSnap = await getDocs(articleQuery);
 
-    if (articleSnap.empty) { showNotFound(container); return; }
+    if (articleSnap.empty) { if (!prerendered) showNotFound(container); return; }
 
     const articleDoc = articleSnap.docs[0];
     const article = { firestoreId: articleDoc.id, ...articleDoc.data() };
@@ -1533,6 +1546,7 @@ window._articleLoadComplete = (async function() {
 
   } catch(err) {
     console.error('Firestore error:', err);
+    if (prerendered) return;
     container.innerHTML = `
       <div style="max-width:1400px;margin:60px auto;padding:0 24px;text-align:center;
                   font-family:'Inter',sans-serif;font-size:14px;color:var(--text3);">
@@ -1560,7 +1574,7 @@ function renderArticle(container, article, related, archiveNote) {
       ${related.length > 0 ? `<ol class="other-stories-list">
         ${related.map(r => `
           <li>
-            <a href="article.html?id=${encodeURIComponent(r.id)}" class="other-story">
+            <a href="/a/${encodeURIComponent(r.id)}/" class="other-story">
               ${r.category ? `<span class="other-story-category">${esc(r.category.charAt(0).toUpperCase() + r.category.slice(1))}</span>` : ''}
               <span class="other-story-headline">${esc(r.headline)}</span>
               <span class="other-story-meta">${esc(r.author || '')}${r.readTime ? ` · ${esc(String(r.readTime))} min read` : ''}</span>
@@ -2155,10 +2169,26 @@ function formatDate(dateStr) {
 // ═══════════════════════════════════════════════════════════════════════════
 // SHARE / COPY LINK
 // ═══════════════════════════════════════════════════════════════════════════
+// Links to a spot on this page (#…): the /a/<n>/ copies carry <base href="/">,
+// which would send them to the home page, so scroll here instead (2026-11-25).
+document.addEventListener('click', function (e) {
+  const a = e.target && e.target.closest && e.target.closest('a[href^="#"]');
+  if (!a || a.hasAttribute('onclick')) return;
+  const id = decodeURIComponent(a.getAttribute('href').slice(1));
+  e.preventDefault();
+  if (!id) return;
+  const t = document.getElementById(id) || document.getElementsByName(id)[0];
+  if (t) {
+    if (t.tagName === 'DETAILS') t.open = true;
+    t.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    history.replaceState(null, '', location.pathname + location.search + '#' + encodeURIComponent(id));
+  }
+});
+
 function shareLink() {
-  // The article's share preview page (/a/<n>/, written by the Share previews
-  // workflow in super-fortnight). It forwards to this page; if it hasn't been
-  // written yet, 404.html forwards instead.
+  // The article's own page (/a/<n>/, written by the Share previews workflow
+  // in super-fortnight): since 2026-11-25 a full copy of this page with the
+  // article in it. If it hasn't been written yet, 404.html forwards here.
   const info = window._shareInfo;
   if (!info || !info.id) return window.location.href;
   const origin = /(^|\.)thegrassbank\.com$/.test(location.hostname) ? 'https://thegrassbank.com' : location.origin;
@@ -2168,6 +2198,9 @@ function shareHeadline() {
   return (window._shareInfo && window._shareInfo.headline) || '';
 }
 function shareArticle(e) {
+  // The /a/<n>/ copies carry <base href="/">, where href="#" would open the
+  // home page; this link only ever shares.
+  if (e && e.preventDefault) e.preventDefault();
   const btn = e.currentTarget;
   const url = shareLink();
 
@@ -2338,7 +2371,7 @@ function loginHref() {
 }
 
 // ── Init ─────────────────────────────────────────────────────────────────
-const artId = new URLSearchParams(window.location.search).get('id');
+const artId = new URLSearchParams(window.location.search).get('id') || (window.TGB_ARTICLE_ID ? String(window.TGB_ARTICLE_ID) : null);
 const root  = document.getElementById('commentsRoot');
 if (!artId || !root) { /* no article, skip */ } else {
 
@@ -2446,6 +2479,9 @@ async function loadComments() {
  * posting costs nothing.
  * ======================================================================== */
 const _profileCache = new Map();   // uid -> displayName | null
+// [2026-11-25] Yorker crowns: crowns/{uid}.count, looked up beside the name.
+// A missing document (the usual case) means no crown.
+const _crownCache = new Map();     // uid -> count
 
 async function resolveCommentNames() {
   const uids = [...new Set(comments.map(c => c.authorUid).filter(Boolean))];
@@ -2460,11 +2496,19 @@ async function resolveCommentNames() {
       // back on, so cache undefined-as-null and let the chain below decide.
       _profileCache.set(uid, null);
     }
+    try {
+      const cs = await getDoc(doc(db, 'crowns', uid));
+      _crownCache.set(uid, cs.exists() ? (cs.data().count || 0) : 0);
+    } catch (e) {
+      _crownCache.set(uid, 0);
+    }
   }));
 
   comments.forEach(c => {
     const resolved = c.authorUid ? _profileCache.get(c.authorUid) : null;
     c.displayName = resolved || c.legacyName || 'Former reader';
+    // No crown on a closed account's comments (no profile = 'Former reader').
+    c.crowns = (resolved && c.authorUid) ? (_crownCache.get(c.authorUid) || 0) : 0;
   });
 }
 
@@ -2537,6 +2581,7 @@ function renderComments() {
       html += '  <div class="comment-meta">';
       html += '    <div class="comment-avatar">' + cEsc(cGetInitials(c.displayName)) + '</div>';
       html += '    <span class="comment-author">' + cEsc(c.displayName) + '</span>'
+            + (window.ctCrown ? window.ctCrown(c.crowns) : '')
             + (c.authorUid && CT_EDITOR_UIDS.has(c.authorUid) ? '<span class="comment-mod">Moderator</span>' : '');
       html += '    <span class="comment-date">' + timeAgo(c.timestamp) + '</span>';
       html += '  </div>';
