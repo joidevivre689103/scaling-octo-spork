@@ -291,9 +291,10 @@
           '</div>' +
           '<span class="ct-footer-attrib">' +
             // Both sources credited without saying which data comes from where (IJ, 2026-11-10).
-            'Test scorecards from <a href="https://cricsheet.org/" target="_blank" rel="noopener">Cricsheet (cricsheet.org)</a>, ' +
-            'licensed under <a href="https://opendatacommons.org/licenses/by/1-0/" target="_blank" rel="noopener">ODC-BY 1.0</a>, ' +
-            'and from Ananth Narayanan, used with permission.<br>' +
+            // Ananth named first (IJ, 2026-11-25).
+            'Test scorecards from Ananth Narayanan, used with permission, ' +
+            'and from <a href="https://cricsheet.org/" target="_blank" rel="noopener">Cricsheet (cricsheet.org)</a>, ' +
+            'licensed under <a href="https://opendatacommons.org/licenses/by/1-0/" target="_blank" rel="noopener">ODC-BY 1.0</a>.<br>' +
             'Player details from Wikipedia and Wikidata.' +
           '</span>' +
         '</div>' +
