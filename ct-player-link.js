@@ -1,11 +1,15 @@
 /* ct-player-link.js — player names open their profile (2026-10-28).
  *
- *   CTPlayer.href(pid)              → "/player.html?id=<pid>"
+ *   CTPlayer.href(pid)              → "/player/<pid>/"
  *   CTPlayer.link(pid, text, title) → '<a class="ct-plink" …>text</a>' (HTML string;
  *                                     text and title are escaped here)
  *
  * Used by the stats pages where they render a player's name (batting, bowling,
- * keeping, captaincy, rankings, compare). Profiles are free (player.html).
+ * keeping, captaincy, rankings, compare). Profiles are free.
+ * [2026-11-25] Links go to the plain page /player/<pid>/ written daily by
+ * super-fortnight scripts/player_pages.mjs, so search engines follow them to
+ * pages they can read. A player whose page isn't written yet lands on 404.html,
+ * which forwards to player.html?id=<pid>.
  * The link looks like the name it replaces, underlined on hover, and a click
  * on it never reaches the table row's own click handler.
  */
@@ -16,7 +20,7 @@
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
     });
   }
-  function href(pid) { return '/player.html?id=' + encodeURIComponent(pid); }
+  function href(pid) { return '/player/' + encodeURIComponent(pid) + '/'; }
   function link(pid, text, title) {
     if (pid == null || pid === '' || !/^\d+$/.test(String(pid))) return esc(text);
     return '<a class="ct-plink" href="' + href(pid) + '"' + (title ? ' title="' + esc(title) + ' — profile"' : ' title="Profile"') +

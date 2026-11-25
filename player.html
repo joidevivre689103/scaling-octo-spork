@@ -15,6 +15,11 @@
 <script src="/ct-urlstate.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
 <title>Player — The Grass Bank™</title>
+<!-- [2026-11-25] noindex: every player now has a plain page at /player/<pid>/
+     (super-fortnight scripts/player_pages.mjs), which is the address search
+     engines get. This page stays as the in-browser version and as the
+     fallback 404.html forwards to before a new player's page is written. -->
+<meta name="robots" content="noindex">
 <!-- Player profiles (2026-10-28). FREE page: /player.html?id=<pid>.
      Everything comes from the public playerProfiles/<pid> document, written
      by super-fortnight's profiles-publish.yml: the player's career figures
@@ -248,7 +253,7 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
       CTUrlState.mountShareRow(document.getElementById('pageHead'), {
         label: 'Share this profile',
         text: function () { return (d.profile ? d.profile.headline : title) + ' · The Grass Bank™'; },
-        url: function () { return location.origin + '/player.html?id=' + encodeURIComponent(pid); }
+        url: function () { return location.origin + '/player/' + encodeURIComponent(pid) + '/'; }
       });
     }
   }
