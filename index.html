@@ -2688,6 +2688,19 @@ window.ctToolRow = function (links) {
       const key = 'tgb-sop-pick-' + m.matchId;
       let pick = null;
       try { pick = localStorage.getItem(key); } catch (err) { /* private mode */ }
+      // [2026-11-25] A pick made on the Fixtures page is saved under
+      // tgb-pick-<teams>|<first day>. Look for it too (the first day there is
+      // local at the ground, so allow a day either side), and copy it here.
+      if (!pick && m.tier === 'test' && m.startsAt) {
+        const t2 = (m.teams || []).map(x => String(x).toLowerCase()).sort().join('|');
+        const d0 = Date.parse(String(m.startsAt).slice(0, 10));
+        for (const off of [0, -1, 1, -2, 2]) {
+          if (!Number.isFinite(d0)) break;
+          const day = new Date(d0 + off * 864e5).toISOString().slice(0, 10);
+          try { pick = localStorage.getItem('tgb-pick-' + t2 + '|' + day); } catch (err) { /* private mode */ }
+          if (pick) { try { localStorage.setItem(key, pick); } catch (err) { /* fine */ } break; }
+        }
+      }
       const isTest = m.tier === 'test';
       const name = p => p === 'draw' ? 'a draw' : p;
       if (m.state === 'result') {

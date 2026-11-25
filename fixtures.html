@@ -67,6 +67,14 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
 .fx-live{background:var(--accent);color:#fff;text-decoration:none}
 .fx-note{font-family:'Inter',sans-serif;font-size:12.5px;color:var(--text3);margin-top:26px;line-height:1.5}
 .fx-empty{font-size:15px;color:var(--text2);margin-top:24px}
+/* "Who will win?" (IJ, 2026-11-25): the State of play picker, on the next Tests */
+.fx-pick{margin-top:8px;font-family:'Inter',sans-serif}
+.fx-q{display:inline;font-size:13px;font-weight:600;color:var(--text);margin-right:8px}
+.fx-guesses{display:inline-flex;flex-wrap:wrap;gap:6px;vertical-align:middle}
+.fx-guess{font-family:'Inter',sans-serif;font-size:11.5px;padding:5px 9px;border:1px solid var(--border2);border-radius:3px;background:var(--bg);color:var(--text);cursor:pointer;line-height:1.2}
+.fx-guess:hover,.fx-guess:focus-visible{border-color:var(--accent);color:var(--accent);outline:none}
+.fx-answer{font-size:13px;line-height:1.45;color:var(--text)}
+.fx-answer b{color:var(--text2)}
 @media(max-width:600px){
   .main{padding:20px 16px 48px}
   .page-title{font-size:28px}
@@ -124,6 +132,58 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
       && Math.abs(Date.parse(String(m.startsAt).slice(0, 10)) - Date.parse(t.start)) <= 2 * 864e5);
   }
 
+  // "Who will win?" (IJ, 2026-11-25). The same pick as State of play's cards
+  // on the homepage, offered here for the Tests starting in the next 30 days
+  // and any in play. Kept in this browser only: nothing is sent, counted or
+  // shown as odds. A pick is saved under the fixture key below (and under
+  // State of play's own key when the Test is already on it), and the
+  // homepage reads the fixture key too, so a call made here shows there
+  // once the Test starts, and says whether the reader called it at the end.
+  const PICK_DAYS = 30;
+  const REPLIES = ['Bold. We\u2019ll hold you to it.', 'Noted. Watch this space.', 'Brave call. Let\u2019s see.'];
+  const pickKey = t => 'tgb-pick-' + [t.host, t.visitor].map(x => String(x).toLowerCase()).sort().join('|') + '|' + t.start;
+  const getPick = (keys) => { for (const k of keys) { try { const v = localStorage.getItem(k); if (v) return v; } catch (e) { /* private mode */ } } return null; };
+  function pickBox(t, live, sop) {
+    if (!t.start || /tentative/i.test(t.status || '')) return null;
+    const soon = (Date.parse(t.start) - Date.parse(today)) <= PICK_DAYS * 864e5;
+    if (!soon && !live) return null;
+    const keys = [pickKey(t)].concat(sop ? ['tgb-sop-pick-' + sop.matchId] : []);
+    const wrap = el('div', 'fx-pick');
+    const name = p => p === 'draw' ? 'a draw' : p;
+    const reply = p => {
+      wrap.textContent = '';
+      const line = el('p', 'fx-answer');
+      line.appendChild(el('b', '', 'You picked ' + name(p) + '. '));
+      const i = Math.abs([...keys[0]].reduce((a, c) => a + c.charCodeAt(0), 0)) % REPLIES.length;
+      line.appendChild(document.createTextNode(p === 'draw' ? 'Boring or thriller? Watch this space.' : REPLIES[i]));
+      wrap.appendChild(line);
+    };
+    const had = getPick(keys);
+    if (had) { reply(had); return wrap; }
+    wrap.appendChild(el('p', 'fx-q', 'Who will win?'));
+    const row = el('span', 'fx-guesses');
+    [t.host, t.visitor, 'Draw'].forEach((label, i) => {
+      const b = el('button', 'fx-guess', label);
+      b.type = 'button';
+      b.addEventListener('click', () => {
+        const p = i === 0 ? t.host : i === 1 ? t.visitor : 'draw';
+        keys.forEach(k => { try { localStorage.setItem(k, p); } catch (e) { /* fine without it */ } });
+        reply(p);
+      });
+      row.appendChild(b);
+    });
+    wrap.appendChild(row);
+    return wrap;
+  }
+
+  // The same Test on State of play (upcoming or live), for its pick key.
+  function sopFor(t) {
+    const k = [t.host, t.visitor].map(x => String(x).toLowerCase()).sort().join('|');
+    return LIVE.find(m => m.tier === 'test' && m.matchId
+      && (m.teams || []).map(x => String(x).toLowerCase()).sort().join('|') === k
+      && Math.abs(Date.parse(String(m.startsAt).slice(0, 10)) - Date.parse(t.start)) <= 2 * 864e5);
+  }
+
   function render() {
     const team = $('fxTeam').value;
     const box = $('fxList');
@@ -150,6 +210,8 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
       li.appendChild(mid);
       const tags = el('div', 'fx-tags');
       const live = t.start && liveFor(t);
+      const pb = pickBox(t, live, t.start && sopFor(t));
+      if (pb) mid.appendChild(pb);
       if (live) { const a = el('a', 'fx-tag fx-live', 'In play →'); a.href = '/#sop-title'; tags.appendChild(a); }
       if (t.wtc) tags.appendChild(el('span', 'fx-tag fx-wtc', 'WTC'));
       if (/tentative/i.test(t.status || '') || !t.start) tags.appendChild(el('span', 'fx-tag fx-tbc', 'To be confirmed'));
