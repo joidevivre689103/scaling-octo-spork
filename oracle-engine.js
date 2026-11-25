@@ -947,7 +947,42 @@ function renderBreakdown() {
     `;
   }).join('');
 
-  document.getElementById('breakdown-list').innerHTML = breakdownHtml;
+  const list = document.getElementById('breakdown-list');
+  list.innerHTML = breakdownHtml;
+  renderWrongFilter(list);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SHOW WRONG ANSWERS  [2026-11-25, IJ]
+// One button above the breakdown that hides the questions the reader got
+// right, so they can go straight to the ones they missed (wrong or skipped).
+// Pressed again, it shows every question. Added from here rather than in the
+// page markup so every edition page, current and archive, gets it at once.
+// No button when everything was right.
+// ═══════════════════════════════════════════════════════════════════════════
+function renderWrongFilter(list) {
+  const missed = questions.filter((q, i) => answers[i] !== q.correctIndex).length;
+  let bar = document.getElementById('breakdown-filter');
+  if (!missed) { if (bar) bar.remove(); list.classList.remove('only-wrong'); return; }
+  if (!bar) {
+    bar = document.createElement('div');
+    bar.id = 'breakdown-filter';
+    bar.className = 'breakdown-filter';
+    bar.innerHTML = '<button type="button" class="share-btn" aria-pressed="false" aria-controls="breakdown-list"></button>';
+    list.parentNode.insertBefore(bar, list);
+    bar.firstChild.addEventListener('click', () => {
+      list.classList.toggle('only-wrong');
+      setWrongFilterLabel(bar.firstChild, list);
+    });
+  }
+  bar.dataset.missed = String(missed);
+  setWrongFilterLabel(bar.firstChild, list);
+}
+
+function setWrongFilterLabel(btn, list) {
+  const on = list.classList.contains('only-wrong');
+  btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+  btn.textContent = on ? 'Show all questions' : 'Show wrong answers (' + btn.parentNode.dataset.missed + ')';
 }
 
 function toggleExpand(id) {
