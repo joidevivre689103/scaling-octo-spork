@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!-- CT_7G_INJECT:START (auto-injected by deploy tool — do not edit by hand) -->
+<style id="ct-7g-hide">body{visibility:hidden}</style>
+<script>window.CT_PAGE_ID="honours";</script>
+<script src="/feature-flags.js"></script>
+<script>setTimeout(function(){if(!window.__ctFlagsLoaded){location.replace("/comingsoon.html");}},2500);</script>
+<script src="/auth-status.js"></script>
+<script src="/ct-tracker.js" async></script>
+<!-- CT_7G_INJECT:END -->
+<script src="/prelaunch-guard.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+<title>The Honours Board — The Grass Bank™</title>
+<!-- The Honours Board (2026-11-25, IJ). FREE page, linked from the footer and
+     from Subscribe. The board reads /honours.json, written every six hours by
+     super-fortnight scripts/honours_board.mjs: caps 1-100 with a paid season
+     still counted, minus readers who chose "Leave me off" on My subscription;
+     cap number, display name and debut date only. Below it, the caps.
+     NEW PAGE CHECKLIST: "honours" must be in the Free bucket of
+     settings/featureGates (Admin → Access Tiers), or the gate sends everyone
+     to comingsoon. -->
+<meta name="description" content="The first hundred readers to back The Grass Bank, and the caps every subscriber wears.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="The Grass Bank">
+<meta property="og:title" content="The Honours Board — The Grass Bank">
+<meta property="og:description" content="The first hundred readers to back The Grass Bank, and the caps every subscriber wears.">
+<meta property="og:url" content="https://thegrassbank.com/honours.html">
+<meta property="og:image" content="https://thegrassbank.com/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="The Honours Board — The Grass Bank">
+<meta name="twitter:description" content="The first hundred readers to back The Grass Bank, and the caps every subscriber wears.">
+<meta name="twitter:image" content="https://thegrassbank.com/og-image.png">
+<link rel="canonical" href="https://thegrassbank.com/honours.html">
+<link rel="stylesheet" href="/fonts/fonts-opsz.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--cream:#fdfaf3;--paper:#faf5e9;--ink:#1a1917;--ink2:#3a322a;--muted:#6b6157;--rule:#c9bda5;--crimson:#8b1a1a;--gold:#c9a24a;--gold-hi:#e3c47a;--wood:#3a2214;--wood-dk:#2a170c}
+body{background:var(--cream);color:var(--ink);font-family:'Source Serif 4',Georgia,serif;min-height:100vh;overflow-x:hidden}
+.main{max-width:1040px;margin:0 auto;padding:36px 24px 64px}
+.kicker{font-family:'Inter',sans-serif;font-size:12px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:var(--crimson);text-align:center;margin-bottom:10px}
+h1{font-family:'Playfair Display',Georgia,serif;font-weight:800;font-size:48px;line-height:1.05;text-align:center;margin-bottom:10px}
+.intro{font-size:19px;font-style:italic;color:var(--ink2);text-align:center;max-width:620px;margin:0 auto 30px;line-height:1.5}
+.board{background-color:var(--wood);background-image:repeating-linear-gradient(90deg,rgba(255,255,255,0.025) 0 2px,transparent 2px 9px),repeating-linear-gradient(0deg,rgba(0,0,0,0.08) 0 1px,transparent 1px 23px);border:12px solid var(--wood-dk);outline:2px solid var(--gold);outline-offset:-20px;border-radius:4px;padding:44px 48px 40px;color:#d9b766;font-family:'Playfair Display',Georgia,serif}
+.board-head{text-align:center;margin-bottom:26px}
+.board-head .l1{font-size:14px;letter-spacing:0.32em;text-transform:uppercase;color:var(--gold)}
+.board-head .l2{font-size:32px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold-hi);margin-top:6px}
+.board-head .rule{width:160px;height:2px;background:#b08a3e;margin:16px auto 0}
+.cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:56px}
+.cols.one{grid-template-columns:minmax(0,560px);justify-content:center}
+.row{display:grid;grid-template-columns:56px 1fr auto;gap:10px;align-items:baseline;padding:10px 0;border-bottom:1px solid rgba(201,162,74,0.18);font-size:20px}
+.row.head{font-family:'Inter',sans-serif;font-size:11px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:#b08a3e;border-bottom:1px solid rgba(201,162,74,0.45);padding-top:0}
+.row .cap{font-weight:700;color:var(--gold-hi)}
+.row .debut{font-size:15px;color:var(--gold)}
+.row.waiting{color:rgba(217,183,102,0.6);font-style:italic}
+.board-foot{margin-top:22px;text-align:center;font-size:17px;font-style:italic;color:var(--gold)}
+.board-foot a{color:var(--gold-hi)}
+.note{font-family:'Inter',sans-serif;font-size:13px;color:var(--muted);margin-top:14px;text-align:center}
+h2{font-family:'Playfair Display',Georgia,serif;font-weight:800;font-size:34px;text-align:center;margin:56px 0 8px}
+.sub{font-size:18px;color:var(--ink2);text-align:center;max-width:640px;margin:0 auto 26px;line-height:1.5}
+.caps{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}
+.cap-card{background:var(--paper);border:1px solid var(--rule);border-radius:8px;padding:24px;text-align:center}
+.cap-tag{font-family:'Inter',sans-serif;font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--crimson)}
+.cap-card h3{font-family:'Playfair Display',Georgia,serif;font-size:24px;margin:4px 0 12px}
+.cap-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.cap-pair svg{width:100%;height:auto;display:block}
+.cap-pair figcaption{font-family:'Inter',sans-serif;font-size:12px;color:var(--muted);margin-top:2px}
+.cap-card p:last-child{font-size:16px;line-height:1.5;color:var(--ink2);margin-top:12px}
+.label{text-align:right;font-family:'Inter',sans-serif;font-size:13px;color:var(--muted);margin-top:10px}
+.cta{text-align:center;margin-top:30px}
+.cta a{display:inline-block;background:var(--crimson);color:#fff;font-family:'Inter',sans-serif;font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:12px 22px;border-radius:6px;text-decoration:none}
+@media(max-width:760px){
+  .main{padding:24px 14px 48px} h1{font-size:36px} .board{padding:30px 18px;border-width:8px;outline-offset:-14px}
+  .board-head .l2{font-size:24px} .cols,.caps{grid-template-columns:1fr} .row{font-size:18px}
+}
+</style>
+<link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<script src="/ct-refresh.js" defer></script>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Grass Bank">
+<meta name="theme-color" content="#fbf8f1">
+</head>
+<body>
+<header data-ct-nav="masthead"></header>
+<nav data-ct-nav="primary"></nav>
+<main class="main">
+  <p class="kicker">The Grass Bank™</p>
+  <h1>The Honours Board</h1>
+  <p class="intro">The first hundred readers to back The Grass Bank. Their names stay on this board for good.</p>
+
+  <section class="board" aria-label="The first hundred">
+    <div class="board-head"><p class="l1">The Grass Bank™</p><p class="l2">The First Hundred</p><div class="rule"></div></div>
+    <div class="cols" id="cols">
+      <div><div class="row head"><span>Cap</span><span>Reader</span><span>Debut</span></div><div id="col1"></div></div>
+      <div id="col2wrap"><div class="row head"><span>Cap</span><span>Reader</span><span>Debut</span></div><div id="col2"></div></div>
+    </div>
+    <p class="board-foot" id="board-foot"></p>
+  </section>
+  <p class="note">Names are readers’ display names on the site. Any reader on the board can leave it from My subscription.</p>
+
+  <h2>The cap</h2>
+  <p class="sub">Every annual subscriber gets a cap, numbered in the order they join, like a Test cricketer on debut: the crest and number on the front, their name on the back.</p>
+  <div class="caps">
+  <div class="cap-card">
+    <p class="cap-tag">Caps 1–100</p>
+    <h3>The first hundred</h3>
+    <div class="cap-pair"><figure><svg viewBox="60 8 380 292" role="img" aria-label="Front of a first-hundred cap: green, gold crest and piping, a gold star, number 7">
+<path d="M80 202 L80 192 C80 82 160 32 250 32 C340 32 420 82 420 192 L420 202 Z" fill="#1f3d14"/>
+<path d="M250 32 C205 72 180 132 172 192 M250 32 C295 72 320 132 328 192" stroke="rgba(0,0,0,0.28)" stroke-width="2" fill="none"/>
+<circle cx="250" cy="32" r="9" fill="#1f3d14" stroke="#c9a24a" stroke-width="2"/>
+<rect x="80" y="182" width="340" height="16" fill="rgba(0,0,0,0.22)"/>
+<path d="M80 182 L420 182 M80 198 L420 198" stroke="#c9a24a" stroke-width="2.5"/>
+<path d="M72 200 Q250 292 428 200 Q250 248 72 200 Z" fill="#1f3d14" stroke="#c9a24a" stroke-width="2.5"/>
+<polygon points="250.0,42.0 255.0,56.1 270.0,56.5 258.1,65.6 262.3,80.0 250.0,71.5 237.7,80.0 241.9,65.6 230.0,56.5 245.0,56.1" fill="#e3c47a"/>
+<path d="M214 84 L286 84 L286 128 C286 152 266 168 250 176 C234 168 214 152 214 128 Z" fill="rgba(0,0,0,0.12)" stroke="#e3c47a" stroke-width="3"/>
+<text x="250" y="132" text-anchor="middle" font-family="Playfair Display, Georgia, serif" font-weight="700" font-size="24" fill="#e3c47a">TGB</text>
+<text x="250" y="156" text-anchor="middle" font-family="Playfair Display, Georgia, serif" font-size="12" letter-spacing="1" fill="#e3c47a">No. 7</text>
+</svg><figcaption>Front</figcaption></figure><figure><svg viewBox="60 8 380 292" role="img" aria-label="Back of a first-hundred cap, with the reader’s name">
+<path d="M80 212 L80 192 C80 82 160 32 250 32 C340 32 420 82 420 192 L420 212 Z" fill="#1f3d14"/>
+<path d="M250 32 C205 72 180 132 172 200 M250 32 C295 72 320 132 328 200" stroke="rgba(0,0,0,0.28)" stroke-width="2" fill="none"/>
+<circle cx="250" cy="32" r="9" fill="#1f3d14" stroke="#c9a24a" stroke-width="2"/>
+<rect x="80" y="192" width="340" height="20" fill="rgba(0,0,0,0.22)"/>
+<path d="M80 192 L420 192 M80 212 L420 212" stroke="#c9a24a" stroke-width="2.5"/>
+<text x="250" y="160" text-anchor="middle" font-family="Playfair Display, Georgia, serif" font-weight="700" font-size="22" letter-spacing="2" fill="#e3c47a">YOUR NAME</text>
+</svg><figcaption>Back</figcaption></figure></div>
+    <p>Gold crest, gold piping and a gold star. Never issued again after cap 100.</p>
+  </div>
+  <div class="cap-card">
+    <p class="cap-tag">Cap 101 on</p>
+    <h3>Every annual subscriber</h3>
+    <div class="cap-pair"><figure><svg viewBox="60 8 380 292" role="img" aria-label="Front of a cap: green with a cream crest, number 214">
+<path d="M80 202 L80 192 C80 82 160 32 250 32 C340 32 420 82 420 192 L420 202 Z" fill="#1f3d14"/>
+<path d="M250 32 C205 72 180 132 172 192 M250 32 C295 72 320 132 328 192" stroke="rgba(0,0,0,0.28)" stroke-width="2" fill="none"/>
+<circle cx="250" cy="32" r="9" fill="#1f3d14" stroke="#1f3d14" stroke-width="2"/>
+<rect x="80" y="182" width="340" height="16" fill="rgba(0,0,0,0.22)"/>
+<path d="M80 182 L420 182 M80 198 L420 198" stroke="#1f3d14" stroke-width="2.5"/>
+<path d="M72 200 Q250 292 428 200 Q250 248 72 200 Z" fill="#1f3d14" stroke="#1f3d14" stroke-width="2.5"/>
+
+<path d="M214 84 L286 84 L286 128 C286 152 266 168 250 176 C234 168 214 152 214 128 Z" fill="rgba(0,0,0,0.12)" stroke="#f4ede0" stroke-width="3"/>
+<text x="250" y="132" text-anchor="middle" font-family="Playfair Display, Georgia, serif" font-weight="700" font-size="24" fill="#f4ede0">TGB</text>
+<text x="250" y="156" text-anchor="middle" font-family="Playfair Display, Georgia, serif" font-size="12" letter-spacing="1" fill="#f4ede0">No. 214</text>
+</svg><figcaption>Front</figcaption></figure><figure><svg viewBox="60 8 380 292" role="img" aria-label="Back of a cap, with the reader’s name">
+<path d="M80 212 L80 192 C80 82 160 32 250 32 C340 32 420 82 420 192 L420 212 Z" fill="#1f3d14"/>
+<path d="M250 32 C205 72 180 132 172 200 M250 32 C295 72 320 132 328 200" stroke="rgba(0,0,0,0.28)" stroke-width="2" fill="none"/>
+<circle cx="250" cy="32" r="9" fill="#1f3d14" stroke="#1f3d14" stroke-width="2"/>
+<rect x="80" y="192" width="340" height="20" fill="rgba(0,0,0,0.22)"/>
+<path d="M80 192 L420 192 M80 212 L420 212" stroke="#1f3d14" stroke-width="2.5"/>
+<text x="250" y="160" text-anchor="middle" font-family="Playfair Display, Georgia, serif" font-weight="700" font-size="22" letter-spacing="2" fill="#f4ede0">YOUR NAME</text>
+</svg><figcaption>Back</figcaption></figure></div>
+    <p>The same green cap with a cream crest. Yours for good.</p>
+  </div>
+</div>
+  <p class="label">thegrassbank.com</p>
+  <div class="cta"><a href="/subscribe.html">Subscribe</a></div>
+</main>
+<footer data-ct-nav="footer"></footer>
+<script>
+(function () {
+  'use strict';
+  var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+  var day = function (iso) {
+    if (!iso || !/^\d{4}-\d\d-\d\d$/.test(iso)) return '';
+    return new Date(iso + 'T12:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
+  };
+  var row = function (c) { return '<div class="row"><span class="cap">' + Number(c.cap) + '</span><span>' + esc(c.name) + '</span><span class="debut">' + esc(day(c.debut)) + '</span></div>'; };
+  // Like the boards at Lord's: caps 1-50 down the left, 51-100 down the right,
+  // and the next cap to be taken shown as waiting. One column until cap 51.
+  function render(b) {
+    var caps = (b && Array.isArray(b.caps)) ? b.caps.filter(function (c) { return c && c.cap >= 1 && c.cap <= 100; }) : [];
+    var col1 = document.getElementById('col1'), col2 = document.getElementById('col2');
+    var foot = document.getElementById('board-foot');
+    var taken = caps.length ? caps[caps.length - 1].cap : 0;
+    var next = taken < 100 ? taken + 1 : null;
+    var waiting = next ? '<div class="row waiting"><span class="cap">' + next + '</span><span>Waiting for its reader</span><span></span></div>' : '';
+    var left = caps.filter(function (c) { return c.cap <= 50; }).map(row).join('');
+    var right = caps.filter(function (c) { return c.cap > 50; }).map(row).join('');
+    if (next && next <= 50) left += waiting; else right += waiting;
+    col1.innerHTML = left;
+    col2.innerHTML = right;
+    if (!right) {
+      document.getElementById('col2wrap').style.display = 'none';
+      document.getElementById('cols').classList.add('one');
+    }
+    if (!caps.length) foot.innerHTML = 'Cap 1 is still waiting. <a href="/subscribe.html">Subscribe for a year</a> to take it.';
+    else if (next) foot.innerHTML = (100 - taken) + ' of the first hundred caps still to be taken. <a href="/subscribe.html">Subscribe for a year</a>.';
+    else foot.textContent = 'All hundred caps taken.';
+  }
+  fetch('/honours.json', { cache: 'no-cache' }).then(function (r) { return r.ok ? r.json() : { caps: [] }; })
+    .then(render).catch(function () { render({ caps: [] }); });
+})();
+</script>
+<script src="/ct-nav.js"></script>
+</body>
+</html>

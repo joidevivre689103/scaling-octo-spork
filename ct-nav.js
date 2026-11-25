@@ -70,6 +70,7 @@
   // first in the extras so it sits straight after the content links.
   var FOOTER_EXTRAS = [
     { href: '/pages.html',                 label: 'Pages' },
+    { href: '/honours.html',               label: 'Honours Board' },   // 2026-11-25, IJ: the first hundred, and the caps
     { href: '/players.html',               label: 'Players' },
     { href: '/bts.html',                   label: 'Behind the Scenes' },
     { href: '/about.html',                 label: 'About' },
