@@ -300,7 +300,9 @@
     //     (every beta page is also paid today, so `inBeta && !inPaid` is empty);
     //     kept for future beta-only pages. [§8 beta-deny UX: query param, the
     //     lightest mechanism — home can render a dismissible banner off it.]
-    if (inPaid) return '/subscribe.html';
+    // ?from= (2026-11-25, IJ): Subscribe names the page the reader came from,
+    // so a redirected reader knows why they are there.
+    if (inPaid) return '/subscribe.html?from=' + encodeURIComponent(pageId);
     if (inBeta) return '/?betaDenied=1';
 
     // loggedIn page yet still denied shouldn't occur (any signed-in user passes
