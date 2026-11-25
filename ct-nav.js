@@ -628,6 +628,37 @@
     run();
   }
 
+  // Site-wide notice (2026-11-23, IJ; ads-spec.md §6): the privacy policy's
+  // advertising change, shown just below the masthead (above the nav, clear of
+  // the fixed Sign in button) on every page for the 30
+  // days the policy promises, then gone by itself. Plain text, no storage.
+  var NOTICE = {
+    until: '2026-12-26',   // first day it no longer shows (the change's effective date)
+    text: 'From 26 December, the free pages may show advertisements. No cookies, no tracking, and none for subscribers.',
+    link: 'What changes',
+    href: '/privacy.html#coming-change'
+  };
+  function renderNotice(masthead) {
+    var d = new Date();
+    var today = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    if (today >= NOTICE.until || document.getElementById('ct-site-notice')) return;
+    var st = document.createElement('style');
+    st.textContent = '#ct-site-notice{background:#f3ede0;border-top:1px solid #e2d9c6;font-family:\'Inter\',sans-serif;' +
+      'font-size:12px;line-height:1.5;color:#4a453e;text-align:center;padding:7px 16px}' +
+      '#ct-site-notice a{color:#8b0000;font-weight:600;text-decoration:none;margin-left:6px;white-space:nowrap}' +
+      '#ct-site-notice a:hover{text-decoration:underline}@media print{#ct-site-notice{display:none}}';
+    document.head.appendChild(st);
+    var bar = document.createElement('div');
+    bar.id = 'ct-site-notice';
+    bar.setAttribute('role', 'note');
+    bar.appendChild(document.createTextNode(NOTICE.text));
+    var a = document.createElement('a');
+    a.href = NOTICE.href;
+    a.textContent = NOTICE.link + ' \u2192';
+    bar.appendChild(a);
+    masthead.parentNode.insertBefore(bar, masthead.nextSibling);
+  }
+
   function init() {
     ensureFonts();
     injectCss();
@@ -640,6 +671,7 @@
     for (var c = 0; c < footers.length;   c++) renderFooter(footers[c]);
     if (footers.length) revealGatedLinks();
     if (mastheads.length) applyTaglineOverride();
+    if (mastheads.length) { try { renderNotice(mastheads[0]); } catch (e) { /* a notice must never break a page */ } }
   }
 
   if (document.readyState === 'loading') {
