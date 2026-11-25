@@ -1770,7 +1770,7 @@ function renderListenStrip(v) {
         const cat = heroArticle.category.charAt(0).toUpperCase() + heroArticle.category.slice(1);
         heroMain.innerHTML = `
           <div class="hero-category">${escapeHTML(cat)}</div>
-          <h2 class="hero-headline"><a href="article.html?id=${heroArticle.id}">${escapeHTML(heroArticle.headline)}</a></h2>
+          <h2 class="hero-headline"><a href="/a/${heroArticle.id}/">${escapeHTML(heroArticle.headline)}</a></h2>
           <p class="hero-summary">${escapeHTML(heroArticle.summary)}</p>
           ${heroArticle.imageEnabled !== false && (heroArticle.imageUrl || heroArticle.image)
             ? `<img class="hero-image" src="${escapeHTML(heroArticle.imageUrl || heroArticle.image)}" alt="${escapeHTML(heroArticle.headline)}" loading="lazy">`
@@ -1792,7 +1792,7 @@ function renderListenStrip(v) {
         mostRead.map((a, i) => `
           <div class="sidebar-item">
             <span class="sidebar-item-num">${i + 1}</span>
-            <h4 class="sidebar-item-headline"><a href="article.html?id=${a.id}">${escapeHTML(a.headline)}</a></h4>
+            <h4 class="sidebar-item-headline"><a href="/a/${a.id}/">${escapeHTML(a.headline)}</a></h4>
             <div class="sidebar-item-meta">${escapeHTML(a.category.charAt(0).toUpperCase() + a.category.slice(1))} • ${a.readTime} min</div>
           </div>`).join('');
     }
@@ -1869,7 +1869,7 @@ function renderListenStrip(v) {
           }
           <div class="analysis-card-content">
             <div class="analysis-card-category">${escapeHTML(a.category.charAt(0).toUpperCase() + a.category.slice(1))}</div>
-            <h3 class="analysis-card-headline"><a href="article.html?id=${a.id}">${escapeHTML(a.headline)}</a></h3>
+            <h3 class="analysis-card-headline"><a href="/a/${a.id}/">${escapeHTML(a.headline)}</a></h3>
             <p class="analysis-card-excerpt">${escapeHTML(a.summary)}</p>
             <div class="analysis-card-author">${escapeHTML(a.author)} <span>• ${a.readTime} min read</span>
               ${a.audioEnabled !== false && a.summaryAudioUrl ? `<button class="audio-listen-btn" data-audio="true" data-article-id="${a.id}" data-summary-audio-url="${escapeHTML(a.summaryAudioUrl)}" onclick="toggleArticleAudio(this)"><svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg> Listen<sup class="audio-ai-tag" title="AI-narrated summary">AI</sup></button>` : ''}
@@ -3117,7 +3117,7 @@ function renderColumn(colEl, title, articles) {
         ? `<img class="article-card-image" src="${escapeHTML(lead.imageUrl || lead.image)}" alt="${escapeHTML(lead.headline)}" loading="lazy">`
         : ''
       }
-      <h4 class="article-card-headline"><a href="article.html?id=${lead.id}">${escapeHTML(lead.headline)}</a></h4>
+      <h4 class="article-card-headline"><a href="/a/${lead.id}/">${escapeHTML(lead.headline)}</a></h4>
       <p class="article-card-summary">${escapeHTML(lead.summary)}</p>
       <div class="article-card-meta">${escapeHTML(lead.author)} • ${lead.readTime} min read
         ${lead.audioEnabled !== false && lead.summaryAudioUrl ? `<button class="audio-listen-btn" data-audio="true" data-article-id="${lead.id}" data-summary-audio-url="${escapeHTML(lead.summaryAudioUrl)}" onclick="toggleArticleAudio(this)"><svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg> Listen<sup class="audio-ai-tag" title="AI-narrated summary">AI</sup></button>` : ''}
@@ -3130,7 +3130,7 @@ function renderColumn(colEl, title, articles) {
         : ''
       }
       <div class="article-mini-content">
-        <h4 class="article-mini-headline"><a href="article.html?id=${a.id}">${escapeHTML(a.headline)}</a></h4>
+        <h4 class="article-mini-headline"><a href="/a/${a.id}/">${escapeHTML(a.headline)}</a></h4>
         ${a.summary ? `<p class="article-mini-summary">${escapeHTML(a.summary)}</p>` : ''}
         <div class="article-mini-meta">${timeAgo(a.date)}
           ${a.audioEnabled !== false && a.summaryAudioUrl ? `<button class="audio-listen-btn" data-audio="true" data-article-id="${a.id}" data-summary-audio-url="${escapeHTML(a.summaryAudioUrl)}" onclick="toggleArticleAudio(this)"><svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg> Listen<sup class="audio-ai-tag" title="AI-narrated summary">AI</sup></button>` : ''}
