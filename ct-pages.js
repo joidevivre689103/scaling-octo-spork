@@ -77,7 +77,7 @@
           "href": "/archive.html",
           "gate": "archive",
           "tier": "paid",
-          "blurb": "Every essay and dispatch The Grass Bank has published, once it has left the front page.",
+          "blurb": "Search and browse every essay and dispatch, once it has left the front page.",
           "questions": [
             "What did we write about that series last year?",
             "Which piece was it that you meant to go back to?"
