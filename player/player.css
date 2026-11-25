@@ -1,0 +1,50 @@
+/* Player pages (/player/<pid>/). Written by super-fortnight scripts/player_pages.mjs;
+   do not edit by hand. Keep in step with player.html's own <style> block. */
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#faf9f7;--surface:#ffffff;--surface2:#f5f4f2;--surface3:#eceae6;
+  --border:#d8d4cc;--border2:#c8c4bc;
+  --text:#1a1a18;--text2:#4a4a46;--text3:#6f6f69;
+  --accent:#a03020;--accent-hover:#801810;--accent-dim:rgba(160,48,32,0.08);
+  --gold:#8A6508;
+}
+body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-height:100vh;overflow-x:hidden}
+.main{max-width:860px;margin:0 auto;padding:28px 32px 64px}
+.kicker{font-family:'Inter',sans-serif;font-size:11px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
+.name{font-family:'DM Serif Display',serif;font-size:40px;line-height:1.08;letter-spacing:-0.5px}
+.meta{font-family:'Inter',sans-serif;font-size:13px;color:var(--text3);margin-top:10px;line-height:1.6}
+.meta b{color:var(--text2);font-weight:600}
+.headline{font-family:'DM Serif Display',serif;font-style:italic;font-size:21px;line-height:1.4;color:var(--text2);margin:22px 0 4px;max-width:680px}
+.figs{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:8px;margin:26px 0 10px}
+.fig{background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:14px 14px 12px}
+.fig .v{font-family:'DM Serif Display',serif;font-size:26px;line-height:1;font-variant-numeric:tabular-nums}
+.fig .l{font-family:'Inter',sans-serif;font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text3);margin-top:7px}
+.ranks{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 6px}
+.rank{font-family:'Inter',sans-serif;font-size:12px;font-weight:600;padding:5px 11px;border-radius:14px;border:1px solid rgba(138,101,8,0.35);color:var(--gold);background:rgba(138,101,8,0.06)}
+.story{margin-top:34px}
+.story h2{font-family:'DM Serif Display',serif;font-size:23px;font-weight:400;margin:30px 0 10px}
+.story p{font-size:17px;line-height:1.7;color:var(--text);margin-bottom:14px;max-width:680px}
+.soon{margin-top:34px;background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:22px 24px}
+.soon h2{font-family:'DM Serif Display',serif;font-size:21px;font-weight:400;margin-bottom:8px}
+.soon p{font-size:15px;line-height:1.6;color:var(--text2);max-width:600px}
+.soon a{color:var(--accent)}
+.sources{margin-top:40px;padding-top:18px;border-top:1px solid var(--border);font-size:13px;color:var(--text3);line-height:1.6}
+.sources h3{font-family:'Inter',sans-serif;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px}
+.sources a{color:var(--text2)}
+.sources .fix{margin-top:8px}
+.sources .own{margin-top:8px}
+.more{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
+.btn{display:inline-block;padding:10px 16px;border-radius:6px;font-family:'Inter',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;
+  text-transform:uppercase;text-decoration:none;border:1.5px solid var(--accent);color:var(--accent);background:var(--surface)}
+.btn:hover{background:var(--accent-hover);border-color:var(--accent-hover);color:#fff}
+.msg{font-size:16px;color:var(--text2);line-height:1.6;margin-top:30px}
+.msg a{color:var(--accent)}
+@media(max-width:700px){
+  .main{padding:20px 16px 50px}
+  .name{font-size:31px}
+  .headline{font-size:18px}
+  .figs{grid-template-columns:repeat(3,1fr);gap:6px}
+  .fig{padding:12px 10px 10px}
+  .fig .v{font-size:21px}
+  .story p{font-size:16px}
+}
