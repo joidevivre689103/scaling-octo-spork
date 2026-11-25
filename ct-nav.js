@@ -633,8 +633,8 @@
   // the fixed Sign in button) on every page for the 30
   // days the policy promises, then gone by itself. Plain text, no storage.
   var NOTICE = {
-    until: '2026-12-24',   // first day it no longer shows (the change's effective date)
-    text: 'From 24 December, the free pages may show advertisements. No cookies, no tracking, and none for subscribers.',
+    until: '2026-12-26',   // first day it no longer shows (the change's effective date)
+    text: 'From 26 December, the free pages may show advertisements. No cookies, no tracking, and none for subscribers.',
     link: 'What changes',
     href: '/privacy.html#coming-change'
   };
