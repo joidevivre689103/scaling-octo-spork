@@ -472,6 +472,11 @@ body{
   margin-top:40px;
 }
 
+/* Show wrong answers [2026-11-25]: the button above the breakdown, and the
+   filter it toggles (hides the questions answered correctly). */
+.breakdown-filter{ text-align:center; margin:-8px 0 24px; }
+#breakdown-list.only-wrong .breakdown-q.correct{ display:none; }
+
 .breakdown-q{
   padding:20px 22px;
   border:1px solid var(--border);
