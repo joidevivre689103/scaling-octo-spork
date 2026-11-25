@@ -18,6 +18,13 @@
   if (m) location.replace('/article.html?id=' + m[1] + location.hash);
   var p = location.pathname.match(/^\/player\/(\d+)\/?(?:index\.html)?$/);
   if (p) location.replace('/player.html?id=' + p[1] + location.hash);
+  // Scorecard pages (/scorecard/<n>-…/, IJ 2026-11-25) are written after each
+  // data build; until a Test's page is there, open its scorecard on Countries.
+  // They were /test/<n>-…/ for their first few hours: send those on.
+  var old = location.pathname.match(/^\/test\/(\d+-[a-z0-9-]*\/?(?:index\.html)?)$/);
+  if (old) location.replace('/scorecard/' + old[1] + location.hash);
+  var t = location.pathname.match(/^\/scorecard\/(\d+)(?:-[a-z0-9-]*)?\/?(?:index\.html)?$/);
+  if (t) location.replace('/countries.html?test=' + t[1] + location.hash);
 })();
 </script>
 <style>
