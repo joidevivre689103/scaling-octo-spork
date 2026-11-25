@@ -2043,7 +2043,7 @@ function renderMilestones(d) {
   const item = m => {
     const li = document.createElement('li');
     const a = document.createElement('a');
-    a.href = m.test ? '/countries.html?test=' + parseInt(m.test, 10) : '/countries.html';
+    a.href = m.test ? '/scorecard/' + parseInt(m.test, 10) + '/' : '/countries.html';
     const t = document.createElement('span');
     t.className = 'cu-teams';
     t.textContent = m.text;
@@ -2146,7 +2146,7 @@ async function refreshFeedRow() {
         box.appendChild(line('p', 'feed-score', lt.scoreline));
         if (lt.standout) box.appendChild(line('p', 'otd-standout', lt.standout));
         const more = line('a', 'otd-more', 'Full scorecard \u2192');
-        more.href = lt.test ? '/countries.html?test=' + parseInt(lt.test, 10) : '/countries.html';
+        more.href = lt.test ? '/scorecard/' + parseInt(lt.test, 10) + '/' : '/countries.html';
         box.appendChild(more);
         list.appendChild(box);
       }
@@ -2405,14 +2405,14 @@ window.ctToolRow = function (links) {
         });
         card.appendChild(fi);
       }
-      // The result is not on the card (IJ, 2026-10-31): the card links to our
-      // own page for the result and full scorecard, which is for subscribers —
-      // one more reason to subscribe. Signed-out readers meet that page's gate.
+      // The result is not on the card (IJ, 2026-10-31): the card links to the
+      // Test's own public scorecard page (2026-11-25, /scorecard/<n>/: the full
+      // card, or a summary with the full card for subscribers, by source).
       const foot = el('div', 'lc-foot');
       const test = parseInt(e.test, 10);
       const scoreLink = (text) => {
         const a = el('a', 'lc-link', text);
-        a.href = '/countries.html?otd=' + test + '#onthisday';
+        a.href = '/scorecard/' + test + '/';
         return a;
       };
       // The two tools (IJ, 2026-11-16), for subscribers like the scorecard:
@@ -2424,6 +2424,7 @@ window.ctToolRow = function (links) {
       // the answer away.
       const toolLinks = () => {
         if (!(test > 0) || !window.ctHooksOn) return;
+        foot.appendChild(el('span', 'lc-cap', 'For subscribers'));
         const links = [];
         if (e.year && e.year <= now.getFullYear() - 3) links.push(['Replay it', '/simulations.html?sim=w&tid=' + test + '&run=0']);
         links.push(['Compare the top scorers', '/compare.html?stars=' + test]);
@@ -2446,8 +2447,7 @@ window.ctToolRow = function (links) {
           p.appendChild(el('b', '', right ? '✓ Right. ' : 'Not this time. '));
           p.appendChild(document.createTextNode(e.result + '.'));
           foot.appendChild(p);
-          foot.appendChild(el('span', 'lc-cap', 'For subscribers'));
-          foot.appendChild(scoreLink('See the full scorecard →'));
+          foot.appendChild(scoreLink('See the scorecard →'));
           toolLinks();
           window.lsCard.equalize();
         };
@@ -2467,11 +2467,10 @@ window.ctToolRow = function (links) {
             row.appendChild(b);
           });
           foot.appendChild(row);
-          foot.appendChild(scoreLink('Or see the full scorecard (subscribers) →'));
+          foot.appendChild(scoreLink('Or see the scorecard →'));
         }
       } else if (test > 0) {
-        foot.appendChild(el('span', 'lc-cap', 'For subscribers'));
-        foot.appendChild(scoreLink('How did it end? See the full scorecard →'));
+        foot.appendChild(scoreLink('How did it end? See the scorecard →'));
         toolLinks();
       } else {
         foot.appendChild(el('span', 'lc-cap', 'Result'));
@@ -2594,11 +2593,14 @@ window.ctToolRow = function (links) {
         fullCards = (h.exists() && h.data().fullCards) || [];
       } catch (e) { fullCards = []; }
     }
-    const inFullCards = m => {
+    // The matching full card, or undefined. Its `test` (2026-11-25) is the
+    // Test's number, for its public scorecard page.
+    const fullCardOf = m => {
       const d = Date.parse(String(m.startsAt || '').slice(0, 10) + 'T00:00:00Z');
-      return fullCards.some(v => v && teamKey(v.teams) === teamKey(m.teams)
+      return fullCards.find(v => v && teamKey(v.teams) === teamKey(m.teams)
         && Math.abs(Date.parse(String(v.start) + 'T00:00:00Z') - d) <= 3 * 864e5);
     };
+    const inFullCards = m => !!fullCardOf(m);
 
     // Published notes for the cards shown (franchise cards carry none).
     const notes = {};
@@ -2930,7 +2932,14 @@ window.ctToolRow = function (links) {
         // CricketData's final scorecard (2026-11-18, S plan) counts as full too.
         const full = inFullCards(m) || !!(ours && (ours.result || ours.final));
         const foot = el('div', 'lc-foot');
-        if (full || ours) {
+        // In the data with a number (2026-11-25): its public scorecard page,
+        // free. Otherwise, as before, our card on the countries page (subscribers).
+        const fc = fullCardOf(m);
+        if (fc && fc.test > 0) {
+          const a = el('a', 'lc-link', 'See the scorecard \u2192');
+          a.href = '/scorecard/' + parseInt(fc.test, 10) + '/';
+          foot.appendChild(a);
+        } else if (full || ours) {
           foot.appendChild(el('span', 'lc-cap', 'For subscribers'));
           const a = el('a', 'lc-link', full ? 'See the full scorecard \u2192'
             : 'Scorecard so far' + (ours.asOf ? ' (' + ours.asOf.toLowerCase() + ')' : '') + '; full scorecard soon \u2192');
