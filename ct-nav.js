@@ -446,14 +446,44 @@
       .then(function(user) {
         var email = user && user.email;
         if (!email) return false;     // anonymous — nothing to reveal
-        return import(FB_FIRESTORE_URL).then(function(fsMod) {
-          var db = fsMod.getFirestore(app);
-          // The single source of truth for "should this person see paid
-          // content?" — Stripe active/past_due OR the paidSubscriber role.
-          return CTFF.getUserHasPaidAccess(db, email);
+        // [2026-11-25, IJ] Complimentary readers (Honorary members and the
+        // Twelfth Man) must always see Manage Subscription: it is where their
+        // membership and end date are shown. Their access is the
+        // `paidSubscriber` custom claim on their own token, so read it here
+        // first, from the exact user just resolved, with one forced refresh
+        // when the token carries no role yet (as manage.html does). This needs
+        // no Firestore read and does not depend on feature-flags.js finding
+        // the user on its own. Paying readers fall through to the full check.
+        return isComplimentary(user).then(function(comp) {
+          if (comp) return true;
+          return import(FB_FIRESTORE_URL).then(function(fsMod) {
+            var db = fsMod.getFirestore(app);
+            // The single source of truth for "should this person see paid
+            // content?" — Stripe active/past_due OR the paidSubscriber role.
+            return CTFF.getUserHasPaidAccess(db, email, user);
+          });
         });
       })
       .then(function(v) { return v === true; });
+  }
+
+  // True when the signed-in reader's token carries the complimentary role.
+  // Never throws: any failure answers false and the full check decides.
+  function isComplimentary(user) {
+    if (!user || typeof user.getIdTokenResult !== 'function') return Promise.resolve(false);
+    return user.getIdTokenResult()
+      .then(function(r) {
+        if (r && r.claims && r.claims.role) return r;
+        // Refresh at most once per tab, so a free reader (no role) doesn't
+        // pay for a token refresh on every page.
+        var tried = false;
+        try { tried = sessionStorage.getItem('ct_nav_role_refresh') === '1'; } catch (_) {}
+        if (tried) return r;
+        try { sessionStorage.setItem('ct_nav_role_refresh', '1'); } catch (_) {}
+        return user.getIdTokenResult(true);
+      })
+      .then(function(r) { return !!(r && r.claims && r.claims.role === 'paidSubscriber'); })
+      .catch(function() { return false; });
   }
 
   function revealGatedLinks() {
