@@ -994,6 +994,29 @@ function renderBreakdown() {
   const list = document.getElementById('breakdown-list');
   list.innerHTML = breakdownHtml;
   renderWrongFilter(list);
+  renderYorkerTips(list);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// HOW TO DO WELL  [2026-11-26, IJ]
+// Under the answers: where the questions come from, so a reader knows what to
+// read before next month. Built here, not in the page markup, so every
+// edition page gets it at once.
+// ═══════════════════════════════════════════════════════════════════════════
+function renderYorkerTips(list) {
+  if (document.getElementById('yorker-tips')) return;
+  const box = document.createElement('div');
+  box.id = 'yorker-tips';
+  box.className = 'yorker-tips';
+  box.innerHTML =
+    '<div class="breakdown-title">How to do well next month</div>' +
+    '<ul>' +
+    '<li><strong>Read our articles.</strong> Many questions come from what we publish during the month.</li>' +
+    '<li><strong>Play the <a href="/">Googly</a>.</strong> Some daily questions come back in the Yorker, with a longer answer.</li>' +
+    '<li><strong>Follow the Tests.</strong> A few questions are about the month\u2019s matches, and a few about great Tests from the same month years ago (<a href="/">On this day</a>, on the homepage).</li>' +
+    '<li><strong>Get to know the <a href="/players.html">players</a>.</strong> Their pages have the stories behind the numbers.</li>' +
+    '</ul>';
+  list.after(box);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
