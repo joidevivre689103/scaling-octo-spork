@@ -397,6 +397,16 @@ function showReturnBanner() {
     banner.appendChild(note);
   }
   note.innerHTML = leaderboardNoteHtml();
+  // Pointer to the tips under the answers (2026-11-26, IJ): a reader who
+  // doesn't open their score again would never see them.
+  let tips = document.getElementById('returnTipsNote');
+  if (!tips) {
+    tips = document.createElement('p');
+    tips.id = 'returnTipsNote';
+    tips.style.cssText = 'margin:6px 0 0;font-size:0.9rem;line-height:1.45;font-weight:400;';
+    tips.innerHTML = 'Want to do better next month? <a href="#yorker-tips" onclick="showYorkerTips();return false;" style="color:inherit;text-decoration:underline">See our tips</a>.';
+    banner.appendChild(tips);
+  }
   banner.classList.add('visible');
 }
 
@@ -1203,5 +1213,13 @@ window.prevQuestion = prevQuestion;
 window.nextQuestion = nextQuestion;
 window.selectAnswer = selectAnswer;
 window.showPreviousScore = showPreviousScore;
+// "See our tips" in the Already played box: open the score, then scroll to the tips.
+window.showYorkerTips = function () {
+  showPreviousScore();
+  setTimeout(() => {
+    const el = document.getElementById('yorker-tips');
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 60);
+};
 window.copyShareLink = copyShareLink;
 window.toggleExpand = toggleExpand;
