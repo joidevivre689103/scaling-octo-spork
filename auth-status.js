@@ -102,7 +102,17 @@
       '#ct-auth-status a,#ct-auth-status button{font-family:inherit;font-size:13px;' +
       'letter-spacing:0.15em;text-transform:uppercase;padding:5px 12px;border-radius:2px;' +
       'border:1px solid #c9bda5;color:#1a1612;background:none;cursor:pointer;text-decoration:none}' +
-      '#ct-auth-status a:hover,#ct-auth-status button:hover{background:#1a1612;color:#faf5e9;border-color:#1a1612}';
+      '#ct-auth-status a:hover,#ct-auth-status button:hover{background:#1a1612;color:#faf5e9;border-color:#1a1612}' +
+      // [2026-11-26, IJ] On phones the fixed pill sat over the content as the
+      // reader scrolled (over table rows on the stats pages). Below 760px it
+      // becomes a small line at the very top of the page that scrolls away
+      // with everything else, and a long email is shortened to fit.
+      '@media (max-width:760px){' +
+        '#ct-auth-status{position:static;width:100%;box-sizing:border-box;justify-content:flex-end;' +
+        'align-self:stretch;background:transparent;padding:6px 10px 2px;gap:8px;font-size:12px;border-radius:0}' +
+        '#ct-auth-status span{max-width:55vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}' +
+        '#ct-auth-status a,#ct-auth-status button{font-size:10px;letter-spacing:0.1em;padding:3px 8px}' +
+      '}';
     document.head.appendChild(st);
   }
 
@@ -111,7 +121,10 @@
     if (!el) {
       el = document.createElement('div');
       el.id = 'ct-auth-status';
-      document.body.appendChild(el);
+      // First in the page, so on phones (where it is not fixed) it sits at
+      // the top rather than under the footer. Fixed on wider screens, where
+      // its place in the page makes no difference.
+      document.body.insertBefore(el, document.body.firstChild);
     }
     return el;
   }
