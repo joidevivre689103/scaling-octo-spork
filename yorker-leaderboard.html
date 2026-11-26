@@ -97,7 +97,7 @@
     /* Table: name pinned left, Total pinned right, editions scroll between. */
     .scroller { overflow-x: auto; border: 1px solid var(--cream-border); background: var(--paper); }
     table { border-collapse: separate; border-spacing: 0; width: 100%; font-size: 15px; }
-    th, td { padding: 9px 12px; white-space: nowrap; border-bottom: 1px solid var(--cream-dark); text-align: right; }
+    th, td { padding: 9px 12px; white-space: nowrap; border-bottom: 1px solid var(--cream-dark); text-align: center; }
     th {
       font-size: 11.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-light);
       font-weight: 600; background: var(--cream-dark); cursor: pointer; user-select: none;
@@ -107,7 +107,7 @@
     th[aria-sort="descending"]::after { content: ' \25BE'; color: var(--crimson); }
     th[aria-sort="ascending"]::after  { content: ' \25B4'; color: var(--crimson); }
     th:focus-visible { outline: 2px solid var(--crimson); outline-offset: -2px; }
-    .rank { text-align: right; color: var(--ink-faint); width: 3.5em; }
+    .rank { text-align: center; color: var(--ink-faint); width: 3.5em; }
     .name { text-align: left; }
     td.name { font-weight: 600; color: var(--ink); }
     .pin-left  { position: sticky; left: 0;  z-index: 1; background: inherit; }
