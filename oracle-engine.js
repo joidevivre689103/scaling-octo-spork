@@ -259,6 +259,7 @@ async function loadQuizFromFirestore() {
       name: editionData.name || 'Yorker',
       month: editionData.month || '',
       theme: editionData.theme || '',
+      goLive: editionData.goLive || '',
       questions: Array.isArray(editionData.questions) ? editionData.questions : []
     };
 
@@ -782,6 +783,31 @@ async function addRealComparison(correct, total) {
   }
 }
 
+// Leaderboard note under the verdict (2026-11-25, IJ). The board is rebuilt
+// every hour by publishYorkerStats, so a reader who goes straight there won't
+// see their name yet. Only plays made in the edition's own month count (its
+// goLive month, Pacific — the same rule the server applies); an archive play
+// is told plainly that it doesn't count. Created here, not in the page
+// markup, so every edition page gets it at once.
+function showLeaderboardNote() {
+  const desc = document.getElementById('score-band-desc');
+  if (!desc || !currentEdition) return;
+  let el = document.getElementById('leaderboard-note');
+  if (!el) {
+    el = document.createElement('p');
+    el.id = 'leaderboard-note';
+    el.style.cssText = 'margin:14px auto 0;max-width:34em;font-size:0.95rem;line-height:1.5;opacity:0.85;';
+    desc.after(el);
+  }
+  const goLive = currentEdition.goLive || '';
+  const nowMonth = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Los_Angeles', year: 'numeric', month: '2-digit' })
+    .format(new Date()).slice(0, 7);
+  const link = '<a href="/yorker-leaderboard.html" style="color:inherit;text-decoration:underline">leaderboard</a>';
+  el.innerHTML = /^\d{4}-\d{2}/.test(goLive) && goLive.slice(0, 7) === nowMonth
+    ? 'The ' + link + ' is updated every hour, so check back later to see where you stand.'
+    : 'Only plays made in an edition\u2019s own month count on the ' + link + ', so this one won\u2019t appear there.';
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // SCORE PAGE RENDER
 // ═══════════════════════════════════════════════════════════════════════════
@@ -795,6 +821,7 @@ function renderScore(score) {
   addRealComparison(score, total);
   document.getElementById('score-band').textContent = band.title;
   document.getElementById('score-band-desc').textContent = band.desc;
+  showLeaderboardNote();
 
   // Build share links — carry the Yorker brand so every share educates another
   // person about the franchise, AND embed the edition tag so a share forwarded
