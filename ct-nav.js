@@ -47,6 +47,8 @@
     // Yorker Leaderboard: footer only (added 2026-08-14, removed 2026-10-21 while
     // the page was unbuilt, back 2026-11-25 with the page).
     { href: '/yorker-leaderboard.html', label: 'Yorker Leaderboard', footerOnly: true },
+    // The Dispatch archive (2026-11-26): every newsletter issue. Footer only.
+    { href: '/dispatch/', label: 'The Dispatch', footerOnly: true },
     { href: '/archive.html',     label: 'Archive' },
     { href: '/audio.html',       label: 'Audio' }
   ];
