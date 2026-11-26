@@ -1293,6 +1293,7 @@ body{
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <link rel="manifest" href="/manifest.webmanifest">
 <script src="/ct-refresh.js" defer></script>
+<script src="/ct-crown.js" defer></script>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Grass Bank">
@@ -2501,6 +2502,9 @@ async function loadComments() {
  * posting costs nothing.
  * ======================================================================== */
 const _profileCache = new Map();   // uid -> displayName | null
+// [2026-11-25] Yorker crowns: crowns/{uid}.count, looked up beside the name.
+// A missing document (the usual case) means no crown.
+const _crownCache = new Map();     // uid -> count
 
 async function resolveCommentNames() {
   const uids = [...new Set(comments.map(c => c.authorUid).filter(Boolean))];
@@ -2515,11 +2519,19 @@ async function resolveCommentNames() {
       // back on, so cache undefined-as-null and let the chain below decide.
       _profileCache.set(uid, null);
     }
+    try {
+      const cs = await getDoc(doc(db, 'crowns', uid));
+      _crownCache.set(uid, cs.exists() ? (cs.data().count || 0) : 0);
+    } catch (e) {
+      _crownCache.set(uid, 0);
+    }
   }));
 
   comments.forEach(c => {
     const resolved = c.authorUid ? _profileCache.get(c.authorUid) : null;
     c.displayName = resolved || c.legacyName || 'Former reader';
+    // No crown on a closed account's comments (no profile = 'Former reader').
+    c.crowns = (resolved && c.authorUid) ? (_crownCache.get(c.authorUid) || 0) : 0;
   });
 }
 
@@ -2592,6 +2604,7 @@ function renderComments() {
       html += '  <div class="comment-meta">';
       html += '    <div class="comment-avatar">' + cEsc(cGetInitials(c.displayName)) + '</div>';
       html += '    <span class="comment-author">' + cEsc(c.displayName) + '</span>'
+            + (window.ctCrown ? window.ctCrown(c.crowns) : '')
             + (c.authorUid && CT_EDITOR_UIDS.has(c.authorUid) ? '<span class="comment-mod">Moderator</span>' : '');
       html += '    <span class="comment-date">' + timeAgo(c.timestamp) + '</span>';
       html += '  </div>';
