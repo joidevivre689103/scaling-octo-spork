@@ -388,7 +388,16 @@ function showReturnBanner() {
   const savedScore = safeLS(() => localStorage.getItem(lsKey('score')), null);
   if (savedScore == null) return;
   document.getElementById('returnScore').textContent = savedScore + '/' + questions.length;
-  document.getElementById('returnBanner').classList.add('visible');
+  const banner = document.getElementById('returnBanner');
+  let note = document.getElementById('returnLeaderboardNote');
+  if (!note) {
+    note = document.createElement('p');
+    note.id = 'returnLeaderboardNote';
+    note.style.cssText = 'margin:10px 0 0;font-size:0.9rem;line-height:1.45;font-weight:400;';
+    banner.appendChild(note);
+  }
+  note.innerHTML = leaderboardNoteHtml();
+  banner.classList.add('visible');
 }
 
 // [2026-10-22] A reader who has played this edition sees the Start button
@@ -799,11 +808,17 @@ function showLeaderboardNote() {
     el.style.cssText = 'margin:14px auto 0;max-width:34em;font-size:0.95rem;line-height:1.5;opacity:0.85;';
     desc.after(el);
   }
-  const goLive = currentEdition.goLive || '';
+  el.innerHTML = leaderboardNoteHtml();
+}
+
+// The note's wording, shared by the score page and the "Already played"
+// banner (banner added 2026-11-25, IJ).
+function leaderboardNoteHtml() {
+  const goLive = (currentEdition && currentEdition.goLive) || '';
   const nowMonth = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Los_Angeles', year: 'numeric', month: '2-digit' })
     .format(new Date()).slice(0, 7);
   const link = '<a href="/yorker-leaderboard.html" style="color:inherit;text-decoration:underline">leaderboard</a>';
-  el.innerHTML = /^\d{4}-\d{2}/.test(goLive) && goLive.slice(0, 7) === nowMonth
+  return /^\d{4}-\d{2}/.test(goLive) && goLive.slice(0, 7) === nowMonth
     ? 'The ' + link + ' is updated every hour, so check back later to see where you stand.'
     : 'Only plays made in an edition\u2019s own month count on the ' + link + ', so this one won\u2019t appear there.';
 }
