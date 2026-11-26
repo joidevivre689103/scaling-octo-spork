@@ -843,8 +843,10 @@ function renderScore(score) {
   const launchSuffix = currentEdition?.month ? ` Launching ${currentEdition.month}.` : ' Launching June 2026.';
   const CTA = 'Reckon you can do better?';
   const shareLine = IS_POST_LAUNCH
-    ? `I scored ${score}/${total} on Yorker, The Grass Bank™'s Test quiz — ${editionTag}. "${band.title}". ${CTA}`
-    : `I scored ${score}/${total} on Yorker, The Grass Bank™'s Test quiz — ${editionTag}. "${band.title}". ${CTA}${launchSuffix}`;
+    ? `I scored ${score}/${total} on Yorker, The Grass Bank™'s Test quiz — ${editionTag}. ${CTA}`
+    : `I scored ${score}/${total} on Yorker, The Grass Bank™'s Test quiz — ${editionTag}. ${CTA}${launchSuffix}`;
+  // [2026-11-25, IJ] The verdict ("Well played!") is no longer quoted in the
+  // share: out of context it read awkwardly. It stays on the score page.
   // Share URL depends on the mode: /yorker.html for the current-mode page,
   // /yorker/{id}/ for a pinned-edition page. This keeps shares from a
   // permanent URL pointing at that permanent URL, not the rotating current.
