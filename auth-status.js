@@ -107,7 +107,10 @@
       // reader scrolled (over table rows on the stats pages). Below 760px it
       // becomes a small line at the very top of the page that scrolls away
       // with everything else, and a long email is shortened to fit.
-      '@media (max-width:760px){' +
+      // [2026-11-26] Also on any touchscreen (pointer: coarse), whatever its
+      // width: a phone held sideways, a large phone or a foldable can be
+      // wider than 760px and still had the fixed box over the content.
+      '@media (max-width:760px), (pointer:coarse){' +
         '#ct-auth-status{position:static;width:100%;box-sizing:border-box;justify-content:flex-end;' +
         'align-self:stretch;background:transparent;padding:6px 10px 2px;gap:8px;font-size:12px;border-radius:0}' +
         '#ct-auth-status span{max-width:55vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}' +
