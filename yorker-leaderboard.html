@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+<!-- CT_7G_INJECT:START (auto-injected by deploy tool — do not edit by hand) -->
+<style id="ct-7g-hide">body{visibility:hidden}</style>
+<script>window.CT_PAGE_ID="yorker-leaderboard";</script>
+<script src="/auth-status.js"></script>
+<script>setTimeout(function(){if(!window.__ctFlagsLoaded){location.replace("/comingsoon.html");}},2500);</script>
+<script src="/ct-tracker.js" async></script>
+<!-- CT_7G_INJECT:END -->
+<!-- PREREQUISITE: 'yorker-leaderboard' must sit in the LOGGED-IN pages bucket
+     of settings/featureGates (admin → Access Tiers) BEFORE this page is
+     deployed. A page in no bucket fail-closes to Coming Soon for everyone.
+     In the logged-in bucket, a signed-out visitor is sent to login.html and
+     comes back here after signing in (IJ: only signed-in readers can see the
+     leaderboard). -->
+<script src="/feature-flags.js"></script>
+<script src="/prelaunch-guard.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Yorker Leaderboard — The Grass Bank™</title>
+<meta name="description" content="Who leads Yorker, The Grass Bank&#x27;s monthly Test cricket challenge.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="The Grass Bank">
+<meta property="og:title" content="Yorker Leaderboard — The Grass Bank">
+<meta property="og:description" content="Who leads Yorker, The Grass Bank&#x27;s monthly Test cricket challenge.">
+<meta property="og:url" content="https://thegrassbank.com/yorker-leaderboard.html">
+<meta property="og:image" content="https://thegrassbank.com/quiz-og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Yorker Leaderboard — The Grass Bank">
+<meta name="twitter:description" content="Who leads Yorker, The Grass Bank&#x27;s monthly Test cricket challenge.">
+<meta name="twitter:image" content="https://thegrassbank.com/quiz-og-image.png">
+<meta name="robots" content="noindex">
+<link rel="canonical" href="https://thegrassbank.com/yorker-leaderboard.html">
+  <link rel="stylesheet" href="/fonts/fonts.css">
+
+  <style>
+    :root {
+      --cream: #f5f0e8;
+      --cream-dark: #ede6d4;
+      --cream-border: #d4c9b0;
+      --crimson: #8b1a1a;
+      --crimson-dark: #6b1212;
+      --ink: #1a1208;
+      --ink-mid: #3d3020;
+      --ink-light: #6b5e4a;
+      --ink-faint: #9a8f7a;
+      --gold: #c8a44a;
+      --gold-light: #e2c97e;
+      --paper: #fffdf8;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--cream);
+      color: var(--ink);
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: 16px;
+      line-height: 1.6;
+    }
+
+    .page-header { text-align: center; padding: 44px 20px 8px; max-width: 860px; margin: 0 auto; }
+    .page-header h1 {
+      font-family: 'Playfair Display', serif; font-weight: 900;
+      font-size: clamp(30px, 5vw, 44px); letter-spacing: 0.01em; color: var(--ink);
+    }
+    .page-header .deck {
+      font-family: 'IM Fell English', serif; font-style: italic;
+      font-size: 17px; color: var(--ink-light); margin-top: 6px;
+    }
+    .rule-ornament {
+      display: flex; align-items: center; justify-content: center; gap: 14px;
+      margin: 18px auto 0; max-width: 320px; color: var(--crimson);
+    }
+    .rule-ornament::before, .rule-ornament::after { content: ''; flex: 1; height: 1px; background: var(--cream-border); }
+    .rule-ornament span { font-size: 18px; }
+
+    .lb-wrap { max-width: 960px; margin: 28px auto 70px; padding: 0 20px; }
+
+    .you {
+      border: 2px solid var(--crimson); background: var(--paper);
+      padding: 16px 20px; margin-bottom: 22px; box-shadow: 4px 4px 0 var(--cream-dark);
+    }
+    .you a { color: var(--crimson); }
+
+    .section-label {
+      font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--ink-light); border-bottom: 1px solid var(--cream-border);
+      padding-bottom: 8px; margin-bottom: 14px;
+      display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+    }
+    .section-label .upd { letter-spacing: 0.06em; text-transform: none; font-style: italic; }
+
+    /* Table: name pinned left, Total pinned right, editions scroll between. */
+    .scroller { overflow-x: auto; border: 1px solid var(--cream-border); background: var(--paper); }
+    table { border-collapse: separate; border-spacing: 0; width: 100%; font-size: 15px; }
+    th, td { padding: 9px 12px; white-space: nowrap; border-bottom: 1px solid var(--cream-dark); text-align: right; }
+    th {
+      font-size: 11.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-light);
+      font-weight: 600; background: var(--cream-dark); cursor: pointer; user-select: none;
+      vertical-align: bottom;
+    }
+    th .sub { display: block; font-size: 11px; letter-spacing: 0.02em; text-transform: none; font-style: italic; font-weight: 400; color: var(--ink-faint); }
+    th[aria-sort="descending"]::after { content: ' \25BE'; color: var(--crimson); }
+    th[aria-sort="ascending"]::after  { content: ' \25B4'; color: var(--crimson); }
+    th:focus-visible { outline: 2px solid var(--crimson); outline-offset: -2px; }
+    .rank { text-align: right; color: var(--ink-faint); width: 3.5em; }
+    .name { text-align: left; }
+    td.name { font-weight: 600; color: var(--ink); }
+    .pin-left  { position: sticky; left: 0;  z-index: 1; background: inherit; }
+    .pin-right { position: sticky; right: 0; z-index: 1; background: inherit; border-left: 1px solid var(--cream-border); font-weight: 700; }
+    th.pin-left, th.pin-right { background: var(--cream-dark); z-index: 2; }
+    tbody tr { background: var(--paper); }
+    tbody tr:nth-child(even) { background: #fbf8f1; }
+    tbody tr.me { background: #f6e9cf; }
+    tbody tr.me td.name::after { content: ' (you)'; font-weight: 400; font-style: italic; color: var(--crimson); }
+    td.dash { color: var(--ink-faint); }
+
+    .pager { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 14px; flex-wrap: wrap; }
+    .pager .count { color: var(--ink-light); font-size: 14px; font-style: italic; }
+    .btn {
+      font-family: 'Source Serif 4', serif; font-size: 12.5px; letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--cream); background: var(--crimson); border: none; padding: 9px 16px; cursor: pointer;
+    }
+    .btn:hover { background: var(--crimson-dark); }
+    .btn[disabled] { background: var(--cream-border); color: var(--ink-faint); cursor: default; }
+    .btn.ghost { background: transparent; color: var(--crimson); border: 1px solid var(--crimson); }
+    .btn.ghost:hover { background: var(--cream-dark); }
+
+    .note { color: var(--ink-light); font-size: 14.5px; margin-top: 18px; }
+    .note a { color: var(--crimson); }
+
+    .share { margin-top: 34px; border-top: 1px solid var(--cream-border); padding-top: 18px; }
+    .share textarea {
+      width: 100%; min-height: 70px; font: inherit; font-size: 15px; padding: 10px 12px;
+      border: 1px solid var(--cream-border); background: var(--paper); color: var(--ink); resize: vertical;
+    }
+    .share .row { display: flex; gap: 12px; align-items: center; margin-top: 10px; flex-wrap: wrap; }
+    .share .hint { color: var(--ink-faint); font-size: 13.5px; font-style: italic; }
+
+    .bylines { margin-top: 34px; border-top: 1px solid var(--cream-border); padding-top: 14px; }
+    .bylines p { font-family: 'IM Fell English', serif; font-style: italic; color: var(--ink-light); font-size: 15px; }
+
+    .state { text-align: center; padding: 50px 20px; color: var(--ink-light); }
+    .state h3 { font-family: 'Playfair Display', serif; font-weight: 700; color: var(--ink-mid); margin-bottom: 6px; }
+    .state a { color: var(--crimson); }
+    .loading-spinner {
+      width: 28px; height: 28px; border: 3px solid var(--cream-border); border-top-color: var(--crimson);
+      border-radius: 50%; margin: 0 auto 14px; animation: spin 0.9s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (max-width: 520px) {
+      th, td { padding: 8px 9px; }
+      table { font-size: 14px; }
+      .rank { width: 2.8em; }
+    }
+  </style>
+<link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<script src="/ct-refresh.js" defer></script>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Grass Bank">
+<meta name="theme-color" content="#fbf8f1">
+<script src="/ct-crown.js"></script>
+</head>
+<body>
+
+<header data-ct-nav="masthead"></header>
+<nav data-ct-nav="primary"></nav>
+
+<div class="page-header">
+  <h1>Yorker Leaderboard</h1>
+  <p class="deck">Every reader who took each month&rsquo;s Yorker while it was live</p>
+  <div class="rule-ornament"><span>✦</span></div>
+</div>
+
+<main class="lb-wrap" id="lb">
+  <div class="state" id="loadingState">
+    <div class="loading-spinner"></div>
+    <p>Adding up the scores&hellip;</p>
+  </div>
+</main>
+
+<footer data-ct-nav="footer"></footer>
+
+<script type="module">
+  // ───────────────────────────────────────────────────────────────────────
+  // YORKER LEADERBOARD  (built 2026-11-25, to IJ's spec of 2026-08-08/14 and
+  // 2026-10-30)
+  //
+  // DATA: one server-written document, leaderboards/yorker, rebuilt hourly by
+  // super-fortnight's publishYorkerStats from oracleScores (which readers can
+  // never list). Shape:
+  //   { updatedAt, readers, editions: [{ id, name, month, byline }] newest first,
+  //     rows: [{ uid, name, crowns, scores: { editionId: score }, total }] }
+  // Only plays made while an edition was current count; archive plays never
+  // do (same rule as the crowns). Scores are the `score` field: 5 a question.
+  //
+  // RULES CONTRACT: leaderboards/* is get-only and needs a signed-in reader.
+  // The page gate (logged-in bucket) already sends signed-out visitors to
+  // login, so the read below always has an account behind it.
+  //
+  // SPEC, as IJ set it:
+  //   - ranked by Total, highest first; every column sortable; equal totals
+  //     ordered by display name A–Z
+  //   - top 5 shown, then 20 a page
+  //   - newest edition first after the name; Total pinned on the right,
+  //     name pinned on the left, editions scroll between
+  //   - the site-wide display name, with its Yorker crown
+  //   - share: copy a link with a message the reader writes (no WhatsApp/X
+  //     buttons, so they decide whether to say who they are)
+  //   - "Submitted by" byline for each edition at the bottom
+  // ───────────────────────────────────────────────────────────────────────
+  import { initializeApp, getApps, getApp }
+    from 'https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js';
+  import { getFirestore, doc, getDoc }
+    from 'https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js';
+  import { getAuth, onAuthStateChanged }
+    from 'https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js';
+
+  const _fbConfig = {
+    apiKey: "AIzaSyBnfn9hK0y-p6nvIZ_AwoJnWD7DfDuIQd4",
+    authDomain: "hitwicket-cba02.firebaseapp.com",
+    projectId: "hitwicket-cba02",
+    storageBucket: "hitwicket-cba02.firebasestorage.app",
+    messagingSenderId: "196915483829",
+    appId: "1:196915483829:web:071c47af79914aec88dafc"
+  };
+  const _app = getApps().length ? getApp() : initializeApp(_fbConfig);
+  const db = getFirestore(_app);
+  const auth = getAuth(_app);
+
+  const FIRST = 5, PAGE = 20;
+  const SHARE_URL = 'https://thegrassbank.com/yorker-leaderboard.html';
+  const box = document.getElementById('lb');
+
+  const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g,
+    (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const crown = (n) => (typeof window.ctCrown === 'function' ? window.ctCrown(n) : '');
+  const ordinal = (n) => {
+    const v = n % 100, s = ['th', 'st', 'nd', 'rd'];
+    return n + (s[(v - 20) % 10] || s[v] || s[0]);
+  };
+  const byName = (a, b) => a.name.localeCompare(b.name, 'en', { sensitivity: 'base' });
+
+  let board = null, me = null;
+  let sortKey = 'total', sortDir = -1;     // -1 = highest first
+  let shown = FIRST, page = 0;             // shown: 5 until "Show more", then 20 a page
+
+  function state(title, body) {
+    box.innerHTML = `<div class="state"><h3>${title}</h3><p>${body}</p></div>`;
+  }
+
+  // Rank by total; equal totals share a rank ("=3"), and the order inside a
+  // tie is the display name A–Z (IJ's tie-break).
+  function withRanks(rows) {
+    const sorted = rows.slice().sort((a, b) => b.total - a.total || byName(a, b));
+    let rank = 0, prev = null;
+    sorted.forEach((r, i) => {
+      if (r.total !== prev) { rank = i + 1; prev = r.total; }
+      r.rank = rank;
+    });
+    sorted.forEach((r) => {
+      r.tied = sorted.filter((x) => x.rank === r.rank).length > 1;
+    });
+    return sorted;
+  }
+
+  function sortedRows() {
+    const rows = board.rows.slice();
+    const val = (r) => sortKey === 'total' ? r.total
+      : sortKey === 'name' ? null
+      : (r.scores[sortKey] ?? -1);           // didn't play: below a score of 0
+    // sortDir 1 = ascending, -1 = descending; equal values always fall back
+    // to the display name A–Z.
+    rows.sort((a, b) => {
+      const c = sortKey === 'name' ? byName(a, b)
+        : sortKey === 'rank' ? a.rank - b.rank
+        : val(a) - val(b);
+      return (c * sortDir) || byName(a, b) || (b.total - a.total);
+    });
+    return rows;
+  }
+
+  function th(key, label, cls, sub) {
+    const sort = key === sortKey ? (sortDir < 0 ? 'descending' : 'ascending') : 'none';
+    return `<th class="${cls || ''}" data-key="${esc(key)}" tabindex="0" aria-sort="${sort}" scope="col">` +
+      `${esc(label)}${sub ? `<span class="sub">${esc(sub)}</span>` : ''}</th>`;
+  }
+
+  function render() {
+    const eds = board.editions;
+    const rows = sortedRows();
+    const total = rows.length;
+    const start = shown === FIRST ? 0 : page * PAGE;
+    const slice = rows.slice(start, start + shown);
+
+    const mine = me && board.rows.find((r) => r.uid === me);
+    const youHtml = mine
+      ? `You are <strong>${mine.tied ? '=' : ''}${ordinal(mine.rank)}</strong> of ${total} with ` +
+        `<strong>${mine.total}</strong> points. <a href="/yorker.html">This month&rsquo;s Yorker</a> counts if you play it this month.`
+      : `You&rsquo;re not on the board yet. <a href="/yorker.html">Play this month&rsquo;s Yorker</a> before the month ends and you will be.`;
+
+    const head = th('rank', '#', 'rank') + th('name', 'Reader', 'name pin-left') +
+      eds.map((e) => th(e.id, e.name, '', e.month)).join('') + th('total', 'Total', 'pin-right');
+    const body = slice.map((r) => {
+      const cells = eds.map((e) => (e.id in r.scores)
+        ? `<td>${r.scores[e.id]}</td>` : '<td class="dash" aria-label="did not play">–</td>').join('');
+      return `<tr class="${r.uid === me ? 'me' : ''}">` +
+        `<td class="rank">${r.tied ? '=' : ''}${r.rank}</td>` +
+        `<td class="name pin-left">${esc(r.name)}${crown(r.crowns)}</td>` +
+        cells + `<td class="pin-right">${r.total}</td></tr>`;
+    }).join('');
+
+    let pager = '';
+    if (shown === FIRST) {
+      pager = total > FIRST
+        ? `<span class="count">Top ${FIRST} of ${total}</span><button class="btn ghost" id="more">Show more</button>`
+        : `<span class="count">${total} ${total === 1 ? 'reader' : 'readers'}</span>`;
+    } else {
+      const pages = Math.ceil(total / PAGE);
+      pager = `<button class="btn ghost" id="prev" ${page === 0 ? 'disabled' : ''}>&larr; Previous</button>` +
+        `<span class="count">${start + 1}–${Math.min(start + PAGE, total)} of ${total}</span>` +
+        `<button class="btn ghost" id="next" ${page >= pages - 1 ? 'disabled' : ''}>Next &rarr;</button>`;
+    }
+
+    const upd = board.updatedAt && board.updatedAt.toDate
+      ? board.updatedAt.toDate().toLocaleString(undefined, { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' })
+      : '';
+    const bylines = eds.filter((e) => e.byline)
+      .map((e) => `<p>${esc(e.name)} (${esc(e.month)}) &mdash; submitted by ${esc(e.byline)}</p>`).join('');
+
+    box.innerHTML =
+      `<div class="you">${youHtml}</div>` +
+      `<div class="section-label"><span>All editions</span>${upd ? `<span class="upd">Updated ${esc(upd)}, every hour</span>` : ''}</div>` +
+      `<div class="scroller"><table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div>` +
+      `<div class="pager">${pager}</div>` +
+      `<p class="note">Each correct answer is worth 5 points. Only plays made in an edition&rsquo;s own month count, ` +
+      `so editions played later from the <a href="/yorker-archives.html">archive</a> don&rsquo;t change the board. ` +
+      `The top five each month earn a crown beside their name.</p>` +
+      `<div class="share"><div class="section-label"><span>Share the leaderboard</span></div>` +
+      `<textarea id="shareMsg" aria-label="Your message">Think you know your Test cricket? See where you'd land on the Yorker leaderboard.</textarea>` +
+      `<div class="row"><button class="btn" id="copy">Copy message and link</button>` +
+      `<span class="hint" id="copyHint">Your name isn&rsquo;t added unless you write it in.</span></div></div>` +
+      (bylines ? `<div class="bylines">${bylines}</div>` : '');
+
+    box.querySelectorAll('th[data-key]').forEach((el) => {
+      const go = () => {
+        const k = el.getAttribute('data-key');
+        if (k === sortKey) sortDir = -sortDir;
+        else { sortKey = k; sortDir = (k === 'name' || k === 'rank') ? 1 : -1; }
+        page = 0;
+        render();
+      };
+      el.addEventListener('click', go);
+      el.addEventListener('keydown', (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); go(); } });
+    });
+    const on = (id, fn) => { const el = document.getElementById(id); if (el) el.addEventListener('click', fn); };
+    on('more', () => { shown = PAGE; page = 0; render(); });
+    on('prev', () => { page = Math.max(0, page - 1); render(); });
+    on('next', () => { page += 1; render(); });
+    on('copy', async () => {
+      const msg = document.getElementById('shareMsg').value.trim();
+      const text = (msg ? msg + '\n' : '') + SHARE_URL;
+      const hint = document.getElementById('copyHint');
+      try { await navigator.clipboard.writeText(text); hint.textContent = 'Copied. Paste it wherever you like.'; }
+      catch (e) { hint.textContent = 'Couldn’t copy here. Select the message and copy it yourself: ' + SHARE_URL; }
+    });
+  }
+
+  async function load() {
+    let snap;
+    try {
+      snap = await getDoc(doc(db, 'leaderboards', 'yorker'));
+    } catch (err) {
+      console.error('Yorker leaderboard load error:', err);
+      state('The scorers have stepped out', 'The leaderboard couldn&rsquo;t be loaded. Please try again shortly.');
+      return;
+    }
+    const d = snap.exists() ? snap.data() : null;
+    if (!d || !Array.isArray(d.rows) || !d.rows.length) {
+      state('No scores yet', 'The board fills as readers play. <a href="/yorker.html">Play this month&rsquo;s Yorker</a> and be the first name on it.');
+      return;
+    }
+    board = {
+      updatedAt: d.updatedAt || null,
+      editions: Array.isArray(d.editions) ? d.editions : [],
+      rows: withRanks(d.rows.map((r) => ({
+        uid: r.uid, name: String(r.name || 'Reader'), crowns: Number(r.crowns) || 0,
+        scores: r.scores || {}, total: Number(r.total) || 0,
+      }))),
+    };
+    render();
+  }
+
+  // The page gate has already made sure someone is signed in; wait for the
+  // auth state so the read carries their token and "you" can be marked.
+  const stop = onAuthStateChanged(auth, (user) => {
+    stop();
+    me = user ? user.uid : null;
+    if (!user) { state('Sign in to see the leaderboard', '<a href="/login.html?returnUrl=%2Fyorker-leaderboard.html">Sign in</a> or create a free account.'); return; }
+    load();
+  });
+</script>
+
+<script src="/ct-nav.js"></script>
+</body>
+</html>

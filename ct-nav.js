@@ -44,11 +44,9 @@
     // spelling deliberately — those are identifiers, not addresses.
     { href: '/yorker.html',      label: 'Yorker' },
     { href: '/yorker-archives.html', label: 'Yorker Archives' },
-    // [2026-10-21] The Yorker Leaderboard link (footer-only, added 2026-08-14) is
-    // REMOVED: the page is deferred to after launch and the link 404'd. When the
-    // page ships, put back:
-    //   { href: '/yorker-leaderboard.html', label: 'Yorker Leaderboard', footerOnly: true },
-    // The footerOnly mechanism in renderPrimary() is kept for it.
+    // Yorker Leaderboard: footer only (added 2026-08-14, removed 2026-10-21 while
+    // the page was unbuilt, back 2026-11-25 with the page).
+    { href: '/yorker-leaderboard.html', label: 'Yorker Leaderboard', footerOnly: true },
     { href: '/archive.html',     label: 'Archive' },
     { href: '/audio.html',       label: 'Audio' }
   ];

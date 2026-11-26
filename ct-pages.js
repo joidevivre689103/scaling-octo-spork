@@ -538,6 +538,24 @@
             ]
           ],
           "cta": "Open the archives"
+        },
+        {
+          "key": "yorker-leaderboard",
+          "title": "Yorker Leaderboard",
+          "href": "/yorker-leaderboard.html",
+          "gate": "yorker-leaderboard",
+          "tier": "account",
+          "blurb": "Every reader who took each month’s Yorker while it was live, ranked by their total.",
+          "questions": [
+            "Where do you stand?"
+          ],
+          "inside": [
+            [
+              "The board",
+              "every edition’s score and the total; the top five each month earn a crown"
+            ]
+          ],
+          "cta": "See the leaderboard"
         }
       ]
     }
