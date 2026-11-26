@@ -477,6 +477,12 @@ body{
 .breakdown-filter{ text-align:center; margin:-8px 0 24px; }
 #breakdown-list.only-wrong .breakdown-q.correct{ display:none; }
 
+/* How to do well next month [2026-11-26]: tips under the answers. */
+.yorker-tips{ margin:36px 0 8px; }
+.yorker-tips ul{ list-style:none; margin:0; padding:18px 22px; border:1px solid var(--border); border-radius:10px; }
+.yorker-tips li{ font-size:15px; line-height:1.55; padding:6px 0; }
+.yorker-tips a{ color:inherit; text-decoration:underline; }
+
 .breakdown-q{
   padding:20px 22px;
   border:1px solid var(--border);
