@@ -2940,16 +2940,16 @@ window.ctToolRow = function (links) {
       // and the first day and the countries page finds the Test (?find=).
       const teams2 = m.teams || [];
       // A Test still on links to its scorecard so far when we have entered one
-      // (IJ, 2026-11-09), also for subscribers.
+      // (IJ, 2026-11-09). Free to everyone since 2026-11-27 (IJ: readers who
+      // can't see it go elsewhere): /scorecard-live.html.
       const sf = m.state === 'live' && m.tier === 'test' && teams2.length === 2 && m.startsAt ? shownFor(m) : null;
       if (sf) {
         const foot = el('div', 'lc-foot');
-        foot.appendChild(el('span', 'lc-cap', 'For subscribers'));
         // Our card is finished though the feed is behind (2026-11-13): say so.
         const a = el('a', 'lc-link', sf.result
           ? 'Full scorecard (' + sf.result.charAt(0).toLowerCase() + sf.result.slice(1) + ') \u2192'
           : 'Scorecard so far' + (sf.asOf ? ' (' + sf.asOf.toLowerCase() + ')' : '') + ' \u2192');
-        a.href = '/countries.html?find=' + encodeURIComponent(teams2.join('|') + '|' + String(m.startsAt).slice(0, 10));
+        a.href = '/scorecard-live.html?find=' + encodeURIComponent(teams2.join('|') + '|' + String(m.startsAt).slice(0, 10));
         foot.appendChild(a);
         card.appendChild(foot);
       }
@@ -2969,10 +2969,15 @@ window.ctToolRow = function (links) {
           const a = el('a', 'lc-link', 'See the scorecard \u2192');
           a.href = '/scorecard/' + parseInt(fc.test, 10) + '/';
           foot.appendChild(a);
-        } else if (full || ours) {
-          foot.appendChild(el('span', 'lc-cap', 'For subscribers'));
-          const a = el('a', 'lc-link', full ? 'See the full scorecard \u2192'
+        } else if (ours) {
+          // Our own card (2026-11-27: free, like the live one).
+          const a = el('a', 'lc-link', (ours.result || ours.final) ? 'See the full scorecard \u2192'
             : 'Scorecard so far' + (ours.asOf ? ' (' + ours.asOf.toLowerCase() + ')' : '') + '; full scorecard soon \u2192');
+          a.href = '/scorecard-live.html?find=' + encodeURIComponent(teams2.join('|') + '|' + String(m.startsAt).slice(0, 10));
+          foot.appendChild(a);
+        } else if (full) {
+          foot.appendChild(el('span', 'lc-cap', 'For subscribers'));
+          const a = el('a', 'lc-link', 'See the full scorecard \u2192');
           a.href = '/countries.html?find=' + encodeURIComponent(teams2.join('|') + '|' + String(m.startsAt).slice(0, 10));
           foot.appendChild(a);
         } else {
@@ -2994,9 +2999,10 @@ window.ctToolRow = function (links) {
         let foot = card.querySelector(':scope > .lc-foot');
         if (!foot) {
           foot = el('div', 'lc-foot');
-          foot.appendChild(el('span', 'lc-cap', 'For subscribers'));
           card.appendChild(foot);
         }
+        // The scorecard above it is free (2026-11-27); the tool is not.
+        if (!foot.querySelector('.lc-cap')) foot.appendChild(el('span', 'lc-cap', 'For subscribers'));
         foot.appendChild(window.ctToolRow([['Replay a past meeting',
           '/simulations.html?sim=w&tid=' + bf.test + '&run=0&why=before']]));
       }

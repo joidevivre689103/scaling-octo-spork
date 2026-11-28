@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!-- CT_7G_INJECT:START (auto-injected by deploy tool — do not edit by hand) -->
+<style id="ct-7g-hide">body{visibility:hidden}</style>
+<script>window.CT_PAGE_ID="scorecard";</script>
+<script src="/feature-flags.js"></script>
+<script>setTimeout(function(){if(!window.__ctFlagsLoaded){location.replace("/comingsoon.html");}},2500);</script>
+<script src="/auth-status.js"></script>
+<script src="/ct-tracker.js" async></script>
+<!-- CT_7G_INJECT:END -->
+<script src="/prelaunch-guard.js"></script>
+<!-- [2026-11-27, IJ] The scorecard so far of a Test still on, free to everyone
+     (like the finished-Test pages in /scorecard/). Opened from State of play
+     and Scores with ?find=<team>|<team>|<first day>. The card comes from
+     liveScorecards/<id> (public get since 2026-11-27), listed in
+     liveScores/scorecardsShown; written by the Scorecard entry admin page or
+     fetchScores (CricketData). Renderer copied from countries.html
+     liveScorecardHTML: change both together. Not indexed: it is a moving card
+     that becomes /scorecard/<n>-.../ once the Test is in the data. -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+<meta name="robots" content="noindex">
+<title>Scorecard so far — The Grass Bank™</title>
+<meta name="description" content="The scorecard so far of a Test in play.">
+<link rel="stylesheet" href="/fonts/fonts-opsz.css">
+<link rel="stylesheet" href="/scorecard/scorecard.css">
+<style>
+.otd-behind{font-family:'Inter',sans-serif;font-size:13.5px;line-height:1.45;color:var(--text);background:var(--gold-dim);
+  border:1px solid var(--gold);border-left:4px solid var(--gold);border-radius:8px;padding:10px 14px;margin:12px 0 4px}
+.otd-behind b{color:var(--gold);text-transform:uppercase;letter-spacing:0.6px;font-size:11.5px;margin-right:6px}
+.otd-behind-tag{display:inline-block;margin-left:8px;padding:1px 7px;border-radius:4px;background:var(--gold);color:#fff;font-size:10px;letter-spacing:0.6px;vertical-align:1px}
+.otd-cards .rec-table tbody tr.otd-now td{background:var(--gold-dim);color:var(--text);box-shadow:inset 0 2px 0 var(--gold)}
+</style>
+<link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<script src="/ct-refresh.js" defer></script>
+<meta name="theme-color" content="#fbf8f1">
+</head>
+<body>
+<header data-ct-nav="masthead"></header>
+<nav data-ct-nav="primary"></nav>
+<main class="main">
+<p class="tp-kicker">Scorecard so far</p>
+<div id="card"><p class="otd-note">Loading the scorecard…</p></div>
+<div class="tp-more"><a class="tp-btn" href="/scores.html?show=test">All scores</a></div>
+</main>
+<footer data-ct-nav="footer"></footer>
+<script src="/ct-nav.js"></script>
+<script>
+function otdEsc(v) {
+  return String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+function otdOrdinal(n) { return ['', '1st', '2nd', '3rd', '4th'][n] || (n + 'th'); }
+function liveScorecardHTML(r) {
+  const [a, b] = r.teams || ['', ''];
+  const when = r.start ? new Date(r.start + 'T00:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', timeZone: 'UTC' }) : '';
+  let html = `<div class="otd-match">
+    <div class="otd-match-head"><span class="otd-match-year">${otdEsc(String(r.start || '').slice(0, 4))}</span>
+      <h1 class="otd-match-title">${otdEsc(a)} v ${otdEsc(b)}</h1></div>
+    <p class="otd-match-sub">${[r.matchName, [r.ground, r.city].filter(Boolean).join(', '), when].filter(Boolean).map(otdEsc).join(' · ')}</p>
+    <p class="otd-match-result">${otdEsc(r.result || ('In progress' + (r.asOf ? ': ' + r.asOf.charAt(0).toLowerCase() + r.asOf.slice(1) : '')))}</p>${r.toss
+      ? `<p class="otd-match-toss">${otdEsc(r.toss.team)} won the toss and chose to ${r.toss.choice === 'bat' ? 'bat' : 'field'}</p>` : ''}
+    ${r.result ? '' : '<p class="otd-note">The scorecard so far. The full scorecard follows when the Test is over.</p>'}${r.behind
+      ? `<p class="otd-behind"><b>Behind</b>The detailed scorecard is behind the score${typeof r.behind === 'string' ? '. Score now: <strong>' + otdEsc(r.behind) + '</strong>' : ''}.</p>` : ''}`;
+  (r.innings || []).forEach((inn, i) => {
+    const totalTxt = inn.wkts >= 10 ? `${inn.total} all out` : `${inn.total}/${inn.wkts}${inn.declared ? ' declared' : ''}`;
+    // Detail behind this innings' score (2026-11-21): the title shows the score
+    // now; the table's total is the detail's own, labelled as such.
+    const bh = inn.behind;
+    const nowTxt = bh ? (bh.w >= 10 ? `${bh.r} all out` : `${bh.r}/${bh.w}`) : '';
+    const showBalls = (inn.bat || []).some(x => x.balls > 0);
+    // 4s and 6s when the card has them (CricketData's scorecards, 2026-11-18).
+    const showBound = (inn.bat || []).some(x => x.fours != null || x.sixes != null);
+    const extraCols = (showBalls ? 1 : 0) + (showBound ? 2 : 0);
+    let bt = `<div class="tbl-wrap"><table class="rec-table"><thead><tr>
+      <th class="left">Batter</th><th class="left">Dismissal</th><th>R</th>${showBalls ? '<th>B</th>' : ''}${showBound ? '<th>4s</th><th>6s</th>' : ''}</tr></thead><tbody>`;
+    (inn.bat || []).forEach(x => {
+      bt += `<tr><td class="left">${otdEsc(x.name)}</td><td class="left">${otdEsc(x.how)}</td>
+        <td>${otdEsc(x.runs == null ? '' : x.runs)}${x.notOut ? '*' : ''}</td>${showBalls ? `<td>${x.balls > 0 ? x.balls : ''}</td>` : ''}${showBound
+          ? `<td>${otdEsc(x.fours == null ? '' : x.fours)}</td><td>${otdEsc(x.sixes == null ? '' : x.sixes)}</td>` : ''}</tr>`;
+    });
+    if (inn.extras > 0) bt += `<tr class="otd-extras"><td class="left" colspan="2">Extras</td><td>${otdEsc(inn.extras)}</td>${extraCols ? `<td colspan="${extraCols}"></td>` : ''}</tr>`;
+    bt += `<tr class="otd-sum"><td class="left" colspan="2">${bh ? 'Scorecard so far' : 'Total'}${inn.overs ? ' (' + otdEsc(inn.overs) + ' overs)' : ''}</td><td class="otd-total" colspan="${1 + extraCols}">${otdEsc(totalTxt)}</td></tr>`;
+    if (bh) bt += `<tr class="otd-sum otd-now"><td class="left" colspan="2">Score now${bh.o ? ' (' + otdEsc(bh.o) + ' overs)' : ''}</td><td class="otd-total" colspan="${1 + extraCols}">${otdEsc(nowTxt)}</td></tr>`;
+    if ((inn.dnb || []).length) bt += `<tr><td class="left" colspan="${3 + extraCols}">${i === r.innings.length - 1 && !r.result && inn.wkts < 10 && !inn.declared ? 'Yet to bat' : 'Did not bat'}: ${(inn.dnb).map(otdEsc).join(', ')}</td></tr>`;
+    bt += '</tbody></table></div>';
+    let bw = `<div class="tbl-wrap"><table class="rec-table"><thead><tr>
+      <th class="left">Bowler</th><th>O</th><th>M</th><th>R</th><th>W</th></tr></thead><tbody>`;
+    (inn.bowl || []).forEach(x => {
+      bw += `<tr><td class="left">${otdEsc(x.name)}</td><td>${otdEsc(x.o)}</td><td>${otdEsc(x.m)}</td><td>${otdEsc(x.r)}</td><td>${otdEsc(x.w)}</td></tr>`;
+    });
+    if (!(inn.bowl || []).length) bw += '<tr><td class="left" colspan="5">No bowling figures yet.</td></tr>';
+    bw += '</tbody></table></div>';
+    const fw = inn.fow || [];
+    const half = Math.ceil(fw.length / 2);
+    const fwt = fw.length ? `<div class="otd-fow-grid" style="--fow-rows:${half}">` + fw.map(w =>
+      `<div class="otd-fow-item"><b>${otdEsc(w.w)}-${otdEsc(w.score)}</b>` +
+      `<span class="otd-fow-name">${otdEsc(w.name)}</span><span class="otd-fow-ov">${otdEsc(w.over)} ov</span></div>`).join('') + `</div>` : '';
+    html += `<div class="otd-inn-title"><span>${otdEsc(inn.team)} · ${otdOrdinal(i + 1)} innings${bh ? '<span class="otd-behind-tag">Behind</span>' : ''}</span>
+      <span class="otd-inn-total">${otdEsc(bh ? nowTxt : totalTxt)}</span></div>
+      <div class="otd-cards">${bt}<div class="otd-side">${bw}${fwt ? '<div class="otd-fow-lbl">Fall of wickets</div>' + fwt : ''}</div></div>`;
+  });
+  return html + '</div>';
+}
+
+(async function () {
+  const box = document.getElementById('card');
+  const f = new URLSearchParams(location.search).get('find') || '';
+  const [t1, t2, day] = f.split('|');
+  const start = Date.parse(String(day || '') + 'T00:00:00Z');
+  const none = () => { box.innerHTML = '<p class="otd-note">There is no scorecard for this Test yet. ' +
+    'Once it finishes, its full scorecard follows within a few days.</p>'; };
+  if (!t1 || !t2 || isNaN(start)) return none();
+  try {
+    const app = await window.CTFeatureFlags.firebaseReady;
+    const { getFirestore, doc, getDoc } = await import('https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js');
+    const db = getFirestore(app);
+    const idx = await getDoc(doc(db, 'liveScores', 'scorecardsShown'));
+    const want = [t1, t2].map(x => String(x).toLowerCase()).sort().join('|');
+    const hit = Object.entries((idx.exists() && idx.data().tests) || {}).find(([, v]) => v
+      && (v.teams || []).map(x => String(x).toLowerCase()).sort().join('|') === want
+      && Math.abs(Date.parse(String(v.start) + 'T00:00:00Z') - start) <= 864e5);
+    if (!hit) return none();
+    const snap = await getDoc(doc(db, 'liveScorecards', hit[0]));
+    if (!snap.exists()) return none();
+    const r = snap.data();
+    document.title = (r.teams || []).join(' v ') + ' — scorecard so far — The Grass Bank™';
+    box.innerHTML = liveScorecardHTML(r);
+  } catch (e) {
+    box.innerHTML = '<p class="otd-note">The scorecard could not be loaded. Please try again in a moment.</p>';
+  }
+})();
+</script>
+</body>
+</html>
