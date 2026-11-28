@@ -317,9 +317,9 @@ body{
 .lc-tools{ display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:4px 0 2px; }
 /* The scorecard link is free and the tools are not (2026-11-27): the "For
    subscribers" label sits on the tools' own row, to the right of the buttons,
-   with a gap above the row, so it can't be read as belonging to the link and
-   the card is no taller. */
-.lc-link + .lc-tools{ margin-top:10px; }
+   with a faint dashed line above the row (free above, paid below), so it
+   can't be read as belonging to the link and the card is no taller. */
+.lc-link + .lc-tools{ margin-top:4px; padding-top:6px; border-top:1px dashed var(--surface3); }
 .lc-tools .lc-cap{ margin-left:auto; padding-left:6px; white-space:nowrap; }
 .lc-tool{ font-family:'Inter',sans-serif; font-size:11.5px; font-weight:600; padding:5px 9px; border:1px solid var(--border2); border-radius:3px; background:var(--bg); color:var(--accent); text-decoration:none; line-height:1.2; }
 .lc-tool:hover, .lc-tool:focus-visible{ border-color:var(--accent); background:var(--accent-dim); outline:none; }
