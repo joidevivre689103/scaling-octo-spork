@@ -314,7 +314,13 @@ body{
 .lc-guess{ font-family:'Inter',sans-serif; font-size:11.5px; padding:5px 9px; border:1px solid var(--border2); border-radius:3px; background:var(--bg); color:var(--text); cursor:pointer; line-height:1.2; }
 .lc-guess:hover, .lc-guess:focus-visible{ border-color:var(--accent); color:var(--accent); outline:none; }
 /* Tool links on the cards (2026-11-16, IJ): boxes like the guess buttons above. */
-.lc-tools{ display:flex; flex-wrap:wrap; gap:6px; margin:4px 0 2px; }
+.lc-tools{ display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:4px 0 2px; }
+/* The scorecard link is free and the tools are not (2026-11-27): the "For
+   subscribers" label sits on the tools' own row, to the right of the buttons,
+   with a gap above the row, so it can't be read as belonging to the link and
+   the card is no taller. */
+.lc-link + .lc-tools{ margin-top:10px; }
+.lc-tools .lc-cap{ margin-left:auto; padding-left:6px; white-space:nowrap; }
 .lc-tool{ font-family:'Inter',sans-serif; font-size:11.5px; font-weight:600; padding:5px 9px; border:1px solid var(--border2); border-radius:3px; background:var(--bg); color:var(--accent); text-decoration:none; line-height:1.2; }
 .lc-tool:hover, .lc-tool:focus-visible{ border-color:var(--accent); background:var(--accent-dim); outline:none; }
 .lc-answer{ margin:0 0 4px; font-size:13px; line-height:1.45; color:var(--text); }
@@ -2368,8 +2374,9 @@ window.ctHooksOn = (function () {
     return localStorage.getItem('tgb-hooks-preview') === '1';
   } catch (e) { return false; }
 })();
-// A row of boxed links: [[text, href], ...].
-window.ctToolRow = function (links) {
+// A row of boxed links: [[text, href], ...], with an optional small label
+// (e.g. 'For subscribers') at the right-hand end of the row.
+window.ctToolRow = function (links, cap) {
   const row = document.createElement('div');
   row.className = 'lc-tools';
   links.forEach(([text, href]) => {
@@ -2377,6 +2384,11 @@ window.ctToolRow = function (links) {
     a.className = 'lc-tool'; a.textContent = text; a.href = href;
     row.appendChild(a);
   });
+  if (cap) {
+    const c = document.createElement('span');
+    c.className = 'lc-cap'; c.textContent = cap;
+    row.appendChild(c);
+  }
   return row;
 };
 
@@ -2441,11 +2453,10 @@ window.ctToolRow = function (links) {
       // the answer away.
       const toolLinks = () => {
         if (!(test > 0) || !window.ctHooksOn) return;
-        foot.appendChild(el('span', 'lc-cap', 'For subscribers'));
         const links = [];
         if (e.year && e.year <= now.getFullYear() - 3) links.push(['Replay it', '/simulations.html?sim=w&tid=' + test + '&run=0']);
         links.push(['Compare the top scorers', '/compare.html?stars=' + test]);
-        foot.appendChild(window.ctToolRow(links));
+        foot.appendChild(window.ctToolRow(links, 'For subscribers'));
       };
       const sides = String(e.teams || '').split(' v ');
       if (test > 0 && e.outcome && e.result && sides.length === 2) {
@@ -3001,10 +3012,11 @@ window.ctToolRow = function (links) {
           foot = el('div', 'lc-foot');
           card.appendChild(foot);
         }
-        // The scorecard above it is free (2026-11-27); the tool is not.
-        if (!foot.querySelector('.lc-cap')) foot.appendChild(el('span', 'lc-cap', 'For subscribers'));
+        // The scorecard above it is free (2026-11-27); the tool is not: the
+        // label goes on the tool's own row, unless the foot already has one.
+        const capHere = foot.querySelector('.lc-cap') ? '' : 'For subscribers';
         foot.appendChild(window.ctToolRow([['Replay a past meeting',
-          '/simulations.html?sim=w&tid=' + bf.test + '&run=0&why=before']]));
+          '/simulations.html?sim=w&tid=' + bf.test + '&run=0&why=before']], capHere));
       }
       box.appendChild(card);
     });
