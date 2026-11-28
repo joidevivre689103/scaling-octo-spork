@@ -164,8 +164,9 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
   const dayMs = s => Date.parse(String(s || '').slice(0, 10) + 'T00:00:00Z');
   const shownFor = m => Object.values(shown).find(v => v && teamKey(v.teams) === teamKey(m.teams)
     && Math.abs(dayMs(v.start) - dayMs(m.startsAt)) <= 864e5);
-  const inFull = m => fullCards.some(v => v && teamKey(v.teams) === teamKey(m.teams)
+  const fullOf = m => fullCards.find(v => v && teamKey(v.teams) === teamKey(m.teams)
     && Math.abs(dayMs(v.start) - dayMs(m.startsAt)) <= 3 * 864e5);
+  const inFull = m => !!fullOf(m);
 
   function card(m) {
     const c = el('article', 'lc' + (fmtOf(m) ? ' fmt-' + fmtOf(m) : '') + (m.state === 'live' ? ' is-live' : ''));
@@ -205,7 +206,7 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
       p.appendChild(document.createTextNode(nd.when + ' (scheduled)'));
       c.appendChild(p);
     }
-    // Tests: the scorecard for subscribers, exactly as on the homepage.
+    // Tests: the scorecard, as on the homepage (our own card free since 2026-11-27).
     const teams2 = m.teams || [];
     if (m.tier === 'test' && teams2.length === 2 && m.startsAt) {
       const ours = shownFor(m);
@@ -216,9 +217,16 @@ body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-
       else if (ours) text = 'Scorecard so far' + (ours.asOf ? ' (' + ours.asOf.toLowerCase() + ')' : '') + (m.state === 'result' ? '; full scorecard soon' : '') + ' →';
       const foot = el('div', 'lc-foot');
       if (text) {
-        foot.appendChild(el('span', 'lc-cap', 'For subscribers'));
-        const a = el('a', 'lc-link', text);
-        a.href = '/countries.html?find=' + encodeURIComponent(teams2.join('|') + '|' + String(m.startsAt).slice(0, 10));
+        // Our own card is free (2026-11-27, IJ): /scorecard-live.html. The full
+        // card from the data alone still opens Countries, for subscribers.
+        // In the data with a Test number: its free /scorecard/<n>/ page
+        // (2026-11-25), as on the homepage.
+        const find = encodeURIComponent(teams2.join('|') + '|' + String(m.startsAt).slice(0, 10));
+        const fc = m.state === 'result' ? fullOf(m) : null;
+        const num = fc && parseInt(fc.test, 10) > 0 ? parseInt(fc.test, 10) : 0;
+        if (!num && !ours) foot.appendChild(el('span', 'lc-cap', 'For subscribers'));
+        const a = el('a', 'lc-link', num ? 'See the scorecard →' : text);
+        a.href = num ? '/scorecard/' + num + '/' : ours ? '/scorecard-live.html?find=' + find : '/countries.html?find=' + find;
         foot.appendChild(a);
         c.appendChild(foot);
       } else if (m.state === 'result') {
